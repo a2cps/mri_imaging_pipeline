@@ -7,13 +7,13 @@ heudiconv:
   name: heudiconv_test
   archive: true
   archivePath: testing/actor-heudiconv
-  archiveSystem: a2cps.home.urrutia
-  batchQueue: flat-quadrant
+  archiveSystem: a2cps.storage.protected
+  batchQueue: itar
   maxRunTime: "48:00:00"
   parameters:
     FILES: norshore/bids/1
     LIST_OF_SUBJECTS: sub-01
-    OUTDIR: outputs
+    OUTDIR: '.'
     SESSION_FOR_LONGITUDINAL: session1
     BIDS: true
     HEURISTIC: a2cps.py
@@ -22,4 +22,11 @@ heudiconv:
   notifications:
     -
       event: FINISHED
-      url: your@email.com
+      url: a2cps-dirc-notify-ui@a2cps.org
+pipelines:
+  fmriprep_alias: fmriprep.prod
+  api_server: https://portals-api.tacc.utexas.edu
+  mriqc_alias: mriqc.prod
+  bids_validator_alias: bids-validator.prod
+  vbr_actor_alias: vbr-actor.prod
+  heudiconv_alias: heudiconv_router.prod

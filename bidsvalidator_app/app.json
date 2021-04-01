@@ -4,13 +4,13 @@
 	"executionType": "HPC",
 	"executionSystem": "{{ app.hpc_system}}",
 	"parallelism": "SERIAL",
-	"deploymentPath": "apps/{{ app.name }}-{{ app.version }}",
+	"deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
 	"deploymentSystem": "{{ app.storage_system}}",
 	"defaultProcessorsPerNode": 1,
 	"defaultNodeCount": 1,
-	"defaultQueue": "normal",
+	"defaultQueue": "itar",
 	"label": "BIDSVALIDATOR_TEST",
-	"modules": ["load tacc-singularity"],
+	"modules": ["load tacc-singularity", "unload xalt"],
 	"shortDescription": "{{ app.description }}",
 	"templatePath": "runner-template.sh",
 	"testPath": "tester.sh",
@@ -35,6 +35,20 @@
 			},
 			"value": {
 				"default": "/work/03372/yoh/stampede2/a2cps/data/northshore/bids/",
+				"type": "string",
+				"visible": true,
+				"required": false
+			}
+		},
+		{
+			"id": "CONFIG_IGNORE",
+			"details": {
+				"argument": "--config.ignore=",
+				"showArgument": true,
+				"description": "Path to BIDS directory"
+			},
+			"value": {
+				"default": "129",
 				"type": "string",
 				"visible": true,
 				"required": false

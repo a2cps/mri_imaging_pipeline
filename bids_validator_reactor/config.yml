@@ -1,0 +1,23 @@
+---
+logs:
+  level: DEBUG
+  token: ~
+bids_validator:
+  appId: urrutia-bids_validator-1.6.1
+  name: bidsvalid
+  archive: true
+  archivePath: ""
+  archiveSystem: a2cps.storage.protected
+  batchQueue: itar
+  maxRunTime: "48:00:00"
+  parameters:
+    BIDS_DIRECTORY: sub-01
+    CONFIG_IGNORE: "129"
+  notifications:
+    url: me@mail.com
+pipelines:
+  fmriprep_alias: fmriprep.prod
+  api_server: https://portals-api.tacc.utexas.edu
+  mriqc_alias: mriqc.prod
+  bids_validator_alias: bids-validator.prod
+  vbr_actor_alias: vbr-actor.prod

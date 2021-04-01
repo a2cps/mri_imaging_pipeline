@@ -1,0 +1,42 @@
+{
+  "name": "{{ agave.username }}-{{ app.name }}",
+  "version": "{{ app.version }}",
+  "executionType": "HPC",
+  "executionSystem": "{{ app.hpc_system}}",
+  "parallelism": "SERIAL",
+  "deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
+  "deploymentSystem": "{{ app.storage_system}}",
+  "defaultProcessorsPerNode": 1,
+  "defaultNodeCount": 1,
+  "defaultQueue": "itar",
+  "label": "pydicom",
+  "modules": ["load tacc-singularity"],
+  "shortDescription": "{{ app.description }}",
+  "templatePath": "runner-template.sh",
+  "testPath": "tester.sh",
+  "inputs": [],
+  "parameters": [{
+      "id": "CONTAINER_IMAGE",
+      "value": {
+        "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
+        "description": "Container Image. Do not edit.",
+        "type": "string",
+        "visible": false,
+        "required": true
+      }
+    },
+    {
+      "id": "FILENAME",
+      "value": {
+        "default": "/corral-secure/projects/A2CPS/submissions/UC_uchicago/UC0001V1_A2CPS.zip",
+        "visible": true,
+        "type": "string",
+        "required": true
+      },
+      "details": {
+        "description": "The root folder uploaded from the data collection sites"
+      }
+    }
+
+  ]
+}

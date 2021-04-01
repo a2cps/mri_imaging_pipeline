@@ -1,0 +1,25 @@
+---
+logs:
+  level: DEBUG
+  token: ~
+dicom_reader:
+  appId: urrutia-dicom_reader-0.0.1
+  name: dicom
+  archive: true
+  archivePath: system/jobs/dicom_reader
+  archiveSystem: a2cps.storage.protected
+  batchQueue: itar
+  maxRunTime: "48:00:00"
+  parameters:
+    FILENAME: /corral-secure/projects/A2CPS/submissions/UC_uchicago/UC0001V1_A2CPS.zip
+  notifications:
+    -
+      event: FINISHED
+      url: a2cps-dirc-notify-ui@a2cps.org
+pipelines:
+  fmriprep_alias: fmriprep.prod
+  api_server: https://portals-api.tacc.utexas.edu
+  mriqc_alias: mriqc.prod
+  bids_validator_alias: bids-validator.prod
+  vbr_actor_alias: vbr-actor.prod
+  heudiconv_alias: heudiconv_router.prod

@@ -1,16 +1,16 @@
 {
-  "name": "wma_prtl-{{ app.name }}",
+  "name": "{{ agave.username }}-{{ app.name }}",
   "version": "{{ app.version }}",
   "executionType": "HPC",
   "executionSystem": "{{ app.hpc_system}}",
   "parallelism": "SERIAL",
-  "deploymentPath": "apps/{{ app.name }}-{{ app.version }}",
+  "deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
   "deploymentSystem": "{{ app.storage_system}}",
   "defaultProcessorsPerNode": 1,
   "defaultNodeCount": 1,
-  "defaultQueue": "normal",
+  "defaultQueue": "itar",
   "label": "MRIQC",
-  "modules": ["load tacc-singularity"],
+	"modules": ["load tacc-singularity", "unload xalt"],
   "shortDescription": "{{ app.description }}",
   "templatePath": "runner-template.sh",
   "testPath": "tester.sh",
@@ -30,6 +30,7 @@
       "value": {
         "default": "agave://a2cps.storage.public/a2cps_openneuro_testdata/",
         "visible": true,
+        "type": "string",
         "required": true
       },
       "semantics": {

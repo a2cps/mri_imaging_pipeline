@@ -1,0 +1,32 @@
+{
+  "name": "test fmriprep",
+  "appId": "heejung-fmriprep_LTS-20.2.1",
+  "archive": true,
+  "archivePath": "testing/fmriprep-20.2.1",
+  "maxRunTime": "12:00:00",
+  "archiveSystem": "a2cps.home.heejung",
+  "archiveOnAppError": true,
+  "inputs": {
+  },
+  "parameters": {
+    "BIDS_DIRECTORY": "/scratch/05369/urrutia/a2cpstest/troubleshoot/uic/bids",
+    "PARTICIPANT_LABEL": "sub-01",
+    "OUTPUT_DIR": "outputs",
+    "HEAD_MOTION": "9",
+    "ICA_AROMA_USE": true,
+    "ICA_AROMA_DIMENSIONALITY": -1,
+    "CIFTI_OUTPUT": "--cifti-output 91k",
+    "ANAT_ONLY": false,
+    "BIDS_FILTER_FILE": "--bids-filter-file task_only.json"
+  },
+  "notifications": [
+      {
+          "event": "FAILED",
+          "url": "Hee.Jung.Jung.GR@dartmouth.edu"
+      },
+      {
+          "event": "FINISHED",
+          "url": "Hee.Jung.Jung.GR@dartmouth.edu"
+      }
+  ]
+}

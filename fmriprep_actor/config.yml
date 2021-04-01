@@ -3,48 +3,85 @@ logs:
   level: DEBUG
   token: ~
 cuff:
-  appId: fmriprep_LTS-20.2.1
-  name: fmriprep_test
+  appId: urrutia-fmriprep_LTS-20.2.1
+  maxRunTime: "48:00:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.1
-  archiveSystem: a2cps.home.heejung
-  inputs:
-    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
+  archiveSystem: a2cps.storage.protected
+  name: name
   parameters:
+    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: sub-01
-    OUTPUT_DIR: outputs
-    HEAD_MOTION: 9
+    OUTPUT_DIR: .
+    HEAD_MOTION: "9"
     ICA_AROMA_USE: false
-    ICA_AROMA_DIMENSIONALITY:
-    CIFTI_OUTPUT: --cifti-output 91K
+    ANAT_ONLY: false
+    ICA_AROMA_DIMENSIONALITY: 0
+    CIFTI_OUTPUT: "--cifti-output 91k"
     IGNORE_FIELD_MAPS: false
     IGNORE_SLICE_TIMING: false
-    DUMMY_SCANS:
+    DUMMY_SCANS: 0
     FD_SPIKE: 0.9
+    BIDS_FILTER_FILE: --bids-filter-file cuff_only.json
+    FS_NO_RECONALL: true
+    FS_SUBJECTS_DIR: "" 
+    SKIP_BIDS_VALIDATION: true
   notifications:
     -
       event: FINISHED
       url: your@email.com
 rest:
-  appId: fmriprep_LTS-20.2.1
-  name: fmriprep_test
+  appId: urrutia-fmriprep_LTS-20.2.1
+  name: name
+  maxRunTime: "48:00:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.1
-  archiveSystem: a2cps.home.heejung
-  inputs:
-    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
+  archiveSystem: a2cps.storage.protected
   parameters:
+    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: sub-01
-    OUTPUT_DIR: outputs
-    HEAD_MOTION: 9
+    OUTPUT_DIR: .
+    HEAD_MOTION: "9"
     ICA_AROMA_USE: true
-    ICA_AROMA_DIMENSIONALITY:
-    CIFTI_OUTPUT: --cifti-output 91K
+    ICA_AROMA_DIMENSIONALITY: -100
+    CIFTI_OUTPUT: "--cifti-output 91k"
     IGNORE_FIELD_MAPS: false
+    ANAT_ONLY: false
     IGNORE_SLICE_TIMING: false
-    DUMMY_SCANS:
+    DUMMY_SCANS: 0
     FD_SPIKE: 0.3
+    BIDS_FILTER_FILE: --bids-filter-file rest_only.json
+    FS_NO_RECONALL: true
+    FS_SUBJECTS_DIR: "" 
+    SKIP_BIDS_VALIDATION: true
   notifications:
     -
       event: FINISHED
       url: your@email.com
+anat:
+  appId: urrutia-fmriprep_LTS-20.2.1
+  name: fmriprep_test
+  maxRunTime: "48:00:00"
+  archive: true
+  archivePath: testing/actor-fmriprep-20.2.1
+  archiveSystem: a2cps.storage.protected
+  name: name
+  parameters:
+    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
+    PARTICIPANT_LABEL: sub-01
+    OUTPUT_DIR: .
+    ICA_AROMA_USE: false
+    CIFTI_OUTPUT: "--cifti-output 91k"
+    ANAT_ONLY: true
+    FS_NO_RECONALL: false
+    SKIP_BIDS_VALIDATION: true
+  notifications:
+    -
+      event: FINISHED
+      url: your@email.com
+pipelines:
+  fmriprep_alias: fmriprep.prod
+  api_server: https://portals-api.tacc.utexas.edu
+  mriqc_alias: mriqc.prod
+  bids_validator_alias: bids-validator.prod
+  vbr_actor_alias: vbr-actor.prod
