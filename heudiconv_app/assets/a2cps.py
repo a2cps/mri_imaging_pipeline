@@ -36,6 +36,11 @@ protocols2fix.update({
             ('^GE_EPI_B0', 'fmap-epi_acq-GE'),  
             ('^SE_EPI_B0_(AP|PA)', r'fmap-epi_dir-\1'),
             ('^SE_EPI_B0', 'fmap-epi'),  
+            # new rules for new B0 names
+            ('^FMRI_B0_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\1'),    
+            ('^FMRI_B0', 'fmap-epi_acq-fmrib0'),     
+            ('^DWI_B0_(AP|PA)', r'fmap-epi_acq-dwib0_dir-\1'),   
+            ('^DWI_B0', 'fmap-epi_acq-dwib0'),
             ('^REST([12])$', r'func_task-rest_run-\1'), 
             ('^CUFF([12])$', r'func_task-cuff_run-\1'), 
         ],
