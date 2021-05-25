@@ -226,4 +226,9 @@ def edit_json(data_path):
         value = [os.path.join(sess_name,'dwi',dwi_data)]
         impute_intendedFor(i, 'IntendedFor', 'InstitutionAddress', value,save=True)
 
+    # Adding IntendedFor field in the json files for rest and cuff data
+    for i in func_json:
+        value = [os.path.join(sess_name,'func',str(Path(i).name)) for i in func_data]
+        impute_intendedFor(i, 'IntendedFor', 'InstitutionAddress', value,save=True)
+
 
