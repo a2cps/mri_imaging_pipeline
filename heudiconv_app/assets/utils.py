@@ -1,7 +1,7 @@
 import os, pydicom, shutil
 from pathlib import Path
 from nilearn.image import load_img,index_img
-import json
+import json,glob
 from collections import OrderedDict
 
 def make_copy(path):
@@ -183,8 +183,7 @@ def change_fmri(file):
     os.system(cmd)
     print(cmd)
     
-
-def edit_json(json_filename, key, pos_key, value,save=True):
+def impute_intendedFor(json_filename, key, pos_key, value,save=True):
     """
     json_filename: filename of the json file
     key: Name of the key to be added to the json file
@@ -203,5 +202,28 @@ def edit_json(json_filename, key, pos_key, value,save=True):
         with open(json_filename, 'w') as data_file:
             json.dump(new_dict, data_file,indent=1)
     f.close()
-    print("Done! file saved")
+    print("IntendedField added to %s"%json_filename)
+
+def edit_json(data_path):
+    dirs = Path(data_path)
+    ignore='sourcedata' 
+    # Accessing subject directory, removing hidden directory and sourcedata
+    for d in dirs.iterdir():
+        if d.is_dir() and ignore not in str(d) and '.heudiconv' not in str(d):
+            sub_dir = str(d)
+    # Getting session name
+    sess_name = os.listdir(sub_dir)[0] # Assuming there is only a single session
+    
+    # Getting json and nifti files under dwi and func directories 
+    json_files = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*b0*.json'))
+    dwi_json = sorted([i for i in json_files if 'dwi' in i])
+    dwi_data = Path(glob.glob(os.path.join(sub_dir,sess_name,'dwi','*.nii.gz'))[0]).name # assuming simple case of 1 DWI data
+    func_json = sorted([i for i in json_files if 'fmri' in i])
+    func_data = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.nii.gz')))
+    
+    # Adding IntendedFor field in the json files for DWI data
+    for i in dwi_json:
+        value = [os.path.join(sess_name,'dwi',dwi_data)]
+        impute_intendedFor(i, 'IntendedFor', 'InstitutionAddress', value,save=True)
+
 
