@@ -193,10 +193,20 @@ def impute_intendedFor(json_filename, key, pos_key, value,save=True):
     """
     f=open(json_filename,'r')
     json_data=json.load(f)
+    if 'PhaseEncodingDirection' in json_data.keys():
+        flag=True
+    else:
+        flag=False
     new_dict = OrderedDict()
     for k, v in json_data.items():
         if k==pos_key:
             new_dict[key] = value  # insert new key
+            if flag==False:
+                print("PhaseEncodingDirection added to %s"%json_filename)
+                if 'AP' in str(Path(json_filename).name):
+                    new_dict['PhaseEncodingDirection'] = "j-"  # insert new key
+                else:
+                    new_dict['PhaseEncodingDirection'] = "j"  # insert new key
         new_dict[k] = v
     if save:
         with open(json_filename, 'w') as data_file:
