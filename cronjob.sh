@@ -1,13 +1,16 @@
 #!/bin/bash
 
 set -eu
-
-topdir=$(dirname "$0"| xargs readlink -f | xargs dirname)
+ml python3
+#topdir=$(dirname "$0"| xargs readlink -f | xargs dirname)
+topdir=/corral-secure/projects/A2CPS/
 indir="$topdir/submissions"
 #outdir="$topdir/data"
-submitted="$indir/submitted.txt"
+submitted="/corral-secure/projects/A2CPS/system/cronjob/submitted.txt"
 
-heudiconv_actorid=009
+heudiconv_actorid=heudiconv_router.prod
+notifications_id=WPYELPWZy48aw
+tapis auth tokens refresh
 
 # refresh tokens
 # tapis auth tokens refresh
@@ -27,28 +30,34 @@ function skip_file() {
 
 
 touch "$submitted"
-/bin/ls "$indir"/*/*/*_*[12].zip.MD5SUM | while read f; do
+/bin/ls "$indir"/*/*/*.zip | while read f; do
 	if grep -q "^$f\$" "$submitted"; then
 		echo "$f was submitted, skipping"
 		continue
 	fi
-	(
-	 cd "$(dirname $f)";
-	 if ! md5sum -c "$f"; then
-		# TODO: make it so we avoid announcing twice
-		skip_file "md5 mismatch"
+	#cd "$(dirname $f)";
+	#if ! md5sum -c "$f"; then
+	if test 'find "$F" -mmin +10'
+	then
+		#zipfile="${f%.MD5SUM}"
+		zipfile=${f}
+		filename=$(basename "$zipfile" | sed -e 's,.zip,,g')
+		#subj=${filename%_*}
+		#ses=${filename#*_}
+		#site="$(dirname $zipfile| xargs basename)"
+		#site_path=$(dirname $(dirname "$zipfile"))
+		#site="$(basename $site_path)"
+		#outdir="$site_path/bids/$subj"
+		# requires tapis from tapis-cli (pypi)	
+		#echo tapis actors submit -m "{\"site\": \"$site\", \"subject\": \"$subj\", \"session\": \"$ses\", \"zipfile\": \"$zipfile\", \"outdir\": \"$outdir\"}" "$heudiconv_actorid"
+		echo tapis actors submit -m "{\"zipfile\": \"$zipfile\"}" "$heudiconv_actorid"
+		tapis actors submit -m "{\"zipfile\": \"$zipfile\"}" $heudiconv_actorid
+		echo "$f" >> "$submitted"
+		abaco submit -m "{\"text\": \"detected and submitted for processing: \"$zipfile\"}" $notifications_id
+		
 		continue
-	 fi
-        )
-	zipfile="${f%.MD5SUM}"
-	filename=$(basename "$zipfile" | sed -e 's,.zip,,g')
-	subj=${filename%_*}
-	ses=${filename#*_}
-	#site="$(dirname $zipfile| xargs basename)"
-        site_path=$(dirname $(dirname "$zipfile"))
-	site="$(basename $site_path)"
-	outdir="$site_path/bids/$subj"
-	# requires tapis from tapis-cli (pypi)	
-	echo tapis actors submit -m "{\"site\": \"$site\", \"subject\": \"$subj\", \"session\": \"$ses\", \"zipfile\": \"$zipfile\", \"outdir\": \"$outdir\"}" "$heudiconv_actorid"
-	echo "$f" >> "$submitted"
+	else 
+		skip_file "modified within 10 minutes"
+		fi
+
 done

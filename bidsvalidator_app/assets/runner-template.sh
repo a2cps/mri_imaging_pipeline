@@ -19,7 +19,11 @@ fi
 #            container_exec centos:7 uname -a
 
 # Echo command to std out
-echo singularity run  docker://${CONTAINER_IMAGE} ${BIDS_DIRECTORY}
+echo singularity run  \
+    -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
+    docker://${CONTAINER_IMAGE} ${CONFIG_IGNORE} ${BIDS_DIRECTORY}
 
 
-singularity run  docker://${CONTAINER_IMAGE} ${BIDS_DIRECTORY}
+singularity run \
+     -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
+     docker://${CONTAINER_IMAGE} ${CONFIG_IGNORE} ${BIDS_DIRECTORY}

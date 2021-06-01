@@ -27,35 +27,41 @@ PYTHONPATH=""
 #            container_exec centos:7 uname -a
 
 # Echo command to std out
-echo container_exec ${CONTAINER_IMAGE} \
-               mriqc \
-               ${BIDS_DIRECTORY} \
-               ${OUTPUT_DIR} \
-               participant --participant-label ${PARTICIPANT_LABEL} \
-               --n_procs 16 \
-	             --mem_gb 8 \
-               ${ICA} \
-               ${STOP_IDX} \
-               ${START_IDX} \
-               ${FFT_SPIKES} \
-               ${WRITE_GRAPH} \
-               ${CORRECT_SLICE_TIMING} \
-               ${FD_THRESHOLD}
+echo singularity exec \
+        -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
+        -e \
+        docker://${CONTAINER_IMAGE} \
+        mriqc \
+        ${BIDS_DIRECTORY} \
+        ${OUTPUT_DIR} \
+        participant --participant-label ${PARTICIPANT_LABEL} \
+        --n_procs 16 \
+            --mem_gb 8 \
+        ${ICA} \
+        ${STOP_IDX} \
+        ${START_IDX} \
+        ${FFT_SPIKES} \
+        ${WRITE_GRAPH} \
+        ${CORRECT_SLICE_TIMING} \
+        ${FD_THRESHOLD}
 
-container_exec ${CONTAINER_IMAGE} \
-               mriqc \
-               ${BIDS_DIRECTORY} \
-               ${OUTPUT_DIR} \
-               participant --participant-label ${PARTICIPANT_LABEL} \
-               --n_procs 16 \
-	             --mem_gb 8 \
-               ${ICA} \
-               ${STOP_IDX} \
-               ${START_IDX} \
-               ${FFT_SPIKES} \
-               ${WRITE_GRAPH} \
-               ${CORRECT_SLICE_TIMING} \
-               ${FD_THRESHOLD}
+singularity exec \
+        -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
+        -e \
+        docker://${CONTAINER_IMAGE} \
+        mriqc \
+        ${BIDS_DIRECTORY} \
+        ${OUTPUT_DIR} \
+        participant --participant-label ${PARTICIPANT_LABEL} \
+        --n_procs 16 \
+            --mem_gb 8 \
+        ${ICA} \
+        ${STOP_IDX} \
+        ${START_IDX} \
+        ${FFT_SPIKES} \
+        ${WRITE_GRAPH} \
+        ${CORRECT_SLICE_TIMING} \
+        ${FD_THRESHOLD}
 
 
 

@@ -1,0 +1,27 @@
+---
+logs:
+  level: DEBUG
+  token: ~
+mriqc:
+  appId: urrutia-mriqc-0.15.1
+  name: mriqc
+  archive: true
+  archivePath: ''
+  maxRunTime: "48:00:00"
+  archiveSystem: a2cps.storage.protected
+  parameters:
+    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
+    PARTICIPANT_LABEL: 01
+    START_IDX: 0
+    STOP_IDX: 0
+    WRITE_GRAPH: true
+    ICA: true
+    FD_THRESHOLD: 0
+    FFT_SPIKES: true
+    CORRECT_SLICE_TIMING: true
+    WORK_DIR: work
+    OUTPUT_DIR: .
+  notifications:
+    -
+      event: FINISHED
+      url: your@email.com

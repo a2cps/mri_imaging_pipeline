@@ -13,31 +13,63 @@ then
     fi
 fi
 
-
 # Usage: container_exec IMAGE COMMAND OPTIONS
 #   Example: docker run centos:7 uname -a
 #            container_exec centos:7 uname -a
 
+
 # Echo command to std out
-echo container_exec ${CONTAINER_IMAGE} \
-heudiconv \
-${DICOM_DIR_TEMPLATE} ${FILES} \
-${LIST_OF_SUBJECTS} \
-${CONVERTER} \
---outdir ${OUTDIR} \
-${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
-${HEURISTIC} \
-${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-${DATALAD} ${DCMCONFIG}
+# echo container_exec ${CONTAINER_IMAGE} \
+# heudiconv \
+# ${DICOM_DIR_TEMPLATE} ${dicom_dir} \
+# ${LIST_OF_SUBJECTS} \
+# ${CONVERTER} \
+# --outdir ${OUTDIR} \
+# ${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
+# ${HEURISTIC} \
+# ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+# ${DATALAD} ${DCMCONFIG}
 
 
-container_exec ${CONTAINER_IMAGE} \
-heudiconv \
-${DICOM_DIR_TEMPLATE} ${FILES} \
-${LIST_OF_SUBJECTS} \
-${CONVERTER} \
---outdir ${OUTDIR} \
-${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
-${HEURISTIC} \
-${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-${DATALAD} ${DCMCONFIG}
+# container_exec ${CONTAINER_IMAGE} \
+# heudiconv \
+# ${DICOM_DIR_TEMPLATE} ${dicom_dir} \
+# ${LIST_OF_SUBJECTS} \
+# ${CONVERTER} \
+# --outdir ${OUTDIR} \
+# ${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
+# ${HEURISTIC} \
+# ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+# ${DATALAD} ${DCMCONFIG}
+
+echo singularity exec \
+    -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} ${FILES} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+singularity exec \
+    -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} ${FILES} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+# add bval, bvec, betc to .bidsignore
+cat bids_ignore >> .bidsignore
+
+# quick python to remove null values from participants.tsv
+python3 participants.py

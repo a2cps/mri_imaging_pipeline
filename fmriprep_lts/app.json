@@ -10,7 +10,7 @@
   "defaultNodeCount": 1,
   "defaultQueue": "itar",
   "label": "fMRIPRep",
-  "modules": ["load tacc-singularity"],
+	"modules": ["load tacc-singularity", "unload xalt"],
   "shortDescription": "{{ app.description }}",
   "templatePath": "runner-template.sh",
   "testPath": "tester.sh",
@@ -101,13 +101,13 @@
       "id": "HEAD_MOTION",
       "details": {
         "argument": "--bold2t1w-dof ",
-        "showArgument": true,
+        "showArgument": false,
         "description": "Degrees of freedom when registering BOLD to T1w images. 9 degrees (rotation, translation, and scaling) are used by default."
       },
       "value": {
-        "default": "9",
+        "default": "",
         "type": "enumeration",
-        "enumValues": ["6", "9", "12"],
+        "enumValues": ["--bold2t1w-dof 6", "--bold2t1w-dof 9", "--bold2t1w-dof 12", {"": "undefined"}],
         "visible": true,
         "required": true
       }
@@ -224,8 +224,35 @@
     "visible": true,
     "required": false
   }
+},
+{
+  "id": "SKIP_BIDS_VALIDATION",
+  "details": {
+    "argument": "--skip-bids-validation ",
+    "showArgument": true,
+    "description": "skip bids validation step"
+  },
+  "value": {
+    "default": true,
+    "type": "flag",
+    "visible": true,
+    "required": false
+  }
+},
+{
+  "id": "FS_SUBJECTS_DIR",
+  "details": {
+    "argument": "--fs-subjects-dir ",
+    "showArgument": true,
+    "description": "use precomputed freesurfer directory"
+  },
+  "value": {
+    "default": "",
+    "type": "string",
+    "visible": true,
+    "required": false
+  }
 }
-
 
   ]
 }

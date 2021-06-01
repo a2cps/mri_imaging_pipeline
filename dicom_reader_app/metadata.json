@@ -1,0 +1,9 @@
+{
+  "name":"portal_apps",
+  "value":{
+    "definition": {
+    },
+    "type": "agave"
+    }
+}
+
