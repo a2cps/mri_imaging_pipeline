@@ -8,8 +8,9 @@ def make_copy(path):
     """
     Makes a copy of the original data. The original data is saved with a suffix "_orig"
     """
-    suffix = '-orig'
-    dst = os.path.join(path+suffix)
+    #suffix = '-orig'
+    #dst = os.path.join(path+suffix)
+    dst = os.path.join('./dicom')
     print("Making a copy of the data...")
     if os.path.isdir(dst):
         flag=True
@@ -18,7 +19,7 @@ def make_copy(path):
         shutil.copytree(path, dst)
         flag=False
         print("Done!The original copy is %s"%dst)
-    return path,flag
+    return dst,flag
 
 def get_subdirectory(path):
     """

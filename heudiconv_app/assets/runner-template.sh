@@ -42,6 +42,8 @@ fi
 # ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
 # ${DATALAD} ${DCMCONFIG}
 
+python3 run_delete_trigger_tag_philips.py ${FILES}
+
 echo singularity exec \
     -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
     docker://${CONTAINER_IMAGE} \
