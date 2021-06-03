@@ -1,16 +1,14 @@
 import os, pydicom, shutil
 from pathlib import Path
 from nilearn.image import load_img,index_img
-import json,glob
-from collections import OrderedDict
+import json
 
 def make_copy(path):
     """
     Makes a copy of the original data. The original data is saved with a suffix "_orig"
     """
-    #suffix = '-orig'
-    #dst = os.path.join(path+suffix)
-    dst = os.path.join('./dicom')
+    suffix = '-orig'
+    dst = os.path.join(path+suffix)
     print("Making a copy of the data...")
     if os.path.isdir(dst):
         flag=True
@@ -19,7 +17,25 @@ def make_copy(path):
         shutil.copytree(path, dst)
         flag=False
         print("Done!The original copy is %s"%dst)
-    return dst,flag
+    return path,flag
+
+def add_intended_for_json(json_filename,intendedFor_filename):
+    """
+    Adds `intendedFor` field to the json file. The field is added under the `global` field
+    """
+    f=open(json_filename,'r')
+    json_data=json.load(f)
+    
+    # Add indtendedFor field under global
+    k,v='IntendedFor',intendedFor_filename
+    
+    json_data['global']['const'][k]=v
+
+    with open(json_filename, 'w') as data_file:
+        json.dump(json_data, data_file,indent=1)
+    f.close()
+    data_file.close()
+
 
 def get_subdirectory(path):
     """
@@ -184,62 +200,4 @@ def change_fmri(file):
     os.system(cmd)
     print(cmd)
     
-def impute_intendedFor(json_filename, key, pos_key, value,save=True):
-    """
-    json_filename: filename of the json file
-    key: Name of the key to be added to the json file
-    pos_key: Name of the reference key where the new key is added. The new key is added just above this reference key
-    value: Value of the key to be added
-    save: Saves the json with the same filename as the original
-    """
-    f=open(json_filename,'r')
-    json_data=json.load(f)
-    if 'PhaseEncodingDirection' in json_data.keys():
-        flag=True
-    else:
-        flag=False
-    new_dict = OrderedDict()
-    for k, v in json_data.items():
-        if k==pos_key:
-            new_dict[key] = value  # insert new key
-            if flag==False:
-                print("PhaseEncodingDirection added to %s"%json_filename)
-                if 'AP' in str(Path(json_filename).name):
-                    new_dict['PhaseEncodingDirection'] = "j-"  # insert new key
-                else:
-                    new_dict['PhaseEncodingDirection'] = "j"  # insert new key
-        new_dict[k] = v
-    if save:
-        with open(json_filename, 'w') as data_file:
-            json.dump(new_dict, data_file,indent=1)
-    f.close()
-    print("IntendedField added to %s"%json_filename)
-
-def edit_json(data_path):
-    dirs = Path(data_path)
-    ignore='sourcedata' 
-    # Accessing subject directory, removing hidden directory and sourcedata
-    for d in dirs.iterdir():
-        if d.is_dir() and ignore not in str(d) and '.heudiconv' not in str(d):
-            sub_dir = str(d)
-    # Getting session name
-    sess_name = os.listdir(sub_dir)[0] # Assuming there is only a single session
-    
-    # Getting json and nifti files under dwi and func directories 
-    json_files = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*b0*.json'))
-    dwi_json = sorted([i for i in json_files if 'dwi' in i])
-    dwi_data = Path(glob.glob(os.path.join(sub_dir,sess_name,'dwi','*.nii.gz'))[0]).name # assuming simple case of 1 DWI data
-    func_json = sorted([i for i in json_files if 'fmri' in i])
-    func_data = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.nii.gz')))
-    
-    # Adding IntendedFor field in the json files for DWI data
-    for i in dwi_json:
-        value = [os.path.join(sess_name,'dwi',dwi_data)]
-        impute_intendedFor(i, 'IntendedFor', 'InstitutionAddress', value,save=True)
-
-    # Adding IntendedFor field in the json files for rest and cuff data
-    for i in func_json:
-        value = [os.path.join(sess_name,'func',str(Path(i).name)) for i in func_data]
-        impute_intendedFor(i, 'IntendedFor', 'InstitutionAddress', value,save=True)
-
 
