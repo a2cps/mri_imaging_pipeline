@@ -67,7 +67,7 @@ def edit_dicom_file_philips(filepath):
                 fname = os.path.join(filepath,i)
                 print('Working on file %s'%fname)
                 delete_tag(fname)
-        print("Done! New dicoms are stored in %s"%os.path.join(filepath))
+        print("Done! New dicoms are stored in %s"%os.path.join(new_path))
     else:
         print("Skipping!")
 
