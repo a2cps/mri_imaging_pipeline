@@ -1,7 +1,3 @@
-*.bval
-*.bvec
-*_dwi.json
-*_dwi.nii.gz
 *.err
 *.out
 __pycache__*
