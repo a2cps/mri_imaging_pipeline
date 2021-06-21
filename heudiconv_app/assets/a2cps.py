@@ -47,7 +47,9 @@ protocols2fix.update({
             ('^dMRI_distortionmap', 'fmap-epi_acq-dwib0'),
             # this rule must come *after* DWI_B0
             ('^DWI', 'dwi'),
-            ('^REST([12])$', r'func_task-rest_run-\1'), 
+            ('^REST([12])$', r'func_task-rest_run-\1'),
+            ('^Rest([12])$', r'func_task-rest_run-\1'),
             ('^CUFF([12])$', r'func_task-cuff_run-\1'), 
+            ('^Cuff([12])$', r'func_task-cuff_run-\1'), 
         ],
 })
