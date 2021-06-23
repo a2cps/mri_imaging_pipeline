@@ -64,18 +64,18 @@ def submit_dicom(r, uploaded_file):
     #            '&subject_id=' + subject +
     #            '&bids=' + archivePath +
     #            '&filename='+ filename}]
-    # notif = [
-    #             {
-    #             'event': 'FINISHED',
-    #             'persistent': False,
-    #             'url': heudiconv_callback + '&status=${JOB_STATUS}' +
-    #             '&subject_id=' + subject +
-    #             '&bids=' + outdir + filename +
-    #             '&filename='+ filename +
-    #             '&site=' + site
-    #             }
-    #         ]
-    # job_def.notifications = notif
+    notif = [
+                # {
+                # 'event': 'FINISHED',
+                # 'persistent': False,
+                # 'url': heudiconv_callback + '&status=${JOB_STATUS}' +
+                # '&subject_id=' + subject +
+                # '&bids=' + outdir + filename +
+                # '&filename='+ filename +
+                # '&site=' + site
+                # }
+            ]
+    job_def.notifications = notif
 
     # Submit the job in a try/except block
     try:

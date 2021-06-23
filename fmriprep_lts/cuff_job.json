@@ -12,7 +12,7 @@
     "BIDS_DIRECTORY": "/scratch/05369/urrutia/a2cpstest/troubleshoot/uic/bids",
     "PARTICIPANT_LABEL": "sub-travhuman",
     "OUTPUT_DIR": "outputs",
-    "HEAD_MOTION": "9",
+    "HEAD_MOTION": "--bold2t1w-dof 9",
     "ICA_AROMA_USE": false,
     "CIFTI_OUTPUT": "--cifti-output 91k",
     "ANAT_ONLY": false,

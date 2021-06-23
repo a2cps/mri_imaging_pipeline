@@ -35,8 +35,8 @@ echo singularity exec \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
-        --n_procs 16 \
-            --mem_gb 8 \
+        --n_procs 50 \
+            --mem_gb 180 \
         ${ICA} \
         ${STOP_IDX} \
         ${START_IDX} \
@@ -53,8 +53,8 @@ singularity exec \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
-        --n_procs 16 \
-            --mem_gb 8 \
+        --n_procs 50 \
+            --mem_gb 180 \
         ${ICA} \
         ${STOP_IDX} \
         ${START_IDX} \
@@ -64,6 +64,3 @@ singularity exec \
         ${FD_THRESHOLD}
 
 
-
-
-rm -rf ${DIR}

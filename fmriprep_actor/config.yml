@@ -7,13 +7,12 @@ cuff:
   maxRunTime: "48:00:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.1
-  archiveSystem: a2cps.storage.protected
   name: name
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: sub-01
     OUTPUT_DIR: .
-    HEAD_MOTION: "9"
+    HEAD_MOTION: "--bold2t1w-dof 9"
     ICA_AROMA_USE: false
     ANAT_ONLY: false
     ICA_AROMA_DIMENSIONALITY: 0
@@ -36,12 +35,11 @@ rest:
   maxRunTime: "48:00:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.1
-  archiveSystem: a2cps.storage.protected
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: sub-01
     OUTPUT_DIR: .
-    HEAD_MOTION: "9"
+    HEAD_MOTION: "--bold2t1w-dof 9"
     ICA_AROMA_USE: true
     ICA_AROMA_DIMENSIONALITY: -100
     CIFTI_OUTPUT: "--cifti-output 91k"
@@ -64,7 +62,6 @@ anat:
   maxRunTime: "48:00:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.1
-  archiveSystem: a2cps.storage.protected
   name: name
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/

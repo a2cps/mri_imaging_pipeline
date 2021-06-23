@@ -56,7 +56,7 @@ def submit_fmriprep(r,subject_id, bids, filename,site,next_step,job_def,image_ty
     job_def.name = 'fmriprep-' + image_type +'-'+filename
     # Define the input for the job as the file that
     # was sent in the notificaton message
-    parameters["PARTICIPANT_LABEL"] = subject_id
+    parameters["PARTICIPANT_LABEL"] = 'sub-' + subject_id
     parameters["BIDS_DIRECTORY"] = bids
     if image_type in ['cuff', 'rest']:
          parameters["FS_SUBJECTS_DIR"] = re.sub('bids', 'fmriprep', bids) + 'anat/freesurfer'

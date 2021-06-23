@@ -17,6 +17,8 @@ PYTHONPATH=""
 echo singularity exec \
         -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
         -e \
+        --no-home \
+        --home /home/fmriprep/ \
         docker://${CONTAINER_IMAGE} \
         fmriprep \
         ${BIDS_DIRECTORY} \
@@ -35,6 +37,8 @@ echo singularity exec \
 singularity exec \
         -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
         -e \
+        --no-home \
+        --home /home/fmriprep/ \
         docker://${CONTAINER_IMAGE} \
         fmriprep \
         ${BIDS_DIRECTORY} \
