@@ -3,13 +3,11 @@ logs:
   level: DEBUG
   token: ~
 dicom_reader:
-  appId: urrutia-dicom_reader-0.0.1
+  appId: urrutia-dicom_reader-0.0.3
   name: dicom
   archive: true
   archivePath: system/jobs/dicom_reader
-  archiveSystem: a2cps.storage.protected
-  batchQueue: itar
-  maxRunTime: "48:00:00"
+  maxRunTime: "11:50:00"
   parameters:
     FILENAME: /corral-secure/projects/A2CPS/submissions/UC_uchicago/UC0001V1_A2CPS.zip
   notifications:

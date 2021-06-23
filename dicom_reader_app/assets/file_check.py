@@ -1,6 +1,6 @@
 import os
-import zipfile
-#import zipfile38 as zipfile
+#import zipfile
+import zipfile38 as zipfile
 from shutil import copyfile,copytree
 import requests
 import sys
@@ -41,8 +41,9 @@ def find_dicom(filename, isZip):
         site_zip = zipfile.ZipFile(filename)
         for listing in site_zip.filelist:
             if zipfile.Path.is_file(listing):
-                dicom_file = site_zip.extract(listing)
-                return dicom_file
+                break
+        dicom_file = site_zip.extract(listing)
+        return dicom_file
     # Find first unzipped dicom
     for root, dirs, files in os.walk(filename):
         if files != []:
@@ -55,14 +56,24 @@ def find_dicom(filename, isZip):
     #os.path.isdir(filename)
     #os.listdir(filename)
 
-def read_dicom_metadata(dicom_file):
+def read_dicom_metadata(dicom_file, filename):
     dcm = pydicom.filereader.dcmread(dicom_file)
     std_name = dcm.PatientName
+    # qa ex: A2CPS_QA^UI041621QA
+    # 'UC042121QA A2CPSQA'
+    # umich = tst
+    print(std_name)
     # Stringify and remove A2CPS^ prefix
     if 'A2CPS^' in str(std_name):
         std_name = str(std_name).split('A2CPS^')[1]
+    elif 'A2CPS_QA^' in str(std_name):
+        std_name = 'QC_' + str(std_name).split('A2CPS_QA^')[1]
+    elif 'A2CPSQA' in str(std_name):
+        std_name = 'QC_' + str(std_name).split(' ')[1]
     else:
         std_name = str(std_name)
+        post_notification("Input file " + os.path.basename(filename) + \
+                          " corresponds to " + std_name)
     (site_id, subject_id, v, session_number, space) = re.split('(\d+)',std_name)
     session_id = v + session_number
     return site_id, subject_id, session_id
@@ -127,7 +138,7 @@ def main(filename):
     print(filename)
     dicom_file = find_dicom(filename, isZip)
     print(dicom_file)
-    (site_id, subject_id, session_id) = read_dicom_metadata(dicom_file)
+    (site_id, subject_id, session_id) = read_dicom_metadata(dicom_file, filename)
     output_path = determine_output_path(site_id, subject_id, session_id)
     print(output_path)
     write_outputs(filename, output_path, isZip)
@@ -138,6 +149,9 @@ def main(filename):
         "dicoms": output_path
     }
     message_heudiconv(message)
+    notification = "Input file " + os.path.basename(filename) + " processed for " + \
+                    subject_id + " output under " + output_path
+    post_notification(notification)
     return
 
 if __name__ == '__main__':

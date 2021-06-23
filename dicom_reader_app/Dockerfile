@@ -1,7 +1,7 @@
-FROM sd2e/base:ubuntu18
+FROM pydicom/dicom:v3.6.5
 
+RUN pip install zipfile38 && \
+    pip install numpy && \
+    pip install pandas
 
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install wget
-RUN wget http://manpages.ubuntu.com/manpages.gz/bionic/man1/dicominfo.1.gz
+RUN pip install nilearn

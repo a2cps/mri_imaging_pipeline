@@ -8,7 +8,7 @@
   "deploymentSystem": "{{ app.storage_system}}",
   "defaultProcessorsPerNode": 1,
   "defaultNodeCount": 1,
-  "defaultQueue": "itar",
+  "defaultQueue": "{{ app.queue }}",
   "label": "fMRIPRep",
 	"modules": ["load tacc-singularity", "unload xalt"],
   "shortDescription": "{{ app.description }}",

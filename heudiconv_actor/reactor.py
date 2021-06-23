@@ -20,6 +20,7 @@ def submit_heudiconv(r,site,subject,session,dicoms,outdir):
     parameters['LIST_OF_SUBJECTS'] = subject
     #parameters['LOCATOR'] = site + '/bids'
     parameters['SESSION_FOR_LONGITUDINAL'] = session
+    parameters['SITE'] = site
     job_def.parameters = parameters
     archivePath = outdir.split('/corral-secure/projects/A2CPS/')[1]
     #archivePath = outdir.split('/corral-secure/projects/A2CPS/')[1] + filename

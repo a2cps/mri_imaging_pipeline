@@ -4,3 +4,6 @@ FROM sd2e/reactors:python3
 # added to the container when you run docker build or abaco deploy
 
 RUN pip install psycopg2-binary
+RUN git clone https://github.com/A2CPS/python-vbr && \
+    cd python-vbr && \
+    pip install -e . 

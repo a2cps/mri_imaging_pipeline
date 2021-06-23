@@ -3,13 +3,11 @@ logs:
   level: DEBUG
   token: ~
 heudiconv:
-  appId: urrutia-heudiconv-0.9.0
+  appId: urrutia-heudiconv-0.9.0.2
   name: heudiconv_test
   archive: true
   archivePath: testing/actor-heudiconv
-  archiveSystem: a2cps.storage.protected
-  batchQueue: itar
-  maxRunTime: "48:00:00"
+  maxRunTime: "11:59:00"
   parameters:
     FILES: norshore/bids/1
     LIST_OF_SUBJECTS: sub-01
@@ -18,6 +16,7 @@ heudiconv:
     BIDS: true
     HEURISTIC: a2cps.py
     LOCATOR: =''
+    SITE: ""
 
   notifications:
     -

@@ -8,7 +8,7 @@
 	"deploymentSystem": "{{ app.storage_system}}",
 	"defaultProcessorsPerNode": 1,
 	"defaultNodeCount": 1,
-	"defaultQueue": "itar",
+	"defaultQueue": "{{ app.queue }}",
 	"label": "HEUDICONV_TEST",
 	"modules": ["load tacc-singularity", "load python3"],
 	"shortDescription": "{{ app.description }}",
@@ -220,6 +220,20 @@
 				"argument": "--dcmconfig ",
 				"showArgument": true,
 				"description": "JSON file for additional dcm2niix configuration"
+			},
+			"value": {
+				"default": null,
+				"type": "string",
+				"visible": true,
+				"required": false
+			}
+		},
+		{
+			"id": "SITE",
+			"details": {
+				"argument": "",
+				"showArgument": false,
+				"description": "site where patient was imaged"
 			},
 			"value": {
 				"default": null,
