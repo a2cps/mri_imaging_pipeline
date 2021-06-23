@@ -1,7 +1,0 @@
-{
-  "name": "{{ app.name }}-test-{{ iso8601_basic_short }}",
-  "appId": "{{ app.name }}-{{ app.version}}",
-  "archive": false,
-  "inputs": {},
-  "parameters": {}
-}
