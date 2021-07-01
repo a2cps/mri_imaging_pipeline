@@ -36,12 +36,12 @@ protocols2fix.update({
             ('^SE_EPI_B0_(AP|PA)', r'fmap-epi_acq-dwib0_dir-\1'),
             ('^SE_EPI_B0', 'fmap-epi_acq-dwib0'),  
             # new rules for new B0 names
-            ('^[fF]MRI_B0_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\2'),    
+            ('^[fF]MRI_B0_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\1'),    
             ('^[fF]MRI_B0', 'fmap-epi_acq-fmrib0'),     
             ('^DWI_B0_(AP|PA)', r'fmap-epi_acq-dwib0_dir-\1'),   
             ('^DWI_B0', 'fmap-epi_acq-dwib0'),
             # additional variants to support ABCD naming (dMRI_distortionmap_AP/PA and fMRI_distortionmap_AP/PA)
-            ('^fMRI_distortionmap_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\2'),    
+            ('^fMRI_distortionmap_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\1'),    
             ('^fMRI_distorionmap', 'fmap-epi_acq-fmrib0'),     
             ('^dMRI_distortionmap_(AP|PA)', r'fmap-epi_acq-dwib0_dir-\1'),   
             ('^dMRI_distortionmap', 'fmap-epi_acq-dwib0'),
