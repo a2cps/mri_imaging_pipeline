@@ -86,8 +86,8 @@ def create_fmri_b0(b0_file):
     # nipype does not have fslorient command, so have to run it as a shell command!
     cmd = 'fslorient -setsform %s %s' %(sform,output_PA_fname)
     cmd = 'fslorient -setqform %s %s' %(qform,output_PA_fname)
-    print(cmd) # for ipython use !echo {cmd} 
-    os.system(cmd) # for ipython use !{cmd} 
+    print(cmd) # for ipython use !echo {cmd}
+    os.system(cmd) # for ipython use !{cmd}
 
     files_to_remove = glob.glob(os.path.join(basepath,"vol*"))
     for i in files_to_remove:
@@ -154,7 +154,7 @@ def add_fields_to_json(json_data, key, value):
     json_data[key]=value
     # sort the dictionary
     new_dict = OrderedDict(sorted(json_data.items(), key=lambda t: t[0]))
-    
+
     # for k, v in json_data.items():
     #     if k==pos_key:
     #         new_dict[key] = value  # insert new key
