@@ -40,8 +40,6 @@ def create_fmri_b0(b0_file):
     
     # Split the fmri b0 image and merge the 1st and 3rd volumes for PA and 2nd and 4th for AP 
     cmd = 'fslsplit %s %s' %(b0_file,os.path.join(basepath,'vol'))
-    !echo {cmd}
-    !{cmd}
     
 #     PA = index_img(b0_imgs,[0,2])
 #     AP = index_img(b0_imgs,[1,3])
@@ -51,8 +49,6 @@ def create_fmri_b0(b0_file):
                                                                     'fmrib0_dir-AP_epi.nii.gz'))
     cmd = 'fslmerge -t %s %s %s' %(output_AP_fname,os.path.join(basepath,'vol0001.nii.gz'),
                                os.path.join(basepath,'vol0003.nii.gz'))
-    !echo {cmd}
-    !{cmd}
     print("Saving AP image as %s"%output_AP_fname)
     
     # Extract the 1st and 3rd volumes of b0 for PA
@@ -61,14 +57,10 @@ def create_fmri_b0(b0_file):
     
     cmd = 'fslmerge -t %s %s %s' %(output_PA_fname,os.path.join(basepath,'vol0000.nii.gz'),
                                os.path.join(basepath,'vol0002.nii.gz'))
-    !echo {cmd}
-    !{cmd}
     print("Saving PA image as %s"%output_PA_fname)
     
     # flip the orientation of AP and save as PA (to make them the same orientation)
     cmd = 'fslswapdim %s x -y z %s' %(output_PA_fname,output_PA_fname)
-    !echo {cmd}
-    !{cmd}
     
     # get the sform and qform of swapped image and change the y orientation using fslorient
     PA = load_img(str(output_PA_fname))
@@ -84,8 +76,6 @@ def create_fmri_b0(b0_file):
     # nipype does not have fslorient command, so have to run it as a shell command!
     cmd = 'fslorient -setsform %s %s' %(sform,output_PA_fname)
     cmd = 'fslorient -setqform %s %s' %(qform,output_PA_fname)
-    !echo {cmd}
-    !{cmd} # for python use os.system(cmd)
     
     files_to_remove = glob.glob(os.path.join(basepath,"vol*"))
     for i in files_to_remove:

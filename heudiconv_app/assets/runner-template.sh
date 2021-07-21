@@ -13,42 +13,25 @@ then
     fi
 fi
 
-# Usage: container_exec IMAGE COMMAND OPTIONS
-#   Example: docker run centos:7 uname -a
-#            container_exec centos:7 uname -a
 
 
-# Echo command to std out
-# echo container_exec ${CONTAINER_IMAGE} \
-# heudiconv \
-# ${DICOM_DIR_TEMPLATE} ${dicom_dir} \
-# ${LIST_OF_SUBJECTS} \
-# ${CONVERTER} \
-# --outdir ${OUTDIR} \
-# ${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
-# ${HEURISTIC} \
-# ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-# ${DATALAD} ${DCMCONFIG}
+#IF UCHICAGO 
+#python3 run_delete_trigger_tag_philips.py ${FILES}
+#echo singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 run_delete_trigger_tag_philips.py /scratch1/05369/urrutia/uchicago_test/dicom/UC042121QA/DICOM
+#singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 run_delete_trigger_tag_philips.py /scratch1/05369/urrutia/uchicago_test/dicom/UC042121QA/DICOM
 
-
-# container_exec ${CONTAINER_IMAGE} \
-# heudiconv \
-# ${DICOM_DIR_TEMPLATE} ${dicom_dir} \
-# ${LIST_OF_SUBJECTS} \
-# ${CONVERTER} \
-# --outdir ${OUTDIR} \
-# ${LOCATOR} ${CONV_OUTDIR} ${ANON_CMD} \
-# ${HEURISTIC} \
-# ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-# ${DATALAD} ${DCMCONFIG}
-
-python3 run_delete_trigger_tag_philips.py ${FILES}
+if [[ $SITE == "UC" ]]
+then
+    echo singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 run_delete_trigger_tag_philips.py ${FILES}
+    singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 run_delete_trigger_tag_philips.py ${FILES}
+    export DICOM=dicom
+fi
 
 echo singularity exec \
     -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
     docker://${CONTAINER_IMAGE} \
     heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${FILES} \
+    ${DICOM_DIR_TEMPLATE} ${FILES} ${DICOM} \
     ${LIST_OF_SUBJECTS} \
     ${CONVERTER} \
     --outdir ${OUTDIR} \
@@ -61,7 +44,7 @@ singularity exec \
     -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
     docker://${CONTAINER_IMAGE} \
     heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${FILES} \
+    ${DICOM_DIR_TEMPLATE} ${FILES} ${DICOM} \
     ${LIST_OF_SUBJECTS} \
     ${CONVERTER} \
     --outdir ${OUTDIR} \
@@ -73,5 +56,18 @@ singularity exec \
 # add bval, bvec, betc to .bidsignore
 cat bids_ignore >> .bidsignore
 
+if [[ $SITE == "UI" ]]
+then
+    echo singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 create_fieldmaps_GE .
+    singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 create_fieldmaps_GE .
+fi
+
+echo singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 edit_json.py .
+singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 edit_json.py .
+
+
+
 # quick python to remove null values from participants.tsv
 python3 participants.py
+
+

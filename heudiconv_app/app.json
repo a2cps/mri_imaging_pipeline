@@ -9,7 +9,7 @@
 	"defaultProcessorsPerNode": 1,
 	"defaultNodeCount": 1,
 	"defaultQueue": "{{ app.queue }}",
-	"label": "HEUDICONV_TEST",
+	"label": "HeuDiConv",
 	"modules": ["load tacc-singularity", "load python3"],
 	"shortDescription": "{{ app.description }}",
 	"templatePath": "runner-template.sh",
