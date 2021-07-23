@@ -8,13 +8,13 @@ import pydicom
 import re
 
 def post_notification(notification):
-    endpoint = r"https://portals-api.tacc.utexas.edu/actors/v2/WPYELPWZy48aw/messages?x-nonce=PORTALS_NBGeROpAJLezZ"
+    endpoint = r"https://api.a2cps.org/actors/v2/slackbot.prod/messages?x-nonce=A2CPS_NPzA41LpZw6x5"
     content = requests.post(url = endpoint, json = {"text": notification})
     data = content.json()
     return data
 
 def message_heudiconv(message):
-    endpoint = r"https://portals-api.tacc.utexas.edu/actors/v2/heudiconv_router.prod/messages?x-nonce=PORTALS_W6ayPJXgJ8aw"
+    endpoint = r"https://api.a2cps.org/actors/v2/heudiconv_router.prod/messages?x-nonce=A2CPS_WJBXjrPyBJpM"
     content = requests.post(url = endpoint, json = message)
     data = content.json()
     return data
@@ -60,20 +60,28 @@ def read_dicom_metadata(dicom_file, filename):
     dcm = pydicom.filereader.dcmread(dicom_file)
     std_name = dcm.PatientName
     # qa ex: A2CPS_QA^UI041621QA
+    # A2CPS_QA^NS06292021QA
     # 'UC042121QA A2CPSQA'
+    # UC10036V1 A2CPS
     # umich = tst
     print(std_name)
     # Stringify and remove A2CPS^ prefix
     if 'A2CPS^' in str(std_name):
         std_name = str(std_name).split('A2CPS^')[1]
     elif 'A2CPS_QA^' in str(std_name):
-        std_name = 'QC_' + str(std_name).split('A2CPS_QA^')[1]
-    elif 'A2CPSQA' in str(std_name):
-        std_name = 'QC_' + str(std_name).split(' ')[1]
+        std_name = str(std_name).split('A2CPS_QA^')[1]
+        (site_id, subject_id, session_id) = re.split('(\d+)',std_name)
+        return site_id, 'QC_' + subject_id, session_id
+    elif ' A2CPSQA' in str(std_name):
+        std_name = str(std_name).split(' A2CPSQA')[0]
+        (site_id, subject_id, session_id) = re.split('(\d+)',std_name)
+        return site_id, 'QC_' + subject_id, session_id
+    elif ' A2CPS' in str(std_name):
+        std_name = str(std_name).split(' A2CPS')[0]
     else:
         std_name = str(std_name)
-        post_notification("Input file " + os.path.basename(filename) + \
-                          " corresponds to " + std_name)
+    post_notification("Input file " + os.path.basename(filename) + \
+                        " corresponds to " + std_name)
     (site_id, subject_id, v, session_number, space) = re.split('(\d+)',std_name)
     session_id = v + session_number
     return site_id, subject_id, session_id
@@ -84,7 +92,10 @@ def determine_output_path(site_id, subject_id, session_id):
                 {
                     "UI": "UI_uic",
                     "NS": "NS_northshore",
-                    "UC": "UC_uchicago"
+                    "UC": "UC_uchicago",
+                    "UM": "UM_umichigan",
+                    "WS": "WS_wayne_state",
+                    "SH": "SH_spectrum_health"
                 }
             
     output_path = base_path + \

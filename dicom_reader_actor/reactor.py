@@ -9,6 +9,7 @@ import re
 def submit_dicom(r, uploaded_file):
     # Create agave client from reactor object
     ag = r.client
+    print(ag.systems.list())
     # copy our job.json from config.yml
     job_def = copy.copy(r.settings.dicom_reader)
     parameters = job_def["parameters"]
@@ -16,7 +17,9 @@ def submit_dicom(r, uploaded_file):
     # was sent in the notificaton message
     parameters["FILENAME"] = uploaded_file
     job_def.parameters = parameters
-    archivePath = job_def['archivePath'] + '/' +  uploaded_file.split('corral-secure/projects/A2CPS/submissions/')[0]
+    site_file = os.path.normpath(uploaded_file).split('corral-secure/projects/A2CPS/submissions/')[-1]
+    archivePath = job_def['archivePath'] + '/' + site_file.split('/')[0]
+    job_def.name = site_file
     job_def.archivePath = archivePath
 
     try:
