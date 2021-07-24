@@ -213,7 +213,7 @@ def edit_json(data_path):
         f = open(i,'r')
         json_data=json.load(f)
         value = "j"
-        json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
+        updated_json = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
         print("PhaseEncodingDirection is added to %s"%i)
         save_as_json(updated_json,i)
         f.close()
