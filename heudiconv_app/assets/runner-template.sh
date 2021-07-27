@@ -75,9 +75,9 @@ python3 participants.py
 # converter creates bval/bvec files, though we don't actually need them. 
 # decided that it's cleaner to remove
 # (https://a2cps-pain.slack.com/archives/C027U8CBFL3/p1627388270028600)
-BV_FILES=$( ls "${OUTDIR}/sub-${LIST_OF_SUBJECTS}/ses-${SESSION_FOR_LONGITUDINAL}/fmap/"*{bval,bvec} )
-if [[ -n "${BV_FILES}" ]]; then
-  echo "deleting extra bval/bvec files: ${BV_FILES}"
-  rm "${BV_FILES}"
+mapfile -t BV_FILES < <( ls "${OUTDIR}/sub-${LIST_OF_SUBJECTS}/ses-${SESSION_FOR_LONGITUDINAL}/fmap/"*bv[ae][lc] )
+if [[ -n "${BV_FILES[*]}" ]]; then
+  echo "deleting extra bval/bvec files: ${BV_FILES[*]}"
+  rm "${BV_FILES[@]}"
 fi
-
+  
