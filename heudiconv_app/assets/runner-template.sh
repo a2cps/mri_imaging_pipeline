@@ -78,6 +78,6 @@ python3 participants.py
 BV_FILES=$( ls "${OUTDIR}/sub-${LIST_OF_SUBJECTS}/ses-${SESSION_FOR_LONGITUDINAL}/fmap/"*{bval,bvec} )
 if [[ -n "${BV_FILES}" ]]; then
   echo "deleting extra bval/bvec files: ${BV_FILES}"
-  rm BV_FILES
+  rm "${BV_FILES}"
 fi
 
