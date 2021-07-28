@@ -70,4 +70,14 @@ singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 edit_json.py .
 # quick python to remove null values from participants.tsv
 python3 participants.py
 
-
+# When you use spin echo scans for B0 mapping in order to use the PEPOLAR method, 
+# your acquisition is effectively a DWI with b=0. Because of this, the dcm2niix 
+# converter creates bval/bvec files, though we don't actually need them. 
+# decided that it's cleaner to remove
+# (https://a2cps-pain.slack.com/archives/C027U8CBFL3/p1627388270028600)
+mapfile -t BV_FILES < <( find "${OUTDIR}/sub-${LIST_OF_SUBJECTS}/ses-${SESSION_FOR_LONGITUDINAL}/fmap" -name "*bv[ae][lc]" )
+if [[ -n "${BV_FILES[*]}" ]]; then
+  echo "deleting extra bval/bvec files: ${BV_FILES[*]}"
+  rm "${BV_FILES[@]}"
+fi
+  
