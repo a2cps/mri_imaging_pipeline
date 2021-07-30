@@ -1,7 +1,8 @@
-import os,json,glob,pydicom,shutil
+import os,json,glob,pydicom,shutil,re
 from pathlib import Path
 from nilearn.image import load_img,index_img
 from collections import OrderedDict
+import pandas as pd
 
 def make_copy(path):
     """
@@ -164,6 +165,26 @@ def create_fmri_b0(b0_file):
     return output_AP_fname, output_PA_fname
 
 
+def edit_scansdf(scans_df):
+    """
+    edits scans.tsv file to accomodate newly created and deleted fieldmaps
+    """
+
+    filenames = scans_df[['filename']]
+    
+    fmaps = filenames[filenames.filename.str.contains('fmap')]
+    ap = pd.DataFrame(
+        fmaps.apply(lambda x: re.sub('b0_','b0_dir-AP_', x.filename), axis=1),
+        columns=['filename'])
+    pa = pd.DataFrame(
+        fmaps.apply(lambda x: re.sub('b0_','b0_dir-PA_', x.filename), axis=1),
+        columns=['filename'])
+
+    out = scans_df[~scans_df.filename.str.contains('fmap')].append([ap, pa]).fillna('n/a')
+
+    return out
+
+
 def create_fieldmaps(data_path):
     """
     Creates DWI and fMRI fieldmaps for GE data
@@ -211,11 +232,17 @@ def create_fieldmaps(data_path):
     os.remove(str(fmri_json_file[0]))
     os.remove(str(dwi_json_file[0]))
 
+    # remove original fieldmaps from scans.tsv and append new ones
+    print("Updating scans.tsv file")
+    scans_tsv = glob.glob(os.path.join(sub_dir, sess_name, 'sub-*_scans.tsv'))[0]
+    scans_df = edit_scansdf(pd.read_csv(scans_tsv, sep='\t'))
+    scans_df.to_csv(scans_tsv, sep="\t", index = False)
+
 
 def add_fields_to_json(json_data, key, value):
     """
     json_data: json data in the form of dictionary
-    key: Name of the key to be added to the json file
+    key: Name of the key to be addedirsd to the json file
     value: Value of the key to be added
     """
     new_dict = OrderedDict()

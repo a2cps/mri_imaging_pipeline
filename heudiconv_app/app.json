@@ -10,7 +10,7 @@
 	"defaultNodeCount": 1,
 	"defaultQueue": "{{ app.queue }}",
 	"label": "HeuDiConv",
-	"modules": ["load tacc-singularity", "load python3"],
+	"modules": ["load tacc-singularity", "unload xalt"],
 	"shortDescription": "{{ app.description }}",
 	"templatePath": "runner-template.sh",
 	"testPath": "tester.sh",
@@ -38,6 +38,20 @@
 				"type": "string",
 				"visible": true,
 				"required": false
+			}
+		},
+		{
+			"id": "BIND_DIR",
+			"details":{
+				"description": "root directory bound to singularity container",
+				"argument": "",
+				"showArgument": false
+			},
+			"value": {
+				"default": null,				
+				"type": "string",
+				"visible": true,
+				"required": true
 			}
 		},
 		{
