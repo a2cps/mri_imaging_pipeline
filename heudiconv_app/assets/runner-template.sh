@@ -21,10 +21,12 @@ fi
 
 if [[ "${SITE}" == "UC" ]]; then
     echo singularity exec \
+      --cleanenv \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
 
     singularity exec \
+      --cleanenv \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
     export DICOM=dicom
@@ -71,20 +73,24 @@ readonly FMAPS=("${OUTDIR}"/sub-*/ses-*/fmap/*) \
 case "${SITE}" in
   UI | UM)
     echo singularity exec \
+      --cleanenv \
       -B "${OUTDIR}":"${OUTDIR}" \
       docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
 
     singularity exec \
+    --cleanenv \
       -B "${OUTDIR}":"${OUTDIR}" \
       docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
     ;;
 esac
 
 echo singularity exec \
+  --cleanenv \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
 singularity exec \
+  --cleanenv \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
@@ -92,10 +98,12 @@ chmod -200 "${FMAPS[@]}" "${DWIS[@]}"
 
 # quick python to remove null values from participants.tsv
 echo singularity exec \
+  --cleanenv \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
 
 singularity exec \
+  --cleanenv \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
 

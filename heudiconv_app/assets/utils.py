@@ -242,7 +242,7 @@ def create_fieldmaps(data_path):
 def add_fields_to_json(json_data, key, value):
     """
     json_data: json data in the form of dictionary
-    key: Name of the key to be addedirsd to the json file
+    key: Name of the key to be added to the json file
     value: Value of the key to be added
     """
     new_dict = OrderedDict()
