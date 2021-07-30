@@ -1,11 +1,16 @@
+import sys, os
 import pandas as pd
-import numpy as np
 
-def main():
-    participants_df = pd.read_csv('participants.tsv', sep='\t')
-    participants_df = participants_df.replace(np.nan, 'n/a')
-    participants_df.to_csv('participants.tsv', sep="\t", index = False)
+def main(bids_root):
+    participants_df = pd.read_csv(os.path.join(bids_root, 'participants.tsv'), sep='\t')
+    participants_df = participants_df.fillna('n/a')
+    participants_df.to_csv(os.path.join(bids_root, 'participants.tsv'), sep="\t", index = False)
     return
 
 if __name__ == '__main__':
-    main()
+    try:
+        bids_root = sys.argv[1]
+        main(bids_root)
+    except:
+        raise ValueError("Please specify the path to the subject directory.")
+
