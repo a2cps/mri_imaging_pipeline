@@ -1,2 +1,5 @@
 **/.DS_Store
 fmriprep_app/opt/license.txt
+fmriprep_app/project.ini
+fmriprep_app/tests/fmriprep-sdc-anat
+fmriprep_app/anat_job-UM.json
