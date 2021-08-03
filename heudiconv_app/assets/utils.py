@@ -38,8 +38,8 @@ def delete_tag(fname):
         if ds.__contains__('TriggerTime'):
         # Delete the dicom tag 0018,1060. This tag represents the Trigger value
             del(ds['0018','1060'])
-        else:
-            print("No trigger tag found for %s"%fname)
+        #else:
+            #print("No trigger tag found for %s"%fname)
         ds.save_as(fname)
     except:
         print("Unable to open the file %s"%fname)
@@ -49,25 +49,25 @@ def edit_dicom_file_philips(filepath):
     """
     Deletes the trigger tag (0018,1060) from the DICOM file.
     """
-    # Copy the data, add suffix "_orig" to the original data and return the path of duplicate data
+    # Copy the data to local "dicom" directory
     new_path,flag  = make_copy(filepath)
 
     if not flag:
         dirs,files,dirnames = get_subdirectory(new_path)
         for func in dirs:
-            print("Deleting tag for %s"%func)
+            #print("Deleting tag for %s"%func)
             for i in sorted(os.listdir(func)):
                 fname = os.path.join(func,i)
-                print('Working on file %s'%fname)
+                #print('Working on file %s'%fname)
                 delete_tag(fname)
 
-        print("Searching for any files under %s"%filepath)
+        print("Searching for any files under %s"%new_path)
 
-        if files !=[]:
-            for i in sorted(files):
-                fname = os.path.join(filepath,i)
-                print('Working on file %s'%fname)
-                delete_tag(fname)
+        # if files !=[]:
+        #     for i in sorted(files):
+        #         fname = os.path.join(new_path,i)
+        #         #print('Working on file %s'%fname)
+        #         delete_tag(fname)
         print("Done! New dicoms are stored in %s"%os.path.join(new_path))
     else:
         print("Skipping!")

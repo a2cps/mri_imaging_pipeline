@@ -1,24 +1,18 @@
 {
-    "appId": "urrutia-heudiconv-0.9.0",
-    "name": "heudiconv_test",
+    "appId": "urrutia-heudiconv-0.9.0.4",
+    "name": "heudiconv-UC10064V1",
     "archive": true,
-    "archivePath": "testing/actor-heudiconv",
-    "archiveSystem": "a2cps.home.urrutia",
-    "batchQueue": "flat-quadrant",
-    "maxRunTime": "48:00:00",
+    "archivePath": "products/development/mris/UC_uchicago/bids/UC10064V1",
+    "maxRunTime": "05:59:00",
     "parameters": {
-        "FILES": "/scratch/05369/urrutia/a2cpstest/submissions/uic/EXAM8186/",
-        "LIST_OF_SUBJECTS": "NS10078",
-        "OUTDIR": "/scratch/05369/urrutia/a2cpstest/submissions/uic/bids",
-        "SESSION_FOR_LONGITUDINAL": "visit1",
+        "BIND_DIR": "/corral-secure/projects/A2CPS/",
+        "FILES": "/corral-secure/projects/A2CPS/products/mris/UC_uchicago/dicoms/UC10064V1",
+        "LIST_OF_SUBJECTS": "10064",
+        "OUTDIR": ".",
+        "SESSION_FOR_LONGITUDINAL": "V1",
         "BIDS": true,
         "HEURISTIC": "a2cps.py",
-        "LOCATOR": "=''"
-    },
-    "notifications": [
-        {
-            "event": "FINISHED",
-            "url": "your@email.com"
-        }
-    ]
+        "LOCATOR": "=''",
+        "SITE": "UC"
+    }
 }
