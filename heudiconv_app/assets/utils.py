@@ -262,7 +262,7 @@ def save_as_json(data,json_filename):
          json.dump(data, data_file,indent=1)
 
 
-def test_if_philips(json_data: dict):
+def is_philips(json_data: dict):
     if not ('Manufacturer' in  json_data.keys()):
         raise AssertionError("No Manufacturer specified. Post-conversion fixes likely wrong.")
     print("Will try to apply post-conversion fixes specific to images from Philips...")
@@ -290,14 +290,15 @@ def edit_json(data_path):
     func_json = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.json')))
     func_data = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.nii.gz')))
 
+    with open(dwi_data, 'r') as f:
+        json_data = json.load(f)
+        philips_scanner = is_philips(json_data)
+
     # Adding IntendedFor field in the b0 json files for DWI data
     for i in dwi_b0_json:
         f=open(i,'r')
         json_data=json.load(f)
-        if test_if_philips(json_data):
-            philips_scanner=False
-        else:
-            philips_scanner=True
+        if philips_scanner:
             if 'AP' in str(Path(i).name):
                  value = "j-"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
@@ -327,10 +328,7 @@ def edit_json(data_path):
         json_data=json.load(f)
 
         # Adds sliceTiming and PhaseEncodingDirection for Philips scanner
-        if test_if_philips(json_data):
-            philips_scanner=False
-        else:
-            philips_scanner=True
+        if philips_scanner:
         # Adds PhaseEncodingDirection in the json files for Philips scanner
             if 'AP' in str(Path(i).name):
                  value = "j-"
@@ -382,6 +380,7 @@ def edit_json(data_path):
             
             ap_data = add_fields_to_json(ap_data, 'TotalReadoutTime', ap_data["EstimatedTotalReadoutTime"])
             pa_data = add_fields_to_json(pa_data, 'TotalReadoutTime', pa_data["EstimatedTotalReadoutTime"])
+            print(f"Added dummy TotalReadoutTime to {a} and {p}")
 
             if not (ap_data["EstimatedEffectiveEchoSpacing"] == pa_data["EstimatedEffectiveEchoSpacing"]):
                 raise AssertionError(f"Not finishing because EstimatedEffectiveEchoSpacing do not match in {a} and {p}")                
@@ -390,13 +389,14 @@ def edit_json(data_path):
             updated_pa_data = add_fields_to_json(pa_data, 'EffectiveEchoSpacing', pa_data["EstimatedEffectiveEchoSpacing"])
             save_as_json(updated_ap_data, a)
             save_as_json(updated_pa_data, p)
-            print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {a} and {p}")
+            print(f"Added dummy TotalReadoutTime to {a} and {p}")
         
         with open(dwi_json_file, "r+") as d:
             dwi_json_data = json.load(d)
             dwi_json_data = add_fields_to_json(dwi_json_data, 'TotalReadoutTime', dwi_json_data["EstimatedTotalReadoutTime"])
             updated_dwi_json_data = add_fields_to_json(dwi_json_data, 'EffectiveEchoSpacing', dwi_json_data["EstimatedEffectiveEchoSpacing"])
             save_as_json(updated_dwi_json_data, d)
+            print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {d}")
 
 
 def get_b0_index(df,bval_value):
