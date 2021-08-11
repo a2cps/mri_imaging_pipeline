@@ -3,7 +3,7 @@ logs:
   level: DEBUG
   token: ~
 heudiconv:
-  appId: urrutia-heudiconv-0.9.0.2
+  appId: urrutia-heudiconv-0.9.0.4
   name: heudiconv_test
   archive: true
   archivePath: testing/actor-heudiconv
