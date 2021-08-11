@@ -1,30 +1,21 @@
 {
   "name": "test fmriprep",
-  "appId": "heejung-fmriprep_LTS-20.2.1",
+  "appId": "urrutia-fmriprep_LTS-20.2.3",
   "archive": true,
-  "archivePath": "testing/anat-fmriprep-20.2.1",
   "maxRunTime": "48:00:00",
-  "archiveSystem": "a2cps.home.heejung",
+  "archiveSystem": "a2cps.storage-frontera-protected",
+  "archivePath": "products/development/mris/UC_uchicago/fmriprep/UC10064V1",
   "archiveOnAppError": true,
   "inputs": {
   },
   "parameters": {
-    "BIDS_DIRECTORY": "/scratch/05369/urrutia/a2cpstest/troubleshoot/uic/bids",
-    "PARTICIPANT_LABEL": "sub-travhuman",
-    "OUTPUT_DIR": "outputs",
+    "BIDS_DIRECTORY": "/corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10064V1",
+    "PARTICIPANT_LABEL": "sub-10064",
+    "OUTPUT_DIR": ".",
+    "ICA_AROMA_USE": false,
     "CIFTI_OUTPUT": "--cifti-output 91k",
     "ANAT_ONLY": true,
-    "BIDS_FILTER_FILE": "",
-    "FS_NO_RECONALL": true
-  },
-  "notifications": [
-      {
-          "event": "FAILED",
-          "url": "Hee.Jung.Jung.GR@dartmouth.edu"
-      },
-      {
-          "event": "FINISHED",
-          "url": "Hee.Jung.Jung.GR@dartmouth.edu"
-      }
-  ]
+    "FS_NO_RECONALL": false,
+    "SKIP_BIDS_VALIDATION": true
+  }
 }
