@@ -27,7 +27,7 @@ if [[ "${SITE}" == "UC" ]]; then
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
     export DICOM='--files dicom'
 else 
-    export DICOM=${FILES}
+    export DICOM="${FILES}"
 fi
 
 echo singularity exec \
@@ -90,9 +90,6 @@ singularity exec \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
-
-# remove write access for user
-chmod -200 "${JSONS[@]}"
 
 # Clean up edited dicoms
 if [[ "${SITE}" == "UC" ]]; then
