@@ -1,0 +1,12 @@
+{
+    "t1w": {
+        "datatype": "anat",
+        "session": "PVP",
+        "suffix": "T1w"
+    },
+    "dwi": {
+        "datatype": "dwi",
+        "session": "PVP",
+        "suffix": "dwi"
+    }
+}

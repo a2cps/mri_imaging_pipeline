@@ -38,8 +38,8 @@ def delete_tag(fname):
         if ds.__contains__('TriggerTime'):
         # Delete the dicom tag 0018,1060. This tag represents the Trigger value
             del(ds['0018','1060'])
-        else:
-            print("No trigger tag found for %s"%fname)
+        #else:
+            #print("No trigger tag found for %s"%fname)
         ds.save_as(fname)
     except:
         print("Unable to open the file %s"%fname)
@@ -49,25 +49,25 @@ def edit_dicom_file_philips(filepath):
     """
     Deletes the trigger tag (0018,1060) from the DICOM file.
     """
-    # Copy the data, add suffix "_orig" to the original data and return the path of duplicate data
+    # Copy the data to local "dicom" directory
     new_path,flag  = make_copy(filepath)
 
     if not flag:
         dirs,files,dirnames = get_subdirectory(new_path)
         for func in dirs:
-            print("Deleting tag for %s"%func)
+            #print("Deleting tag for %s"%func)
             for i in sorted(os.listdir(func)):
                 fname = os.path.join(func,i)
-                print('Working on file %s'%fname)
+                #print('Working on file %s'%fname)
                 delete_tag(fname)
 
-        print("Searching for any files under %s"%filepath)
+        print("Searching for any files under %s"%new_path)
 
-        if files !=[]:
-            for i in sorted(files):
-                fname = os.path.join(filepath,i)
-                print('Working on file %s'%fname)
-                delete_tag(fname)
+        # if files !=[]:
+        #     for i in sorted(files):
+        #         fname = os.path.join(new_path,i)
+        #         #print('Working on file %s'%fname)
+        #         delete_tag(fname)
         print("Done! New dicoms are stored in %s"%os.path.join(new_path))
     else:
         print("Skipping!")
@@ -257,13 +257,45 @@ def add_fields_to_json(json_data, key, value):
     #     new_dict[k] = v
     return new_dict
 
-def save_as_json(data,json_filename):
+
+def save_as_json(data: dict, json_filename: str):
     with open(json_filename, 'w') as data_file:
          json.dump(data, data_file,indent=1)
 
+
+def is_philips(json_data: dict):
+    if not ('Manufacturer' in  json_data.keys()):
+        raise AssertionError("No Manufacturer specified. Post-conversion fixes likely wrong.")
+    print("Will try to apply post-conversion fixes specific to images from Philips...")
+    return json_data['Manufacturer'] == "Philips"
+
+
+def check_dummy_fields_in_appa(b0_json: list):
+    ap = [x for x in b0_json if 'AP' in str(Path(x).name)][0]
+    pa = [x for x in b0_json if 'PA' in str(Path(x).name)][0]
+
+    with open(ap, 'r+') as a, open(pa, 'r+') as p:
+        ap_data = json.load(a)
+        pa_data = json.load(p)
+        if not (ap_data["EstimatedTotalReadoutTime"] == pa_data["EstimatedTotalReadoutTime"]):
+            raise AssertionError(f"Not finishing because EstimatedTotalReadoutTime do not match in {ap} and {pa}")                
+            
+        if not (ap_data["EstimatedEffectiveEchoSpacing"] == pa_data["EstimatedEffectiveEchoSpacing"]):
+            raise AssertionError(f"Not finishing because EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}")                
+            
+
+def write_dummy_fields(filename: str):
+    with open(filename, "r+") as f:
+        json_data = json.load(f)
+        json_data = add_fields_to_json(json_data, 'TotalReadoutTime', json_data["EstimatedTotalReadoutTime"])
+        json_data = add_fields_to_json(json_data, 'EffectiveEchoSpacing', json_data["EstimatedEffectiveEchoSpacing"])
+        save_as_json(json_data, filename)
+        print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {filename}")
+
+
 def edit_json(data_path):
     dirs = Path(data_path)
-    ignore='sourcedata'
+    
     # Hardcoded slice timings to be added to fmri json file. Used only for Philips scanner
     slice_timing = [0,0.444,0.089,0.533,0.178,0.622,0.267,0.711,0.356,0,0.444,0.089,0.533,
                    0.178,0.622,0.267,0.711,0.356,0,0.444,0.089,0.533,0.178,0.622,0.267,0.711,0.356,0,0.444,
@@ -282,14 +314,14 @@ def edit_json(data_path):
     func_json = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.json')))
     func_data = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.nii.gz')))
 
+    with open(dwi_json_file[0], 'r') as f:
+        philips_scanner = is_philips(json.load(f))
+
     # Adding IntendedFor field in the b0 json files for DWI data
     for i in dwi_b0_json:
         f=open(i,'r')
         json_data=json.load(f)
-        if 'PhaseEncodingDirection' in json_data.keys():
-            philips_scanner=False
-        else:
-            philips_scanner=True
+        if philips_scanner:
             if 'AP' in str(Path(i).name):
                  value = "j-"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
@@ -319,10 +351,7 @@ def edit_json(data_path):
         json_data=json.load(f)
 
         # Adds sliceTiming and PhaseEncodingDirection for Philips scanner
-        if 'PhaseEncodingDirection' in json_data.keys():
-            philips_scanner=False
-        else:
-            philips_scanner=True
+        if philips_scanner:
         # Adds PhaseEncodingDirection in the json files for Philips scanner
             if 'AP' in str(Path(i).name):
                  value = "j-"
@@ -338,18 +367,14 @@ def edit_json(data_path):
         save_as_json(updated_json,i)
         print("IntendedFor is added to %s"%i)
         f.close()
-# Add SliceTiming to the json files of rest/cuff json files
+    # Add SliceTiming to the json files of rest/cuff json files
     if philips_scanner:
        for i in func_json:
            f=open(i,'r')
            json_data=json.load(f)
            print(i)
-           #if 'AP' in str(Path(i).name):
            value = "j"
            json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
-           #else:
-           #      value="j"
-           #      json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
 
            print("PhaseEncodingDirection is added to %s"%i)
             # Adds sliceTiming for Philips scanner
@@ -358,6 +383,17 @@ def edit_json(data_path):
            save_as_json(updated_json,i)
            f.close()
 
+    # add parameters missing from philips: TotalReadoutTime, EffectiveEchoSpacing
+    # see: https://confluence.a2cps.org/x/kwnz
+    # these are just dummy values, which works for distortion correction
+    # but the units will not end up scaled correctly
+    if philips_scanner:
+        check_dummy_fields_in_appa(func_b0_json)
+        check_dummy_fields_in_appa(dwi_b0_json)
+
+        for filename in dwi_json_file + func_json + func_b0_json + dwi_b0_json:
+            write_dummy_fields(filename)
+            
 
 def get_b0_index(df,bval_value):
     ind = df.index[df['bvals'] == bval_value].tolist()

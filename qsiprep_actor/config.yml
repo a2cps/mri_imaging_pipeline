@@ -3,18 +3,17 @@ logs:
   level: DEBUG
   token: ~
 heudiconv:
-  appId: urrutia-heudiconv-0.9.0.2
-  name: heudiconv_test
-  archive: true
-  archivePath: testing/actor-heudiconv
-  maxRunTime: "11:59:00"
+  appId: tnath-qsiprep-0.14.2.0
+  name: qsiprep_test
+  archive: false
+  archivePath: testing/actor-qsiprep
+  maxRunTime: "48:00:00"
   parameters:
     FILES: norshore/bids/1
     LIST_OF_SUBJECTS: sub-01
     OUTDIR: '.'
     SESSION_FOR_LONGITUDINAL: session1
     BIDS: true
-    BIND_DIR: /corral-secure/projects/A2CPS/
     HEURISTIC: a2cps.py
     LOCATOR: =''
     SITE: ""

@@ -14,10 +14,6 @@ if [ -z "${CONTAINER_IMAGE}" ]; then
     fi
 fi
 
-#IF UCHICAGO 
-#python3 run_delete_trigger_tag_philips.py ${FILES}
-#echo singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 run_delete_trigger_tag_philips.py /scratch1/05369/urrutia/uchicago_test/dicom/UC042121QA/DICOM
-#singularity exec docker://jurrutia/pydicom:3.6.5.1 python3 run_delete_trigger_tag_philips.py /scratch1/05369/urrutia/uchicago_test/dicom/UC042121QA/DICOM
 
 if [[ "${SITE}" == "UC" ]]; then
     echo singularity exec \
@@ -29,7 +25,9 @@ if [[ "${SITE}" == "UC" ]]; then
       --cleanenv \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
-    export DICOM=dicom
+    export DICOM='--files dicom'
+else 
+    export DICOM=${FILES}
 fi
 
 echo singularity exec \
@@ -37,7 +35,7 @@ echo singularity exec \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     docker://${CONTAINER_IMAGE} \
     heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${FILES} ${DICOM} \
+    ${DICOM_DIR_TEMPLATE} ${DICOM} \
     ${LIST_OF_SUBJECTS} \
     ${CONVERTER} \
     --outdir ${OUTDIR} \
@@ -51,7 +49,7 @@ singularity exec \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     docker://${CONTAINER_IMAGE} \
     heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${FILES} ${DICOM} \
+    ${DICOM_DIR_TEMPLATE} ${DICOM} \
     ${LIST_OF_SUBJECTS} \
     ${CONVERTER} \
     --outdir ${OUTDIR} \
@@ -65,46 +63,51 @@ cat bids_ignore >> "${OUTDIR}"/.bidsignore
 
 # Need to inject IntendedFor field into some jsons, and in the case of GE images
 # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
-# give write access go user and group
-readonly FMAPS=("${OUTDIR}"/sub-*/ses-*/fmap/*) \
-  && readonly DWIS=("${OUTDIR}"/sub-*/ses-*/dwi/*) \
-  && chmod +600 "${FMAPS[@]}" "${DWIS[@]}"
+# give write access to user, read to group
+readonly JSONS=("${OUTDIR}"/sub-*/ses-*/*/*.json) \
+  && chmod +640 "${JSONS[@]}"
 
 case "${SITE}" in
   UI | UM)
     echo singularity exec \
       --cleanenv \
-      -B "${OUTDIR}":"${OUTDIR}" \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
 
     singularity exec \
     --cleanenv \
-      -B "${OUTDIR}":"${OUTDIR}" \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
     ;;
 esac
 
 echo singularity exec \
   --cleanenv \
-  -B "${OUTDIR}":"${OUTDIR}" \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
 singularity exec \
   --cleanenv \
-  -B "${OUTDIR}":"${OUTDIR}" \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
-chmod -200 "${FMAPS[@]}" "${DWIS[@]}"
+# remove write access for user
+chmod -200 "${JSONS[@]}"
+
+# Clean up edited dicoms
+if [[ "${SITE}" == "UC" ]]; then
+    rm -rf dicom
+fi
 
 # quick python to remove null values from participants.tsv
 echo singularity exec \
   --cleanenv \
-  -B "${OUTDIR}":"${OUTDIR}" \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
 
 singularity exec \
   --cleanenv \
-  -B "${OUTDIR}":"${OUTDIR}" \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
 
 

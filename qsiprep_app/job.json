@@ -1,0 +1,19 @@
+{
+    "appId": "urrutia-qsiprep-0.14.2.0",
+    "name": "qsiprep_test",
+    "archive": true,
+    "archiveSystem": "a2cps.storage-frontera-protected",
+    "archivePath": "products/development/mris/UC_uchicago/qsiprep/UC10064V1",
+    "batchQueue": "rtx-corralextra",
+    "maxRunTime": "11:00:00",
+    "parameters": {
+        "BIND_DIR":"/corral-secure/projects/A2CPS/",
+        "SUBJECT_DIR": "/corral-secure/projects/A2CPS/products/development/mris/UC_uchicago/bids/UC10064V1",
+        "SUBJECT_ID": "10064",
+        "OUTDIR": ".",
+        "SESSION_FOR_LONGITUDINAL": "ses-V1",
+        "FSL_license": "license.txt",
+        "EDDY_PARAMS" : "eddy_params.json",
+        "BIDS_FILTER" : "bids.json"
+    }
+}
