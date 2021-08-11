@@ -7,9 +7,9 @@ bids_validator:
   name: bidsvalid
   archive: true
   archivePath: ""
-  archiveSystem: a2cps.storage.protected
+  archiveSystem: a2cps.storage-frontera-protected
   batchQueue: itar
-  maxRunTime: "48:00:00"
+  maxRunTime: "12:00:00"
   parameters:
     BIDS_DIRECTORY: sub-01
     CONFIG_IGNORE: "129"
