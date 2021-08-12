@@ -101,27 +101,7 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
     return output_AP_fname,output_PA_fname
 
 
-def edit_scansdf(scans_df):
-    """
-    edits scans.tsv file to accomodate newly created and deleted fieldmaps
-    """
-
-    filenames = scans_df[['filename']]
-    
-    fmaps = filenames[filenames.filename.str.contains('fmap')]
-    ap = pd.DataFrame(
-        fmaps.apply(lambda x: re.sub('b0_','b0_dir-AP_', x.filename), axis=1),
-        columns=['filename'])
-    pa = pd.DataFrame(
-        fmaps.apply(lambda x: re.sub('b0_','b0_dir-PA_', x.filename), axis=1),
-        columns=['filename'])
-
-    out = scans_df[~scans_df.filename.str.contains('fmap')].append([ap, pa]).fillna('n/a')
-
-    return out
-
-
-def create_fieldmaps(data_path):
+def create_fieldmaps(data_path) -> None:
     """
     Creates DWI fieldmaps for GE data
     data_path: str full path of subject
@@ -155,11 +135,6 @@ def create_fieldmaps(data_path):
     os.remove(str(dwi_b0_file[0]))
     os.remove(str(dwi_json_file[0]))
 
-    # remove original fieldmaps from scans.tsv and append new ones
-    print("Updating scans.tsv file")
-    scans_tsv = glob.glob(os.path.join(sub_dir, sess_name, 'sub-*_scans.tsv'))[0]
-    scans_df = edit_scansdf(pd.read_csv(scans_tsv, sep='\t'))
-    scans_df.to_csv(scans_tsv, sep="\t", index = False)
 
 
 def add_fields_to_json(json_data, key, value):
