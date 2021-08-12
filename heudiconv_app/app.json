@@ -255,6 +255,20 @@
 				"visible": true,
 				"required": false
 			}
+		},
+		{
+			"id": "DELETE_DUPLICATES",
+			"details": {
+				"argument": "",
+				"showArgument": false,
+				"description": "boolean flag to delete duplicate scans"
+			},
+			"value": {
+				"default": true,
+				"type": "bool",
+				"visible": true,
+				"required": false
+			}
 		}
 
 
