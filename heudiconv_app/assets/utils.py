@@ -100,71 +100,6 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
 
     return output_AP_fname,output_PA_fname
 
-def create_fmri_b0(b0_file):
-    """
-    Creates fieldmaps for functional data
-    """
-
-    # Get input path and subject name
-    basepath = str(Path(b0_file).parents[0])
-
-    # Split the fmri b0 image and merge the 1st and 3rd volumes for PA and 2nd and 4th for AP
-    cmd = 'fslsplit %s %s' %(b0_file,os.path.join(basepath,'vol'))
-    print(cmd)
-    os.system(cmd)
-
-#     PA = index_img(b0_imgs,[0,2])
-#     AP = index_img(b0_imgs,[1,3])
-
-    # Extract the 2nd and 4rth volumes of b0 for AP
-    output_AP_fname = Path(basepath,str(Path(b0_file).name).replace('fmrib0_epi.nii.gz',
-                                                                    'fmrib0_dir-AP_epi.nii.gz'))
-    cmd = 'fslmerge -t %s %s %s' %(output_AP_fname,os.path.join(basepath,'vol0001.nii.gz'),
-                               os.path.join(basepath,'vol0003.nii.gz'))
-    print(cmd)
-    os.system(cmd)
-
-    print("Saving AP image as %s"%output_AP_fname)
-
-    # Extract the 1st and 3rd volumes of b0 for PA
-    output_PA_fname = Path(basepath,str(Path(b0_file).name).replace('fmrib0_epi.nii.gz',
-                                                                    'fmrib0_dir-PA_epi.nii.gz'))
-
-    cmd = 'fslmerge -t %s %s %s' %(output_PA_fname,os.path.join(basepath,'vol0000.nii.gz'),
-                               os.path.join(basepath,'vol0002.nii.gz'))
-    print(cmd)
-    os.system(cmd)
-
-    print("Saving PA image as %s"%output_PA_fname)
-
-    # flip the orientation of AP and save as PA (to make them the same orientation)
-    cmd = 'fslswapdim %s x -y z %s' %(output_PA_fname,output_PA_fname)
-    print(cmd)
-    os.system(cmd)
-
-    # get the sform and qform of swapped image and change the y orientation using fslorient
-    PA = load_img(str(output_PA_fname))
-
-    sform = PA.header.get_sform()
-    qform = PA.header.get_qform()
-    sform[1,:] *= -1
-    qform[1,:] *= -1
-
-    sform = ' '.join(str(v) for v in sform.flatten().tolist())
-    qform = ' '.join(str(v) for v in qform.flatten().tolist())
-
-    # nipype does not have fslorient command, so have to run it as a shell command!
-    cmd = 'fslorient -setsform %s %s' %(sform,output_PA_fname)
-    cmd = 'fslorient -setqform %s %s' %(qform,output_PA_fname)
-    print(cmd) # for ipython use !echo {cmd}
-    os.system(cmd) # for ipython use !{cmd}
-
-    files_to_remove = glob.glob(os.path.join(basepath,"vol*"))
-    for i in files_to_remove:
-        os.remove(i)
-
-    return output_AP_fname, output_PA_fname
-
 
 def edit_scansdf(scans_df):
     """
@@ -188,7 +123,7 @@ def edit_scansdf(scans_df):
 
 def create_fieldmaps(data_path):
     """
-    Creates DWI and fMRI fieldmaps for GE data
+    Creates DWI fieldmaps for GE data
     data_path: str full path of subject
     e.g. create_fieldmaps('/home/tanmay/hacking/AC2PC/data/uic/development/UI_uic/UI_travhuman')
     """
@@ -203,17 +138,12 @@ def create_fieldmaps(data_path):
     # Getting nifti files under fmap directory
     dwi_b0_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*dwib0*.nii.gz'))
     dwi_file = glob.glob(os.path.join(sub_dir,sess_name,'dwi','*dwi*.nii.gz'))
-    fmri_b0_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0*.nii.gz'))
 
     # Getting json files under fmap directory
     dwi_json_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*dwib0*.json'))
-    fmri_json_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0*.json'))
 
     print("Creating fieldmaps for dwi data...")
     output_AP_fname_dwi,output_PA_fname_dwi = create_dwi_b0(dwi_b0_file[0],dwi_file[0])
-
-    print("Creating fieldmaps for fmri data...")
-    output_AP_fname_fmri, output_PA_fname_fmri = create_fmri_b0(fmri_b0_file[0])
 
     print("Creating json files for DWI data...")
     AP_fname_dwi = str(output_AP_fname_dwi).replace('nii.gz','json')
@@ -221,16 +151,8 @@ def create_fieldmaps(data_path):
     shutil.copyfile(dwi_json_file[0], AP_fname_dwi)
     shutil.copyfile(dwi_json_file[0], PA_fname_dwi)
 
-    print("Creating json files for fmri data...")
-    AP_fname_fmri = str(output_AP_fname_fmri).replace('nii.gz','json')
-    PA_fname_fmri = str(output_PA_fname_fmri).replace('nii.gz','json')
-    shutil.copyfile(fmri_json_file[0], AP_fname_fmri)
-    shutil.copyfile(fmri_json_file[0], PA_fname_fmri)
-
     # Remove the original fieldmap
     os.remove(str(dwi_b0_file[0]))
-    os.remove(str(fmri_b0_file[0]))
-    os.remove(str(fmri_json_file[0]))
     os.remove(str(dwi_json_file[0]))
 
     # remove original fieldmaps from scans.tsv and append new ones
@@ -263,18 +185,17 @@ def save_as_json(data: dict, json_filename: str):
          json.dump(data, data_file,indent=1)
 
 
-def is_philips(json_data: dict):
+def get_manufacturer(json_data: dict) -> str:
     if not ('Manufacturer' in  json_data.keys()):
         raise AssertionError("No Manufacturer specified. Post-conversion fixes likely wrong.")
-    print("Will try to apply post-conversion fixes specific to images from Philips...")
-    return json_data['Manufacturer'] == "Philips"
+    return json_data['Manufacturer'].lower()
 
 
 def check_dummy_fields_in_appa(b0_json: list):
     ap = [x for x in b0_json if 'AP' in str(Path(x).name)][0]
     pa = [x for x in b0_json if 'PA' in str(Path(x).name)][0]
 
-    with open(ap, 'r+') as a, open(pa, 'r+') as p:
+    with open(ap, 'r') as a, open(pa, 'r') as p:
         ap_data = json.load(a)
         pa_data = json.load(p)
         if not (ap_data["EstimatedTotalReadoutTime"] == pa_data["EstimatedTotalReadoutTime"]):
@@ -315,13 +236,15 @@ def edit_json(data_path):
     func_data = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.nii.gz')))
 
     with open(dwi_json_file[0], 'r') as f:
-        philips_scanner = is_philips(json.load(f))
+        manufacturer = get_manufacturer(json.load(f))
+
+    print(f"Will try to apply post-conversion fixes specific to images from {manufacturer}...")    
 
     # Adding IntendedFor field in the b0 json files for DWI data
     for i in dwi_b0_json:
         f=open(i,'r')
         json_data=json.load(f)
-        if philips_scanner:
+        if manufacturer == "philips":
             if 'AP' in str(Path(i).name):
                  value = "j-"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
@@ -345,21 +268,29 @@ def edit_json(data_path):
         print("PhaseEncodingDirection is added to %s"%i)
         save_as_json(updated_json,i)
         f.close()
-    # Adding IntendedFor field in the json files for rest and cuff data and sliceTiming and PhaseEncodingDirection for Philips
+    # Adding IntendedFor field in the json files for rest and cuff data and PhaseEncodingDirection for Philips/GE
     for i in func_b0_json:
         f=open(i,'r')
         json_data=json.load(f)
 
-        # Adds sliceTiming and PhaseEncodingDirection for Philips scanner
-        if philips_scanner:
-        # Adds PhaseEncodingDirection in the json files for Philips scanner
+        # Add PhaseEncodingDirection for Philips (not previously present)
+        # fix PhaseEncodingDirection for GE
+        if manufacturer in ["philips", "ge"]:
             if 'AP' in str(Path(i).name):
                  value = "j-"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection',  value)
             else:
                  value="j"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
-            print("PhaseEncodingDirection is added to %s"%i)
+            print(f"PhaseEncodingDirection for {i} forced to {value}")
+        if manufacturer == "ge":
+            if 'AP' in str(Path(i).name):
+                 value = "Flipped"
+                 json_data = add_fields_to_json(json_data, 'PhaseEncodingPolarityGE',  value)
+            else:
+                 value="Unflipped"
+                 json_data = add_fields_to_json(json_data, 'PhaseEncodingPolarityGE', value)
+            print(f"PhaseEncodingPolarityGE for {i} forced to {value}")
 
         # Adds IntendedFor in the json files regardless of any scanner
         value = [os.path.join(sess_name,'func',str(Path(i).name)) for i in func_data]
@@ -368,7 +299,7 @@ def edit_json(data_path):
         print("IntendedFor is added to %s"%i)
         f.close()
     # Add SliceTiming to the json files of rest/cuff json files
-    if philips_scanner:
+    if manufacturer == "philips":
        for i in func_json:
            f=open(i,'r')
            json_data=json.load(f)
@@ -387,7 +318,7 @@ def edit_json(data_path):
     # see: https://confluence.a2cps.org/x/kwnz
     # these are just dummy values, which works for distortion correction
     # but the units will not end up scaled correctly
-    if philips_scanner:
+    if manufacturer == "philips":
         check_dummy_fields_in_appa(func_b0_json)
         check_dummy_fields_in_appa(dwi_b0_json)
 
