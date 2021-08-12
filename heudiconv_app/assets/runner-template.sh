@@ -91,9 +91,6 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
-# remove write access for user
-chmod -200 "${JSONS[@]}"
-
 # Clean up edited dicoms
 if [[ "${SITE}" == "UC" ]]; then
     rm -rf dicom
