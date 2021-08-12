@@ -27,7 +27,7 @@ if [[ "${SITE}" == "UC" ]]; then
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
     export DICOM='--files dicom'
 else 
-    DICOM=${FILES}
+    export DICOM="${FILES}"
 fi
 
 echo singularity exec \

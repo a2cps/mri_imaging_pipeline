@@ -59,7 +59,7 @@ def submit_fmriprep(r,subject_id, bids, filename,site,next_step,job_def,image_ty
     parameters["PARTICIPANT_LABEL"] = 'sub-' + subject_id
     parameters["BIDS_DIRECTORY"] = bids
     if image_type in ['cuff', 'rest']:
-         parameters["FS_SUBJECTS_DIR"] = re.sub('bids', 'fmriprep', bids) + 'anat/freesurfer'
+         parameters["FS_SUBJECTS_DIR"] = re.sub('bids', 'fmriprep', bids) + '/anat/freesurfer'
     job_def.parameters = parameters
     # archivePath = os.path.dirname(os.path.dirname(os.path.normpath(bids))) \
     #               + '/fmriprep/'+ image_type + '/' + filename
