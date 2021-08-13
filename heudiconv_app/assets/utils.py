@@ -101,27 +101,58 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
     return output_AP_fname,output_PA_fname
 
 
-def edit_scansdf(scans_df):
+def rename_fmri_b0(fmri_b0_nifti: list, fmri_b0_json: list) -> None:
+
+    # first, comfirm that epi1 => j and epi2 => j-
+    n_files = len(fmri_b0_json)
+    if not n_files == 2:
+        raise AssertionError(f"Unexpected number of fmrib0_epi files! Wanted 2, found {n_files}")
+    for filename in fmri_b0_json:
+        with open(filename, 'r') as f:
+            data = json.load(f)
+            if "epi1" in filename and (not data["PhaseEncodingDirection"] == "j"):
+                raise AssertionError(f"PhaseEncodingDirection not j for {filename}")
+            if "epi2" in filename and (not data["PhaseEncodingDirection"] == "j-"):
+                raise AssertionError(f"PhaseEncodingDirection not j- for {filename}")            
+
+    # now safe to proceed with renaming
+    for src in fmri_b0_nifti + fmri_b0_json:
+        dst = src.replace("epi1", "dir-PA_epi").replace("epi2", "dir-AP_epi")
+        print(f"renaming {src} as {dst}")
+        shutil.move(src, dst) 
+
+
+def edit_scansdf(scans_df: pd.DataFrame) -> pd.DataFrame:
     """
     edits scans.tsv file to accomodate newly created and deleted fieldmaps
     """
 
-    filenames = scans_df[['filename']]
+    out0 = (
+        scans_df
+        .assign(filename=scans_df['filename'].str.replace("epi1","dir-AP_epi").str.replace("epi2","dir-PA_epi"))
+    )
+
+    filenames = out0[['filename']]
     
-    fmaps = filenames[filenames.filename.str.contains('fmap')]
+    dwib0 = filenames[filenames.filename.str.contains('dwib0_epi')]
     ap = pd.DataFrame(
-        fmaps.apply(lambda x: re.sub('b0_','b0_dir-AP_', x.filename), axis=1),
+        dwib0.apply(lambda x: re.sub('dwib0_epi','dwib0_dir-AP_epi', x.filename), axis=1),
         columns=['filename'])
     pa = pd.DataFrame(
-        fmaps.apply(lambda x: re.sub('b0_','b0_dir-PA_', x.filename), axis=1),
+        dwib0.apply(lambda x: re.sub('dwib0_epi','dwib0_dir-PA_epi', x.filename), axis=1),
         columns=['filename'])
 
-    out = scans_df[~scans_df.filename.str.contains('fmap')].append([ap, pa]).fillna('n/a')
+    out = (
+        out0[~out0.filename.str.contains('dwib0_epi')]
+        .append([ap, pa])
+        .fillna('n/a')
+        .reset_index(drop=True)
+        )
 
     return out
 
 
-def create_fieldmaps(data_path):
+def create_fieldmaps(data_path) -> None:
     """
     Creates DWI fieldmaps for GE data
     data_path: str full path of subject
@@ -145,6 +176,17 @@ def create_fieldmaps(data_path):
     print("Creating fieldmaps for dwi data...")
     output_AP_fname_dwi,output_PA_fname_dwi = create_dwi_b0(dwi_b0_file[0],dwi_file[0])
 
+    print("Renaming fieldmaps for fmri data...")
+    fmri_b0_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0_epi*.nii.gz'))
+    fmri_json_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0_epi*.json'))
+    rename_fmri_b0(fmri_b0_file, fmri_json_file)
+
+    # remove original fieldmaps from scans.tsv and append new ones
+    print("Updating scans.tsv file")
+    scans_tsv = glob.glob(os.path.join(sub_dir, sess_name, 'sub-*_scans.tsv'))[0]
+    scans_df = edit_scansdf(pd.read_csv(scans_tsv, sep='\t'))
+    scans_df.to_csv(scans_tsv, sep="\t", index = False)
+
     print("Creating json files for DWI data...")
     AP_fname_dwi = str(output_AP_fname_dwi).replace('nii.gz','json')
     PA_fname_dwi = str(output_PA_fname_dwi).replace('nii.gz','json')
@@ -155,11 +197,7 @@ def create_fieldmaps(data_path):
     os.remove(str(dwi_b0_file[0]))
     os.remove(str(dwi_json_file[0]))
 
-    # remove original fieldmaps from scans.tsv and append new ones
-    print("Updating scans.tsv file")
-    scans_tsv = glob.glob(os.path.join(sub_dir, sess_name, 'sub-*_scans.tsv'))[0]
-    scans_df = edit_scansdf(pd.read_csv(scans_tsv, sep='\t'))
-    scans_df.to_csv(scans_tsv, sep="\t", index = False)
+
 
 
 def add_fields_to_json(json_data, key, value):
@@ -244,14 +282,14 @@ def edit_json(data_path):
     for i in dwi_b0_json:
         f=open(i,'r')
         json_data=json.load(f)
-        if manufacturer == "philips":
+        if manufacturer in ["philips", "ge"]:
             if 'AP' in str(Path(i).name):
                  value = "j-"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
             else:
                  value="j"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection',  value)
-            print("PhaseEncodingDirection is added to %s"%i)
+            print(f"PhaseEncodingDirection for {i} set to {value}")
 
         value = [os.path.join(sess_name,'dwi',dwi_data)]
         updated_json = add_fields_to_json(json_data, 'IntendedFor',  value)
@@ -275,22 +313,14 @@ def edit_json(data_path):
 
         # Add PhaseEncodingDirection for Philips (not previously present)
         # fix PhaseEncodingDirection for GE
-        if manufacturer in ["philips", "ge"]:
+        if manufacturer in ["philips"]:
             if 'AP' in str(Path(i).name):
                  value = "j-"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection',  value)
             else:
                  value="j"
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection', value)
-            print(f"PhaseEncodingDirection for {i} forced to {value}")
-        if manufacturer == "ge":
-            if 'AP' in str(Path(i).name):
-                 value = "Flipped"
-                 json_data = add_fields_to_json(json_data, 'PhaseEncodingPolarityGE',  value)
-            else:
-                 value="Unflipped"
-                 json_data = add_fields_to_json(json_data, 'PhaseEncodingPolarityGE', value)
-            print(f"PhaseEncodingPolarityGE for {i} forced to {value}")
+            print(f"PhaseEncodingDirection for {i} set to {value}")
 
         # Adds IntendedFor in the json files regardless of any scanner
         value = [os.path.join(sess_name,'func',str(Path(i).name)) for i in func_data]
