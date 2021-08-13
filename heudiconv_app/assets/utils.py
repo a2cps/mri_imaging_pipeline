@@ -117,7 +117,7 @@ def rename_fmri_b0(fmri_b0_nifti: list, fmri_b0_json: list) -> None:
 
     # now safe to proceed with renaming
     for src in fmri_b0_nifti + fmri_b0_json:
-        dst = src.replace("epi1", "dir-AP_epi").replace("epi2", "dir-PA_epi")
+        dst = src.replace("epi1", "dir-PA_epi").replace("epi2", "dir-AP_epi")
         print(f"renaming {src} as {dst}")
         shutil.move(src, dst) 
 
