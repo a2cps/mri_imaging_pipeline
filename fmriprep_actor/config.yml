@@ -3,10 +3,10 @@ logs:
   level: DEBUG
   token: ~
 cuff:
-  appId: urrutia-fmriprep_LTS-20.2.1
+  appId: urrutia-fmriprep_LTS-20.2.3
   maxRunTime: "48:00:00"
   archive: true
-  archivePath: testing/actor-fmriprep-20.2.1
+  archivePath: testing/actor-fmriprep-20.2.3
   name: name
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
@@ -22,7 +22,7 @@ cuff:
     DUMMY_SCANS: 0
     FD_SPIKE: 0.9
     BIDS_FILTER_FILE: --bids-filter-file cuff_only.json
-    FS_NO_RECONALL: true
+    FS_NO_RECONALL: false
     FS_SUBJECTS_DIR: "" 
     SKIP_BIDS_VALIDATION: true
   notifications:
@@ -30,11 +30,11 @@ cuff:
       event: FINISHED
       url: your@email.com
 rest:
-  appId: urrutia-fmriprep_LTS-20.2.1
+  appId: urrutia-fmriprep_LTS-20.2.3
   name: name
   maxRunTime: "48:00:00"
   archive: true
-  archivePath: testing/actor-fmriprep-20.2.1
+  archivePath: testing/actor-fmriprep-20.2.3
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: sub-01
@@ -49,7 +49,7 @@ rest:
     DUMMY_SCANS: 0
     FD_SPIKE: 0.3
     BIDS_FILTER_FILE: --bids-filter-file rest_only.json
-    FS_NO_RECONALL: true
+    FS_NO_RECONALL: false
     FS_SUBJECTS_DIR: "" 
     SKIP_BIDS_VALIDATION: true
   notifications:
@@ -57,11 +57,11 @@ rest:
       event: FINISHED
       url: your@email.com
 anat:
-  appId: urrutia-fmriprep_LTS-20.2.1
+  appId: urrutia-fmriprep_LTS-20.2.3
   name: fmriprep_test
   maxRunTime: "48:00:00"
   archive: true
-  archivePath: testing/actor-fmriprep-20.2.1
+  archivePath: testing/actor-fmriprep-20.2.3
   name: name
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/

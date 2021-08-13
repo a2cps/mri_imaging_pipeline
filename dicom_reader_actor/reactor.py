@@ -22,9 +22,9 @@ def submit_dicom(r, uploaded_file):
     job_def.name = site_file
     job_def.archivePath = archivePath
 
-    try:
-        pipeline_config = copy.copy(r.settings.pipelines)
-        api_server = pipeline_config['api_server']
+    # try:
+    #     pipeline_config = copy.copy(r.settings.pipelines)
+    #     api_server = pipeline_config['api_server']
 
         # fmriprep_nonce = os.getenv('_FMRIPREP_NONCE')
         # fmriprep_alias = pipeline_config['fmriprep_alias']
@@ -41,9 +41,9 @@ def submit_dicom(r, uploaded_file):
         # heudiconv_alias = pipeline_config['heudiconv_alias']
         # heudiconv_callback = api_server + '/actors/v2/' + heudiconv_alias + '/messages?x-nonce=' + heudiconv_nonce
 
-    except Exception as e:
-        print(e)
-        r.logger.error("Unable to generate Audit callback")
+    # except Exception as e:
+    #     print(e)
+    #     r.logger.error("Unable to generate Audit callback")
 
     # notif = [{'event': 'RUNNING',
     #           "persistent": True,

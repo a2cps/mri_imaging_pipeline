@@ -1,28 +1,19 @@
 {
-    "appId": "tnath-qsiprep-0.14.2.0",
+    "appId": "urrutia-qsiprep-0.14.2.0",
     "name": "qsiprep_test",
-    "archive": false,
-    "archivePath": "testing/actor-qsiprep",
-    "batchQueue": "normal",
-    "maxRunTime": "48:00:00",
+    "archive": true,
+    "archiveSystem": "a2cps.storage-frontera-protected",
+    "archivePath": "products/development/mris/UC_uchicago/qsiprep/UC10064V1",
+    "batchQueue": "rtx-corralextra",
+    "maxRunTime": "11:00:00",
     "parameters": {
-        "BIND_DIR":"/work/07798/tnath/frontera/data",
-        "SUBJECT_DIR": "/work/07798/tnath/frontera/data/products/development/mris/NS_northshore/bids/NS043021PVP_new_heuristics",
-        "SUBJECT_ID": "043021",
-        "OUTDIR": "/work/07798/tnath/frontera/data/products/development/mris/NS_northshore/",
-        "SESSION_FOR_LONGITUDINAL": "ses-PVP",
+        "BIND_DIR":"/corral-secure/projects/A2CPS/",
+        "SUBJECT_DIR": "/corral-secure/projects/A2CPS/products/development/mris/UC_uchicago/bids/UC10064V1",
+        "SUBJECT_ID": "10064",
+        "OUTDIR": ".",
+        "SESSION_FOR_LONGITUDINAL": "ses-V1",
         "FSL_license": "license.txt",
         "EDDY_PARAMS" : "eddy_params.json",
         "BIDS_FILTER" : "bids.json"
-    },
-    "notifications": [
-        {
-            "event": "FAILED",
-            "url": "tnath3@jhu.edu"
-        },
-        {
-            "event": "FINISHED",
-            "url": "tnath3@jhu.edu"
-        }
-    ]
+    }
 }

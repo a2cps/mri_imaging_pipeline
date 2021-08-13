@@ -67,6 +67,20 @@ cat bids_ignore >> "${OUTDIR}"/.bidsignore
 readonly JSONS=("${OUTDIR}"/sub-*/ses-*/*/*.json) \
   && chmod +640 "${JSONS[@]}"
 
+# Delete duplicate scans if flag is set
+echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
+if ${DELETE_DUPLICATES}; then
+  # delete duplicte scans
+  echo "removing duplicate scans"
+  rm -rf ${OUTDIR}/sub-*/ses-*/*/*_dup*
+  # remove duplicate scans from scans.tsv
+  sed -i '/_dup/d' ${OUTDIR}/sub-*/ses-*/*scans.tsv
+else
+  echo "adding duplicate scans to bids ignore"
+  # otherwise add to bids ignore
+  echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bids_ignore
+fi
+
 case "${SITE}" in
   UI | UM)
     echo singularity exec \
