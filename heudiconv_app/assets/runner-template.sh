@@ -64,12 +64,12 @@ cat bids_ignore >> "${OUTDIR}"/.bidsignore
 # Need to inject IntendedFor field into some jsons, and in the case of GE images
 # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
 # give write access to user, read to group
-readonly JSONS=("${OUTDIR}"/sub-*/ses-*/*/*.json) \
-  && chmod +640 "${JSONS[@]}"
+readonly FILE_EDITS=("${OUTDIR}"/sub-*/ses-*/*/*) \
+  && chmod +640 "${FILE_EDITS[@]}"
 
 # Delete duplicate scans if flag is set
 echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
-if ${DELETE_DUPLICATES}; then
+if [ ${DELETE_DUPLICATES} == 1 ]; then
   # delete duplicte scans
   echo "removing duplicate scans"
   rm -rf ${OUTDIR}/sub-*/ses-*/*/*_dup*
@@ -78,7 +78,7 @@ if ${DELETE_DUPLICATES}; then
 else
   echo "adding duplicate scans to bids ignore"
   # otherwise add to bids ignore
-  echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bids_ignore
+  echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bidsignore
 fi
 
 case "${SITE}" in
