@@ -18,6 +18,7 @@ heudiconv:
     HEURISTIC: a2cps.py
     LOCATOR: =''
     SITE: ""
+    DELETE_DUPLICATES: true
 
   notifications:
     -
