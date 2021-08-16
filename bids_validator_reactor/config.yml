@@ -8,7 +8,7 @@ bids_validator:
   archive: true
   archivePath: ""
   archiveSystem: a2cps.storage-frontera-protected
-  maxRunTime: "12:00:00"
+  maxRunTime: "01:00:00"
   parameters:
     BIDS_DIRECTORY: sub-01
     CONFIG_IGNORE: "129"
