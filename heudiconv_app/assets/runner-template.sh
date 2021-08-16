@@ -79,6 +79,8 @@ else
   echo "adding duplicate scans to bids ignore"
   # otherwise add to bids ignore
   echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bidsignore
+  # remove duplicate scans from scans.tsv
+  sed -i '/_dup/d' ${OUTDIR}/sub-*/ses-*/*scans.tsv
 fi
 
 case "${SITE}" in
