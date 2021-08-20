@@ -7,7 +7,7 @@ mriqc:
   name: mriqc
   archive: true
   archivePath: ''
-  maxRunTime: "23:99:00"
+  maxRunTime: "16:59:00"
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: 01

@@ -27,7 +27,7 @@ if [[ "${SITE}" == "UC" ]]; then
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
     export DICOM='--files dicom'
 else 
-    export DICOM=${FILES}
+    export DICOM="${FILES}"
 fi
 
 echo singularity exec \
@@ -64,8 +64,24 @@ cat bids_ignore >> "${OUTDIR}"/.bidsignore
 # Need to inject IntendedFor field into some jsons, and in the case of GE images
 # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
 # give write access to user, read to group
-readonly JSONS=("${OUTDIR}"/sub-*/ses-*/*/*.json) \
-  && chmod +640 "${JSONS[@]}"
+readonly FILE_EDITS=("${OUTDIR}"/sub-*/ses-*/*/*) \
+  && chmod +640 "${FILE_EDITS[@]}"
+
+# Delete duplicate scans if flag is set
+echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
+if [ ${DELETE_DUPLICATES} == 1 ]; then
+  # delete duplicte scans
+  echo "removing duplicate scans"
+  rm -rf ${OUTDIR}/sub-*/ses-*/*/*_dup*
+  # remove duplicate scans from scans.tsv
+  sed -i '/_dup/d' ${OUTDIR}/sub-*/ses-*/*scans.tsv
+else
+  echo "adding duplicate scans to bids ignore"
+  # otherwise add to bids ignore
+  echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bidsignore
+  # remove duplicate scans from scans.tsv
+  sed -i '/_dup/d' ${OUTDIR}/sub-*/ses-*/*scans.tsv
+fi
 
 case "${SITE}" in
   UI | UM)
@@ -90,9 +106,6 @@ singularity exec \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
-
-# remove write access for user
-chmod -200 "${JSONS[@]}"
 
 # Clean up edited dicoms
 if [[ "${SITE}" == "UC" ]]; then
