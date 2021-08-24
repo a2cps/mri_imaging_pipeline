@@ -172,7 +172,7 @@
     {
       "id": "MODALITIES",
       "details": {
-        "argument": "--modalities",
+        "argument": "--modalities ",
         "showArgument": true,
         "description": "filter input dataset by MRI type ('T1w', 'T2w', or 'bold')"
       },
@@ -188,7 +188,7 @@
     {
       "id": "TASK_ID",
       "details": {
-        "argument": "--task-id",
+        "argument": "--task-id ",
         "showArgument": true,
         "description": "filter input dataset by task id"
       },

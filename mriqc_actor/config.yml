@@ -18,7 +18,7 @@ cuff:
     FD_THRESHOLD: 0.9
     FFT_SPIKES: true
     CORRECT_SLICE_TIMING: true
-    MODALITIES: "bold"
+    MODALITIES: ""
     TASK_ID: "cuff"
     WORK_DIR: work
     OUTPUT_DIR: .
@@ -38,27 +38,8 @@ rest:
     FD_THRESHOLD: 0.3
     FFT_SPIKES: true
     CORRECT_SLICE_TIMING: true
-    MODALITIES: "bold"
+    MODALITIES: ""
     TASK_ID: "rest"
-    WORK_DIR: work
-    OUTPUT_DIR: .
-anat:
-  appId: urrutia-mriqc-0.15.2
-  name: anat
-  archive: true
-  archivePath: ''
-  maxRunTime: "4:00:00"
-  parameters:
-    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
-    PARTICIPANT_LABEL: 01
-    START_IDX: 0
-    STOP_IDX: 0
-    WRITE_GRAPH: true
-    ICA: true
-    FD_THRESHOLD: 0
-    FFT_SPIKES: true
-    CORRECT_SLICE_TIMING: true
-    MODALITIES: "T1w"
     WORK_DIR: work
     OUTPUT_DIR: .
 pipelines:
