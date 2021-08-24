@@ -1,16 +1,11 @@
 from reactors.utils import Reactor, agaveutils
 import copy
-import sys
 import json
-import os
 import re
 
 
-def submit_mriqc(r,subject_id,bids,filename,site):
-    # Create agave client from reactor object
-    ag = r.client
-    # copy our job.json from config.yml
-    job_def = copy.copy(r.settings.mriqc)
+def submit(ag, subject_id: str, bids: str, filename: str, job_def):
+
     parameters = job_def["parameters"]
     # Define the input for the job as the file that
     # was sent in the notificaton message
@@ -50,20 +45,17 @@ def main():
     filename=context.filename
     bids=context.bids
     message=context.message_dict
-    site=context.site
     if message['status'] != "FINISHED":
         exit(0)
-    # tapis_jobId=m['id']
-    # if m['status'] != 'FINISHED':
-    #     r.on_failure("Tapis jobId={} has status {}.".format(
-    #         tapis_jobId, m['status']) + "Skipping validation.")
-    #     exit(0)
-    # print(message)
 
-    # pull in the participant_label
-    #participant_label = message['participant_label']
-    # use submit function to submit job to fmriprep
-    submit_mriqc(r,subject_id,bids,filename,site)
+    for job_def in [copy.copy(r.settings.anat), copy.copy(r.settings.cuff), copy.copy(r.settings.rest)]:
+        submit(
+            ag=r.client, 
+            subject_id=subject_id, 
+            bids=bids, 
+            filename=filename, 
+            job_def=job_def)
+
     return
 
 

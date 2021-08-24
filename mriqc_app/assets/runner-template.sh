@@ -20,7 +20,6 @@ fi
 # echo Input is ${DIR}
 
 mkdir -p  ${OUTPUT_DIR}
-PYTHONPATH=""
 
 # Usage: container_exec IMAGE COMMAND OPTIONS
 #   Example: docker run centos:7 uname -a
@@ -35,6 +34,7 @@ echo singularity exec \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
+        --no-sub \
         --n_procs 50 \
             --mem_gb 180 \
         ${ICA} \
@@ -43,7 +43,9 @@ echo singularity exec \
         ${FFT_SPIKES} \
         ${WRITE_GRAPH} \
         ${CORRECT_SLICE_TIMING} \
-        ${FD_THRESHOLD}
+        ${FD_THRESHOLD} \
+        ${TASK_ID} \
+        ${MODALITIES}
 
 singularity exec \
         -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
@@ -53,6 +55,7 @@ singularity exec \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
+        --no-sub \
         --n_procs 50 \
             --mem_gb 180 \
         ${ICA} \
@@ -61,6 +64,8 @@ singularity exec \
         ${FFT_SPIKES} \
         ${WRITE_GRAPH} \
         ${CORRECT_SLICE_TIMING} \
-        ${FD_THRESHOLD}
+        ${FD_THRESHOLD} \
+        ${TASK_ID} \
+        ${MODALITIES}
 
 

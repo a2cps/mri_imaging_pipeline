@@ -170,6 +170,37 @@
     },
 
     {
+      "id": "MODALITIES",
+      "details": {
+        "argument": "--modalities",
+        "showArgument": true,
+        "description": "filter input dataset by MRI type ('T1w', 'T2w', or 'bold')"
+      },
+      "value": {
+        "default": null,
+        "type": "enumeration",
+        "enumValues": ["T1w", "T2w", "bold"],
+        "visible": true,
+        "required": false
+      }
+    },
+
+    {
+      "id": "TASK_ID",
+      "details": {
+        "argument": "--task-id",
+        "showArgument": true,
+        "description": "filter input dataset by task id"
+      },
+      "value": {
+        "default": true,
+        "type": "string",
+        "visible": true,
+        "required": false
+      }
+    },
+
+    {
       "id": "WORK_DIR",
       "value": {
         "default": "work",
