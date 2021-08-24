@@ -4,20 +4,7 @@ import json
 import re
 
 
-def submit(ag, subject_id: str, bids: str, filename: str, job_def):
-
-    parameters = job_def["parameters"]
-    # Define the input for the job as the file that
-    # was sent in the notificaton message
-    parameters["PARTICIPANT_LABEL"] = subject_id
-    parameters["BIDS_DIRECTORY"] = bids
-    job_def.name = 'mriqc-' + filename
-    job_def.parameters = parameters
-    # archivePath = os.path.dirname(os.path.dirname(os.path.normpath(bids))) \
-    #                   + '/mriqc/'+ image_type + '/' + filename
-    archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1]
-    job_def.archivePath = archivePath
-
+def submit(ag, job_def) -> None:
     # Submit the job in a try/except block
     try:
         # Submit the job and get the job ID
@@ -32,32 +19,52 @@ def submit(ag, subject_id: str, bids: str, filename: str, job_def):
     return
 
 
-def main():
+def specify_jobdef(job_def, job: str, subject_id: str, bids: str, filename: str):
+    # Define the input for the job as the file that
+    # was sent in the notificaton message
+
+    job_def.name = f'mriqc-{job}-{filename}'
+    parameters = job_def["parameters"]    
+    parameters["PARTICIPANT_LABEL"] = subject_id
+    parameters["BIDS_DIRECTORY"] = bids
+    job_def.parameters = parameters
+    job_def.archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1]
+
+    return job_def
+
+
+def main() -> None:
     """Main function"""
     # create the reactor object
     r = Reactor()
-    r.logger.info("Hello this is actor {}".format(r.uid))
+    r.logger.info(f"Hello this is actor {r.uid}")
     # pull in reactor context
     context=r.context  # Actor context
     print(json.dumps(context, indent=4))
-    #archivePath=context.archivePath
-    subject_id=context.subject_id
-    filename=context.filename
-    bids=context.bids
-    message=context.message_dict
-    if message['status'] != "FINISHED":
+
+    if context.message_dict['status'] != "FINISHED":
         exit(0)
 
-    for job_def in [copy.copy(r.settings.anat), copy.copy(r.settings.cuff), copy.copy(r.settings.rest)]:
+    for job in ['anat', 'cuff', 'rest']:
+        if job == 'anat':
+            job_basic = copy.copy(r.settings.anat)
+        elif job == 'cuff':
+            job_basic = copy.copy(r.settings.cuff)
+        elif job == "rest":
+            job_basic = copy.copy(r.settings.rest)
+
+        job_def = specify_jobdef(
+            job_def=job_basic, 
+            job=job, 
+            subject_id=context.subject_id, 
+            bids=context.bids, 
+            filename=context.filename)
+
         submit(
             ag=r.client, 
-            subject_id=subject_id, 
-            bids=bids, 
-            filename=filename, 
             job_def=job_def)
 
     return
-
 
 
 if __name__ == '__main__':
