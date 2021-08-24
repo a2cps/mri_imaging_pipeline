@@ -27,6 +27,7 @@ def specify_jobdef(job_def, job: str, subject_id: str, bids: str, filename: str)
     parameters = job_def["parameters"]    
     parameters["PARTICIPANT_LABEL"] = subject_id
     parameters["BIDS_DIRECTORY"] = bids
+    parameters["WORK_DIR"] = f'{parameters["WORK_DIR"]}-{job}'
 
     if job == "cuff":
         parameters["MODALITIES"] = "bold T1w"
