@@ -1,0 +1,19 @@
+{
+  "name": "{{ app.name }}-test",
+  "appId": "{{ app.name }}-{{ app.version}}",
+  "archive": false,
+  "maxRunTime": "1:00:00",
+  "batchQueue": "normal",
+  "inputs": {},
+  "parameters": {
+    "SITES": "UI_uic UC_uchicago NS_northshore",
+    "OUTROOT": "/corral-secure/projects/A2CPS/shared/psadil/mriqc-group2/mris/sites_all"
+  },
+  "notifications": [
+      {
+          "event": "FINISHED",
+          "url": "psadil1@jh.edu"
+      }
+  ]
+
+}
