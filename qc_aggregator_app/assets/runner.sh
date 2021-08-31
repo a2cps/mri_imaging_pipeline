@@ -51,6 +51,11 @@ singularity run \
   docker://"${CONTAINER_IMAGE}" \
   /bids /mriqc group
 
+singularity run \
+  --cleanenv \
+  docker://"${CONTAINER_IMAGE}" \
+  python check_qc.py
+
 set +x
 
 date
