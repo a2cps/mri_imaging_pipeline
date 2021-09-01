@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Import Agave runtime extensions
 . _lib/extend-runtime.sh
 
@@ -19,7 +21,7 @@ fi
 # DIR=$(echo ${DIR} | cut -d "/" -f1)
 # echo Input is ${DIR}
 
-mkdir -p  ${OUTPUT_DIR}
+mkdir -p  "${OUTPUT_DIR}"
 
 # Usage: container_exec IMAGE COMMAND OPTIONS
 #   Example: docker run centos:7 uname -a
@@ -27,16 +29,18 @@ mkdir -p  ${OUTPUT_DIR}
 
 # Echo command to std out
 echo singularity exec \
-        -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
-        -e \
+        -B "${BIDS_DIRECTORY}":"${BIDS_DIRECTORY}" \
+        -B "${OUTPUT_DIR}":"${OUTPUT_DIR}" \
+        --cleanenv \
         docker://${CONTAINER_IMAGE} \
         mriqc \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
+        "${WORK_DIR}" \
         --no-sub \
         --n_procs 50 \
-            --mem_gb 180 \
+        --mem_gb 180 \
         ${ICA} \
         ${STOP_IDX} \
         ${START_IDX} \
@@ -45,19 +49,21 @@ echo singularity exec \
         ${CORRECT_SLICE_TIMING} \
         ${FD_THRESHOLD} \
         ${TASK_ID} \
-        ${MODALITIES}
+        "${MODALITIES}"
 
 singularity exec \
-        -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
-        -e \
+        -B "${BIDS_DIRECTORY}":"${BIDS_DIRECTORY}" \
+        -B "${OUTPUT_DIR}":"${OUTPUT_DIR}" \
+        --cleanenv \
         docker://${CONTAINER_IMAGE} \
         mriqc \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
+        "${WORK_DIR}" \
         --no-sub \
         --n_procs 50 \
-            --mem_gb 180 \
+        --mem_gb 180 \
         ${ICA} \
         ${STOP_IDX} \
         ${START_IDX} \
@@ -66,6 +72,6 @@ singularity exec \
         ${CORRECT_SLICE_TIMING} \
         ${FD_THRESHOLD} \
         ${TASK_ID} \
-        ${MODALITIES}
+        "${MODALITIES}"
 
 

@@ -178,8 +178,7 @@
       },
       "value": {
         "default": null,
-        "type": "enumeration",
-        "enumValues": ["T1w", "T2w", "bold"],
+        "type": "string",
         "visible": true,
         "required": false
       }
@@ -193,7 +192,7 @@
         "description": "filter input dataset by task id"
       },
       "value": {
-        "default": true,
+        "default": null,
         "type": "string",
         "visible": true,
         "required": false
@@ -202,9 +201,13 @@
 
     {
       "id": "WORK_DIR",
+      "details": {
+        "argument": "-w ",
+        "showArgument": true,
+        "description": "change the folder to store intermediate results"
+      },
       "value": {
         "default": "work",
-        "description": "the output path for the outcomes of preprocessing and visual reports",
         "type": "string",
         "visible": true,
         "required": true
