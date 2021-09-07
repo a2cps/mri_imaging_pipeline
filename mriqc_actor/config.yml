@@ -7,7 +7,7 @@ cuff:
   name: cuff
   archive: true
   archivePath: ''
-  maxRunTime: "4:00:00"
+  maxRunTime: "16:59:00"
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: 01
@@ -27,7 +27,7 @@ rest:
   name: rest
   archive: true
   archivePath: ''
-  maxRunTime: "4:00:00"
+  maxRunTime: "16:59:00"
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: 01

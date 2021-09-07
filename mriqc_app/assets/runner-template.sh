@@ -49,7 +49,7 @@ echo singularity exec \
         ${CORRECT_SLICE_TIMING} \
         ${FD_THRESHOLD} \
         ${TASK_ID} \
-        "${MODALITIES}"
+        ${MODALITIES}
 
 singularity exec \
         -B "${BIDS_DIRECTORY}":"${BIDS_DIRECTORY}" \
@@ -72,6 +72,6 @@ singularity exec \
         ${CORRECT_SLICE_TIMING} \
         ${FD_THRESHOLD} \
         ${TASK_ID} \
-        "${MODALITIES}"
+        ${MODALITIES}
 
 
