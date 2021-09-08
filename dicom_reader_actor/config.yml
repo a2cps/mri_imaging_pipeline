@@ -3,7 +3,7 @@ logs:
   level: DEBUG
   token: ~
 dicom_reader:
-  appId: urrutia-dicom_reader-0.0.4
+  appId: urrutia-dicom_reader-0.0.5
   name: dicom
   archive: true
   archivePath: system/jobs/dicom_reader

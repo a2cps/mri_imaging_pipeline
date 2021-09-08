@@ -65,28 +65,28 @@ def read_dicom_metadata(dicom_file, filename):
     # UC10036V1 A2CPS
     # umich = tst
     print(std_name)
-    # Stringify and remove A2CPS^ prefix
-    if 'A2CPS^' in str(std_name):
-        std_name = str(std_name).split('A2CPS^')[1]
-    elif 'A2CPS_QA^' in str(std_name):
-        std_name = str(std_name).split('A2CPS_QA^')[1]
-        (site_id, subject_id, session_id) = re.split('(\d+)',std_name)
-        return site_id, 'QC_' + subject_id, session_id
-    elif ' A2CPSQA' in str(std_name):
-        std_name = str(std_name).split(' A2CPSQA')[0]
-        (site_id, subject_id, session_id) = re.split('(\d+)',std_name)
-        return site_id, 'QC_' + subject_id, session_id
-    elif ' A2CPS' in str(std_name):
-        std_name = str(std_name).split(' A2CPS')[0]
-    else:
-        std_name = str(std_name)
-    post_notification("Input file " + os.path.basename(filename) + \
-                        " corresponds to " + std_name)
-    (site_id, subject_id, v, session_number, space) = re.split('(\d+)',std_name)
-    session_id = v + session_number
-    return site_id, subject_id, session_id
+    std_name = std_name.upper()
 
-def determine_output_path(site_id, subject_id, session_id):
+    patient_id = re.search('(NS|WS|UC|UM|UI)\d{5}[vV](1|3)',std_name)
+    # Check if it's a QA scan
+    qa = re.search('[A-Z][A-Z]\d+[Qq][Aa]',std_name)
+    if qa is not None:
+        # If it's not a QC scan we don't add the QC prefix
+        std_name = qa.group(0)
+        qc = 'QC_'
+        (site_id, subject_id, session_id) = re.split('(\d+)',std_name)
+    else:
+        std_name = patient_id.group(0)
+        # If it's not a QC scan we don't add the QC prefix
+        # and just use an empty string
+        qc=''
+        (site_id, subject_id, v, session_number, space) = re.split('(\d+)',std_name)
+        session_id = v + session_number
+
+    return site_id, subject_id, session_id, qc
+
+
+def determine_output_path(site_id, subject_id, session_id, qc=''):
     base_path = '/corral-secure/projects/A2CPS/products/mris/'
     site_codes = \
                 {
@@ -97,17 +97,18 @@ def determine_output_path(site_id, subject_id, session_id):
                     "WS": "WS_wayne_state",
                     "SH": "SH_spectrum_health"
                 }
-            
+    # if it's not a qc scan, the qc object is an empty string
     output_path = base_path + \
                  site_codes[site_id] + \
                  '/dicoms/' + \
+                 qc + \
                  site_id + subject_id + session_id
     return output_path
 
 def write_outputs(filename, output_path, isZip):
     if os.path.exists(output_path):
         print("Output file exists already, will not overwrite")
-        data = post_notification("Output file exists already, will not overwrite " + output_zip)
+        data = post_notification("Output file exists already, will not overwrite " + output_path)
         print(data)
         exit(1)
 
@@ -144,13 +145,18 @@ def json_to_env(json_dict):
             filehandle.write('%s\n' % listitem)
     return
 
-def main(filename):
+def main(filename, predefined_subject_id):
     isZip = test_zip(filename)
     print(filename)
     dicom_file = find_dicom(filename, isZip)
     print(dicom_file)
-    (site_id, subject_id, session_id) = read_dicom_metadata(dicom_file, filename)
-    output_path = determine_output_path(site_id, subject_id, session_id)
+    if predefined_subject_id is not None:
+        (site_id, subject_id, v, session_number, space) = re.split('(\d+)', predefined_subject_id)
+        session_id = v + session_number
+        qc = ''
+    else:
+        (site_id, subject_id, session_id, qc) = read_dicom_metadata(dicom_file, filename)
+    output_path = determine_output_path(site_id, subject_id, session_id, qc)
     print(output_path)
     write_outputs(filename, output_path, isZip)
     message = {
@@ -166,11 +172,11 @@ def main(filename):
     return
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    # adding option to define subject id
+    # should switch to using argparse in the future
+    if len(sys.argv) == 3:
+        main(sys.argv[1], sys.argv[2])
+    else:
+        main(sys.argv[1], None)
 
 
-#ls /corral-secure/projects/A2CPS/submissions/a2dtn01/EXAM8186/
-#ls /corral-secure/projects/A2CPS/submissions/UC_uchicago/UC0001V1_A2CPS.zip
-# ls /corral-secure/projects/A2CPS/submissions/NS_northshore/Travelling volunteer 1 NS/1.3.12.2.1107.5.2.42.70032.30000020100520532859700000004.zip
-#  /corral-secure/projects/A2CPS/system/jobs/1.3.12.2.1107.5.2.42.70032.30000020100520532859700000004/
-#  /corral-secure/projects/A2CPS/system/jobs/UC0001V1_A2CPS/DICOM/00000001/

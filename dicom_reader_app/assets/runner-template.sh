@@ -8,9 +8,9 @@ echo Input is ${FILENAME}
 echo singularity run \
             -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
             docker://${CONTAINER_IMAGE} \
-            python file_check.py ${FILENAME} 
+            python file_check.py ${FILENAME} ${SUBJECT_ID}
 
 singularity run \
             -B /corral-secure/projects/A2CPS/:/corral-secure/projects/A2CPS/ \
             docker://${CONTAINER_IMAGE} \
-            python file_check.py ${FILENAME} 
+            python file_check.py ${FILENAME} ${SUBJECT_ID}
