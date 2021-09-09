@@ -3,8 +3,8 @@ set -e
 
 date
 
-readonly OUT_MRIQC="${OUTROOT}/mriqc-group/a2cps/"
-readonly OUT_BIDS="${OUTROOT}/bids/a2cps/"
+readonly OUT_MRIQC="${OUTROOT}/mriqc-group/a2cps"
+readonly OUT_BIDS="${OUTROOT}/bids/a2cps"
 
 [[ ! -d "${OUT_BIDS}" ]] && mkdir -p "${OUT_BIDS}"
 [[ ! -d "${OUT_MRIQC}" ]] && mkdir -p "${OUT_MRIQC}"
@@ -21,14 +21,14 @@ for site in ${SITES}; do
   in_bids=("${INROOT}"/"${site}"/bids/*/sub-*)
   if [[ -d "${in_bids[0]}"  ]]; then
     for f in "${in_bids[@]}"; do
-      cp -sRnv "${f}" "${OUT_BIDS}"
+      cp -sRnv "${f}" "${OUT_BIDS}/"
     done
   fi
 
   in_mriqc=("${INROOT}"/"${site}"/mriqc/*/sub-*)
   if [[ -d "${in_mriqc[0]}" ]]; then
     for f in "${in_mriqc[@]}"; do
-      cp -sRnv "${f}" "${OUT_MRIQC}"
+      cp -sRnv "${f}" "${OUT_MRIQC}/"
     done
   fi
 
@@ -51,10 +51,11 @@ singularity run \
   docker://"${CONTAINER_IMAGE}" \
   /bids /mriqc group
 
-singularity run \
+singularity exec \
   --cleanenv \
+  -B "${OUT_MRIQC}":"${OUT_MRIQC}":ro \
   docker://"${CONTAINER_IMAGE}" \
-  python check_qc.py
+  python check_qc.py "${OUT_MRIQC}"/group_T1w.tsv "${OUT_MRIQC}"/group_bold.tsv
 
 set +x
 

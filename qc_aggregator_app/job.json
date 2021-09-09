@@ -1,12 +1,12 @@
 {
-  "name": "{{ app.name }}-test",
-  "appId": "{{ app.name }}-{{ app.version}}",
+  "name": "qc_aggregator-0.0.1-test",
+  "appId": "qc_aggregator-0.0.1",
   "archive": false,
   "maxRunTime": "1:00:00",
   "batchQueue": "normal",
   "inputs": {},
   "parameters": {
-    "SITES": "UI_uic UC_uchicago NS_northshore",
+    "SITES": "UI_uic UC_uchicago NS_northshore UM_umichigan",
     "OUTROOT": "/corral-secure/projects/A2CPS/shared/psadil/mriqc-group2/mris/sites_all"
   },
   "notifications": [
