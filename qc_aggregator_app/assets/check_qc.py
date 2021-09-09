@@ -1,6 +1,7 @@
 import os
+import re
 # import requests
-from typing import Union
+from typing import Union, Optional
 from pathlib import Path
 
 import pandas as pd
@@ -8,6 +9,8 @@ import numpy as np
 from scipy import stats
 from boxsdk import DevelopmentClient
 from boxsdk.exception import BoxAPIException
+
+import argparse
 
 mriqc_folder = '144878701459'
 
@@ -20,28 +23,43 @@ def post_notification(notification: str) -> None:
 
 
 def build_notification(outliers: pd.DataFrame) -> str:
-  notification = ['current list of outliers:']
+  notification = ['current list of outliers within each site:']
   for idx, row in outliers.iterrows():
-    notification.append(f'{idx}: {row.dropna().to_dict()}')
+    notification.append(f'{idx[0]} - {idx[3]}: {row.dropna().to_dict()}')
 
   return '\n'.join(notification)
 
 
-def get_outliers(fname: Union[str, bytes, os.PathLike], params: list[str]) -> pd.DataFrame:
+def get_outliers(fname: Union[str, bytes, os.PathLike], params: Optional[list[str]] = None) -> pd.DataFrame:
   '''
   get_outliers(fname='group_T1w.tsv', params=['cnr', 'snrd_csf', 'snrd_wm', 'snrd_gm'])
+  get_outliers(fname='group_T1w.tsv')
   '''
+
+  if not params is None:
+    d = pd.read_csv(fname, delimiter="\t", usecols=['bids_name']+params)
+  else:
+    d = pd.read_csv(fname, delimiter="\t")
   
+  sites = pd.read_csv('assets/imaging-log.csv')
+  dind = d[['bids_name']].copy()
+  dind['sub'] = [int(re.findall('sub-(\d+)', x)[0]) for x in dind['bids_name']]
+  dind['ses'] = [re.findall('ses-(V\d)', x)[0] for x in dind['bids_name']]
+  dind = dind.merge(sites, on='sub', how='left')
+
   outliers = (
-    pd.read_csv(fname, delimiter="\t", index_col='bids_name', usecols=['bids_name']+params)
-    .where(lambda x: np.abs(stats.zscore(x)) > 3, np.nan)
+    d
+    .merge(dind, on=['bids_name'])
+    .set_index(['site', 'ses', 'sub', 'bids_name'])
+    .groupby('site')
+    .transform(lambda x: np.where(np.abs(stats.zscore(x))>3, x, np.nan))
     .dropna(how="all")
     .round(1)
     )
 
-  urls = get_urls(outliers.index.tolist())
-  
-  return outliers.join(urls)
+  # urls = get_urls(outliers.index.tolist())
+  # return outliers.join(urls)
+  return outliers
 
 
 def get_urls(bids_name: list) -> pd.DataFrame:
@@ -83,16 +101,19 @@ def upload() -> None:
         preflight_check=False, 
         preflight_expected_size=0) 
     except BoxAPIException:
-      print('file already uploaded! not bothering')
+      print('file already uploaded!')
 
   return
 
-def main() -> None:
 
-  upload()
+def main(t1w_fname, bold_fname) -> None:
 
-  anat_outliers = get_outliers(fname='group_T1w.tsv', params=['cnr', 'snrd_csf', 'snrd_wm', 'snrd_gm'])
-  func_outliers = get_outliers(fname='group_bold.tsv', params=['tSNR', 'FD_mean'])
+  # upload()
+
+  # anat_outliers = get_outliers(fname=t1w_fname, params=['cnr', 'snrd_csf', 'snrd_wm', 'snrd_gm'])
+  # func_outliers = get_outliers(fname=bold_fname, params=['tSNR', 'FD_mean'])
+  anat_outliers = get_outliers(fname=t1w_fname)
+  func_outliers = get_outliers(fname=bold_fname)
 
   anat_notification = build_notification(anat_outliers)
   func_notification = build_notification(func_outliers)
@@ -102,4 +123,16 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    main()
+
+  parser = argparse.ArgumentParser(description='check mriqc-group output for outliers')
+  parser.add_argument(
+    't1w_fname', 
+    default='group_T1w.tsv',
+    help="group level tsv for T1w images")
+  parser.add_argument(
+    'bold_fname', 
+    default='group_bold.tsv',
+    help="group level tsv for bold images")
+
+  args = parser.parse_args()
+  main(args.t1w_fname, args.t1w_fname)
