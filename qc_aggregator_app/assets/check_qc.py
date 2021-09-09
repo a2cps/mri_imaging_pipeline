@@ -27,7 +27,7 @@ def post_notification(notification: str) -> None:
 
 def build_notification(outliers: pd.DataFrame, notification: list[str]) -> str:
   for idx, row in outliers.iterrows():
-    notification.append(f'{idx}: {row.dropna().to_dict()}')
+    notification.append(f'{idx[0]} - {idx[3]}: {row.dropna().to_dict()}')
 
   return '\n'.join(notification)
 
