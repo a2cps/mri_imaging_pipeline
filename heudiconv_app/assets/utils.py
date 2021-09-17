@@ -237,10 +237,10 @@ def check_dummy_fields_in_appa(b0_json: list):
         ap_data = json.load(a)
         pa_data = json.load(p)
         if not (ap_data["EstimatedTotalReadoutTime"] == pa_data["EstimatedTotalReadoutTime"]):
-            raise AssertionError(f"Not finishing because EstimatedTotalReadoutTime do not match in {ap} and {pa}")                
+            print(f'WARNING: dummy values for EstimatedTotalReadoutTime do not match in {ap} and {pa}.')
             
         if not (ap_data["EstimatedEffectiveEchoSpacing"] == pa_data["EstimatedEffectiveEchoSpacing"]):
-            raise AssertionError(f"Not finishing because EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}")                
+            print(f'WARNING: dummy values for EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}.')
             
 
 def write_dummy_fields(filename: str):
