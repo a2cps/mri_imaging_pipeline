@@ -94,12 +94,10 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
         PA = index_img(dwi_imgs, 0)
 
     # Save images as AP and PA.
-    # First 2 volumes of b0 are saved as AP
     output_AP_fname = Path(basepath,str(Path(dwi_b0_file).name).replace('dwib0_epi.nii.gz','dwib0_dir-AP_epi.nii.gz'))
     print("Saving AP image as %s"%output_AP_fname)
     AP.to_filename(output_AP_fname)
 
-    # First 2 volumes of DWI are saved as PA
     output_PA_fname = Path(basepath,str(Path(dwi_b0_file).name).replace('dwib0_epi.nii.gz','dwib0_dir-PA_epi.nii.gz'))
     print("Saving PA image as %s"%output_PA_fname)
     PA.to_filename(output_PA_fname)
