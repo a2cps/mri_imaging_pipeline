@@ -83,9 +83,15 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
     # load images
     b0_imgs = load_img(dwi_b0_file)
     dwi_imgs = load_img(dwi_file)
-
-    AP = index_img(b0_imgs,[0,1])
-    PA = index_img(dwi_imgs,[0,1])
+    
+    # most GE scanners give b0 images with 8 volumes (4D image)
+    # second UM scanner gives just a single volume (only 3D image)
+    if len(b0_imgs.shape) == 4:
+        AP = index_img(b0_imgs,[0,1])
+        PA = index_img(dwi_imgs,[0,1])
+    else:
+        AP = b0_imgs
+        PA = index_img(dwi_imgs, 0)
 
     # Save images as AP and PA.
     # First 2 volumes of b0 are saved as AP
