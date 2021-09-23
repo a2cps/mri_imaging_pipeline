@@ -53,3 +53,8 @@ protocols2fix.update({
             ('^Cuff([12])$', r'func_task-cuff_run-\1'), 
         ],
 })
+
+
+def filter_dicom(dcmdata):
+    """Return True if a DICOM dataset should be filtered out, else False"""
+    return True if dcmdata.SeriesDescription == "<MPR Collection>" else False
