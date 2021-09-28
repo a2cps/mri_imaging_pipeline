@@ -65,7 +65,7 @@ def read_dicom_metadata(dicom_file, filename):
     # UC10036V1 A2CPS
     # umich = tst
     print(std_name)
-    std_name = std_name.upper()
+    std_name = str(std_name).upper()
 
     patient_id = re.search('(NS|WS|UC|UM|UI)\d{5}[vV](1|3)',std_name)
     # Check if it's a QA scan

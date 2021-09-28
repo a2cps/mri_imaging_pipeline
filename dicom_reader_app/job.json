@@ -1,11 +1,10 @@
 {
-  "name": "dicom-UM20013V1",
+  "name": "dicom-UM20018V1",
   "appId": "urrutia-dicom_reader-0.0.5",
   "archive": false,
   "inputs": {
   },
   "parameters": {
-    "FILENAME": "/corral-secure/projects/A2CPS/submissions/UM_umichigan/UM20013V1.zip",
-    "SUBJECT_ID": "UM20013V1"
+    "FILENAME": "/corral-secure/projects/A2CPS/submissions/UM_umichigan/UM20018V1.zip"
   }
 }
