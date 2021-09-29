@@ -26,7 +26,7 @@ if [[ "${SITE}" == "UC" ]]; then
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
     export DICOM='--files dicom'
-else 
+else
     export DICOM="${FILES}"
 fi
 
@@ -94,6 +94,11 @@ case "${SITE}" in
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+
+    # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
+    echo "Replacing correct bval and bvec files..."
+    cat correct_bval_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bval
+    cat correct_bvec_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bvec
     ;;
 esac
 
@@ -122,6 +127,3 @@ singularity exec \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
-
-
-  
