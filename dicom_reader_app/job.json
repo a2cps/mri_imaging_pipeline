@@ -1,10 +1,10 @@
 {
-  "name": "urrutia-dicom_reader test-1625082679",
-  "appId": "urrutia-dicom_reader-0.0.4",
-  "archive": true,
+  "name": "dicom-UM20018V1",
+  "appId": "urrutia-dicom_reader-0.0.5",
+  "archive": false,
   "inputs": {
   },
   "parameters": {
-    "FILENAME": "/corral-secure/projects/A2CPS/submissions/NS_northshore/NS10047V1.zip"
+    "FILENAME": "/corral-secure/projects/A2CPS/submissions/UM_umichigan/UM20018V1.zip"
   }
 }

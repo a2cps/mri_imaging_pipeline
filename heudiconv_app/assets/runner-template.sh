@@ -26,11 +26,41 @@ if [[ "${SITE}" == "UC" ]]; then
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
     export DICOM='--files dicom'
-else 
+else
     export DICOM="${FILES}"
 fi
 
-echo singularity exec \
+if [[ "${SITE}" == "UC" ]]; then
+  echo singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://jurrutia/heudiconv:0.9.0.1 \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} ${DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+  singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://jurrutia/heudiconv:0.9.0.1 \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} ${DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+else
+  echo singularity exec \
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     docker://${CONTAINER_IMAGE} \
@@ -44,7 +74,7 @@ echo singularity exec \
     ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
     ${DATALAD} ${DCMCONFIG}
 
-singularity exec \
+  singularity exec \
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     docker://${CONTAINER_IMAGE} \
@@ -57,6 +87,7 @@ singularity exec \
     ${HEURISTIC} \
     ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
     ${DATALAD} ${DCMCONFIG}
+fi
 
 # add bval, bvec, betc to .bidsignore
 cat bids_ignore >> "${OUTDIR}"/.bidsignore
@@ -94,6 +125,11 @@ case "${SITE}" in
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+
+    # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
+    echo "Replacing correct bval and bvec files..."
+    cat correct_bval_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bval
+    cat correct_bvec_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bvec
     ;;
 esac
 
@@ -122,6 +158,3 @@ singularity exec \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
-
-
-  

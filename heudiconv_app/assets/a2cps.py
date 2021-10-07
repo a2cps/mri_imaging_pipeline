@@ -1,4 +1,5 @@
 # Provide mapping into reproin heuristic names
+import pydicom
 
 from heudiconv.heuristics import reproin
 
@@ -30,6 +31,11 @@ protocols2fix.update({
             #('^research/ABCD/epi_pepolar', 'fmap-epi_run-1'),  
             #('^research/ABCD/muxepi$', 'func_task-unk_run-unk'), 
             ('^3Plane_Loc.*', 'anat-scout'),
+            # At the start of data collection, repeated scans were marked _R# 
+            # (e.g., T1_MPRAGE_R1 is the first repeat of T1).
+            # the following finds those files and marks them so that the reproin
+            # heuristic can mark duplicate T1w scans 
+            ('^T1_MPRAGE_R([1-9])', 'anat-T1w'),
             ('^T1_MPRAGE', 'anat-T1w'),
             ('^GE_EPI_B0_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\1'),
             ('^GE_EPI_B0', 'fmap-epi_acq-fmrib0'),  
@@ -45,6 +51,13 @@ protocols2fix.update({
             ('^fMRI_distorionmap', 'fmap-epi_acq-fmrib0'),     
             ('^dMRI_distortionmap_(AP|PA)', r'fmap-epi_acq-dwib0_dir-\1'),   
             ('^dMRI_distortionmap', 'fmap-epi_acq-dwib0'),
+            # the next few refer to variations on names provided by second
+            # UM scanner
+            ('^ORIG: DTI$', 'dwi'),
+            ('^ORIG: DWI$', 'dwi'),
+            ('^REV_POL: DTI$', 'fmap-epi_acq-dwib0'),
+            ('^REV_POL: DWI$', 'fmap-epi_acq-dwib0'),
+            ('^ORIG T1_MPRAGE$', 'anat-T1w'),
             # this rule must come *after* DWI_B0
             ('^DWI', 'dwi'),
             ('^REST([12])$', r'func_task-rest_run-\1'),
@@ -53,3 +66,27 @@ protocols2fix.update({
             ('^Cuff([12])$', r'func_task-cuff_run-\1'), 
         ],
 })
+
+
+def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
+    """Return True if a DICOM dataset should be filtered out, else False"""
+    exclude = False
+    if dcmdata.SeriesDescription == "<MPR Collection>":
+        exclude = True
+    # participants from second scanner at UM
+    # "The way the extra volume is collected, distortion correction has to be 
+    # turned on.  This means that the series 3 DTI has GE's distortion 
+    # correction applied already, while series 310 is the original DTI data.  
+    # To match what is acquired on other scanners, you probably want the B0 
+    # volume (series 311) and the original DTI data (series 312 [sic: 310]).  
+    # Unfortunately, that means you also get series 3, which you probably don't 
+    # want."
+    # For T1w, we get both a modified "T1_MPRAGE" and "ORIG T1_MPRAGE". This 
+    # prevents the modifed one from going through conversion
+    elif (dcmdata.DeviceSerialNumber == "0007347633TMRFIX" and 
+      (dcmdata.SeriesDescription == "DTI" or
+      dcmdata.SeriesDescription == "DWI" or 
+      dcmdata.SeriesDescription == "T1_MPRAGE")):
+        exclude = True
+
+    return exclude

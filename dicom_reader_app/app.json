@@ -2,10 +2,10 @@
   "name": "{{ agave.username }}-{{ app.name }}",
   "version": "{{ app.version }}",
   "executionType": "HPC",
-  "executionSystem": "{{ app.hpc_system}}",
+  "deploymentSystem": "{{ app.storage_system }}",
   "parallelism": "SERIAL",
   "deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
-  "deploymentSystem": "{{ app.storage_system}}",
+  "executionSystem": "{{ app.hpc_system}}",
   "defaultProcessorsPerNode": 1,
   "defaultNodeCount": 1,
   "defaultQueue": "{{ app.queue }}",
@@ -35,6 +35,18 @@
       },
       "details": {
         "description": "The root folder uploaded from the data collection sites"
+      }
+    },
+    {
+      "id": "SUBJECT_ID",
+      "value": {
+        "default": "undefined",
+        "visible": true,
+        "type": "string",
+        "required": false
+      },
+      "details": {
+        "description": "Manually define the subject ID"
       }
     }
 

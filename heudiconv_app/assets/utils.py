@@ -83,17 +83,21 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
     # load images
     b0_imgs = load_img(dwi_b0_file)
     dwi_imgs = load_img(dwi_file)
-
-    AP = index_img(b0_imgs,[0,1])
-    PA = index_img(dwi_imgs,[0,1])
+    
+    # most GE scanners give b0 images with 8 volumes (4D image)
+    # second UM scanner gives just a single volume (only 3D image)
+    if len(b0_imgs.shape) == 4:
+        AP = index_img(b0_imgs,[0,1])
+        PA = index_img(dwi_imgs,[0,1])
+    else:
+        AP = b0_imgs
+        PA = index_img(dwi_imgs, 0)
 
     # Save images as AP and PA.
-    # First 2 volumes of b0 are saved as AP
     output_AP_fname = Path(basepath,str(Path(dwi_b0_file).name).replace('dwib0_epi.nii.gz','dwib0_dir-AP_epi.nii.gz'))
     print("Saving AP image as %s"%output_AP_fname)
     AP.to_filename(output_AP_fname)
 
-    # First 2 volumes of DWI are saved as PA
     output_PA_fname = Path(basepath,str(Path(dwi_b0_file).name).replace('dwib0_epi.nii.gz','dwib0_dir-PA_epi.nii.gz'))
     print("Saving PA image as %s"%output_PA_fname)
     PA.to_filename(output_PA_fname)
@@ -237,10 +241,10 @@ def check_dummy_fields_in_appa(b0_json: list):
         ap_data = json.load(a)
         pa_data = json.load(p)
         if not (ap_data["EstimatedTotalReadoutTime"] == pa_data["EstimatedTotalReadoutTime"]):
-            raise AssertionError(f"Not finishing because EstimatedTotalReadoutTime do not match in {ap} and {pa}")                
+            print(f'WARNING: dummy values for EstimatedTotalReadoutTime do not match in {ap} and {pa}.')
             
         if not (ap_data["EstimatedEffectiveEchoSpacing"] == pa_data["EstimatedEffectiveEchoSpacing"]):
-            raise AssertionError(f"Not finishing because EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}")                
+            print(f'WARNING: dummy values for EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}.')
             
 
 def write_dummy_fields(filename: str):
