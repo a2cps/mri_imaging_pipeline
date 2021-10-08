@@ -6,12 +6,7 @@ from typing import Union, Optional
 
 import pandas as pd
 import numpy as np
-# from boxsdk import DevelopmentClient
-# from boxsdk.exception import BoxAPIException
-
 import argparse
-
-# mriqc_folder = '144878701459'
 
 def _zscore(scores: np.array) -> np.array:
   return (scores - scores.mean()) / scores.std()
@@ -46,8 +41,12 @@ def get_outliers(
   else:
     d = pd.read_csv(fname, delimiter="\t")
   
-  
-  sites = pd.read_csv('imaging-log.csv')
+  sites = (
+    pd.read_csv(
+      '/home/psadil/Documents/git/a2cps/mri_imaging_pipeline/qc_aggregator_app/tests/imaging_log.csv',
+      usecols=['subject_id', 'site'])
+    .rename(columns={'subject_id':'sub'})
+    .drop_duplicates())
   dind = d[['bids_name']].copy()
   dind['sub'] = [int(re.findall('sub-(\d+)', x)[0]) for x in dind['bids_name']]
   dind['ses'] = [re.findall('ses-(V\d)', x)[0] for x in dind['bids_name']]
