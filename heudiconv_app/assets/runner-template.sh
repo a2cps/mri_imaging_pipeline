@@ -14,22 +14,6 @@ if [ -z "${CONTAINER_IMAGE}" ]; then
     fi
 fi
 
-
-if [[ "${SITE}" == "UC" ]]; then
-    echo singularity exec \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
-
-    singularity exec \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
-    export DICOM='--files dicom'
-else
-    export DICOM="${FILES}"
-fi
-
 if [[ "${SITE}" == "UC" ]]; then
   echo singularity exec \
     --cleanenv \
@@ -143,10 +127,6 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
-# Clean up edited dicoms
-if [[ "${SITE}" == "UC" ]]; then
-    rm -rf dicom
-fi
 
 # quick python to remove null values from participants.tsv
 echo singularity exec \
