@@ -14,80 +14,33 @@ if [ -z "${CONTAINER_IMAGE}" ]; then
     fi
 fi
 
+echo singularity exec \
+  --cleanenv \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
+  docker://${CONTAINER_IMAGE} \
+  heudiconv \
+  ${DICOM_DIR_TEMPLATE} ${FILES} \
+  ${LIST_OF_SUBJECTS} \
+  ${CONVERTER} \
+  --outdir ${OUTDIR} \
+  ${LOCATOR} ${ANON_CMD} \
+  ${HEURISTIC} \
+  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+  ${DATALAD} ${DCMCONFIG}
 
-if [[ "${SITE}" == "UC" ]]; then
-    echo singularity exec \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
-
-    singularity exec \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
-    export DICOM='--files dicom'
-else
-    export DICOM="${FILES}"
-fi
-
-if [[ "${SITE}" == "UC" ]]; then
-  echo singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://jurrutia/heudiconv:0.9.0.1 \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
-
-  singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://jurrutia/heudiconv:0.9.0.1 \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
-
-else
-  echo singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
-
-  singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
-fi
+singularity exec \
+  --cleanenv \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
+  docker://${CONTAINER_IMAGE} \
+  heudiconv \
+  ${DICOM_DIR_TEMPLATE} ${FILES} \
+  ${LIST_OF_SUBJECTS} \
+  ${CONVERTER} \
+  --outdir ${OUTDIR} \
+  ${LOCATOR} ${ANON_CMD} \
+  ${HEURISTIC} \
+  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+  ${DATALAD} ${DCMCONFIG}
 
 # add bval, bvec, betc to .bidsignore
 cat bids_ignore >> "${OUTDIR}"/.bidsignore
@@ -143,18 +96,3 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
-# Clean up edited dicoms
-if [[ "${SITE}" == "UC" ]]; then
-    rm -rf dicom
-fi
-
-# quick python to remove null values from participants.tsv
-echo singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
-
-singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
