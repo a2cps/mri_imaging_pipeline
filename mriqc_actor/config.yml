@@ -2,9 +2,9 @@
 logs:
   level: DEBUG
   token: ~
-mriqc:
-  appId: urrutia-mriqc-0.15.1
-  name: mriqc
+cuff:
+  appId: urrutia-mriqc-0.15.2
+  name: cuff
   archive: true
   archivePath: ''
   maxRunTime: "16:59:00"
@@ -15,12 +15,36 @@ mriqc:
     STOP_IDX: 0
     WRITE_GRAPH: true
     ICA: true
-    FD_THRESHOLD: 0
+    FD_THRESHOLD: 0.9
     FFT_SPIKES: true
     CORRECT_SLICE_TIMING: true
+    MODALITIES: ""
+    TASK_ID: "cuff"
     WORK_DIR: work
     OUTPUT_DIR: .
-  notifications:
-    -
-      event: FINISHED
-      url: your@email.com
+rest:
+  appId: urrutia-mriqc-0.15.2
+  name: rest
+  archive: true
+  archivePath: ''
+  maxRunTime: "16:59:00"
+  parameters:
+    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
+    PARTICIPANT_LABEL: 01
+    START_IDX: 0
+    STOP_IDX: 0
+    WRITE_GRAPH: true
+    ICA: true
+    FD_THRESHOLD: 0.3
+    FFT_SPIKES: true
+    CORRECT_SLICE_TIMING: true
+    MODALITIES: ""
+    TASK_ID: "rest"
+    WORK_DIR: work
+    OUTPUT_DIR: .
+pipelines:
+  fmriprep_alias: fmriprep.prod
+  api_server: https://portals-api.tacc.utexas.edu
+  mriqc_alias: mriqc.prod
+  bids_validator_alias: bids-validator.prod
+  vbr_actor_alias: vbr-actor.prod

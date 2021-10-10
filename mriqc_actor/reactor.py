@@ -1,28 +1,10 @@
 from reactors.utils import Reactor, agaveutils
 import copy
-import sys
 import json
-import os
 import re
 
 
-def submit_mriqc(r,subject_id,bids,filename,site):
-    # Create agave client from reactor object
-    ag = r.client
-    # copy our job.json from config.yml
-    job_def = copy.copy(r.settings.mriqc)
-    parameters = job_def["parameters"]
-    # Define the input for the job as the file that
-    # was sent in the notificaton message
-    parameters["PARTICIPANT_LABEL"] = subject_id
-    parameters["BIDS_DIRECTORY"] = bids
-    job_def.name = 'mriqc-' + filename
-    job_def.parameters = parameters
-    # archivePath = os.path.dirname(os.path.dirname(os.path.normpath(bids))) \
-    #                   + '/mriqc/'+ image_type + '/' + filename
-    archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1]
-    job_def.archivePath = archivePath
-
+def submit(ag, job_def) -> None:
     # Submit the job in a try/except block
     try:
         # Submit the job and get the job ID
@@ -37,35 +19,57 @@ def submit_mriqc(r,subject_id,bids,filename,site):
     return
 
 
-def main():
+def specify_jobdef(job_def, job: str, subject_id: str, bids: str, filename: str):
+    # Define the input for the job as the file that
+    # was sent in the notificaton message
+
+    job_def.name = f'mriqc-{job}-{filename}'
+    parameters = job_def["parameters"]    
+    parameters["PARTICIPANT_LABEL"] = subject_id
+    parameters["BIDS_DIRECTORY"] = bids
+    parameters["WORK_DIR"] = f'{parameters["WORK_DIR"]}-{job}'
+
+    if job == "cuff":
+        parameters["MODALITIES"] = "bold T1w"
+    elif job == "anat":
+        parameters["MODALITIES"] = "bold"
+
+    job_def.parameters = parameters
+    job_def.archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1]
+
+    return job_def
+
+
+def main() -> None:
     """Main function"""
     # create the reactor object
     r = Reactor()
-    r.logger.info("Hello this is actor {}".format(r.uid))
+    r.logger.info(f"Hello this is actor {r.uid}")
     # pull in reactor context
     context=r.context  # Actor context
     print(json.dumps(context, indent=4))
-    #archivePath=context.archivePath
-    subject_id=context.subject_id
-    filename=context.filename
-    bids=context.bids
-    message=context.message_dict
-    site=context.site
-    if message['status'] != "FINISHED":
+
+    if context.message_dict['status'] != "FINISHED":
         exit(0)
-    # tapis_jobId=m['id']
-    # if m['status'] != 'FINISHED':
-    #     r.on_failure("Tapis jobId={} has status {}.".format(
-    #         tapis_jobId, m['status']) + "Skipping validation.")
-    #     exit(0)
-    # print(message)
 
-    # pull in the participant_label
-    #participant_label = message['participant_label']
-    # use submit function to submit job to fmriprep
-    submit_mriqc(r,subject_id,bids,filename,site)
+    for job in ['cuff', 'rest']:
+        if job == 'cuff':
+            job_basic = copy.copy(r.settings.cuff)
+        elif job == "rest":
+            job_basic = copy.copy(r.settings.rest)
+
+        job_def = specify_jobdef(
+            job_def=job_basic, 
+            job=job, 
+            subject_id=context.subject_id, 
+            bids=context.bids, 
+            filename=context.filename)
+
+        submit(
+            ag=r.client, 
+            job_def=job_def)
+
     return
-
 
 
 if __name__ == '__main__':

@@ -58,7 +58,6 @@ rest:
       url: your@email.com
 anat:
   appId: urrutia-fmriprep_LTS-20.2.3
-  name: fmriprep_test
   maxRunTime: "16:59:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.3

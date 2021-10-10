@@ -170,10 +170,45 @@
     },
 
     {
+      "id": "MODALITIES",
+      "details": {
+        "argument": "--modalities ",
+        "showArgument": true,
+        "description": "filter input dataset by MRI type ('T1w', 'T2w', or 'bold')"
+      },
+      "value": {
+        "default": null,
+        "type": "enumerated",
+        "enumValues": ["T1w", "T2w", "bold", "T1w bold", "bold T1w"],
+        "visible": true,
+        "required": false
+      }
+    },
+
+    {
+      "id": "TASK_ID",
+      "details": {
+        "argument": "--task-id ",
+        "showArgument": true,
+        "description": "filter input dataset by task id"
+      },
+      "value": {
+        "default": null,
+        "type": "string",
+        "visible": true,
+        "required": false
+      }
+    },
+
+    {
       "id": "WORK_DIR",
+      "details": {
+        "argument": "-w ",
+        "showArgument": true,
+        "description": "change the folder to store intermediate results"
+      },
       "value": {
         "default": "work",
-        "description": "the output path for the outcomes of preprocessing and visual reports",
         "type": "string",
         "visible": true,
         "required": true
