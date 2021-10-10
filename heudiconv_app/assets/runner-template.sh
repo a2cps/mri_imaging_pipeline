@@ -19,7 +19,7 @@ echo singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} \
   heudiconv \
-  ${DICOM_DIR_TEMPLATE} ${DICOM} \
+  ${DICOM_DIR_TEMPLATE} ${FILES} \
   ${LIST_OF_SUBJECTS} \
   ${CONVERTER} \
   --outdir ${OUTDIR} \
@@ -33,7 +33,7 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} \
   heudiconv \
-  ${DICOM_DIR_TEMPLATE} ${DICOM} \
+  ${DICOM_DIR_TEMPLATE} ${FILES} \
   ${LIST_OF_SUBJECTS} \
   ${CONVERTER} \
   --outdir ${OUTDIR} \
