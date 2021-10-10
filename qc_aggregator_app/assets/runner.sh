@@ -36,12 +36,12 @@ done
 
 set -x
 
-# extra files requires to make valid BIDS dataset
-# note that these are just placeholders and don't actually contain relevant information
+# extra files required to make valid BIDS dataset
+# these are placeholders only and don't contain relevant information
 echo symlinked > "${OUT_BIDS}/README"
 cp dataset_description.json "${OUT_BIDS}"
 
-# NOTE: since bids and mriqc files are only symlinks, the targets of the 
+# since bids and mriqc files are only symlinks, the targets of the 
 # symlinks must also be bound (hence -B for INROOT)
 singularity run \
   --cleanenv \

@@ -2,7 +2,6 @@ import os
 import re
 # import requests
 from typing import Union, Optional
-# from pathlib import Path
 
 import pandas as pd
 import numpy as np
@@ -30,7 +29,10 @@ def build_notification(outliers: pd.DataFrame, notification: list[str]) -> str:
 def get_outliers(
   fname: Union[str, bytes, os.PathLike], 
   groups: list[str], 
-  params: Optional[list] = None) -> pd.DataFrame:
+  params: Optional[list] = None,
+  # imaging_log: Union[str, bytes, os.PathLike] = os.path.join('corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv')
+  imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/home', 'psadil', 'Documents', 'git', 'a2cps', 'mri_imaging_pipeline', 'qc_aggregator_app', 'tests', 'imaging_log.csv')
+  ) -> pd.DataFrame:
   '''
   get_outliers(fname='group_T1w.tsv', params=['cnr', 'snrd_csf', 'snrd_wm', 'snrd_gm'])
   get_outliers(fname='group_T1w.tsv', ['site'])
@@ -43,7 +45,7 @@ def get_outliers(
   
   sites = (
     pd.read_csv(
-      '/home/psadil/Documents/git/a2cps/mri_imaging_pipeline/qc_aggregator_app/tests/imaging_log.csv',
+      imaging_log,
       usecols=['subject_id', 'site'])
     .rename(columns={'subject_id':'sub'})
     .drop_duplicates())
@@ -66,58 +68,10 @@ def get_outliers(
     .round(1)
     )
 
-  # urls = get_urls(outliers.index.tolist())
-  # return outliers.join(urls)
   return outliers
 
 
-# def get_urls(bids_name: list) -> pd.DataFrame:
-#   client = DevelopmentClient()
-#   mriqc_reports_folder = client.folder(mriqc_folder)
-#   key = []
-#   for file in mriqc_reports_folder.get_items():
-#     fname = os.path.splitext(file.name)[0]
-#     if fname in bids_name:
-#       key.append(pd.DataFrame({
-#         "bids_name": [fname], 
-#         "url": [file.get_shared_link(access="open", allow_download=True, allow_preview=True)] 
-#         }))
-
-#   return pd.concat(key, ignore_index=True).set_index('bids_name')
-
-
-# def upload() -> None:
-#   """
-#   upload each html report. Note that this leverages error 409
-#   https://developer.box.com/reference/post-files-id-copy/
-#   i.e., box api refuses post request when the file name already exists. This
-#   is a sort of hacky way to cache results. 
-#   -> if the file needs to be updated, then it must first be deleted in box!
-#   """
-#   mriqc_root = Path(os.path.join(
-#     'corral-secure', 'projects', 'A2CPS', 'products', 'mris', 'sites_all',
-#     'mriqc', 'a2cps'))
-#   client = DevelopmentClient()
-#   mriqc_reports_folder = client.folder(mriqc_folder)  
-
-#   for html in mriqc_root.glob('*html'):
-#     target = html.resolve()
-#     try:
-#       mriqc_reports_folder.upload(
-#         target, 
-#         file_name=None, 
-#         file_description=None,
-#         preflight_check=False, 
-#         preflight_expected_size=0) 
-#     except BoxAPIException:
-#       print('file already uploaded!')
-
-#   return
-
-
 def main(t1w_fname, bold_fname) -> None:
-
-  # upload()
 
   # anat_outliers = get_outliers(fname=t1w_fname, params=['cnr', 'snrd_csf', 'snrd_wm', 'snrd_gm'])
   # func_outliers = get_outliers(fname=bold_fname, params=['tSNR', 'FD_mean'])

@@ -8,12 +8,5 @@
   "parameters": {
     "SITES": "UI_uic UC_uchicago NS_northshore UM_umichigan",
     "OUTROOT": "/corral-secure/projects/A2CPS/shared/psadil/mriqc-group2/mris/sites_all"
-  },
-  "notifications": [
-      {
-          "event": "FINISHED",
-          "url": "psadil1@jh.edu"
-      }
-  ]
-
+  }
 }
