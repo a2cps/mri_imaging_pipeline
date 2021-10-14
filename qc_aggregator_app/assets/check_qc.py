@@ -9,8 +9,22 @@ import numpy as np
 
 from atlassian import Confluence
 
+SITE_CODES = {
+  "UI": "UI_uic",
+  "NS": "NS_northshore",
+  "UC": "UC_uchicago",
+  "UM": "UM_umichigan",
+  "WS": "WS_wayne_state",
+  "SH": "SH_spectrum_health"
+  }
+
+
 def _zscore(scores: np.array) -> np.array:
   return (scores - scores.mean()) / scores.std()
+
+
+def _format_url(url: str) -> str:
+  return f'<a href="{url}">link</a>'
 
 
 def post_notification(notification: str, confluence: Optional[Confluence] = None) -> None:
@@ -38,6 +52,8 @@ def build_notification(outliers: pd.DataFrame, notification: list[str]) -> str:
 def get_outliers(
   fname: Union[str, bytes, os.PathLike], 
   groups: list[str], 
+  # url_root: str = "https://prod.a2cps.tacc.utexas.edu/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
+  url_root: str = "https://confluence.a2cps.org/download/attachments/25755998",
   params: Optional[list] = None,
   # imaging_log: Union[str, bytes, os.PathLike] = os.path.join('corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv')
   imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/home', 'psadil', 'Documents', 'git', 'a2cps', 'mri_imaging_pipeline', 'qc_aggregator_app', 'tests', 'imaging_log.csv')
@@ -79,14 +95,17 @@ def get_outliers(
     .dropna(how="all")
     .round(1)
     )
-
+  outliers['url'] = [f"{url_root}/{bids_name}.html?api=v2" for bids_name in outliers.index.get_level_values('bids_name')]
+  # outliers['url'] = [
+  #   f"{url_root}/{SITE_CODES[site]}/mriqc/{site}{sub}{ses}" for site,sub,ses in 
+  #     zip(outliers.index.get_level_values('site'), outliers.index.get_level_values('sub'), outliers.index.get_level_values('ses'))]
+  outliers['url'] = outliers.apply(lambda x: _format_url(x.url), axis=1)
+      
   return outliers
 
 
-def main(t1w_fname, bold_fname, token: Optional[str] = None) -> None:
+def main(t1w_fname, bold_fname, token: Optional[str] = None, pem: Optional[Union[str, bytes, os.PathLike]] = None) -> None:
 
-  # anat_outliers = get_outliers(fname=t1w_fname, params=['cnr', 'snrd_csf', 'snrd_wm', 'snrd_gm'])
-  # func_outliers = get_outliers(fname=bold_fname, params=['tSNR', 'FD_mean'])
   anat_outliers = get_outliers(fname=t1w_fname, groups=['site'])
   func_outliers = get_outliers(fname=bold_fname, groups=['site', 'task'])
 
@@ -101,7 +120,7 @@ def main(t1w_fname, bold_fname, token: Optional[str] = None) -> None:
   if token is not None:
     s = requests.Session()
     s.headers.update({"Authorization": f"Bearer {token}"})
-    s.verify="/home/psadil/Documents/git/a2cps/mri_imaging_pipeline/qc_aggregator_app/assets/confluence-a2cps-org-chain.pem"   
+    s.verify = pem
     post_notification(
       notification, 
       Confluence(
@@ -132,6 +151,9 @@ if __name__ == '__main__':
   parser.add_argument(
     '--token', 
     type=str)
+  parser.add_argument(
+    '--pem', 
+    type=str)
 
   args = parser.parse_args()
-  main(args.t1w_fname, args.bold_fname, args.token)
+  main(args.t1w_fname, args.bold_fname, args.token, args.pem)

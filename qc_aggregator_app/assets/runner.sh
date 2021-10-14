@@ -54,8 +54,9 @@ singularity run \
 singularity exec \
   --cleanenv \
   -B "${OUT_MRIQC}":"${OUT_MRIQC}":ro \
-  docker://"${CONTAINER_IMAGE}" \
-  python check_qc.py "${OUT_MRIQC}"/group_T1w.tsv "${OUT_MRIQC}"/group_bold.tsv
+  docker://psadil/mriqc_app:latest \
+  python check_qc.py "${OUT_MRIQC}"/group_T1w.tsv "${OUT_MRIQC}"/group_bold.tsv \
+  --token "$(<.token)" --pem "confluence-a2cps-org-chain.pem"
 
 set +x
 
