@@ -36,6 +36,7 @@ protocols2fix.update({
             # the following finds those files and marks them so that the reproin
             # heuristic can mark duplicate T1w scans 
             ('^T1_MPRAGE_R([1-9])', 'anat-T1w'),
+            ('^T1_MPRAGE R([1-9])', 'anat-T1w'),
             ('^T1_MPRAGE', 'anat-T1w'),
             ('^GE_EPI_B0_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\1'),
             ('^GE_EPI_B0', 'fmap-epi_acq-fmrib0'),  
