@@ -178,7 +178,7 @@
       },
       "value": {
         "default": null,
-        "type": "enumerated",
+        "type": "enumeration",
         "enumValues": ["T1w", "T2w", "bold", "T1w bold", "bold T1w"],
         "visible": true,
         "required": false
