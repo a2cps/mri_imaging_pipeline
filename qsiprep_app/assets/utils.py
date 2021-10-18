@@ -45,16 +45,16 @@ def split_shells(basepath,subject_id,session):
     """
     basepath = os.path.join(basepath,'qsiprep')
     subject_id = 'sub-'+str(subject_id)
-    if os.path.exists(os.path.join(basepath,subject_id,session,'preprocess-dti')):
+    if os.path.exists(os.path.join(basepath,subject_id,session,'dti-metrics')):
         pass
     else:
-        os.mkdir(os.path.join(basepath,subject_id,session,'preprocess-dti'))
-    resultpath=os.path.join(basepath,subject_id,session,'preprocess-dti')
+        os.mkdir(os.path.join(basepath,subject_id,session,'dti-metrics'))
+    resultpath=os.path.join(basepath,subject_id,session,'dti-metrics')
     # Find the filepaths of dwi dataset
     bval_filepath = glob.glob(os.path.join(basepath,subject_id,session,'dwi','*T1w_desc-preproc_dwi.bval'))[0]
     dwi_filepath = glob.glob(os.path.join(basepath,subject_id,session,'dwi','*T1w_desc-preproc_dwi.nii.gz'))[0]
     bvec_filepath = glob.glob(os.path.join(basepath,subject_id,session,'dwi','*T1w_desc-preproc_dwi.bvec'))[0]
-
+    mask_file = glob.glob(os.path.join(basepath,subject_id,session,'dwi','*mask.nii.gz'))[0]
     # Extract the base filename; useful when saving the results
     base_fname = str(Path(bval_filepath).name).split('.')[0]
 
@@ -109,4 +109,4 @@ def split_shells(basepath,subject_id,session):
     bvec_2000.to_csv(os.path.join(resultpath,base_fname+'_3rd_shell.bvec'),header=None, index=None,sep=' ')
     bvec_1000.to_csv(os.path.join(resultpath,base_fname+'_4rth_shell.bvec'),header=None, index=None,sep=' ')
     bvec_500.to_csv(os.path.join(resultpath,base_fname+'_5th_shell.bvec'),header=None, index=None,sep=' ')
-    return f_3000,f_1000,f_2000,f_500
+    return f_3000,f_1000,f_2000,f_500,mask_file
