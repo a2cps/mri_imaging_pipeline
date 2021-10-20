@@ -34,7 +34,7 @@ if [[ "${SITE}" == "UC" ]]; then
   echo singularity exec \
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://jurrutia/heudiconv:0.9.0.1 \
+    docker://${CONTAINER_IMAGE}\
     heudiconv \
     ${DICOM_DIR_TEMPLATE} ${DICOM} \
     ${LIST_OF_SUBJECTS} \
@@ -48,7 +48,7 @@ if [[ "${SITE}" == "UC" ]]; then
   singularity exec \
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://jurrutia/heudiconv:0.9.0.1 \
+    docker://${CONTAINER_IMAGE}\
     heudiconv \
     ${DICOM_DIR_TEMPLATE} ${DICOM} \
     ${LIST_OF_SUBJECTS} \

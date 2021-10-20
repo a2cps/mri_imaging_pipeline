@@ -44,6 +44,19 @@
       }
     },
     {
+      "id": "BIND_DIR",
+      "value": {
+        "default": "/corral-secure/projects/A2CPS/",
+        "visible": true,
+        "type": "string",
+        "required": true
+      },
+      "details": {
+        "label": "BIND_DIRECTORY",
+        "description": "Directory that is mounted into the container"
+      }
+    },
+    {
       "id": "PARTICIPANT_LABEL",
       "value": {
         "default": "01",
@@ -178,7 +191,7 @@
       },
       "value": {
         "default": null,
-        "type": "enumerated",
+        "type": "enumeration",
         "enumValues": ["T1w", "T2w", "bold", "T1w bold", "bold T1w"],
         "visible": true,
         "required": false
