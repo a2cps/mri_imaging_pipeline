@@ -37,7 +37,7 @@ echo singularity exec \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
-        "${WORK_DIR}" \
+        ${WORK_DIR} \
         --no-sub \
         --n_procs 50 \
         --mem_gb 180 \
@@ -49,7 +49,8 @@ echo singularity exec \
         ${CORRECT_SLICE_TIMING} \
         ${FD_THRESHOLD} \
         ${TASK_ID} \
-        ${MODALITIES}
+        ${MODALITIES} \
+        --verbose-reports
 
 singularity exec \
         -B "${BIDS_DIRECTORY}":"${BIDS_DIRECTORY}" \
@@ -60,7 +61,7 @@ singularity exec \
         ${BIDS_DIRECTORY} \
         ${OUTPUT_DIR} \
         participant --participant-label ${PARTICIPANT_LABEL} \
-        "${WORK_DIR}" \
+        ${WORK_DIR} \
         --no-sub \
         --n_procs 50 \
         --mem_gb 180 \
@@ -72,6 +73,6 @@ singularity exec \
         ${CORRECT_SLICE_TIMING} \
         ${FD_THRESHOLD} \
         ${TASK_ID} \
-        ${MODALITIES}
-
+        ${MODALITIES} \
+        --verbose-reports
 

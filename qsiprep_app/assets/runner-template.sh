@@ -47,8 +47,7 @@ echo singularity run -e --nv \
   docker://${CONTAINER_IMAGE} \
   ${SUBJECT_DIR} ${OUTDIR} \
   participant \
-  --output-resolution 1.2 \
-  --dwi-only \
+  --output-resolution 1.7 \
   --bids-filter-file ${BIDS_FILTER} \
   --denoise-method patch2self \
   --unringing-method mrdegibbs \
@@ -61,8 +60,7 @@ singularity run -e --nv \
   docker://${CONTAINER_IMAGE} \
   ${SUBJECT_DIR} ${OUTDIR} \
   participant \
-  --output-resolution 1.2 \
-  --dwi-only \
+  --output-resolution 1.7 \
   --bids-filter-file ${BIDS_FILTER} \
   --denoise-method patch2self \
   --unringing-method mrdegibbs \
