@@ -54,7 +54,7 @@ def main() -> None:
 
     for job in ['anat', 'cuff', 'rest']:
         if job == 'anat':
-            job_basic = copy.copy(r.settings.cuff)
+            job_basic = copy.copy(r.settings.anat)
         if job == 'cuff':
             job_basic = copy.copy(r.settings.cuff)
         elif job == "rest":
