@@ -84,7 +84,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # want."
     # For T1w, we get both a modified "T1_MPRAGE" and "ORIG T1_MPRAGE". This 
     # prevents the modifed one from going through conversion
-    elif (dcmdata.DeviceSerialNumber == "0007347633TMRFIX" and 
+    elif (dcmdata.__contains__('DeviceSerialNumber') and dcmdata.DeviceSerialNumber == "0007347633TMRFIX" and
       (dcmdata.SeriesDescription == "DTI" or
       dcmdata.SeriesDescription == "DWI" or 
       dcmdata.SeriesDescription == "T1_MPRAGE")):

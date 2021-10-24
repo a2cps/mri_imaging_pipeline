@@ -30,7 +30,7 @@ mkdir -p  "${OUTPUT_DIR}"
 # Echo command to std out
 echo singularity exec \
         -B "${BIDS_DIRECTORY}":"${BIDS_DIRECTORY}" \
-        -B "${OUTPUT_DIR}":"${OUTPUT_DIR}" \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
         --cleanenv \
         docker://${CONTAINER_IMAGE} \
         mriqc \
@@ -54,7 +54,7 @@ echo singularity exec \
 
 singularity exec \
         -B "${BIDS_DIRECTORY}":"${BIDS_DIRECTORY}" \
-        -B "${OUTPUT_DIR}":"${OUTPUT_DIR}" \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
         --cleanenv \
         docker://${CONTAINER_IMAGE} \
         mriqc \

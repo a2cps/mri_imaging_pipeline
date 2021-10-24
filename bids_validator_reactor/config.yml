@@ -3,7 +3,7 @@ logs:
   level: DEBUG
   token: ~
 bids_validator:
-  appId: urrutia-bids_validator-1.6.1
+  appId: urrutia-bids_validator-1.8.0
   name: bidsvalid
   archive: true
   archivePath: ""

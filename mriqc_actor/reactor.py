@@ -27,15 +27,15 @@ def specify_jobdef(job_def, job: str, subject_id: str, bids: str, filename: str)
     parameters = job_def["parameters"]    
     parameters["PARTICIPANT_LABEL"] = subject_id
     parameters["BIDS_DIRECTORY"] = bids
-    parameters["WORK_DIR"] = f'{parameters["WORK_DIR"]}-{job}'
+    #parameters["WORK_DIR"] = f'{parameters["WORK_DIR"]}-{job}'
 
-    if job == "cuff":
-        parameters["MODALITIES"] = "bold T1w"
-    elif job == "anat":
-        parameters["MODALITIES"] = "bold"
+    # if job == "cuff":
+    #     parameters["MODALITIES"] = "bold T1w"
+    # elif job == "anat":
+    #     parameters["MODALITIES"] = "bold"
 
     job_def.parameters = parameters
-    job_def.archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1]
+    job_def.archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1] + '/' + job
 
     return job_def
 
@@ -52,7 +52,9 @@ def main() -> None:
     if context.message_dict['status'] != "FINISHED":
         exit(0)
 
-    for job in ['cuff', 'rest']:
+    for job in ['anat', 'cuff', 'rest']:
+        if job == 'anat':
+            job_basic = copy.copy(r.settings.anat)
         if job == 'cuff':
             job_basic = copy.copy(r.settings.cuff)
         elif job == "rest":
