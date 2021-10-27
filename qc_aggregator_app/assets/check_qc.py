@@ -61,7 +61,7 @@ def get_outliers(
   groups: list[str], 
   # url_root: str = "https://prod.a2cps.tacc.utexas.edu/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
   url_root: str = "https://confluence.a2cps.org/download/attachments/25755998",
-  # imaging_log: Union[str, bytes, os.PathLike] = os.path.join('corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv')
+  # imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv')
   imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/home', 'psadil', 'Documents', 'git', 'a2cps', 'mri_imaging_pipeline', 'qc_aggregator_app', 'tests', 'imaging_log.csv')
   ) -> pd.DataFrame:
   '''
@@ -77,7 +77,7 @@ def get_outliers(
     .drop_duplicates())
   dind = d[['bids_name']].copy()
   dind['sub'] = [int(re.findall('sub-(\d+)', x)[0]) for x in dind['bids_name']]
-  dind['ses'] = [re.findall('ses-(V\d)', x)[0] for x in dind['bids_name']]
+  dind['ses'] = [re.findall('ses-([V|v]\d)', x)[0] for x in dind['bids_name']]
 
   if 'task' in groups:
     indices = ['site', 'sub', 'task', 'ses', 'bids_name']

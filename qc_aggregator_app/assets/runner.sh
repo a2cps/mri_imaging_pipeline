@@ -54,15 +54,15 @@ singularity run \
 singularity exec \
   --cleanenv \
   -B "${OUT_MRIQC}":"${OUT_MRIQC}":ro \
-  docker://psadil/mriqc_app:latest \
-  python check_qc.py "${OUT_MRIQC}"/group_T1w.tsv "${OUT_MRIQC}"/group_bold.tsv \
+  docker://psadil/mriqc:latest \
+  python check_qc.py "${OUT_MRIQC}"/group_T1w.tsv "${OUT_MRIQC}"/group_bold.tsv "${OUT_MRIQC}"/group_dwi.csv \
   --token "$(<.token)" --pem "confluence-a2cps-org-chain.pem"
 
-singularity exec \
-  --cleanenv \
-  -B "${OUT_MRIQC}":"${OUT_MRIQC}":ro \
-  docker://psadil/mriqc_app:latest \
-  jupyter nbconvert qc_report.ipynb --to html --no-input --no-prompt --output qc_report.html --execute
+# singularity exec \
+#   --cleanenv \
+#   -B "${OUT_MRIQC}":"${OUT_MRIQC}":ro \
+#   docker://psadil/mriqc:latest \
+#   jupyter nbconvert qc_report.ipynb --to html --no-input --no-prompt --output qc_report.html --execute
 
 set +x
 
