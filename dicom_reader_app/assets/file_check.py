@@ -67,7 +67,6 @@ def read_dicom_metadata(dicom_file, filename):
     print(std_name)
     std_name = str(std_name).upper()
 
-    patient_id = re.search('(NS|WS|UC|UM|UI)\d{5}[vV](1|3)',std_name)
     # Check if it's a QA scan
     qa = re.search('[A-Z][A-Z]\d+[Qq][Aa]',std_name)
     if qa is not None:
@@ -76,12 +75,27 @@ def read_dicom_metadata(dicom_file, filename):
         qc = 'QC_'
         (site_id, subject_id, session_id) = re.split('(\d+)',std_name)
     else:
-        std_name = patient_id.group(0)
         # If it's not a QC scan we don't add the QC prefix
         # and just use an empty string
         qc=''
-        (site_id, subject_id, v, session_number, space) = re.split('(\d+)',std_name)
-        session_id = v + session_number
+
+        # early miscommunication with one UM scanner caused a few atypical 
+        # PatientName tags in dicom header
+        # UM20020V1 -> cmb21a2c20020
+        # UM20021V1 -> cmb21a2c20021
+        # UM20022V1 -> cmb21a2c20022
+        # UM20023V1 -> cmb21a2c20023
+        # UM20024V1 -> cmb21a2c20024
+        # UM20025V1 -> cmb21a2c20025
+        if re.search("cmb21a2c", std_name, re.IGNORECASE):
+            subject_id = std_name[-5:]
+            session_id = "V1"
+            site_id = "UM"
+        else:
+            patient_id = re.search('(NS|WS|UC|UM|UI)\d{5}[vV](1|3)',std_name)
+            std_name = patient_id.group(0)
+            (site_id, subject_id, v, session_number, space) = re.split('(\d+)',std_name)
+            session_id = v + session_number
 
     return site_id, subject_id, session_id, qc
 
