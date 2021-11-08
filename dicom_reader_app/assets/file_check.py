@@ -1,14 +1,14 @@
 import os
 #import zipfile
 import zipfile38 as zipfile
-from shutil import copyfile,copytree
+from shutil import copyfile,copytree,make_archive,rmtree
 import requests
 import sys
 import pydicom
 import re
 
 def post_notification(notification):
-    endpoint = r"https://api.a2cps.org/actors/v2/slackbot.prod/messages?x-nonce=A2CPS_NPzA41LpZw6x5"
+    endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
     content = requests.post(url = endpoint, json = {"text": notification})
     data = content.json()
     return data
@@ -113,13 +113,19 @@ def write_outputs(filename, output_path, isZip):
         exit(1)
 
     if isZip:
-        with zipfile.ZipFile(filename, 'r') as zip_ref:
-            zip_ref.extractall(output_path)
+        #with zipfile.ZipFile(filename, 'r') as zip_ref:
+        #    zip_ref.extractall(output_path)
+        copyfile(filename, output_path + '.zip')
     else:
         assert isZip is False
         copytree(filename, output_path)
+        oldwd = os.getcwd()
+        #os.chdir(output_path)
+        #zip_files(filename, output_path, arcname=None)
+        make_archive(output_path, 'zip', output_path)
+        rmtree(output_path)
 
-    json_to_env({"dicom_dir": output_path})
+    json_to_env({"dicom_dir": output_path + '.zip'})
     return
 
         # copyfile(filename, output_zip)
@@ -133,7 +139,19 @@ def write_outputs(filename, output_path, isZip):
         #     zipfile.ZipFile(output_zip, 'r') as zip_ref:
         #     zip_ref.extractall(dicom_dir)
         #     json_to_env({"dicom_dir": dicom_dir})
+        
+#     ''' 
+# zip_file:
+#     @src: Iterable object containing one or more element
+#     @dst: filename (path/filename if needed)
+#     @arcname: Iterable object containing the names we want to give to the elements in the archive (has to correspond to src) 
+# '''
+def zip_files_without_relative_path(src,dst):
 
+def write_outputs_to_zipfile(filname, output_path):
+    # more fine-grained control over ZIP files
+    with zipfile.ZipFile(output_path, "w") as newzip:
+        newzip.write(filename,arcname='')
 
 def json_to_env(json_dict):
     dot_list = []
