@@ -14,49 +14,43 @@ if [ -z "${CONTAINER_IMAGE}" ]; then
     fi
 fi
 
+# Unzip dicoms locally 
+unzip ${FILES}
+LOCAL_DICOM=$(basename ${FILES})
+# remove zip suffix
+LOCAL_DICOM=${LOCAL_DICOM%.*}
 
-if [[ "${SITE}" == "UC" ]]; then
-    echo singularity exec \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
-
-    singularity exec \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 run_delete_trigger_tag_philips.py ${FILES}
-    export DICOM='--files dicom'
-else 
-    export DICOM="${FILES}"
-fi
 
 echo singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+  --cleanenv \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
+  docker://${CONTAINER_IMAGE} \
+  heudiconv \
+  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+  ${LIST_OF_SUBJECTS} \
+  ${CONVERTER} \
+  --outdir ${OUTDIR} \
+  ${LOCATOR} ${ANON_CMD} \
+  ${HEURISTIC} \
+  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+  ${DATALAD} ${DCMCONFIG}
 
 singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} ${DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+  --cleanenv \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
+  docker://${CONTAINER_IMAGE} \
+  heudiconv \
+  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+  ${LIST_OF_SUBJECTS} \
+  ${CONVERTER} \
+  --outdir ${OUTDIR} \
+  ${LOCATOR} ${ANON_CMD} \
+  ${HEURISTIC} \
+  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+  ${DATALAD} ${DCMCONFIG}
+
+# Remove local dicom directory
+rm -rf ${LOCAL_DICOM}
 
 # add bval, bvec, betc to .bidsignore
 cat bids_ignore >> "${OUTDIR}"/.bidsignore
@@ -94,6 +88,11 @@ case "${SITE}" in
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+
+    # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
+    echo "Replacing correct bval and bvec files..."
+    cat correct_bval_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bval
+    cat correct_bvec_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bvec
     ;;
 esac
 
@@ -107,21 +106,3 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
-# Clean up edited dicoms
-if [[ "${SITE}" == "UC" ]]; then
-    rm -rf dicom
-fi
-
-# quick python to remove null values from participants.tsv
-echo singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
-
-singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 participants.py "${OUTDIR}"
-
-
-  

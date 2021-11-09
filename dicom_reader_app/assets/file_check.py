@@ -1,14 +1,14 @@
 import os
 #import zipfile
 import zipfile38 as zipfile
-from shutil import copyfile,copytree
+from shutil import copyfile,copytree,make_archive,rmtree
 import requests
 import sys
 import pydicom
 import re
 
 def post_notification(notification):
-    endpoint = r"https://api.a2cps.org/actors/v2/slackbot.prod/messages?x-nonce=A2CPS_NPzA41LpZw6x5"
+    endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
     content = requests.post(url = endpoint, json = {"text": notification})
     data = content.json()
     return data
@@ -106,20 +106,26 @@ def determine_output_path(site_id, subject_id, session_id, qc=''):
     return output_path
 
 def write_outputs(filename, output_path, isZip):
-    if os.path.exists(output_path):
+    if os.path.exists(output_path) or os.path.exists(output_path + '.zip'):
         print("Output file exists already, will not overwrite")
         data = post_notification("Output file exists already, will not overwrite " + output_path)
         print(data)
         exit(1)
 
     if isZip:
-        with zipfile.ZipFile(filename, 'r') as zip_ref:
-            zip_ref.extractall(output_path)
+        #with zipfile.ZipFile(filename, 'r') as zip_ref:
+        #    zip_ref.extractall(output_path)
+        copyfile(filename, output_path + '.zip')
     else:
         assert isZip is False
         copytree(filename, output_path)
+        oldwd = os.getcwd()
+        #os.chdir(output_path)
+        #zip_files(filename, output_path, arcname=None)
+        make_archive(output_path, 'zip', output_path)
+        rmtree(output_path)
 
-    json_to_env({"dicom_dir": output_path})
+    json_to_env({"dicom_dir": output_path + '.zip'})
     return
 
         # copyfile(filename, output_zip)
@@ -133,6 +139,7 @@ def write_outputs(filename, output_path, isZip):
         #     zipfile.ZipFile(output_zip, 'r') as zip_ref:
         #     zip_ref.extractall(dicom_dir)
         #     json_to_env({"dicom_dir": dicom_dir})
+        
 
 
 def json_to_env(json_dict):
@@ -163,7 +170,7 @@ def main(filename, predefined_subject_id):
         "site_id": site_id,
         "subject_id": subject_id,
         "session_id": session_id,
-        "dicoms": output_path
+        "dicoms": output_path + '.zip'
     }
     message_heudiconv(message)
     notification = "Input file " + os.path.basename(filename) + " processed for " + \

@@ -1,18 +1,19 @@
 {
-    "appId": "urrutia-heudiconv-0.9.0.4",
-    "name": "heudiconv-UC10064V1",
+    "appId": "urrutia-heudiconv-0.9.0.7",
+    "name": "heudiconv-test",
     "archive": true,
-    "archivePath": "products/development/mris/UC_uchicago/bids/UC10064V1",
+    "archivePath": "products/development/mris/UI_uic/bids/UI10121V1",
     "maxRunTime": "05:59:00",
     "parameters": {
         "BIND_DIR": "/corral-secure/projects/A2CPS/",
-        "FILES": "/corral-secure/projects/A2CPS/products/mris/UC_uchicago/dicoms/UC10064V1",
-        "LIST_OF_SUBJECTS": "10064",
+        "FILES": "/corral-secure/projects/A2CPS/products/mris/UI_uic/dicoms/UI10121V1",
+        "LIST_OF_SUBJECTS": "10121",
         "OUTDIR": ".",
         "SESSION_FOR_LONGITUDINAL": "V1",
         "BIDS": true,
         "HEURISTIC": "a2cps.py",
         "LOCATOR": "=''",
-        "SITE": "UC"
+        "SITE": "UI",
+        "DELETE_DUPLICATES": true
     }
 }

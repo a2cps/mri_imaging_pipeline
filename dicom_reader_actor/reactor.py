@@ -78,6 +78,7 @@ def submit_dicom(r, uploaded_file):
                 # '&site=' + site
                 # }
             ]
+
     job_def.notifications = notif
 
     # Submit the job in a try/except block
@@ -93,6 +94,12 @@ def submit_dicom(r, uploaded_file):
         return
     return
 
+# def post_notification(notification):
+#     endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
+#     content = requests.post(url = endpoint, json = {"text": notification})
+#     data = content.json()
+#     return data
+
 def message_vbr(r,filename,site,subject,session,zipfile,outdir):
     pipeline_config = copy.copy(r.settings.pipelines)
     vbr_actor_alias = pipeline_config['vbr_actor_alias']
@@ -106,7 +113,6 @@ def message_vbr(r,filename,site,subject,session,zipfile,outdir):
     r.send_message(vbr_actor_alias, message)
     #r.send_message(actorId=vbr_actor_alias, message=message)
     return
-
 
 def main():
     """Main function"""

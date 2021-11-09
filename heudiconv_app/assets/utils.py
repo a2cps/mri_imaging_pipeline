@@ -1,77 +1,8 @@
-import os,json,glob,pydicom,shutil,re
+import os,json,glob,shutil,re
 from pathlib import Path
 from nilearn.image import load_img,index_img
 from collections import OrderedDict
 import pandas as pd
-
-def make_copy(path):
-    """
-    Makes a copy of the original data. The original data is saved with a suffix "_orig"
-    """
-    #suffix = '-orig'
-    #dst = os.path.join(path+suffix)
-    #dst = os.path.join(path,'dicom')
-    dst = os.path.join('./dicom')
-    print("Making a copy of the data...")
-    if os.path.isdir(dst):
-        flag=True
-        print("Destination directory already exists")
-    else:
-        shutil.copytree(path, dst)
-        flag=False
-        print("Done!The original copy is %s"%path)
-    return dst,flag
-
-def get_subdirectory(path):
-    """
-    Returns all the subdirectories under 'func' directory of the raw subject data.
-    """
-    dirs = []
-    for dirpath, dirnames, filenames in os.walk(path):
-        if not dirnames:
-            dirs.append(dirpath)
-    return dirs,filenames,dirnames
-
-def delete_tag(fname):
-    try:
-        ds = pydicom.read_file(fname)
-        if ds.__contains__('TriggerTime'):
-        # Delete the dicom tag 0018,1060. This tag represents the Trigger value
-            del(ds['0018','1060'])
-        #else:
-            #print("No trigger tag found for %s"%fname)
-        ds.save_as(fname)
-    except:
-        print("Unable to open the file %s"%fname)
-
-
-def edit_dicom_file_philips(filepath):
-    """
-    Deletes the trigger tag (0018,1060) from the DICOM file.
-    """
-    # Copy the data to local "dicom" directory
-    new_path,flag  = make_copy(filepath)
-
-    if not flag:
-        dirs,files,dirnames = get_subdirectory(new_path)
-        for func in dirs:
-            #print("Deleting tag for %s"%func)
-            for i in sorted(os.listdir(func)):
-                fname = os.path.join(func,i)
-                #print('Working on file %s'%fname)
-                delete_tag(fname)
-
-        print("Searching for any files under %s"%new_path)
-
-        # if files !=[]:
-        #     for i in sorted(files):
-        #         fname = os.path.join(new_path,i)
-        #         #print('Working on file %s'%fname)
-        #         delete_tag(fname)
-        print("Done! New dicoms are stored in %s"%os.path.join(new_path))
-    else:
-        print("Skipping!")
-
 
 def create_dwi_b0(dwi_b0_file,dwi_file):
     """
@@ -83,17 +14,21 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
     # load images
     b0_imgs = load_img(dwi_b0_file)
     dwi_imgs = load_img(dwi_file)
-
-    AP = index_img(b0_imgs,[0,1])
-    PA = index_img(dwi_imgs,[0,1])
+    
+    # most GE scanners give b0 images with 8 volumes (4D image)
+    # second UM scanner gives just a single volume (only 3D image)
+    if len(b0_imgs.shape) == 4:
+        AP = index_img(b0_imgs,[0,1])
+        PA = index_img(dwi_imgs,[0,1])
+    else:
+        AP = b0_imgs
+        PA = index_img(dwi_imgs, 0)
 
     # Save images as AP and PA.
-    # First 2 volumes of b0 are saved as AP
     output_AP_fname = Path(basepath,str(Path(dwi_b0_file).name).replace('dwib0_epi.nii.gz','dwib0_dir-AP_epi.nii.gz'))
     print("Saving AP image as %s"%output_AP_fname)
     AP.to_filename(output_AP_fname)
 
-    # First 2 volumes of DWI are saved as PA
     output_PA_fname = Path(basepath,str(Path(dwi_b0_file).name).replace('dwib0_epi.nii.gz','dwib0_dir-PA_epi.nii.gz'))
     print("Saving PA image as %s"%output_PA_fname)
     PA.to_filename(output_PA_fname)
@@ -237,10 +172,10 @@ def check_dummy_fields_in_appa(b0_json: list):
         ap_data = json.load(a)
         pa_data = json.load(p)
         if not (ap_data["EstimatedTotalReadoutTime"] == pa_data["EstimatedTotalReadoutTime"]):
-            raise AssertionError(f"Not finishing because EstimatedTotalReadoutTime do not match in {ap} and {pa}")                
+            print(f'WARNING: dummy values for EstimatedTotalReadoutTime do not match in {ap} and {pa}.')
             
         if not (ap_data["EstimatedEffectiveEchoSpacing"] == pa_data["EstimatedEffectiveEchoSpacing"]):
-            raise AssertionError(f"Not finishing because EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}")                
+            print(f'WARNING: dummy values for EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}.')
             
 
 def write_dummy_fields(filename: str):
