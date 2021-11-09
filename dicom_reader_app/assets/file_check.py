@@ -106,7 +106,7 @@ def determine_output_path(site_id, subject_id, session_id, qc=''):
     return output_path
 
 def write_outputs(filename, output_path, isZip):
-    if os.path.exists(output_path):
+    if os.path.exists(output_path) or os.path.exists(output_path + '.zip'):
         print("Output file exists already, will not overwrite")
         data = post_notification("Output file exists already, will not overwrite " + output_path)
         print(data)
@@ -140,18 +140,7 @@ def write_outputs(filename, output_path, isZip):
         #     zip_ref.extractall(dicom_dir)
         #     json_to_env({"dicom_dir": dicom_dir})
         
-#     ''' 
-# zip_file:
-#     @src: Iterable object containing one or more element
-#     @dst: filename (path/filename if needed)
-#     @arcname: Iterable object containing the names we want to give to the elements in the archive (has to correspond to src) 
-# '''
-def zip_files_without_relative_path(src,dst):
 
-def write_outputs_to_zipfile(filname, output_path):
-    # more fine-grained control over ZIP files
-    with zipfile.ZipFile(output_path, "w") as newzip:
-        newzip.write(filename,arcname='')
 
 def json_to_env(json_dict):
     dot_list = []
@@ -181,7 +170,7 @@ def main(filename, predefined_subject_id):
         "site_id": site_id,
         "subject_id": subject_id,
         "session_id": session_id,
-        "dicoms": output_path
+        "dicoms": output_path + '.zip'
     }
     message_heudiconv(message)
     notification = "Input file " + os.path.basename(filename) + " processed for " + \

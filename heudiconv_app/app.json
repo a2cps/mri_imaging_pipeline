@@ -58,7 +58,7 @@
 			"id": "FILES",
 			"details": {
 				"argument": "--files ",
-				"showArgument": true,
+				"showArgument": false,
 				"description": "Files (tarballs, dicoms) or directories containing files to process. Cannot be provided if using –dicom_dir_template or –subjects, don't use if dicom directory is provided separate files"
 			},
 			"value": {
