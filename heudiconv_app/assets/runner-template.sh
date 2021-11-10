@@ -15,10 +15,10 @@ if [ -z "${CONTAINER_IMAGE}" ]; then
 fi
 
 # Unzip dicoms locally 
-unzip ${FILES}
 LOCAL_DICOM=$(basename ${FILES})
 # remove zip suffix
 LOCAL_DICOM=${LOCAL_DICOM%.*}
+unzip ${FILES} -d ${LOCAL_DICOM}
 
 
 echo singularity exec \
