@@ -8,7 +8,7 @@ heudiconv:
   name: heudiconv_test
   archive: true
   archivePath: testing/actor-heudiconv
-  maxRunTime: "11:59:00"
+  maxRunTime: "19:59:00"
   parameters:
     FILES: norshore/bids/1
     LIST_OF_SUBJECTS: sub-01
