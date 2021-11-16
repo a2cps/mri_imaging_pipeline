@@ -1,0 +1,12 @@
+{
+  "name": "{{ app.name }}-test",
+  "appId": "{{ app.name }}-{{ app.version}}",
+  "archive": false,
+  "maxRunTime": "0:30:00",
+  "batchQueue": "normal",
+  "inputs": {},
+  "parameters": {
+    "SITES": "UI_uic UC_uchicago NS_northshore UM_umichigan",
+    "OUTROOT": "/corral-secure/projects/A2CPS/shared/psadil/group/mris/sites_all"
+  }
+}

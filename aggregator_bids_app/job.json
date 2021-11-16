@@ -1,0 +1,12 @@
+{
+  "name": "{{ app.name }}-test-{{ iso8601_basic_short }}",
+  "appId": "{{ app.name }}-{{ app.version}}",
+  "archive": false,
+  "maxRunTime": "0:30:00",
+  "batchQueue": "normal",
+  "inputs": {},
+  "parameters": {
+    "SUBLONG": "NS10042V1 NS10060V3 NS10158V1 NS10161V1 NS10165V1 NS10168V1 NS10171V1 NS10177V1 NS10197V1 NS10206V1 UI10003V3",
+    "OUTDIR": "/corral-secure/projects/A2CPS/shared/psadil/group/mris/sites_all/bids/a2cps"
+  }
+}
