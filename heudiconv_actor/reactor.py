@@ -141,6 +141,7 @@ def main():
     # dicoms = context.dicoms
     # session=context.session_id
     outdir = re.sub('dicoms', 'bids', dicoms)
+    outdir = outdir.split('.zip')[0]
 
     submit_heudiconv(r,site,subject,session,dicoms,outdir)
     #message_vbr(r,site,subject,session,dicoms,outdir)

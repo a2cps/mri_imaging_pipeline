@@ -14,12 +14,19 @@ if [ -z "${CONTAINER_IMAGE}" ]; then
     fi
 fi
 
+# Unzip dicoms locally 
+LOCAL_DICOM=$(basename ${FILES})
+# remove zip suffix
+LOCAL_DICOM=${LOCAL_DICOM%.*}
+unzip ${FILES} -d ${LOCAL_DICOM}
+
+
 echo singularity exec \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} \
   heudiconv \
-  ${DICOM_DIR_TEMPLATE} ${FILES} \
+  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
   ${LIST_OF_SUBJECTS} \
   ${CONVERTER} \
   --outdir ${OUTDIR} \
@@ -33,7 +40,7 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} \
   heudiconv \
-  ${DICOM_DIR_TEMPLATE} ${FILES} \
+  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
   ${LIST_OF_SUBJECTS} \
   ${CONVERTER} \
   --outdir ${OUTDIR} \
@@ -41,6 +48,9 @@ singularity exec \
   ${HEURISTIC} \
   ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
   ${DATALAD} ${DCMCONFIG}
+
+# Remove local dicom directory
+rm -rf ${LOCAL_DICOM}
 
 # add bval, bvec, betc to .bidsignore
 cat bids_ignore >> "${OUTDIR}"/.bidsignore
