@@ -37,10 +37,10 @@ fi
 # Ref https://github.com/PennLINC/qsiprep/issues/282
 
 echo adding the session to the bids filter file
-singularity exec -e \
- -B ${BIND_DIR}:${BIND_DIR} \
-  docker://${CONTAINER_IMAGE} \
-  python3 edit_session.py ${BIDS_FILTER} ${SESSION_FOR_LONGITUDINAL}
+#singularity exec -e \
+# -B ${BIND_DIR}:${BIND_DIR} \
+#  docker://${CONTAINER_IMAGE} \
+#  python3 edit_session.py ${BIDS_FILTER} ${SESSION_FOR_LONGITUDINAL}
 
 echo singularity run -e --nv \
  -B ${BIND_DIR}:${BIND_DIR} \
@@ -55,28 +55,28 @@ echo singularity run -e --nv \
   ${FSL_license} -w ${OUTDIR} \
   --participant_label ${SUBJECT_ID} -vvv
 
-singularity run -e --nv \
- -B ${BIND_DIR}:${BIND_DIR} \
-  docker://${CONTAINER_IMAGE} \
-  ${SUBJECT_DIR} ${OUTDIR} \
-  participant \
-  --output-resolution 1.7 \
-  --bids-filter-file ${BIDS_FILTER} \
-  --denoise-method patch2self \
-  --unringing-method mrdegibbs \
-  --hmc_model eddy ${EDDY_PARAMS} \
-  ${FSL_license} -w ${OUTDIR} \
-  --participant_label ${SUBJECT_ID} -vvv
+#singularity run -e --nv \
+# -B ${BIND_DIR}:${BIND_DIR} \
+#  docker://${CONTAINER_IMAGE} \
+#  ${SUBJECT_DIR} ${OUTDIR} \
+#  participant \
+#  --output-resolution 1.7 \
+#  --bids-filter-file ${BIDS_FILTER} \
+#  --denoise-method patch2self \
+#  --unringing-method mrdegibbs \
+#  --hmc_model eddy ${EDDY_PARAMS} \
+#  ${FSL_license} -w ${OUTDIR} \
+#  --participant_label ${SUBJECT_ID} -vvv
 
-echo computing DTI measures...
-echo singularity exec -e \
- -B ${BIND_DIR}:${BIND_DIR} \
-  docker://${CONTAINER_IMAGE} \
-  python3 compute_dwi_measures.py ${OUTDIR} ${SUBJECT_ID} ${SESSION_FOR_LONGITUDINAL}
+# echo computing DTI measures...
+# echo singularity exec -e \
+#  -B ${BIND_DIR}:${BIND_DIR} \
+#   docker://${CONTAINER_IMAGE} \
+#   python3 compute_dwi_measures.py ${OUTDIR} ${SUBJECT_ID} ${SESSION_FOR_LONGITUDINAL}
 
-singularity exec -e \
- -B ${BIND_DIR}:${BIND_DIR} \
-  docker://${CONTAINER_IMAGE} \
-  python3 compute_dwi_measures.py ${OUTDIR} ${SUBJECT_ID} ${SESSION_FOR_LONGITUDINAL}
+# singularity exec -e \
+#  -B ${BIND_DIR}:${BIND_DIR} \
+#   docker://${CONTAINER_IMAGE} \
+#   python3 compute_dwi_measures.py ${OUTDIR} ${SUBJECT_ID} ${SESSION_FOR_LONGITUDINAL}
 
 echo finished!
