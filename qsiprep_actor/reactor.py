@@ -20,25 +20,20 @@ def submit(ag, job_def) -> None:
     return
 
 
-def specify_jobdef(job_def, job: str, subject_id: str, bids: str, filename: str):
+def specify_jobdef(job_def, subject_id: str, bids: str, filename: str):
     # Define the input for the job as the file that
     # was sent in the notification message
 
-    job_def.name = f'qsiprep-{job}-{filename}'
+    job_def.name = f'qsiprep-{filename}'
     parameters = job_def["parameters"]
     parameters["PARTICIPANT_LABEL"] = subject_id
     parameters["BIDS_DIRECTORY"] = bids
-    parameters["output-resolution"] = 1.7
-    #parameters["WORK_DIR"] = f'{parameters["WORK_DIR"]}-{job}'
-
-    # if job == "cuff":
-    #     parameters["MODALITIES"] = "bold T1w"
-    # elif job == "anat":
-    #     parameters["MODALITIES"] = "bold"
-    print(parameters)
+    # get session from filename
+    # TO DO: pass this in the callback from bids_validation instead of string parsing
+    session_id = 'ses-' + filename[-2:]
+    parameters["SESSION_FOR_LONGITUDINAL"] = session_id
     job_def.parameters = parameters
-    job_def.archivePath = re.sub('bids', 'qsiprep', bids).split('/corral-secure/projects/A2CPS')[1] + '/' + job
-
+    job_def.archivePath = re.sub('bids', 'qsiprep', bids).split('/corral-secure/projects/A2CPS')[1] 
     return job_def
 
 
@@ -46,31 +41,27 @@ def main() -> None:
     """Main function"""
     # create the reactor object
     r = Reactor()
-    print(r)
+    #print(r)
     r.logger.info(f"Hello this is actor {r.uid}")
     # pull in reactor context
     context=r.context  # Actor context
-    print(json.dumps(context, indent=4))
+    #print(json.dumps(context, indent=4))
 
     if context.message_dict['status'] != "FINISHED":
         exit(0)
-    # for job in ['anat', 'dwi']:
-    #     if job == 'anat':
-    #         job_basic = copy.copy(r.settings.anat)
-    #     else :
-    #         job_basic = copy.copy(r.settings.cuff)
-    print(r.settings)
+
+    #print(r.settings)
     job_basic = copy.copy(r.settings.run_qsiprep)
     job_def = specify_jobdef(
         job_def=job_basic,
-        job=job,
         subject_id=context.subject_id,
         bids=context.bids,
         filename=context.filename)
+    print(json.dumps(job_def,indent=4))
 
-        submit(
-            ag=r.client,
-            job_def=job_def)
+    # submit(
+    #     ag=r.client,
+    #     job_def=job_def)
 
     return
 
