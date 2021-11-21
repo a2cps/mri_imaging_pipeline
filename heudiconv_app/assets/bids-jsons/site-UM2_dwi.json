@@ -1,0 +1,43 @@
+{
+ "BodyPartExamined": "BRAIN",
+ "DeviceSerialNumber": "0007347633TMRFIX",
+ "EchoTime": 0.0815,
+ "EffectiveEchoSpacing": 0.000716,
+ "FlipAngle": 90,
+ "ImageOrientationPatientDICOM": [
+  1,
+  0,
+  0,
+  0,
+  1,
+  0
+ ],
+ "ImageType": [
+  "ORIGINAL",
+  "PRIMARY",
+  "OTHER"
+ ],
+ "ImagingFrequency": 127.75,
+ "InPlanePhaseEncodingDirectionDICOM": "COL",
+ "MRAcquisitionType": "2D",
+ "MagneticFieldStrength": 3,
+ "Manufacturer": "GE",
+ "ManufacturersModelName": "SIGNA UHP",
+ "Modality": "MR",
+ "MultibandAccelerationFactor": 3,
+ "PatientPosition": "HFS",
+ "PercentPhaseFOV": 100,
+ "PercentSampling": 100,
+ "PhaseEncodingDirection": "j",
+ "PixelBandwidth": 1785.71,
+ "ReconMatrixPE": 140,
+ "RepetitionTime": 4.5,
+ "ScanOptions": "CL_GEMS\\SAT_GEMS\\EDR_GEMS\\EPI_GEMS\\HYPERBAND_GEMS\\PFF\\FS",
+ "ScanningSequence": "EP\\RM",
+ "SequenceVariant": "NONE",
+ "SliceThickness": 1.7,
+ "SoftwareVersions": "28\\LX\\MR Software release:RX28.0_R04_UHP3T_2111.a",
+ "SpacingBetweenSlices": 1.7,
+ "TotalReadoutTime": 0.099524,
+ "dcmmeta_version": 0.6
+}

@@ -96,3 +96,9 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
+set -x
+
+singularity exec \
+  --cleanenv \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
+  docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" "${PWD}/bids-jsons"

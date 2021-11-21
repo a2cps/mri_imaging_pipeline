@@ -1,0 +1,43 @@
+{
+ "BodyPartExamined": "BRAIN",
+ "DeviceSerialNumber": "000000000UM750MR",
+ "EchoTime": 0.0817,
+ "EffectiveEchoSpacing": 0.000768,
+ "FlipAngle": 90,
+ "ImageOrientationPatientDICOM": [
+  1,
+  0,
+  0,
+  0,
+  1,
+  0
+ ],
+ "ImageType": [
+  "ORIGINAL",
+  "PRIMARY",
+  "OTHER"
+ ],
+ "ImagingFrequency": 127.767,
+ "InPlanePhaseEncodingDirectionDICOM": "COL",
+ "MRAcquisitionType": "2D",
+ "MagneticFieldStrength": 3,
+ "Manufacturer": "GE",
+ "ManufacturersModelName": "DISCOVERY MR750",
+ "Modality": "MR",
+ "MultibandAccelerationFactor": 3,
+ "PatientPosition": "HFS",
+ "PercentPhaseFOV": 100,
+ "PercentSampling": 100,
+ "PhaseEncodingDirection": "j-",
+ "PixelBandwidth": 1785.71,
+ "ReconMatrixPE": 140,
+ "RepetitionTime": 4.1,
+ "ScanOptions": "CL_GEMS\\SAT_GEMS\\EDR_GEMS\\EPI_GEMS\\HYPERBAND_GEMS\\PFF\\FS",
+ "ScanningSequence": "EP\\RM",
+ "SequenceVariant": "NONE",
+ "SliceThickness": 1.7,
+ "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
+ "SpacingBetweenSlices": 1.7,
+ "TotalReadoutTime": 0.106752,
+ "dcmmeta_version": 0.6
+}
