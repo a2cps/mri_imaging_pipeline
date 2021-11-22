@@ -49,8 +49,8 @@ keep_list = [
   "SoftwareVersions",
   "SpacingBetweenSlices",
   "TotalReadoutTime",
-  # "dcmmeta_affine",
-  # "dcmmeta_reorient_transform",
+  "dcmmeta_affine",
+  "dcmmeta_reorient_transform",
   "dcmmeta_shape"
   "dcmmeta_slice_dim",
   "dcmmeta_version"]

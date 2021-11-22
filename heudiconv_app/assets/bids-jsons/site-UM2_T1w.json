@@ -35,5 +35,57 @@
  "SliceThickness": 1,
  "SoftwareVersions": "28\\LX\\MR Software release:RX28.0_R04_UHP3T_2111.a",
  "SpacingBetweenSlices": 1,
+ "dcmmeta_affine": [
+  [
+   1.0,
+   0.0,
+   0.0,
+   -99.125
+  ],
+  [
+   0.0,
+   1.0,
+   0.0,
+   -91.875
+  ],
+  [
+   0.0,
+   0.0,
+   1.0,
+   -163.75
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
+ "dcmmeta_reorient_transform": [
+  [
+   0.0,
+   0.0,
+   -1.0,
+   255.0
+  ],
+  [
+   0.0,
+   -1.0,
+   0.0,
+   255.0
+  ],
+  [
+   -1.0,
+   0.0,
+   0.0,
+   207.0
+  ],
+  [
+   0.0,
+   0.0,
+   0.0,
+   1.0
+  ]
+ ],
  "dcmmeta_version": 0.6
 }
