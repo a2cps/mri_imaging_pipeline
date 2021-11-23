@@ -25,7 +25,20 @@
 				"required": true
 			}
 		},
-
+		{
+			"id": "ALLOW_DIFFERENCE",
+			"details": {
+				"argument": "",
+				"showArgument": true,
+				"description": "Whether a difference in the BIDS jsons should cause the app to fail"
+			},
+			"value": {
+				"default": false,
+				"type": "bool",
+				"visible": true,
+				"required": false
+			}
+		},
 		{
 			"id": "DICOM_DIR_TEMPLATE",
 			"details": {
