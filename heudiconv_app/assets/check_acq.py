@@ -4,6 +4,16 @@ import bids
 from deepdiff import DeepDiff
 from pprint import pprint
 
+
+def remove_translation(meta):
+  if meta.__contains__('dcmmeta_affine'):
+    affine = meta.get('dcmmeta_affine')
+    for i,row in enumerate(affine):
+      meta['dcmmeta_affine'][i] = row[0:-1]
+
+  return meta
+
+
 def compare(layout: bids.BIDSLayout, js_observed: str, reference: str) -> DeepDiff:
 
   meta = layout.get_metadata(js_observed)
@@ -12,9 +22,10 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: str) -> DeepDi
     js_goal = json.load(f)
   
   observed = {key:meta.get(key) for key in js_goal.keys()}
+  observed = remove_translation(observed)
 
   dd = DeepDiff(
-    sorted(observed), sorted(js_goal), 
+    observed, js_goal, 
     math_epsilon=0.01)
   
   if dd:

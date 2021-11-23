@@ -14,7 +14,6 @@ keep_list = [
   "EffectiveEchoSpacing",
   "FlipAngle",
   "ImageOrientationPatientDICOM",
-  "ImageOrientationText",
   "ImageType",
   "ImagingFrequency",
   "InPlanePhaseEncodingDirectionDICOM",
@@ -34,7 +33,7 @@ keep_list = [
   "PixelBandwidth",
   "PixelSpacing",
   "PulseSequenceDetails",
-  "ReceiveCoilActiveElements",
+  # "ReceiveCoilActiveElements",
   "ReceiveCoilName",
   "ReconMatrixPE",
   "RefLinesPE",
@@ -43,7 +42,7 @@ keep_list = [
   "ScanningSequence",
   "SequenceName",
   "SequenceVariant",
-  "ShimSetting",
+  # "ShimSetting",
   "SliceThickness",
   "SliceTiming",
   "SoftwareVersions",
@@ -66,5 +65,11 @@ for j in jsons:
   with open(j, "r") as f:
     data = json.load(f)
     json_out = {k:v for (k,v) in data.items() if k in keep_list}
+    if json_out.__contains__('dcmmeta_affine'):
+      # print(json_out.get('dcmmeta_affine'))
+      affine = json_out.get('dcmmeta_affine')
+      for i,row in enumerate(affine):
+        json_out['dcmmeta_affine'][i] = row[0:-1]
     with open(os.path.join(out, os.path.basename(f.name)), 'w', encoding="utf-8") as file:
       json.dump(json_out, file, indent=1)
+

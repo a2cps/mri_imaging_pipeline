@@ -13,7 +13,6 @@
   1,
   0
  ],
- "ImageOrientationText": "Tra",
  "ImageType": [
   "ORIGINAL",
   "PRIMARY",
@@ -35,7 +34,6 @@
  "PhaseResolution": 1,
  "PixelBandwidth": 180,
  "PulseSequenceDetails": "%CustomerSeq%\\tfl_mgh_epinav_ABCD",
- "ReceiveCoilActiveElements": "HC1-7;NC1",
  "ReceiveCoilName": "HeadNeck_64",
  "ReconMatrixPE": 256,
  "RefLinesPE": 24,
@@ -44,42 +42,28 @@
  "ScanningSequence": "GR\\IR",
  "SequenceName": "tfl3d1_16",
  "SequenceVariant": "SK\\SP\\MP",
- "ShimSetting": [
-  -7339,
-  5518,
-  11896,
-  -501,
-  -309,
-  -682,
-  303,
-  -441
- ],
  "SliceThickness": 1,
  "SoftwareVersions": "syngo MR E11",
  "dcmmeta_affine": [
   [
    1.0,
    0.0,
-   0.0,
-   -126.61920166015625
+   0.0
   ],
   [
    0.0,
    1.0,
-   0.0,
-   -128.25863647460938
+   0.0
   ],
   [
-   0.0,
-   0.0,
-   1.0,
-   -97.9338150024414
-  ],
-  [
-   0.0,
    0.0,
    0.0,
    1.0
+  ],
+  [
+   0.0,
+   0.0,
+   0.0
   ]
  ],
  "dcmmeta_reorient_transform": [

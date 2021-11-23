@@ -16,7 +16,6 @@
   0.898794,
   -0.438371
  ],
- "ImageOrientationText": "Tra>Cor(-26.0)",
  "ImageType": [
   "ORIGINAL",
   "PRIMARY",
@@ -41,7 +40,6 @@
  "PhaseResolution": 1,
  "PixelBandwidth": 2525,
  "PulseSequenceDetails": "%CustomerSeq%\\ep2d_bold_sms_abcd",
- "ReceiveCoilActiveElements": "HC1-6",
  "ReceiveCoilName": "HeadNeck_64",
  "ReconMatrixPE": 90,
  "RefLinesPE": 8,
@@ -50,16 +48,6 @@
  "ScanningSequence": "EP",
  "SequenceName": "epfid2d1_90",
  "SequenceVariant": "SK",
- "ShimSetting": [
-  -7325,
-  5528,
-  11988,
-  -245,
-  -148,
-  -302,
-  46,
-  -366
- ],
  "SliceThickness": 2.4,
  "SliceTiming": [
   0.345,
@@ -124,26 +112,22 @@
   [
    -2.4000000953674316,
    0.0,
-   0.0,
-   108.88080596923828
+   0.0
   ],
   [
    0.0,
    2.1571059226989746,
-   -1.0520907640457153,
-   -78.2970199584961
+   -1.0520907640457153
   ],
   [
    0.0,
    1.0520907640457153,
-   2.1571056842803955,
-   -90.76624298095703
+   2.1571056842803955
   ],
   [
    0.0,
    0.0,
-   0.0,
-   1.0
+   0.0
   ]
  ],
  "dcmmeta_reorient_transform": [
