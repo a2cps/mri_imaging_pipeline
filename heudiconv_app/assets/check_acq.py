@@ -40,7 +40,7 @@ def getUM(t1w_meta: dict) -> str:
 
 def main(root: str, site: str, json_dir: str) -> None:
 
-  layout = bids.layout.BIDSLayout(root)
+  layout = bids.layout.BIDSLayout(root, validate=False)
 
   if site == "UM":
     site = getUM(
