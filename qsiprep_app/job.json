@@ -8,7 +8,7 @@
     "maxRunTime": "11:00:00",
     "parameters": {
         "BIND_DIR":"/corral-secure/projects/A2CPS/",
-        "SUBJECT_DIR": "/corral-secure/projects/A2CPS/products/development/mris/UC_uchicago/bids/UC10064V1",
+        "BIDS_DIRECTORY": "/corral-secure/projects/A2CPS/products/development/mris/UC_uchicago/bids/UC10064V1",
         "SUBJECT_ID": "10064",
         "OUTDIR": ".",
         "SESSION_FOR_LONGITUDINAL": "ses-V1",

@@ -33,7 +33,7 @@ def specify_jobdef(job_def, subject_id: str, bids: str, filename: str):
     session_id = 'ses-' + filename[-2:]
     parameters["SESSION_FOR_LONGITUDINAL"] = session_id
     job_def.parameters = parameters
-    job_def.archivePath = re.sub('bids', 'qsiprep', bids).split('/corral-secure/projects/A2CPS')[1] 
+    job_def.archivePath = re.sub('bids', 'qsiprep', bids).split('/corral-secure/projects/A2CPS/')[1]
     return job_def
 
 
@@ -59,9 +59,9 @@ def main() -> None:
         filename=context.filename)
     print(json.dumps(job_def,indent=4))
 
-    # submit(
-    #     ag=r.client,
-    #     job_def=job_def)
+    submit(
+        ag=r.client,
+        job_def=job_def)
 
     return
 

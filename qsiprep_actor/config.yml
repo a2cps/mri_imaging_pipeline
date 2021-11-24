@@ -3,10 +3,11 @@ logs:
   level: DEBUG
   token: ~
 run_qsiprep:
+  batchQueue: corralextra-rtx
   appId: tnath-qsiprep-0.14.2.0
   name: anat
-  archive: true
-  archivePath: ''
+  archive: false
+  archiveSystem: tnath.stampede2.storage
   maxRunTime: "23:00:00"
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
@@ -15,11 +16,9 @@ run_qsiprep:
     BIDS_FILTER: bids.json
     EDDY_PARAMS: eddy_params.json
     FSL_license: license.txt
-    WORK_DIR: work
-    OUTPUT_DIR: .
+    OUTPUT_DIR: /corral-secure/projects/A2CPS/shared/tnath/qsiprep-results
     SESSION_FOR_LONGITUDINAL: ses-V1
     OUTPUT_RESOLUTION: 1.7
-
 pipelines:
   fmriprep_alias: fmriprep.prod
   api_server: https://portals-api.tacc.utexas.edu
