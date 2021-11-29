@@ -69,12 +69,14 @@ def read_dicom_metadata(dicom_file, filename):
 
     patient_id = re.search('(NS|WS|UC|UM|UI)\d{5}[vV](1|3)',std_name)
     # Check if it's a QA scan
-    qa = re.search('[A-Z][A-Z]\d+[Qq][Aa]',std_name)
+    qa = re.search('[Qq][Aa]',std_name)
     if qa is not None:
         # If it's not a QC scan we don't add the QC prefix
-        std_name = qa.group(0)
+        qa_id = re.search('[A-Z][A-Z]\d+',std_name)
+        std_name = qa_id.group(0)
         qc = 'QC_'
         (site_id, subject_id, session_id) = re.split('(\d+)',std_name)
+        session_id='QA'
     else:
         std_name = patient_id.group(0)
         # If it's not a QC scan we don't add the QC prefix
