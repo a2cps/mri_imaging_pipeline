@@ -74,7 +74,7 @@
     {
 			"id": "SUBLONG",
 			"details":{
-				"description": "long name of participants to add to big dataset, specified in array (e.g., (NS10042V1 NS10042V1))",
+				"description": "long name of participants to add to big dataset, specified as string with whitespace (e.g., NS10042V1 NS10042V1)",
 				"argument": "",
 				"showArgument": false
 			},

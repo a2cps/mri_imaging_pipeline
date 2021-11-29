@@ -12,10 +12,12 @@ date
 # defaulting to updated list of participants for which bids_validation == 1
 if [[ -z "${SUBLONG}" ]]; then
   # assumes that bids_validation is column 18 in this file
-  readarray -t SUBLONG < <(awk -F ',' '{ if ($18 == 1)  print $1$2$3 }' "${CSV}")
+  readarray -t SUBSLONG < <(awk -F ',' '{ if ($18 == 1)  print $1$2$3 }' "${CSV}")
+else
+  read -ra SUBSLONG <<< "${SUBLONG}"
 fi
 
-for s in "${SUBLONG[@]}"; do
+for s in "${SUBSLONG[@]}"; do
   site=${s:0:2}
   case ${site} in
     NS)
