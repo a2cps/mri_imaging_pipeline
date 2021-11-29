@@ -34,6 +34,16 @@
       }
     },
     {
+      "id": "CSV",
+      "value": {
+        "default": "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
+        "type": "string",
+        "visible": true,
+        "required": true,
+        "order": 1000
+      }
+    },
+    {
 			"id": "INROOT",
 			"details":{
 				"description": "root directory bound to singularity container",
@@ -64,7 +74,7 @@
     {
 			"id": "SUBLONG",
 			"details":{
-				"description": "long name of participants to add to big dataset",
+				"description": "long name of participants to add to big dataset, specified in array (e.g., (NS10042V1 NS10042V1))",
 				"argument": "",
 				"showArgument": false
 			},

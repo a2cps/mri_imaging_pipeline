@@ -8,7 +8,14 @@ date
 
 [[ ! -d "${OUTDIR}" ]] && mkdir -p "${OUTDIR}"
 
-for s in ${SUBLONG}; do
+# allows running when SUBLONG is specified with job.json, and if not 
+# defaulting to updated list of participants for which bids_validation == 1
+if [[ -z "${SUBLONG}" ]]; then
+  # assumes that bids_validation is column 18 in this file
+  readarray -t SUBLONG < <(awk -F ',' '{ if ($18 == 1)  print $1$2$3 }' "${CSV}")
+fi
+
+for s in "${SUBLONG[@]}"; do
   site=${s:0:2}
   case ${site} in
     NS)
@@ -34,14 +41,14 @@ for s in ${SUBLONG}; do
   sub=${s:2:5}  
   in_sub_dir="${INROOT}/${sitelong}/bids/${s}"
 
-  cp -sRvu "${in_sub_dir}/sub-${sub}" "${OUTDIR}/"
+  cp -sRu "${in_sub_dir}/sub-${sub}" "${OUTDIR}/"
     
-  singularity exec \
-    --cleanenv \
-    -B "${INROOT}":"${INROOT}":ro \
-    -B "${OUTDIR}":"${OUTDIR}" \
-    docker://"${CONTAINER_IMAGE}" \
-    python update_participants.py "${OUTDIR}/participants.tsv" "${in_sub_dir}/participants.tsv" "${site}"
+  # singularity exec \
+  #   --cleanenv \
+  #   -B "${INROOT}":"${INROOT}":ro \
+  #   -B "${OUTDIR}":"${OUTDIR}" \
+  #   docker://"${CONTAINER_IMAGE}" \
+  #   python update_participants.py "${OUTDIR}/participants.tsv" "${in_sub_dir}/participants.tsv" "${site}"
 
 done
 
