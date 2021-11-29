@@ -5,6 +5,12 @@ from deepdiff import DeepDiff
 from pprint import pprint
 
 
+''' 
+TODO
+- check ShimSettings within participant
+- check ReceiveCoilActiveElements within participant
+'''
+
 def remove_translation(meta):
   if meta.__contains__('dcmmeta_affine'):
     affine = meta.get('dcmmeta_affine')
