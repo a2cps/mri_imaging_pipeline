@@ -59,7 +59,7 @@ def build_notification(outliers: pd.DataFrame, notification: list[str]) -> str:
 def get_outliers(
   d: pd.DataFrame, 
   groups: list[str], 
-  url_root: str = "https://prod.a2cps.tacc.utexas.edu/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
+  url_root: str = "https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
   # url_root: str = "https://confluence.a2cps.org/download/attachments/25755998",
   # imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv')
   imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/home', 'psadil', 'Documents', 'git', 'a2cps', 'mri_imaging_pipeline', 'aggregator_qc_app', 'tests', 'imaging_log.csv')
