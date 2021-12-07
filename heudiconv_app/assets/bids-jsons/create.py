@@ -30,7 +30,6 @@ keep_list = [
   "MagneticFieldStrength",
   "Manufacturer",
   "ManufacturersModelName",
-  "Modality",
   "MultibandAccelerationFactor",
   "NumberOfArms",
   "NumberOfExcitations",
@@ -41,7 +40,6 @@ keep_list = [
   "PartialFourier",
   "PartialFourierDirection",
   "PartialFourierEnabled",
-  "PatientPosition",
   "PercentPhaseFOV",
   "PercentSampling",
   "PhaseEncodingAxis",
@@ -53,6 +51,7 @@ keep_list = [
   "PixelBandwidth",
   "PixelSpacing",
   "PulseSequenceDetails",
+  "ReceiveCoilActiveElements",
   "ReceiveCoilName",
   "ReconMatrixPE",
   "RefLinesPE",
@@ -72,7 +71,7 @@ keep_list = [
   "WaterFatShift",
   "dcmmeta_affine",
   "dcmmeta_reorient_transform",
-  "dcmmeta_shape"
+  "dcmmeta_shape",
   "dcmmeta_slice_dim",
   "dcmmeta_version"]
 
@@ -103,11 +102,17 @@ for j in jsons:
       d['acq'] = re.findall('acq-(dwib0|fmrib0)', j)[0]
     elif suffix == 'dwi':
       d['bval'] = [np.genfromtxt(f'site-{scanner}_dwi.bval').tolist()]
-      d['bvec'] = [np.genfromtxt(f'site-{scanner}_dwi.bvec').tolist()]
+      d['bvec'] = [np.genfromtxt(f'site-{scanner}_dwi.bvec').tolist()] 
+    
+    # parameters stored deeper in the file
+    if data.__contains__('global'):
+      d['BitsStored'] = data.get('global').get('const').get('BitsStored')
+
+    # parameters that follow a set whitelist
+    if scanner == "NS":
+      d['ReceiveCoilActiveElements'] = [["HC1-6", "HC1-7", "HC1-7;NC1", "HC1-7;NC1,2", "HC1-7;NC2;SP1", "HC3-7;NC1", "HEA;HEP"]]
 
     d_list.append(d)     
-    # with open(os.path.join(out, os.path.basename(f.name)), 'w', encoding="utf-8") as file:
-    #   json.dump(json_out, file, indent=1)
 
 dd = (pd.concat(d_list)
   .set_index(['suffix','scanner','task', 'acq'])
