@@ -1,6 +1,7 @@
 import os, argparse, pathlib
-
+from glob import glob
 import bids
+import numpy as np
 import pandas as pd
 from deepdiff import DeepDiff
 from pprint import pprint
@@ -51,24 +52,46 @@ def check_receivecoil(observed: dict, reference: pd.DataFrame) -> bool:
   return observed.get('ReceiveCoilActiveElements') in okay_values[0]
 
 
+def add_deepkeys(observed: dict) -> dict:
+  if observed.__contains__('global'):
+      observed['BitsStored'] = observed.get('global').get('const').get('BitsStored')
+  return observed
+
+
+def check_bvalsbvecs(bval_observed: list, bvec_observed: list, reference: pd.DataFrame) -> None:
+  if not (bval_observed == reference['bval'] and bvec_observed == reference['bvec']):
+    raise AssertionError ("unexpected bvals and bvecs!")
+
+  return
+
+
 def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) -> DeepDiff:
 
   meta = layout.get_metadata(js_observed)
+  meta = add_deepkeys(meta)
 
   if reference.scanner.unique()[0] == "NS":
     if check_receivecoil(meta, reference):
-      reference.drop(['ReceiveCoilActiveElements'], axis=1, inplace=True)
-      js_goal = reference.to_dict()
+      reference.drop(['ReceiveCoilActiveElements'], axis=1, inplace=True)      
     else:
       msg = f"{js_observed} has invalid ReceiveCoilActiveElements!"
       raise AssertionError (msg)
 
-  observed = {key:meta.get(key) for key in reference.keys()}
+  reference.drop(['task', 'suffix', 'source', 'scanner'], axis=1, inplace=True)
+  js_goal = reference.dropna(axis=1).copy()
+
+  for n in ['dcmmeta_affine', 'dcmmeta_reorient_transform', 'dcmmeta_shape','SliceTiming']:
+    if n in js_goal.columns.values.tolist():
+      js_goal[n] = pd.eval(js_goal[n])
+
+  js_goal = js_goal.to_dict(orient="records")[0]
+  observed = {key:meta.get(key) for key in js_goal.keys()}
   observed = remove_translation(observed)
 
   dd = DeepDiff(
     observed, js_goal, 
-    math_epsilon=0.01)
+    math_epsilon=0.01,
+    ignore_numeric_type_changes=True)
   
   if dd:
     pprint(dd)
@@ -91,10 +114,15 @@ def getUM(t1w_meta: dict) -> str:
   return site
 
 
-def main(root: str, site: str, json_dir: str) -> None:
+def main(root: str, site: str) -> None:
 
   reference = (
-    pd.read_csv("acq-params.tsv", delimiter="\t")
+    pd.read_csv(
+      "acq-params.tsv", 
+      delimiter="\t",
+      converters={
+        'ImageOrientationPatientDICOM': pd.eval,
+        'ImageType': pd.eval})
     .query("scanner == @site"))
 
   layout = bids.layout.BIDSLayout(root, validate=False)
@@ -104,28 +132,31 @@ def main(root: str, site: str, json_dir: str) -> None:
       layout.get_metadata(
         layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0]))
 
+  for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):
+    check_bvalsbvecs(
+      np.genfromtxt(glob(os.path.join(root, "**", "*bval"))[0]).tolist(),
+      np.genfromtxt(glob(os.path.join(root, "**", "*bvec"))[0]).tolist(),
+      reference.query("suffix == 'dwi'"))
+    compare(layout, scan, reference.query("suffix == 'dwi'"))
+
+  reference.drop(['bval', 'bvec'], axis=1, inplace=True)
+
   compare(
     layout, 
     layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0],
     reference.query("suffix == 'T1w'"))
 
-  compare(
-    layout, 
-    layout.get(suffix='dwi', extension="nii.gz", return_type="file")[0], 
-    os.path.join(json_dir, f"site-{site}_dwi.json"),
-    reference.query("suffix == 'dwi'"))
+  for scan in layout.get(task='cuff', extension="nii.gz", return_type="file"):
+    compare(layout, scan, reference.query("suffix == 'bold' & task == 'cuff'"))
 
-  for sample in layout.get(task='cuff', extension="nii.gz", return_type="file"):
-    compare(layout, sample, reference.query("suffix == 'bold' & task == 'cuff'"))
+  for scan in layout.get(task='rest', extension="nii.gz", return_type="file"):
+    compare(layout, scan, reference.query("suffix == 'bold' & task == 'rest'"))    
 
-  for sample in layout.get(task='rest', extension="nii.gz", return_type="file"):
-    compare(layout, sample, reference.query("suffix == 'bold' & task == 'rest'"))    
+  for scan in layout.get(acq='fmrib0', extension="nii.gz", return_type="file"):
+    compare(layout, scan, reference.query("suffix == 'epi' & acq == 'fmrib0'"))    
 
-  for sample in layout.get(acq='fmrib0', extension="nii.gz", return_type="file"):
-    compare(layout, sample, reference.query("suffix == 'epi' & acq == 'fmrib0'"))    
-
-  for sample in layout.get(acq='dwib0', extension="nii.gz", return_type="file"):
-    compare(layout, sample, reference.query("suffix == 'epi' & acq == 'dwib0'"))    
+  for scan in layout.get(acq='dwib0', extension="nii.gz", return_type="file"):
+    compare(layout, scan, reference.query("suffix == 'epi' & acq == 'dwib0'"))    
 
   compare_withinsub(layout, site=site)
 
@@ -138,7 +169,6 @@ if __name__ == '__main__':
   parser.add_argument(
     'site', 
     choices=['NS', 'SH', 'UC', 'UI', 'UM', 'WS'])  
-  parser.add_argument('json_dir', type=pathlib.Path)  
   args = parser.parse_args()
 
-  main(root=args.root, site=args.site, json_dir=args.json_dir)
+  main(root=args.root, site=args.site)
