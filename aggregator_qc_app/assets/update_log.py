@@ -12,8 +12,8 @@ import pandas as pd
 from atlassian import Confluence
 
 def df_from_json(file: Union[str, bytes, os.PathLike]) -> pd.DataFrame:
-  with open('/home/psadil/Documents/git/a2cps/mri_imaging_pipeline/qc_aggregator_app/tests/unknown_sub-10008_ses-T1w.json') as f:
-    x=json.load(file)
+  with open(file) as f:
+    x=json.load(f)
 
   d = pd.DataFrame(
     {
@@ -47,37 +47,6 @@ def load_local_log(imaging_log: Union[str, bytes, os.PathLike]) -> pd.DataFrame:
 
   return d
 
-
-def get_all_attachments(confluence: Confluence, size=2000, step=200) -> str:
-  """
-  pull all stored jsons used for qc
-  """
-
-  responses = ""
-  for start,limit in zip(range(0,size-step-1,step), range(step-1,size,step)):
-    responses += confluence.get_attachments_from_content(
-      page_id="29065229",
-      start=start,
-      limit=limit)
-
-  return responses
-
-
-def get_jsons(confluence: Confluence) -> list:
-  """
-  pull all stored jsons used for qc
-  """
-
-  attachments = get_all_attachments(confluence)
-
-  jsons = []
-  for attachment in attachments:
-    jsons.append(confluence.get_attachments_from_content(
-      filename=attachment,
-      page_id="29065229",
-      expand="body"))
-
-  return jsons
 
 
 def main(
