@@ -3,12 +3,11 @@ logs:
   level: DEBUG
   token: ~
 run_qsiprep:
-  batchQueue: corralextra-rtx
-  appId: tnath-qsiprep-0.14.2.0
+  appId: urrutia-qsiprep-0.14.2.1
   name: anat
-  archive: false
-  archiveSystem: tnath.stampede2.storage
-  maxRunTime: "23:00:00"
+  archive: true
+  archiveSystem: a2cps.storage-frontera-protected 
+  maxRunTime: "12:00:00"
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     BIND_DIR: /corral-secure/projects/A2CPS/
@@ -16,7 +15,7 @@ run_qsiprep:
     BIDS_FILTER: bids.json
     EDDY_PARAMS: eddy_params.json
     FSL_license: license.txt
-    OUTPUT_DIR: /corral-secure/projects/A2CPS/shared/tnath/qsiprep-results
+    OUTPUT_DIR: .
     SESSION_FOR_LONGITUDINAL: ses-V1
     OUTPUT_RESOLUTION: 1.7
 pipelines:

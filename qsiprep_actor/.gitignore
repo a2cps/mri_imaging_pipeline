@@ -14,3 +14,4 @@ ida_rsa.*
 *.crt
 *.pkcs8
 .docker
+test_message.json
