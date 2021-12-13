@@ -1,5 +1,6 @@
-import os, argparse, pathlib
+import os, argparse, pathlib, requests
 from glob import glob
+from itertools import chain
 import bids
 import numpy as np
 import pandas as pd
@@ -7,7 +8,21 @@ from deepdiff import DeepDiff
 from pprint import pprint
 
 
-def remove_translation(meta):
+# parameters to check for numerical equivalence
+FLOATING_PARAMS = {
+  0.001: ["dcmmeta_affine","EffectiveEchoSpacing","RepetitionTime"],
+  0.01: ["ImagingFrequency","WaterFatShift"],
+  0.1: ["SliceTiming","EchoTime"]}
+
+
+def post_notification(notification: str):
+    endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
+    content = requests.post(url = endpoint, json = {"text": notification})
+    data = content.json()
+    return data
+
+
+def remove_translation(meta: dict) -> dict:
   if meta.__contains__('dcmmeta_affine'):
     affine = meta.get('dcmmeta_affine')
     for i,row in enumerate(affine):
@@ -16,7 +31,7 @@ def remove_translation(meta):
   return meta
 
 
-def assert_constant(jsons: list, meta:list, key: str) -> None:
+def assert_constant(jsons: list, meta:list, key: str) -> bool:
   tocheck = pd.DataFrame({
       'json': [os.path.basename(x) for x in jsons],
       key: [x.get(key) for x in meta]
@@ -24,10 +39,12 @@ def assert_constant(jsons: list, meta:list, key: str) -> None:
   
   if len(tocheck.drop_duplicates(subset=key)) > 1:
     pprint(tocheck)
-    msg = f"{key} is not constant across session!"
-    raise AssertionError (msg)
+    print(f"{key} is not constant across session!")
+    ok = False
+  else:
+    ok  = True
 
-  return
+  return ok
 
 
 def compare_withinsub(layout: bids.BIDSLayout, site: str) -> None:
@@ -45,14 +62,16 @@ def compare_withinsub(layout: bids.BIDSLayout, site: str) -> None:
   meta_list = [layout.get_metadata(x) for x in json_list]
   
   if site == "NS":
-    assert_constant(json_list, meta_list, "ReceiveCoilActiveElements")
-    assert_constant(json_list, meta_list, "ShimSettings")
+    ok = assert_constant(json_list, meta_list, "ReceiveCoilActiveElements")
+    ok *= assert_constant(json_list, meta_list, "ShimSettings")
+  else:
+    ok = True
 
-  return
+  return ok
 
 
 def check_receivecoil(observed: dict, reference: pd.DataFrame) -> bool:
-  okay_values =  reference.ReceiveCoilActiveElements.unique()
+  okay_values = reference.ReceiveCoilActiveElements.unique()
   if not len(okay_values) == 1:
     raise AssertionError ("Incorrect options for ReceiveCoilActiveElements in reference")
 
@@ -65,25 +84,26 @@ def add_deepkeys(observed: dict) -> dict:
   return observed
 
 
-def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, reference: pd.DataFrame) -> None:
+def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, reference: pd.DataFrame) -> bool:
   rb = np.array(pd.eval(reference['bval']), dtype=float).squeeze()
   rv = np.array(pd.eval(reference['bvec']), dtype=float).squeeze()
   if not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
-    raise AssertionError ("unexpected bvals and bvecs!")
+    print("unexpected bvals and bvecs!")
+    ok = False
+  else:
+    ok = True
 
-  return
+  return ok
 
 
-def compare_subset(goal: dict, observed: dict, keys: list, epsilon: float) -> DeepDiff:
-  dd = DeepDiff(
-    goal, observed, 
-    math_epsilon=epsilon,
-    ignore_numeric_type_changes=True)
-
-  return dd
+def print_if_not_none(dd) -> None:
+  if dd is not None: 
+    print(dd.pretty())
+    post_notification(dd.pretty())
 
 
 def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) -> bool:
+  ok = True
 
   meta = layout.get_metadata(js_observed)
   meta = add_deepkeys(meta)
@@ -92,8 +112,8 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) 
     if check_receivecoil(meta, reference):
       reference.drop(['ReceiveCoilActiveElements'], axis=1, inplace=True)      
     else:
-      msg = f"{js_observed} has invalid ReceiveCoilActiveElements!"
-      raise AssertionError (msg)
+      print(f"{js_observed} has invalid ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}")
+      ok = False
 
   reference.drop(['task', 'suffix', 'source', 'scanner', 'bval', 'bvec'], axis=1, inplace=True)
   js_goal = reference.dropna(axis=1).copy()
@@ -106,29 +126,33 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) 
   observed = {key:meta[key] for key in js_goal.keys()}
   observed = remove_translation(observed)
 
-  if observed.__contains__("SliceTiming"):
-    dd1 = DeepDiff(
-      {key:js_goal[key] for key in ["SliceTiming"]}, 
-      {key:observed[key] for key in ["SliceTiming"]}, 
-      math_epsilon=0.1,
-      ignore_numeric_type_changes=True)
-  else:
-    dd1 = None  
+  # These are the parameters 
+  for epsilon, params in FLOATING_PARAMS.items():    
+    if any(observed.__contains__(x) for x in params):
+      dd1 = DeepDiff(
+        {key:js_goal[key] for key in params if js_goal.__contains__(key)}, 
+        {key:observed[key] for key in params if js_goal.__contains__(key)}, 
+        math_epsilon=epsilon,
+        ignore_numeric_type_changes=True)
+      if dd1:
+        ok = False
+        print(f"json for {js_observed} has unexpected values at epsilon: {epsilon}!")
+        print_if_not_none(dd1)
 
   dd2 = DeepDiff(
-    {key:js_goal[key] for key in js_goal.keys() if key not in ["SliceTiming"]}, 
-    {key:observed[key] for key in observed.keys() if key not in ["SliceTiming"]}, 
-    math_epsilon=0.001,
+    {key:js_goal[key] for key in js_goal.keys() if key not in list(chain(*FLOATING_PARAMS.values()))}, 
+    {key:observed[key] for key in observed.keys() if key not in list(chain(*FLOATING_PARAMS.values()))}, 
     ignore_numeric_type_changes=True)
-     
-  if dd1 or dd2:
-    [pprint(x.pretty()) for x in [dd1, dd2]]
-    msg = f"json for {js_observed} has unexpected values!"
-    raise AssertionError (msg)
+
+  if dd2:
+    print(f"json for {js_observed} has unexpected values at epsilon: 0!")
+    print_if_not_none(dd2)
+    ok = False
   else:
     print(f"json for {js_observed} looks okay")
+    ok *= True
 
-  return True
+  return ok
 
 
 def getUM(t1w_meta: dict) -> str:
@@ -143,6 +167,7 @@ def getUM(t1w_meta: dict) -> str:
 
 
 def main(root: str, site: str) -> None:
+  ok = 1
 
   layout = bids.layout.BIDSLayout(root, validate=False)
 
@@ -161,27 +186,29 @@ def main(root: str, site: str) -> None:
     .query("scanner == @site"))
 
   for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):
-    check_bvalsbvecs(
+    ok *= check_bvalsbvecs(
       np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0]),
       np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0]),
       reference.query("suffix == 'dwi'").copy())   
-    compare(layout, scan, reference.query("suffix == 'dwi'").copy())
+    ok *= compare(layout, scan, reference.query("suffix == 'dwi'").copy())
 
-  compare(
+  ok *= compare(
     layout, 
     layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0],
     reference.query("suffix == 'T1w'").copy())
 
   for task in ["rest", "cuff"]:
     for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
-      compare(layout, scan, reference.query("suffix == 'bold' & task == @task").copy())
+      ok *= compare(layout, scan, reference.query("suffix == 'bold' & task == @task").copy())
 
   for acq in ["dwib0", "fmrib0"]:
     for dir in ["AP", "PA"]:
       for scan in layout.get(acq=acq,dir=dir, extension="nii.gz", return_type="file", invalid_filters='allow'):
-        compare(layout, scan, reference.query("suffix == 'epi' & acq == @aqc & dir == @dir").copy())    
+        ok *= compare(layout, scan, reference.query("suffix == 'epi' & acq == @aqc & dir == @dir").copy())   
 
-  compare_withinsub(layout, site=site)
+  ok *= compare_withinsub(layout, site=site)
+  if not ok:
+    raise AssertionError ("Unexpected parameters! See logs")
 
   return
 

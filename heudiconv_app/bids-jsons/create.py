@@ -11,7 +11,7 @@ keep_list = [
   "BandwidthPerPixelPhaseEncode",
   "BaseResolution",
   "BodyPartExamined",
-  "CoilCombinationMethod",
+  # "CoilCombinationMethod",
   "ConsistencyInfo",
   "DeviceSerialNumber",
   "DiffusionScheme",
@@ -25,7 +25,7 @@ keep_list = [
   "ImagingFrequency",
   "InPlanePhaseEncodingDirectionDICOM",
   "InversionTime",
-  "MatrixCoilMode",
+  # "MatrixCoilMode",
   "MRAcquisitionType",
   "MagneticFieldStrength",
   "Manufacturer",
@@ -34,11 +34,11 @@ keep_list = [
   # "NumberOfArms",
   # "NumberOfExcitations",
   # "NumberOfPointsPerArm",
-  "ParallelAcquisitionTechnique",
-  "ParallelReductionFactorInPlane",
-  "ParallelReductionOutOfPlane"
+  # "ParallelAcquisitionTechnique",
+  # "ParallelReductionFactorInPlane",
+  # "ParallelReductionOutOfPlane"
   "PartialFourier",
-  "PartialFourierDirection",
+  # "PartialFourierDirection",
   "PartialFourierEnabled",
   "PercentPhaseFOV",
   "PercentSampling",
@@ -64,7 +64,7 @@ keep_list = [
   "SliceTiming",
   "SoftwareVersions",
   "SpacingBetweenSlices",
-  "SpoilingState",
+  # "SpoilingState",
   # "TxRefAmp",
   "TotalReadoutTime",
   "VendorReportedEchoSpacing",
@@ -111,7 +111,8 @@ for j in jsons:
 
     # parameters that follow a set whitelist
     if scanner == "NS":
-      d['ReceiveCoilActiveElements'] = [["HC1-6", "HC1-7", "HC1-7;NC1", "HC1-7;NC1,2", "HC1-7;NC2;SP1", "HC3-7;NC1", "HEA;HEP"]]
+      d['ReceiveCoilActiveElements'] = [
+        ["HC1-6", "HC3-6", "HC1-7", "HC1-7;NC1", "HC1-7;NC1,2", "HC1-7;NC2;SP1", "HC3-7;NC1", "HEA;HEP","HC1,3-7;NC1"]]
 
     d_list.append(d)     
 
