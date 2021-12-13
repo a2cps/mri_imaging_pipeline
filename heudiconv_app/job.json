@@ -1,5 +1,5 @@
 {
-    "appId": "urrutia-heudiconv-0.9.0.8",
+    "appId": "urrutia-heudiconv-0.9.0.9",
     "name": "heudiconv-test",
     "archive": true,
     "archivePath": "products/mris/UM_umichigan/bids/UM20007V3",
