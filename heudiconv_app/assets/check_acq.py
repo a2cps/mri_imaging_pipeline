@@ -16,9 +16,18 @@ def remove_translation(meta):
   return meta
 
 
-def is_constant(json_list: list, key: str) -> bool:
-  values = [x.get(key) for x in json_list]
-  return set(len(values)) == 1
+def assert_constant(jsons: list, meta:list, key: str) -> None:
+  tocheck = pd.DataFrame({
+      'json': [os.path.basename(x) for x in jsons],
+      key: [x.get(key) for x in meta]
+    })
+  
+  if len(tocheck.drop_duplicates(subset=key)) > 1:
+    pprint(tocheck)
+    msg = f"{key} is not constant across session!"
+    raise AssertionError (msg)
+
+  return
 
 
 def compare_withinsub(layout: bids.BIDSLayout, site: str) -> None:
@@ -32,14 +41,12 @@ def compare_withinsub(layout: bids.BIDSLayout, site: str) -> None:
     + layout.get(task='cuff', extension="nii.gz", return_type="file") \
     + layout.get(task='rest', extension="nii.gz", return_type="file") \
     + layout.get(suffix='dwi', extension="nii.gz", return_type="file") \
-    + layout.get(suffix='dwi', extension="nii.gz", return_type="file")
-
+    + layout.get(suffix='epi', extension="nii.gz", return_type="file")
+  meta_list = [layout.get_metadata(x) for x in json_list]
+  
   if site == "NS":
-    if not is_constant(json_list, "ReceiveCoilActiveElements"):
-      raise AssertionError ("ReceiveCoilActiveElements not constant across session!")
-
-  if not is_constant(json_list, "ShimSettings"):
-    raise AssertionError ("ShimSettings not constant across session!")
+    assert_constant(json_list, meta_list, "ReceiveCoilActiveElements")
+    assert_constant(json_list, meta_list, "ShimSettings")
 
   return
 
@@ -67,7 +74,16 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
   return
 
 
-def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) -> DeepDiff:
+def compare_subset(goal: dict, observed: dict, keys: list, epsilon: float) -> DeepDiff:
+  dd = DeepDiff(
+    goal, observed, 
+    math_epsilon=epsilon,
+    ignore_numeric_type_changes=True)
+
+  return dd
+
+
+def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) -> bool:
 
   meta = layout.get_metadata(js_observed)
   meta = add_deepkeys(meta)
@@ -84,25 +100,35 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) 
 
   for n in ['dcmmeta_affine', 'dcmmeta_reorient_transform', 'dcmmeta_shape','SliceTiming']:
     if n in js_goal.columns.values.tolist():
-      js_goal[n] = pd.eval(js_goal[n])
+      js_goal[n] = pd.eval(js_goal.loc[:,n])
 
   js_goal = js_goal.to_dict(orient="records")[0]
   observed = {key:meta[key] for key in js_goal.keys()}
   observed = remove_translation(observed)
 
-  dd = DeepDiff(
-    observed, js_goal, 
-    math_epsilon=0.01,
+  if observed.__contains__("SliceTiming"):
+    dd1 = DeepDiff(
+      {key:js_goal[key] for key in ["SliceTiming"]}, 
+      {key:observed[key] for key in ["SliceTiming"]}, 
+      math_epsilon=0.1,
+      ignore_numeric_type_changes=True)
+  else:
+    dd1 = None  
+
+  dd2 = DeepDiff(
+    {key:js_goal[key] for key in js_goal.keys() if key not in ["SliceTiming"]}, 
+    {key:observed[key] for key in observed.keys() if key not in ["SliceTiming"]}, 
+    math_epsilon=0.001,
     ignore_numeric_type_changes=True)
-  
-  if dd:
-    pprint(dd)
-    msg = f"{js_observed} has differences!"
+     
+  if dd1 or dd2:
+    [pprint(x.pretty()) for x in [dd1, dd2]]
+    msg = f"json for {js_observed} has unexpected values!"
     raise AssertionError (msg)
   else:
-    print(f"{js_observed} looks okay")
+    print(f"json for {js_observed} looks okay")
 
-  return dd
+  return True
 
 
 def getUM(t1w_meta: dict) -> str:
@@ -136,24 +162,24 @@ def main(root: str, site: str) -> None:
 
   for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):
     check_bvalsbvecs(
-      np.genfromtxt(glob(os.path.join(root, "**", "*bval"), recursive=True)[0]),
-      np.genfromtxt(glob(os.path.join(root, "**", "*bvec"), recursive=True)[0]),
-      reference.query("suffix == 'dwi'"))   
-    compare(layout, scan, reference.query("suffix == 'dwi'"))
+      np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0]),
+      np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0]),
+      reference.query("suffix == 'dwi'").copy())   
+    compare(layout, scan, reference.query("suffix == 'dwi'").copy())
 
   compare(
     layout, 
     layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0],
-    reference.query("suffix == 'T1w'"))
+    reference.query("suffix == 'T1w'").copy())
 
   for task in ["rest", "cuff"]:
     for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
-      compare(layout, scan, reference.query("suffix == 'bold' & task == @task"))
+      compare(layout, scan, reference.query("suffix == 'bold' & task == @task").copy())
 
   for acq in ["dwib0", "fmrib0"]:
     for dir in ["AP", "PA"]:
-      for scan in layout.get(acq=acq,dir=dir, extension="nii.gz", return_type="file"):
-        compare(layout, scan, reference.query("suffix == 'epi' & acq == @aqc & dir == @dir"))    
+      for scan in layout.get(acq=acq,dir=dir, extension="nii.gz", return_type="file", invalid_filters='allow'):
+        compare(layout, scan, reference.query("suffix == 'epi' & acq == @aqc & dir == @dir").copy())    
 
   compare_withinsub(layout, site=site)
 

@@ -26,17 +26,16 @@
 			}
 		},
 		{
-			"id": "ALLOW_DIFFERENCE",
+			"id": "CHECK_JSONS",
 			"details": {
-				"argument": "",
-				"showArgument": true,
 				"description": "Whether a difference in the BIDS jsons should cause the app to fail"
 			},
 			"value": {
-				"default": false,
-				"type": "bool",
+				"default": "1",
+				"type": "enumeration",
+				"enumValues": ["0", "1"],
 				"visible": true,
-				"required": false
+				"required": true
 			}
 		},
 		{
