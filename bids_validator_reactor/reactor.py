@@ -31,6 +31,10 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
         mriqc_alias = pipeline_config['mriqc_alias']
         mriqc_callback = api_server + '/actors/v2/' + mriqc_alias + '/messages?x-nonce=' + mriqc_nonce
 
+        qsiprep_nonce = os.getenv('_QSIPREP_NONCE')
+        qsiprep_alias = pipeline_config['qsiprep_alias']
+        qsiprep_callback = api_server + '/actors/v2/' + qsiprep_alias + '/messages?x-nonce=' + qsiprep_nonce
+
         # bids_validator_nonce = os.getenv('_BIDS_VALIDATOR_NONCE')
         # bids_validator_alias = pipeline_config['bids_validator_alias']
         # bids_validator_callback = api_server + '/actors/v2/' + bids_validator_alias + '/messages?x-nonce=' + bids_validator_nonce
@@ -60,6 +64,14 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
                {'event': 'FINISHED',
                "persistent": False,
                'url': mriqc_callback + '&status=${JOB_STATUS}' +
+               '&subject_id=' + subject_id +
+               '&bids=' + bids +
+               '&filename='+ filename +
+               '&site='+ site
+               },
+               {'event': 'FINISHED',
+               "persistent": False,
+               'url': qsiprep_callback + '&status=${JOB_STATUS}' +
                '&subject_id=' + subject_id +
                '&bids=' + bids +
                '&filename='+ filename +

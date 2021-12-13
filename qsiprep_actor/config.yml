@@ -2,30 +2,25 @@
 logs:
   level: DEBUG
   token: ~
-heudiconv:
-  appId: tnath-qsiprep-0.14.2.0
-  name: qsiprep_test
-  archive: false
-  archivePath: testing/actor-qsiprep
-  maxRunTime: "48:00:00"
+run_qsiprep:
+  appId: urrutia-qsiprep-0.14.2.1
+  name: anat
+  archive: true
+  archiveSystem: a2cps.storage-frontera-protected 
+  maxRunTime: "12:00:00"
   parameters:
-    FILES: norshore/bids/1
-    LIST_OF_SUBJECTS: sub-01
-    OUTDIR: '.'
-    SESSION_FOR_LONGITUDINAL: session1
-    BIDS: true
-    HEURISTIC: a2cps.py
-    LOCATOR: =''
-    SITE: ""
-
-  notifications:
-    -
-      event: FINISHED
-      url: a2cps-dirc-notify-ui@a2cps.org
+    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
+    BIND_DIR: /corral-secure/projects/A2CPS/
+    PARTICIPANT_LABEL: 01
+    BIDS_FILTER: bids.json
+    EDDY_PARAMS: eddy_params.json
+    FSL_license: license.txt
+    OUTPUT_DIR: .
+    SESSION_FOR_LONGITUDINAL: ses-V1
+    OUTPUT_RESOLUTION: 1.7
 pipelines:
   fmriprep_alias: fmriprep.prod
   api_server: https://portals-api.tacc.utexas.edu
   mriqc_alias: mriqc.prod
   bids_validator_alias: bids-validator.prod
   vbr_actor_alias: vbr-actor.prod
-  heudiconv_alias: heudiconv_router.prod

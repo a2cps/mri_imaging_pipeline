@@ -38,45 +38,45 @@ fi
 
 echo adding the session to the bids filter file
 singularity exec -e \
- -B ${BIND_DIR}:${BIND_DIR} \
-  docker://${CONTAINER_IMAGE} \
-  python3 edit_session.py ${BIDS_FILTER} ${SESSION_FOR_LONGITUDINAL}
+-B ${BIND_DIR}:${BIND_DIR} \
+ docker://${CONTAINER_IMAGE} \
+ python3 edit_session.py ${BIDS_FILTER} ${SESSION_FOR_LONGITUDINAL}
 
 echo singularity run -e --nv \
  -B ${BIND_DIR}:${BIND_DIR} \
   docker://${CONTAINER_IMAGE} \
-  ${SUBJECT_DIR} ${OUTDIR} \
+  ${BIDS_DIRECTORY} ${OUTPUT_DIR} \
   participant \
   --output-resolution 1.7 \
   --bids-filter-file ${BIDS_FILTER} \
   --denoise-method patch2self \
   --unringing-method mrdegibbs \
   --hmc_model eddy ${EDDY_PARAMS} \
-  ${FSL_license} -w ${OUTDIR} \
-  --participant_label ${SUBJECT_ID} -vvv
+  ${FSL_license} -w ${OUTPUT_DIR} \
+  --participant_label ${PARTICIPANT_LABEL} -vvv
 
 singularity run -e --nv \
- -B ${BIND_DIR}:${BIND_DIR} \
-  docker://${CONTAINER_IMAGE} \
-  ${SUBJECT_DIR} ${OUTDIR} \
-  participant \
-  --output-resolution 1.7 \
-  --bids-filter-file ${BIDS_FILTER} \
-  --denoise-method patch2self \
-  --unringing-method mrdegibbs \
-  --hmc_model eddy ${EDDY_PARAMS} \
-  ${FSL_license} -w ${OUTDIR} \
-  --participant_label ${SUBJECT_ID} -vvv
+-B ${BIND_DIR}:${BIND_DIR} \
+ docker://${CONTAINER_IMAGE} \
+ ${BIDS_DIRECTORY} ${OUTPUT_DIR} \
+ participant \
+ --output-resolution 1.7 \
+ --bids-filter-file ${BIDS_FILTER} \
+ --denoise-method patch2self \
+ --unringing-method mrdegibbs \
+ --hmc_model eddy ${EDDY_PARAMS} \
+ ${FSL_license} -w ${OUTPUT_DIR} \
+ --participant_label ${PARTICIPANT_LABEL} -vvv
 
 echo computing DTI measures...
 echo singularity exec -e \
  -B ${BIND_DIR}:${BIND_DIR} \
   docker://${CONTAINER_IMAGE} \
-  python3 compute_dwi_measures.py ${OUTDIR} ${SUBJECT_ID} ${SESSION_FOR_LONGITUDINAL}
+  python3 compute_dwi_measures.py ${OUTPUT_DIR} ${PARTICIPANT_LABEL} ${SESSION_FOR_LONGITUDINAL}
 
 singularity exec -e \
  -B ${BIND_DIR}:${BIND_DIR} \
   docker://${CONTAINER_IMAGE} \
-  python3 compute_dwi_measures.py ${OUTDIR} ${SUBJECT_ID} ${SESSION_FOR_LONGITUDINAL}
+  python3 compute_dwi_measures.py ${OUTPUT_DIR} ${PARTICIPANT_LABEL} ${SESSION_FOR_LONGITUDINAL}
 
 echo finished!

@@ -120,11 +120,14 @@ def create_fieldmaps(data_path) -> None:
 
     print("Creating fieldmaps for dwi data...")
     output_AP_fname_dwi,output_PA_fname_dwi = create_dwi_b0(dwi_b0_file[0],dwi_file[0])
-
-    print("Renaming fieldmaps for fmri data...")
+    
     fmri_b0_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0_epi*.nii.gz'))
     fmri_json_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0_epi*.json'))
-    rename_fmri_b0(fmri_b0_file, fmri_json_file)
+    if len(fmri_b0_file) > 0:
+        print("Renaming fieldmaps for fmri data...")
+        rename_fmri_b0(fmri_b0_file, fmri_json_file)
+    else:
+        print('No fmrib0 found. Nothing to rename')
 
     # remove original fieldmaps from scans.tsv and append new ones
     print("Updating scans.tsv file")
