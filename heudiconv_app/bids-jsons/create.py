@@ -100,6 +100,7 @@ for j in jsons:
       d['task'] = re.findall('task-(rest|cuff)', j)[0]
     elif suffix == 'epi':
       d['acq'] = re.findall('acq-(dwib0|fmrib0)', j)[0]
+      d['dir'] = re.findall('dir-(AP|PA)', j)[0]
     elif suffix == 'dwi':
       d['bval'] = [np.genfromtxt(f'site-{scanner}_dwi.bval').tolist()]
       d['bvec'] = [np.genfromtxt(f'site-{scanner}_dwi.bvec').tolist()] 

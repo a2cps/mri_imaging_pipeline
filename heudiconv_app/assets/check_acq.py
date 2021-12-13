@@ -58,8 +58,10 @@ def add_deepkeys(observed: dict) -> dict:
   return observed
 
 
-def check_bvalsbvecs(bval_observed: list, bvec_observed: list, reference: pd.DataFrame) -> None:
-  if not (bval_observed == reference['bval'] and bvec_observed == reference['bvec']):
+def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, reference: pd.DataFrame) -> None:
+  rb = np.array(pd.eval(reference['bval']), dtype=float).squeeze()
+  rv = np.array(pd.eval(reference['bvec']), dtype=float).squeeze()
+  if not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
     raise AssertionError ("unexpected bvals and bvecs!")
 
   return
@@ -77,7 +79,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) 
       msg = f"{js_observed} has invalid ReceiveCoilActiveElements!"
       raise AssertionError (msg)
 
-  reference.drop(['task', 'suffix', 'source', 'scanner'], axis=1, inplace=True)
+  reference.drop(['task', 'suffix', 'source', 'scanner', 'bval', 'bvec'], axis=1, inplace=True)
   js_goal = reference.dropna(axis=1).copy()
 
   for n in ['dcmmeta_affine', 'dcmmeta_reorient_transform', 'dcmmeta_shape','SliceTiming']:
@@ -85,7 +87,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) 
       js_goal[n] = pd.eval(js_goal[n])
 
   js_goal = js_goal.to_dict(orient="records")[0]
-  observed = {key:meta.get(key) for key in js_goal.keys()}
+  observed = {key:meta[key] for key in js_goal.keys()}
   observed = remove_translation(observed)
 
   dd = DeepDiff(
@@ -116,6 +118,13 @@ def getUM(t1w_meta: dict) -> str:
 
 def main(root: str, site: str) -> None:
 
+  layout = bids.layout.BIDSLayout(root, validate=False)
+
+  if site == "UM":
+    site = getUM(
+      layout.get_metadata(
+        layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0]))
+
   reference = (
     pd.read_csv(
       "acq-params.tsv", 
@@ -125,38 +134,26 @@ def main(root: str, site: str) -> None:
         'ImageType': pd.eval})
     .query("scanner == @site"))
 
-  layout = bids.layout.BIDSLayout(root, validate=False)
-
-  if site == "UM":
-    site = getUM(
-      layout.get_metadata(
-        layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0]))
-
   for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):
     check_bvalsbvecs(
-      np.genfromtxt(glob(os.path.join(root, "**", "*bval"))[0]).tolist(),
-      np.genfromtxt(glob(os.path.join(root, "**", "*bvec"))[0]).tolist(),
-      reference.query("suffix == 'dwi'"))
+      np.genfromtxt(glob(os.path.join(root, "**", "*bval"), recursive=True)[0]),
+      np.genfromtxt(glob(os.path.join(root, "**", "*bvec"), recursive=True)[0]),
+      reference.query("suffix == 'dwi'"))   
     compare(layout, scan, reference.query("suffix == 'dwi'"))
-
-  reference.drop(['bval', 'bvec'], axis=1, inplace=True)
 
   compare(
     layout, 
     layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0],
     reference.query("suffix == 'T1w'"))
 
-  for scan in layout.get(task='cuff', extension="nii.gz", return_type="file"):
-    compare(layout, scan, reference.query("suffix == 'bold' & task == 'cuff'"))
+  for task in ["rest", "cuff"]:
+    for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
+      compare(layout, scan, reference.query("suffix == 'bold' & task == @task"))
 
-  for scan in layout.get(task='rest', extension="nii.gz", return_type="file"):
-    compare(layout, scan, reference.query("suffix == 'bold' & task == 'rest'"))    
-
-  for scan in layout.get(acq='fmrib0', extension="nii.gz", return_type="file"):
-    compare(layout, scan, reference.query("suffix == 'epi' & acq == 'fmrib0'"))    
-
-  for scan in layout.get(acq='dwib0', extension="nii.gz", return_type="file"):
-    compare(layout, scan, reference.query("suffix == 'epi' & acq == 'dwib0'"))    
+  for acq in ["dwib0", "fmrib0"]:
+    for dir in ["AP", "PA"]:
+      for scan in layout.get(acq=acq,dir=dir, extension="nii.gz", return_type="file"):
+        compare(layout, scan, reference.query("suffix == 'epi' & acq == @aqc & dir == @dir"))    
 
   compare_withinsub(layout, site=site)
 
