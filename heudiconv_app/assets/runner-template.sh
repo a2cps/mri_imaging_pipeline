@@ -35,19 +35,39 @@ echo singularity exec \
   ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
   ${DATALAD} ${DCMCONFIG}
 
-singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} \
-  heudiconv \
-  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-  ${LIST_OF_SUBJECTS} \
-  ${CONVERTER} \
-  --outdir ${OUTDIR} \
-  ${LOCATOR} ${ANON_CMD} \
-  ${HEURISTIC} \
-  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-  ${DATALAD} ${DCMCONFIG}
+if [[ ${SITE} == UC ]]; then
+  # UC needs custom version of dcm2niix
+  # see https://confluence.a2cps.org/display/WG/2021-12-21+DIRC+Meeting+notes
+  # if/else can be removed when dcm2niix updated for Spring 2022 release
+  singularity exec \
+    --cleanenv \
+    --env PREPEND_PATH=/opt/dcm-UC/bin \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+else
+  singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+fi 
 
 # Remove local dicom directory
 rm -rf ${LOCAL_DICOM}
