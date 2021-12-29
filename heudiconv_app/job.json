@@ -3,17 +3,15 @@
     "name": "heudiconv-test",
     "archive": true,
     "archivePath": "products/mris/UM_umichigan/bids/UM20007V3",
-    "maxRunTime": "19:59:00",
-    "parameters": {
-        "BIND_DIR": "/corral-secure/projects/A2CPS/",
-        "FILES": "/corral-secure/projects/A2CPS/products/mris/UM_umichigan/dicoms/UM20007V3",
-        "LIST_OF_SUBJECTS": "20007",
-        "OUTDIR": ".",
-        "SESSION_FOR_LONGITUDINAL": "V3",
+    "maxRunTime": "09:00:00",
+    "processorsPerNode": 2,
+    "parameters": { 
+        "BIND_DIR": "/work2/08266/psadil/stampede2/traveling",
+        "FILES": "/work2/08266/psadil/stampede2/traveling/NS00001V1.zip /work2/08266/psadil/stampede2/traveling/UI00002V1.zip",
+        "OUTDIR": "/work2/08266/psadil/stampede2/traveling/tmp/NS00001V1 /work2/08266/psadil/stampede2/traveling/tmp/UI00002V1",
+        "DELETE_DUPLICATES": true,
         "BIDS": true,
         "HEURISTIC": "a2cps.py",
-        "LOCATOR": "=''",
-        "SITE": "UM",
-        "DELETE_DUPLICATES": true
+        "LOCATOR": "=''"
     }
 }

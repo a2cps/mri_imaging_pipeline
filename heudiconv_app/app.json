@@ -10,22 +10,23 @@
 	"defaultNodeCount": 1,
 	"defaultQueue": "{{ app.queue }}",
 	"label": "HeuDiConv",
-	"modules": ["load tacc-singularity", "unload xalt"],
+	"modules": ["unload xalt", "load tacc-singularity", "load launcher"],
 	"shortDescription": "{{ app.description }}",
-	"templatePath": "runner-template.sh",
+	"templatePath": "runner.sh",
 	"testPath": "tester.sh",
 	"inputs": [],
 	"parameters": [{
 			"id": "CONTAINER_IMAGE",
+			"details": {
+				"description": "Container Image. Do not edit."
+			},
 			"value": {
 				"default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
-				"description": "Container Image. Do not edit.",
 				"type": "string",
 				"visible": false,
 				"required": true
 			}
 		},
-
 		{
 			"id": "DICOM_DIR_TEMPLATE",
 			"details": {
@@ -43,9 +44,7 @@
 		{
 			"id": "BIND_DIR",
 			"details":{
-				"description": "root directory bound to singularity container",
-				"argument": "",
-				"showArgument": false
+				"description": "root directory bound to singularity container"
 			},
 			"value": {
 				"default": null,				
@@ -71,8 +70,8 @@
 		{
 			"id": "LIST_OF_SUBJECTS",
 			"details": {
-				"argument": "--subjects ",
-				"showArgument": true,
+				"argument": "",
+				"showArgument": false,
 				"description": "list of subjects - required for dicom template. If not provided, DICOMS would first be sorted and subject IDs deduced by the heuristic"
 			},
 			"value": {
@@ -99,15 +98,16 @@
 		},
 		{
 			"id": "OUTDIR",
+			"details": {
+				"description": "output directory for conversion setup (for further customization and future reference. This directory will refer to non-anonymized subject IDs"
+			},
 			"value": {
-				"default": null,
-				"description": "output directory for conversion setup (for further customization and future reference. This directory will refer to non-anonymized subject IDs",
+				"default": null,				
 				"type": "string",
 				"visible": true,
 				"required": true
 			}
 		},
-
 		{
 			"id": "LOCATOR",
 			"details": {
@@ -152,7 +152,6 @@
 				"required": false
 			}
 		},
-
 		{
 			"id": "HEURISTIC",
 			"details": {
@@ -162,18 +161,16 @@
 			},
 			"value": {
 				"default": "a2cps.py",
-				"description": "Name of a known heuristic or path to the Pythonscript containing heuristic",
 				"type": "string",
 				"visible": true,
 				"required": false
 			}
 		},
-
 		{
 			"id": "SESSION_FOR_LONGITUDINAL",
 			"details": {
-				"argument": "--ses ",
-				"showArgument": true,
+				"argument": "",
+				"showArgument": false,
 				"description": "session for longitudinal study_sessions, default is none"
 			},
 			"value": {
@@ -183,7 +180,6 @@
 				"required": false
 			}
 		},
-
 		{
 			"id": "BIDS",
 			"details": {
@@ -198,7 +194,6 @@
 				"required": false
 			}
 		},
-
 		{
 			"id": "OVERWRITE",
 			"details": {
@@ -227,7 +222,6 @@
 				"required": false
 			}
 		},
-
 		{
 			"id": "DCMCONFIG",
 			"details": {
@@ -245,8 +239,6 @@
 		{
 			"id": "SITE",
 			"details": {
-				"argument": "",
-				"showArgument": false,
 				"description": "site where patient was imaged"
 			},
 			"value": {
@@ -259,8 +251,6 @@
 		{
 			"id": "DELETE_DUPLICATES",
 			"details": {
-				"argument": "",
-				"showArgument": false,
 				"description": "boolean flag to delete duplicate scans"
 			},
 			"value": {
@@ -270,7 +260,5 @@
 				"required": false
 			}
 		}
-
-
 	]
 }

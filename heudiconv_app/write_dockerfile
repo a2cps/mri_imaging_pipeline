@@ -1,0 +1,21 @@
+#!/bin/bash
+
+docker run --rm repronim/neurodocker:0.7.0 generate docker \
+  --base neurodebian:stretch -p apt \
+  --install="liblzma-dev libc-dev git-annex-standalone netbase" \
+  --dcm2niix version=003f0d19f1e57b0129c9dcf3e653f51ca3559028 method=source \
+  --miniconda use_env=base \
+    conda_install="python=3.10 traits>=4.6 scipy numpy pandas nomkl nilearn pydicom openpyxl deepdiff" \
+    pip_install="heudiconv[all]==0.10.0 pybids" \
+  > Dockerfile
+
+echo 'RUN git clone https://github.com/rordenlab/dcm2niix /tmp/dcm2niix-UC \
+    && cd /tmp/dcm2niix-UC \
+    && git fetch --tags \
+    && git checkout 06951ec39410625219420ff02f5e3d8c6563d7dd \
+    && mkdir /tmp/dcm2niix-UC/build \
+    && cd /tmp/dcm2niix-UC/build \
+    && cmake -DCMAKE_INSTALL_PREFIX:PATH=/opt/dcm2niix-UC .. \
+    && make \
+    && make install \
+    && rm -rf /tmp/dcm2niix-UC' >> Dockerfile
