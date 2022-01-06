@@ -20,34 +20,69 @@ LOCAL_DICOM=$(basename ${FILES})
 LOCAL_DICOM=${LOCAL_DICOM%.*}
 unzip ${FILES} -d ${LOCAL_DICOM}
 
+if [[ ${SITE} == UC ]]; then
 
-echo singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} \
-  heudiconv \
-  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-  ${LIST_OF_SUBJECTS} \
-  ${CONVERTER} \
-  --outdir ${OUTDIR} \
-  ${LOCATOR} ${ANON_CMD} \
-  ${HEURISTIC} \
-  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-  ${DATALAD} ${DCMCONFIG}
+  echo singularity exec \
+    --cleanenv \
+    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
 
-singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} \
-  heudiconv \
-  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-  ${LIST_OF_SUBJECTS} \
-  ${CONVERTER} \
-  --outdir ${OUTDIR} \
-  ${LOCATOR} ${ANON_CMD} \
-  ${HEURISTIC} \
-  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-  ${DATALAD} ${DCMCONFIG}
+  singularity exec \
+    --cleanenv \
+    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+else
+
+  echo singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+  singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+fi
 
 # Remove local dicom directory
 rm -rf ${LOCAL_DICOM}
