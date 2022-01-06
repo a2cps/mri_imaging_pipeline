@@ -281,6 +281,20 @@
 				"visible": true,
 				"required": false
 			}
+		},
+		{
+			"id": "POST",
+			"details": {
+				"argument": "--post",
+				"showArgument": true,
+				"description": "flag indicating whether unexpected acqusition parameters should be posted to slack"
+			},
+			"value": {
+				"default": 0,
+				"type": "flag",
+				"visible": true,
+				"required": false
+			}
 		}
 
 
