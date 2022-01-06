@@ -38,8 +38,9 @@ def assert_constant(jsons: list, meta:list, key: str) -> bool:
     })
   
   if len(tocheck.drop_duplicates(subset=key)) > 1:
-    pprint(tocheck)
-    print(f"{key} is not constant across session!")
+    print(f"Visit has multiple values for {key}")
+    pprint(tocheck) 
+    post_notification(tocheck.to_string())   
     ok = False
   else:
     ok  = True
@@ -88,7 +89,9 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
   rb = np.array(pd.eval(reference['bval']), dtype=float).squeeze()
   rv = np.array(pd.eval(reference['bvec']), dtype=float).squeeze()
   if not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
-    print("unexpected bvals and bvecs!")
+    print("unexpected bvals or bvecs!")
+    print(f"bvals: {bval_observed}")
+    print(f"bvecs: {bvec_observed}")
     ok = False
   else:
     ok = True
@@ -113,6 +116,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame) 
       reference.drop(['ReceiveCoilActiveElements'], axis=1, inplace=True)      
     else:
       print(f"{js_observed} has invalid ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}")
+      post_notification(f"{js_observed} has invalid ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}")
       ok = False
 
   reference.drop(['task', 'suffix', 'source', 'scanner', 'bval', 'bvec'], axis=1, inplace=True)
