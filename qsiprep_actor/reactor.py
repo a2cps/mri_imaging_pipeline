@@ -6,7 +6,7 @@ import re
 
 def submit(ag, job_def) -> None:
     # Submit the job in a try/except block
-    print(job_def)
+    #print(job_def)
     try:
         # Submit the job and get the job ID
         job_id = ag.jobs.submit(body=job_def)['id']
@@ -33,7 +33,7 @@ def specify_jobdef(job_def, subject_id: str, bids: str, filename: str):
     session_id = 'ses-' + filename[-2:]
     parameters["SESSION_FOR_LONGITUDINAL"] = session_id
     job_def.parameters = parameters
-    job_def.archivePath = re.sub('bids', 'qsiprep', bids).split('/corral-secure/projects/A2CPS/')[1]
+    job_def.archivePath = re.sub('bids', 'qsiprep', bids).split('/corral-secure/projects/A2CPS/')[1] 
     return job_def
 
 
@@ -57,7 +57,7 @@ def main() -> None:
         subject_id=context.subject_id,
         bids=context.bids,
         filename=context.filename)
-    print(json.dumps(job_def,indent=4))
+    #print(json.dumps(job_def,indent=4))
 
     submit(
         ag=r.client,

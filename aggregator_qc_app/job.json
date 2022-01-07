@@ -1,8 +1,8 @@
 {
-  "name": "{{ app.name }}-test",
+  "name": "{{ app.name }}",
   "appId": "{{ app.name }}-{{ app.version}}",
   "archive": false,
-  "maxRunTime": "0:30:00",
+  "maxRunTime": "01:00:00",
   "batchQueue": "normal",
   "inputs": {},
   "parameters": {
