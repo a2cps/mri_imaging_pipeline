@@ -141,3 +141,12 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
+set -xeu
+if [[ ${CHECK_JSONS} == 1 ]]; then
+  singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" "${POST}"
+else
+  echo "Skipping check of jsons"
+fi
