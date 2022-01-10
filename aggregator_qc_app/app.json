@@ -83,7 +83,7 @@
 				"showArgument": false
 			},
 			"value": {
-				"default": null,				
+				"default": "UI_uic UC_uchicago NS_northshore UM_umichigan",				
 				"type": "string",
 				"visible": true,
 				"required": true

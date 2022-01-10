@@ -7,6 +7,6 @@
   "inputs": {},
   "parameters": {
     "SITES": "UI_uic UC_uchicago NS_northshore UM_umichigan",
-    "OUTDIR": "/corral-secure/projects/A2CPS/shared/psadil/group/mris/sites_all"
+    "OUTDIR": "/corral-secure/projects/A2CPS/shared/psadil/group/mris/sites_all/mriqc-group"
   }
 }

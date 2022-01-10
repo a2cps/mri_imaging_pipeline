@@ -30,7 +30,7 @@ singularity exec \
 singularity exec \
   --cleanenv \
   -B "${INROOT}":"${INROOT}":ro \
-  -B "${OUTDIR}":"${OUTDIR}":ro \
+  -B "${OUTDIR}":"${OUTDIR}" \
   docker://"${CONTAINER_IMAGE}" \
   python check_qc.py "${OUTDIR}"/group_T1w.tsv "${OUTDIR}"/group_bold.tsv group_dwi.csv \
   --token "$(<.token)" --pem "confluence-a2cps-org-chain.pem" \
