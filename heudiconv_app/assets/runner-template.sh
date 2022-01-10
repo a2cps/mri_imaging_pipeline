@@ -141,6 +141,11 @@ singularity exec \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
+
+# resting state scans do not require events files (there are no events)
+# so delete any that are found
+find "${OUTDIR}" -type f -name '*task-rest*events.tsv' -delete
+
 set -xeu
 if [[ ${CHECK_JSONS} == 1 ]]; then
   singularity exec \
@@ -150,3 +155,4 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
 else
   echo "Skipping check of jsons"
 fi
+
