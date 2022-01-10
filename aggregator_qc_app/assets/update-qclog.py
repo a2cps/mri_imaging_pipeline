@@ -32,7 +32,6 @@ LOG_KEYS = {
 def read_json(f) -> pd.DataFrame:
   d = pd.read_json(f, orient="index").T
   d.drop('dataset', axis=1, inplace=True)
-  print(d)
   d['user'] = re.findall("^[a-z]+", os.path.basename(f))
   d["date"] = date.fromtimestamp(os.path.getmtime(f))
   return d
@@ -95,21 +94,19 @@ def main(
   out = d2[names].sort_values(names)
   out.to_csv("qc_log.tsv", sep="\t", index=False)
 
-  tf = NamedTemporaryFile(suffix=".xlsx")
-  out.to_excel(tf, index=False)  
-
   confluence = Confluence(
     url='https://confluence.a2cps.org',
     cloud=True,
     session=s)
 
-  confluence.attach_file(
-    filename=tf.name,
-    page_id="29065229", 
-    name="qc_log.xlsx", 
-    title="QC Log")
+  with NamedTemporaryFile(suffix=".xlsx") as f:
+    out.to_excel(f.name, index=False)  
 
-  os.remove(tf.name)
+    confluence.attach_file(
+      filename=f.name,
+      page_id="29065229", 
+      name="qc_log.xlsx", 
+      title="QC Log")
 
 
 if __name__ == '__main__':

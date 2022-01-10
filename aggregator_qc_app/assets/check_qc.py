@@ -147,7 +147,7 @@ def main(
 
   notification = ''.join([
     header,
-    f'<p>{_format_url("https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris/all_sites/mriqc", text="group htmls")}</p>',
+    f'<p>{_format_url("https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris/all_sites/mriqc-group", text="group htmls")}</p>',
     anat_notification, 
     func_notification, 
     dwi_notification])

@@ -62,14 +62,14 @@
 			}
 		},
     {
-			"id": "OUTROOT",
+			"id": "OUTDIR",
 			"details":{
-				"description": "root directory in which the symlinks will be created",
+				"description": "directory for outputs",
 				"argument": "",
 				"showArgument": false
 			},
 			"value": {
-				"default": "/corral-secure/projects/A2CPS/products/mris/sites_all",				
+				"default": "/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc-group",				
 				"type": "string",
 				"visible": true,
 				"required": true
