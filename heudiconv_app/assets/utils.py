@@ -37,22 +37,32 @@ def create_dwi_b0(dwi_b0_file,dwi_file):
 
 
 def rename_fmri_b0(fmri_b0_nifti: list, fmri_b0_json: list) -> None:
+    # rename from epi# to dir-ap or dir-pa based on PhaseEncodingDirection in 
+    # sidecar (the labels epi1 vs epi2 are not reliable)
 
-    # first, comfirm that epi1 => j and epi2 => j-
+    # first, comfirm that dcm2niix/heudiconv produced two files
     n_files = len(fmri_b0_json)
     if not n_files == 2:
         raise AssertionError(f"Unexpected number of fmrib0_epi files! Wanted 2, found {n_files}")
+    
+    name_translations = {}
     for filename in fmri_b0_json:
         with open(filename, 'r') as f:
             data = json.load(f)
-            if "epi1" in filename and (not data["PhaseEncodingDirection"] == "j"):
-                raise AssertionError(f"PhaseEncodingDirection not j for {filename}")
-            if "epi2" in filename and (not data["PhaseEncodingDirection"] == "j-"):
-                raise AssertionError(f"PhaseEncodingDirection not j- for {filename}")            
+            phaseencoding = data.get("PhaseEncodingDirection")            
+        if phaseencoding == "j":
+            epi_dir = "dir-PA_epi"                
+        elif phaseencoding == "j-":
+            epi_dir = "dir-AP_epi"
+        elif phaseencoding is None:
+            raise AssertionError(f"PhaseEncodingDirection not present for {filename}! Don't know how to relabel.")
+        else:
+            raise AssertionError(f"PhaseEncodingDirection set to {phaseencoding}! Don't know what to do with this.")                
 
-    # now safe to proceed with renaming
+        name_translations.update({re.findall(r"epi\d", filename)[0]: epi_dir})    
+
     for src in fmri_b0_nifti + fmri_b0_json:
-        dst = src.replace("epi1", "dir-PA_epi").replace("epi2", "dir-AP_epi")
+        dst = src.replace("epi1", name_translations["epi1"]).replace("epi2", name_translations["epi2"])
         print(f"renaming {src} as {dst}")
         shutil.move(src, dst) 
 
@@ -110,11 +120,14 @@ def create_fieldmaps(data_path) -> None:
 
     print("Creating fieldmaps for dwi data...")
     output_AP_fname_dwi,output_PA_fname_dwi = create_dwi_b0(dwi_b0_file[0],dwi_file[0])
-
-    print("Renaming fieldmaps for fmri data...")
+    
     fmri_b0_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0_epi*.nii.gz'))
     fmri_json_file = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*fmrib0_epi*.json'))
-    rename_fmri_b0(fmri_b0_file, fmri_json_file)
+    if len(fmri_b0_file) > 0:
+        print("Renaming fieldmaps for fmri data...")
+        rename_fmri_b0(fmri_b0_file, fmri_json_file)
+    else:
+        print('No fmrib0 found. Nothing to rename')
 
     # remove original fieldmaps from scans.tsv and append new ones
     print("Updating scans.tsv file")

@@ -44,6 +44,19 @@
       }
     },
     {
+      "id": "BIND_DIR",
+      "value": {
+        "default": "/corral-secure/projects/A2CPS/",
+        "visible": true,
+        "type": "string",
+        "required": true
+      },
+      "details": {
+        "label": "BIND_DIRECTORY",
+        "description": "Directory that is mounted into the container"
+      }
+    },
+    {
       "id": "PARTICIPANT_LABEL",
       "value": {
         "default": "01",

@@ -27,7 +27,7 @@
 		},
 
 		{
-			"id": "SUBJECT_DIR",
+			"id": "BIDS_DIRECTORY",
 			"details": {
 				"showArgument": false,
 				"description": "Path of the subject directory"
@@ -40,7 +40,7 @@
 			}
 		},
 		{
-			"id": "SUBJECT_ID",
+			"id": "PARTICIPANT_LABEL",
 			"details": {
 				"showArgument": false,
 				"description": "Specify the subject ID"
@@ -48,6 +48,20 @@
 			"value": {
 				"default": null,
 				"type": "string",
+				"visible": true,
+				"required": false
+			}
+		},
+
+		{
+			"id": "OUTPUT_RESOLUTION",
+			"details": {
+				"showArgument": false,
+				"description": "Specify the output resolution"
+			},
+			"value": {
+				"default": 1.7,
+				"type": "number",
 				"visible": true,
 				"required": false
 			}
@@ -68,9 +82,9 @@
 			}
 		},
 		{
-			"id": "OUTDIR",
+			"id": "OUTPUT_DIR",
 			"value": {
-				"default": null,
+				"default": ".",
 				"description": "output directory for conversion setup (for further customization and future reference. This directory will refer to non-anonymized subject IDs",
 				"type": "string",
 				"visible": true,

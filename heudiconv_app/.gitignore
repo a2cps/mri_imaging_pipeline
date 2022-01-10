@@ -110,6 +110,3 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-assets/file_check.py
-project.ini
-job-UM.json
