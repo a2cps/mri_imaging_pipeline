@@ -16,7 +16,7 @@ for site in ${SITES}; do
 
 done
 
-
+set -e
 # since bids and mriqc files are only symlinks, the targets of the 
 # symlinks must also be bound (hence -B for INROOT)
 singularity exec \

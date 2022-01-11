@@ -100,7 +100,7 @@ def main(
     session=s)
 
   with NamedTemporaryFile(suffix=".xlsx") as f:
-    out.to_excel(f.name, index=False)  
+    out.to_excel(f.name, index=False, engine="openpyxl")  
 
     confluence.attach_file(
       filename=f.name,
