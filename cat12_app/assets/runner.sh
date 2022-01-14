@@ -18,7 +18,7 @@ niftis=()
 for f in "${!gzs[@]}"; do
   if [[  ! -d "${outs[f]}" ]]; then 
     mkdir -p "${outs[f]}" \
-      && cp -L "${gzs[f]}" "${outs[f]}"  \
+      && cp -sL "${gzs[f]}" "${outs[f]}"  \
       && niftis+=("${outs[f]}"/*nii.gz)
   else
     echo "not writing to ${outs[f]} since folder already exists"

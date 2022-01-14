@@ -76,7 +76,7 @@ matlabbatch{1}.spm.tools.cat.estwrite.extopts.vox = 1.5;
 % 6 - lh+rh+cerebellum (fast, no registration, only for quick quality check and not for analysis)
 % 9 - thickness only (for ROI analysis, experimental!)
 % +10 to estimate WM and CSF width/depth/thickness (experimental!)
-matlabbatch{1}.spm.tools.cat.estwrite.output.surface = 5;
+matlabbatch{1}.spm.tools.cat.estwrite.output.surface = 1;
 matlabbatch{1}.spm.tools.cat.estwrite.output.surf_measures = 0;
 % surface options
 matlabbatch{1}.spm.tools.cat.estwrite.extopts.surface.pbtres = 0.5;
