@@ -3,7 +3,7 @@ logs:
   level: DEBUG
   token: ~
 heudiconv:
-  appId: urrutia-heudiconv-0.9.0.9
+  appId: urrutia-heudiconv-0.10.0.1
   batchQueue: corralextra
   name: heudiconv_test
   archive: true
@@ -20,6 +20,7 @@ heudiconv:
     LOCATOR: =''
     SITE: ""
     DELETE_DUPLICATES: true
+    POST: "--post"
 
   notifications:
     -
