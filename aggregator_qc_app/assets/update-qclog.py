@@ -64,13 +64,13 @@ def main(
   d = pd.concat([read_json(x) for x in glob.glob(os.path.join(json_dir,"*json"))])
   
   log = (
-    pd.read_csv(imaging_log)[["site","subject_id","visit"]+list(LOG_KEYS.keys())]
-    .rename(columns={"subject_id": "sub","visit":"ses"})
-    .melt(id_vars=["site","sub","ses"], var_name="scan")
+    pd.read_csv(imaging_log)[["site","subject_id","visit", "fMRI T1 Tech Rating"]+list(LOG_KEYS.keys())]
+    .rename(columns={"subject_id": "sub","visit":"ses", "fMRI T1 Tech Rating":"rating"})
+    .melt(id_vars=["site","sub","ses","rating"], var_name="scan")
     .query("value == 1")
     )
   log['scan'] = [LOG_KEYS[re.findall('|'.join(LOG_KEYS.keys()), x)[0]] for x in log["scan"]]
-
+  log['rating'] = log.apply(lambda row : row['rating'] if row['scan'] == "T1w" else "", axis=1)
   old_log = get_old_log(s=s)
 
   d2 = (
@@ -84,10 +84,11 @@ def main(
     )
     .drop(['subject',"artifacts"],axis=1)
     .merge(log, how="outer")
-      .merge(
+    .merge(
       old_log, 
       on=["site","sub","ses","scan","rating","user","date","notes"],
       how="outer")
+    .drop_duplicates()
   )
   names = ['site','sub', 'ses', 'scan','rating','user','date','notes','followup']
 

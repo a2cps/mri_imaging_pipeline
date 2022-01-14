@@ -1,4 +1,4 @@
-import os
+import os, glob
 import re
 import argparse
 import requests
@@ -101,12 +101,21 @@ def get_outliers(
   outliers['url'] = outliers.apply(lambda x: _format_url(x.url), axis=1)
       
   return outliers
-  
+
+
+def gather_dwi(root: Union[str, bytes, os.PathLike] =  os.path.join('/corral-secure', 'projects', 'A2CPS','products','mris')):
+  csvs = glob.glob(os.path.join(root, "*", 'qsiprep', '*', 'sub*', 'ses*', 'dwi', '*_desc-ImageQC_dwi.csv'))
+  d = (
+    pd.concat([pd.read_csv(x) for x in csvs])
+    .rename(columns={"file_name": "bids_name"})
+    .drop(columns=["subject_id", "acq_id", "task_id", "dir_id", "space_id", "rec_id", "session_id", "run_id"])
+    )
+  return d
+
 
 def main(
   t1w_fname: Union[str, bytes, os.PathLike], 
   bold_fname: Union[str, bytes, os.PathLike],
-  dwi_fname: Union[str, bytes, os.PathLike],
   imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv'),
   token: Optional[str] = None, 
   pem: Optional[Union[str, bytes, os.PathLike]] = None) -> None:
@@ -120,7 +129,7 @@ def main(
     groups=['site', 'task'],
     imaging_log=imaging_log)
   dwi_outliers = get_outliers(
-    d=pd.read_csv(dwi_fname).rename(columns={"file_name": "bids_name"}).drop(columns=["subject_id", "acq_id", "task_id", "dir_id", "space_id", "rec_id", "session_id", "run_id"]), 
+    d=gather_dwi(), 
     groups=['site'],
     imaging_log=imaging_log)
 
@@ -184,10 +193,6 @@ if __name__ == '__main__':
     default='group_bold.tsv',
     help="group level tsv for bold images")
   parser.add_argument(
-    'dwi_fname', 
-    default='group_dwi.csv',
-    help="group level csv for dwi images")
-  parser.add_argument(
     '--imaging_log', 
     default='/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv',
     help="log of received scans")
@@ -199,4 +204,4 @@ if __name__ == '__main__':
     type=str)
 
   args = parser.parse_args()
-  main(args.t1w_fname, args.bold_fname, args.dwi_fname, token=args.token, pem=args.pem, imaging_log=args.imaging_log)
+  main(args.t1w_fname, args.bold_fname, token=args.token, pem=args.pem, imaging_log=args.imaging_log)
