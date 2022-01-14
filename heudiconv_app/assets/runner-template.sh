@@ -20,34 +20,69 @@ LOCAL_DICOM=$(basename ${FILES})
 LOCAL_DICOM=${LOCAL_DICOM%.*}
 unzip ${FILES} -d ${LOCAL_DICOM}
 
+if [[ ${SITE} == UC ]]; then
 
-echo singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} \
-  heudiconv \
-  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-  ${LIST_OF_SUBJECTS} \
-  ${CONVERTER} \
-  --outdir ${OUTDIR} \
-  ${LOCATOR} ${ANON_CMD} \
-  ${HEURISTIC} \
-  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-  ${DATALAD} ${DCMCONFIG}
+  echo singularity exec \
+    --cleanenv \
+    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
 
-singularity exec \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} \
-  heudiconv \
-  ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-  ${LIST_OF_SUBJECTS} \
-  ${CONVERTER} \
-  --outdir ${OUTDIR} \
-  ${LOCATOR} ${ANON_CMD} \
-  ${HEURISTIC} \
-  ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-  ${DATALAD} ${DCMCONFIG}
+  singularity exec \
+    --cleanenv \
+    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+else
+
+  echo singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+  singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} \
+    heudiconv \
+    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+    ${LIST_OF_SUBJECTS} \
+    ${CONVERTER} \
+    --outdir ${OUTDIR} \
+    ${LOCATOR} ${ANON_CMD} \
+    ${HEURISTIC} \
+    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+    ${DATALAD} ${DCMCONFIG}
+
+fi
 
 # Remove local dicom directory
 rm -rf ${LOCAL_DICOM}
@@ -105,4 +140,19 @@ singularity exec \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
+
+
+# resting state scans do not require events files (there are no events)
+# so delete any that are found
+find "${OUTDIR}" -type f -name '*task-rest*events.tsv' -delete
+
+set -xeu
+if [[ ${CHECK_JSONS} == 1 ]]; then
+  singularity exec \
+    --cleanenv \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" "${POST}"
+else
+  echo "Skipping check of jsons"
+fi
 

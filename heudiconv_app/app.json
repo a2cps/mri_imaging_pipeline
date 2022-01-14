@@ -25,7 +25,19 @@
 				"required": true
 			}
 		},
-
+		{
+			"id": "CHECK_JSONS",
+			"details": {
+				"description": "Whether a difference in the BIDS jsons should cause the app to fail"
+			},
+			"value": {
+				"default": "1",
+				"type": "enumeration",
+				"enumValues": ["0", "1"],
+				"visible": true,
+				"required": true
+			}
+		},
 		{
 			"id": "DICOM_DIR_TEMPLATE",
 			"details": {
@@ -266,6 +278,21 @@
 			"value": {
 				"default": true,
 				"type": "bool",
+				"visible": true,
+				"required": false
+			}
+		},
+		{
+			"id": "POST",
+			"details": {
+				"argument": "",
+				"showArgument": false,
+				"description": "flag indicating whether unexpected acqusition parameters should be posted to slack"
+			},
+			"value": {
+				"default": "--no-post",
+				"type": "enumeration",
+				"enumValues": ["--post", "--no-post"],
 				"visible": true,
 				"required": false
 			}
