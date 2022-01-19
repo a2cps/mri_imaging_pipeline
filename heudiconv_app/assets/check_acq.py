@@ -41,9 +41,7 @@ def assert_constant(jsons: list, meta:list, key: str, post: bool = False) -> boo
     })
   
   if len(tocheck.drop_duplicates(subset=key)) > 1:
-    print(f"Visit has multiple values for {key}")
-    pprint(tocheck) 
-    post_notification(tocheck.to_string(), post=post)   
+    print_and_post(f"Visit has multiple values for {key}\n" + tocheck.to_string(), post=post)   
     ok = False
   else:
     ok  = True
@@ -102,10 +100,9 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
   return ok
 
 
-def print_if_not_none(dd, post: bool = False) -> None:
-  if dd is not None: 
-    print(dd.pretty())
-    post_notification(dd.pretty(), post=post)
+def print_and_post(notification: str, post: bool = False) -> None:
+  pprint(notification)
+  post_notification(notification, post=post)
 
 
 def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, post: bool = False) -> bool:
@@ -118,9 +115,8 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     if check_receivecoil(meta, reference):
       reference.drop(['ReceiveCoilActiveElements'], axis=1, inplace=True)      
     else:
-      print(f"{js_observed} has invalid ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}")
-      post_notification(
-        f"{js_observed} has invalid ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}",
+      print_and_post(
+        f"{os.path.basename(js_observed)} has unexpected ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}",
         post=post)
       ok = False
 
@@ -145,8 +141,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
         ignore_numeric_type_changes=True)
       if dd1:
         ok = False
-        print(f"json for {js_observed} has unexpected values at epsilon: {epsilon}!")
-        print_if_not_none(dd1, post=post)
+        print_and_post(f"json for {os.path.basename(js_observed)} has unexpected values at epsilon: {epsilon}!\n" + dd1.pretty(), post=post)
 
   dd2 = DeepDiff(
     {key:js_goal[key] for key in js_goal.keys() if key not in list(chain(*FLOATING_PARAMS.values()))}, 
@@ -154,11 +149,10 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     ignore_numeric_type_changes=True)
 
   if dd2:
-    print(f"json for {js_observed} has unexpected values at epsilon: 0!")
-    print_if_not_none(dd2, post=post)
+    print_and_post( f"json for {os.path.basename(js_observed)} has unexpected values at epsilon: 0!\n" + dd2.pretty(), post=post)
     ok = False
   else:
-    print(f"json for {js_observed} looks okay")
+    print(f"json for {os.path.basename(js_observed)} looks okay")
     ok *= True
 
   return ok
