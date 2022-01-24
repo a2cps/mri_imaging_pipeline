@@ -74,7 +74,7 @@ def get_outliers(
     .drop_duplicates())
   dind = d[['bids_name']].copy()
   dind['sub'] = [int(re.findall('sub-(\d+)', x)[0]) for x in dind['bids_name']]
-  dind['ses'] = [re.findall('ses-([V|v]\d)', x)[0] for x in dind['bids_name']]
+  dind['ses'] = [re.findall('ses-([a-zA-Z0-9]+)', x)[0] for x in dind['bids_name']]
 
   if 'task' in groups:
     indices = ['site', 'sub', 'task', 'ses', 'bids_name']
@@ -104,7 +104,7 @@ def get_outliers(
 
 
 def gather_dwi(root: Union[str, bytes, os.PathLike] =  os.path.join('/corral-secure', 'projects', 'A2CPS','products','mris')):
-  csvs = glob.glob(os.path.join(root, "*", 'qsiprep', '*', 'sub*', 'ses*', 'dwi', '*_desc-ImageQC_dwi.csv'))
+  csvs = glob.glob(os.path.join(root, "*", 'qsiprep', '*', 'qsiprep', 'sub*', 'ses*', 'dwi', '*_desc-ImageQC_dwi.csv'))
   d = (
     pd.concat([pd.read_csv(x) for x in csvs])
     .rename(columns={"file_name": "bids_name"})
@@ -180,7 +180,7 @@ def main(
 if __name__ == '__main__':
 
   """
-  python check_qc.py MRIQC_A2CPS_group_T1w.tsv MRIQC_A2CPS_group_bold.tsv --token "$(<.token)"
+  python check_qc.py group_T1w.tsv group_bold.tsv --token "$(<.token)"  
   """
 
   parser = argparse.ArgumentParser(description='check mriqc-group output for outliers')
@@ -201,6 +201,7 @@ if __name__ == '__main__':
     type=str)
   parser.add_argument(
     '--pem', 
+    default='confluence-a2cps-org-chain.pem',
     type=str)
 
   args = parser.parse_args()

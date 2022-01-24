@@ -7,10 +7,11 @@ import pandas as pd
 from atlassian import Confluence
 
 RATING = {
-  4: "green",
-  3: "green",
-  2: "amber",
-  1: "red"
+  "4": "green",
+  "3": "green",
+  "2": "amber",
+  "1": "red",
+  "0": ""
 }
 SCAN = {
   "rest_run-01_bold": "REST1",
@@ -70,7 +71,10 @@ def main(
     .query("value == 1")
     )
   log['scan'] = [LOG_KEYS[re.findall('|'.join(LOG_KEYS.keys()), x)[0]] for x in log["scan"]]
-  log['rating'] = log.apply(lambda row : row['rating'] if row['scan'] == "T1w" else "", axis=1)
+  log['rating'].fillna(0, inplace=True)
+  log['rating'] = log.apply(lambda row : str(int(row['rating'])) if row['scan'] == "T1w" else "0", axis=1)
+  log['user'] = log.apply(lambda row : "technician" if row['scan'] == "T1w" else "", axis=1)
+  log['rating'] = [RATING[x] for x in log["rating"]]
   old_log = get_old_log(s=s)
 
   d2 = (
@@ -79,7 +83,7 @@ def main(
       notes = [", ".join(x) for x in d["artifacts"]],
       sub = [int(re.findall("(?<=sub-)[0-9]{5}", x)[0]) for x in d["subject"]],
       ses = [re.findall("(?<=ses-)[Vv][13]", x)[0] for x in d["subject"]],
-      rating = [RATING[int(x)] for x in d["rating"]],
+      rating = [RATING[str(x)] for x in d["rating"]],
       scan = [SCAN[re.findall('|'.join(SCAN.keys()), x)[0]] for x in d["subject"]]
     )
     .drop(['subject',"artifacts"],axis=1)
@@ -126,6 +130,7 @@ if __name__ == '__main__':
     type=str)
   parser.add_argument(
     '--pem', 
+    default='confluence-a2cps-org-chain.pem',
     type=str)
 
   args = parser.parse_args()
