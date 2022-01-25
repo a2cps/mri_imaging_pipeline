@@ -1,19 +1,23 @@
 import os
 import argparse
-from typing import Union
+from typing import Union, Optional
 
 def main(
   bind_dir: Union[str, bytes, os.PathLike],
   container: str,
   batch: str,
   nifti: list,
+  a1: Optional[str] = None,
   launchfile: Union[str, bytes, os.PathLike] = "launchfile"
   ) -> None:
 
   with open(launchfile, "w") as f:
-    for t, t1w in enumerate(nifti):      
-      f.writelines(f'singularity exec -B {bind_dir}:{bind_dir} --cleanenv  {container} /bin/cat_standalone.sh -b {batch} {t1w} > {t}.out 2> {t}.err \n')    
-
+    for t, t1w in enumerate(nifti): 
+      if a1 is None:
+        f.writelines(f'singularity exec -B {bind_dir}:{bind_dir} --cleanenv  {container} /bin/cat_standalone.sh -b {batch} {t1w} > {t}.out 2> {t}.err \n')
+      else:
+        f.writelines(f'singularity exec -B {bind_dir}:{bind_dir} --cleanenv  {container} /bin/cat_standalone.sh -b {batch} -a1 {a1} {t1w} > {t}.out 2> {t}.err \n')
+        
   return
 
 
@@ -29,6 +33,13 @@ if __name__ == '__main__':
   parser.add_argument('BATCH')
   parser.add_argument('NIFTI', nargs="+", help="list of anatomical files to parse, separated by spaces")
   parser.add_argument('--launchfile', default="launchfile")
+  parser.add_argument('--a1', default=None)
 
   args = parser.parse_args()
-  main(args.BIND_DIR, args.CONTAINER_IMAGE, args.BATCH, args.NIFTI, args.launchfile)
+  main(
+    bind_dir=args.BIND_DIR, 
+    container=args.CONTAINER_IMAGE, 
+    batch=args.BATCH, 
+    nifti=args.NIFTI, 
+    a1=args.a1, 
+    launchfile=args.launchfile)

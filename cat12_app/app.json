@@ -36,6 +36,20 @@
       }
     },
     {
+      "id": "A1",
+      "value": {
+        "default": "6",
+        "visible": true,
+        "type": "string",
+        "required": false
+      },
+      "details": {
+        "description": "extra parameter for batch file (e.g., number processors)",
+        "argument": "--a1 ",
+        "showArgument": false
+      }
+    },
+    {
       "id": "BATCH",
       "value": {
         "default": "batch.m",
