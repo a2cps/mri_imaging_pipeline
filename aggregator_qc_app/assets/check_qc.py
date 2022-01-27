@@ -1,4 +1,4 @@
-import os
+import os, glob
 import re
 import argparse
 import requests
@@ -29,7 +29,6 @@ def _format_url(url: str, text: str = "link") -> str:
 
 def post_notification(notification: str, confluence: Optional[Confluence] = None) -> None:
   if confluence is not None:
-    # print(notification)
     confluence.update_page(
       page_id="25755998", 
       title="QC Aggregation", 
@@ -43,7 +42,7 @@ def post_notification(notification: str, confluence: Optional[Confluence] = None
   return 
 
 
-def build_notification(outliers: pd.DataFrame, notification: list[str]) -> str:
+def build_notification(outliers: pd.DataFrame, notification) -> str:
   for site, small in outliers.sort_index().groupby(level=0):
     notification.append(f"<h3>{site}</h3>")
     for idx, row in small.sort_index().iterrows():
@@ -58,11 +57,9 @@ def build_notification(outliers: pd.DataFrame, notification: list[str]) -> str:
 
 def get_outliers(
   d: pd.DataFrame, 
-  groups: list[str], 
-  url_root: str = "https://prod.a2cps.tacc.utexas.edu/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
-  # url_root: str = "https://confluence.a2cps.org/download/attachments/25755998",
-  # imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv')
-  imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/home', 'psadil', 'Documents', 'git', 'a2cps', 'mri_imaging_pipeline', 'aggregator_qc_app', 'tests', 'imaging_log.csv')
+  groups, 
+  url_root: str = "https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
+  imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv')
   ) -> pd.DataFrame:
   '''
   get_outliers(fname=pd.read_csv('group_T1w.tsv', delimiter="\t"))
@@ -77,7 +74,7 @@ def get_outliers(
     .drop_duplicates())
   dind = d[['bids_name']].copy()
   dind['sub'] = [int(re.findall('sub-(\d+)', x)[0]) for x in dind['bids_name']]
-  dind['ses'] = [re.findall('ses-([V|v]\d)', x)[0] for x in dind['bids_name']]
+  dind['ses'] = [re.findall('ses-([a-zA-Z0-9]+)', x)[0] for x in dind['bids_name']]
 
   if 'task' in groups:
     indices = ['site', 'sub', 'task', 'ses', 'bids_name']
@@ -104,28 +101,37 @@ def get_outliers(
   outliers['url'] = outliers.apply(lambda x: _format_url(x.url), axis=1)
       
   return outliers
-  
+
+
+def gather_dwi(root: Union[str, bytes, os.PathLike] =  os.path.join('/corral-secure', 'projects', 'A2CPS','products','mris')):
+  csvs = glob.glob(os.path.join(root, "*", 'qsiprep', '*', 'qsiprep', 'sub*', 'ses*', 'dwi', '*_desc-ImageQC_dwi.csv'))
+  d = (
+    pd.concat([pd.read_csv(x) for x in csvs])
+    .rename(columns={"file_name": "bids_name"})
+    .drop(columns=["subject_id", "acq_id", "task_id", "dir_id", "space_id", "rec_id", "session_id", "run_id"])
+    )
+  return d
+
 
 def main(
   t1w_fname: Union[str, bytes, os.PathLike], 
   bold_fname: Union[str, bytes, os.PathLike],
-  dwi_fname: Union[str, bytes, os.PathLike],
-  report_html: str = "qc_report.html",
+  imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv'),
   token: Optional[str] = None, 
   pem: Optional[Union[str, bytes, os.PathLike]] = None) -> None:
 
   anat_outliers = get_outliers(
     d=pd.read_csv(t1w_fname, delimiter="\t"), 
-    groups=['site'])
+    groups=['site'],
+    imaging_log=imaging_log)
   func_outliers = get_outliers(
     d=pd.read_csv(bold_fname, delimiter="\t"),
-    groups=['site', 'task'])
+    groups=['site', 'task'],
+    imaging_log=imaging_log)
   dwi_outliers = get_outliers(
-    d=pd.read_csv(dwi_fname).rename(columns={"file_name": "bids_name"}).drop(columns=["subject_id", "acq_id", "task_id", "dir_id", "space_id", "rec_id", "session_id", "run_id"]), 
-    groups=['site'])
-
-  # func_outliers.to_csv('outliers_bold.csv')
-  # anat_outliers.to_csv('outliers_T1w.csv')
+    d=gather_dwi(), 
+    groups=['site'],
+    imaging_log=imaging_log)
 
   anat_notification = build_notification(anat_outliers, ['<h1>T1w</h1>'])
   func_notification = build_notification(func_outliers, ['<h1>bold</h1>'])
@@ -150,13 +156,10 @@ def main(
 
   notification = ''.join([
     header,
-    f'<p>{_format_url(f"https://confluence.a2cps.org/download/attachments/25755998/group_T1w.html?api=v2", text="group_T1w.html")}</p>',
-    f'<p>{_format_url(f"https://confluence.a2cps.org/download/attachments/25755998/group_bold.html?api=v2", text="group_bold.html")}</p>',
-    f'<p>{_format_url(f"https://confluence.a2cps.org/download/attachments/25755998/{report_html}?api=v2", text="qc_report.html")}</p>', 
+    f'<p>{_format_url("https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris/all_sites/mriqc-group", text="group htmls")}</p>',
     anat_notification, 
     func_notification, 
     dwi_notification])
-  # notification = ' '.join([anat_notification, t1w_plot])
 
   if token is not None:
     s = requests.Session()
@@ -177,7 +180,7 @@ def main(
 if __name__ == '__main__':
 
   """
-  python check_qc.py MRIQC_A2CPS_group_T1w.tsv MRIQC_A2CPS_group_bold.tsv --token "$(<.token)"
+  python check_qc.py group_T1w.tsv group_bold.tsv --token "$(<.token)"  
   """
 
   parser = argparse.ArgumentParser(description='check mriqc-group output for outliers')
@@ -190,15 +193,16 @@ if __name__ == '__main__':
     default='group_bold.tsv',
     help="group level tsv for bold images")
   parser.add_argument(
-    'dwi_fname', 
-    default='group_dwi.csv',
-    help="group level csv for dwi images")
+    '--imaging_log', 
+    default='/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv',
+    help="log of received scans")
   parser.add_argument(
     '--token', 
     type=str)
   parser.add_argument(
     '--pem', 
+    default='confluence-a2cps-org-chain.pem',
     type=str)
 
   args = parser.parse_args()
-  main(args.t1w_fname, args.bold_fname, args.dwi_fname, token=args.token, pem=args.pem)
+  main(args.t1w_fname, args.bold_fname, token=args.token, pem=args.pem, imaging_log=args.imaging_log)

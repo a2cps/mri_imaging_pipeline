@@ -20,7 +20,7 @@
   "templatePath": "runner.sh",
   "testPath": "tester.sh",
   "version": "{{ app.version }}",
-  "defaultMaxRunTime": "00:30:00",
+  "defaultMaxRunTime": "01:00:00",
   "inputs": [],
   "parameters": [
     {
@@ -36,26 +36,40 @@
     {
 			"id": "INROOT",
 			"details":{
-				"description": "root directory bound to singularity container",
+				"description": "root directory bound to singularity container--one above 'sites' directory",
 				"argument": "",
 				"showArgument": false
 			},
 			"value": {
-				"default": "/corral-secure/projects/A2CPS/products/mris",				
+				"default": "/corral-secure/projects/A2CPS",				
 				"type": "string",
 				"visible": true,
 				"required": true
 			}
 		},
     {
-			"id": "OUTROOT",
+			"id": "BIDS",
 			"details":{
-				"description": "root directory in which the symlinks will be created",
+				"description": "root directory of the full bids dataset",
 				"argument": "",
 				"showArgument": false
 			},
 			"value": {
-				"default": "/corral-secure/projects/A2CPS/products/mris/sites_all",				
+				"default": "/corral-secure/projects/A2CPS/products/mris/all_sites/bids",				
+				"type": "string",
+				"visible": true,
+				"required": true
+			}
+		},
+    {
+			"id": "OUTDIR",
+			"details":{
+				"description": "directory for outputs",
+				"argument": "",
+				"showArgument": false
+			},
+			"value": {
+				"default": "/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc-group",				
 				"type": "string",
 				"visible": true,
 				"required": true
@@ -69,7 +83,7 @@
 				"showArgument": false
 			},
 			"value": {
-				"default": null,				
+				"default": "UI_uic UC_uchicago NS_northshore UM_umichigan",				
 				"type": "string",
 				"visible": true,
 				"required": true
