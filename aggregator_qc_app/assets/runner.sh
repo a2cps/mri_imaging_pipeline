@@ -33,7 +33,7 @@ singularity exec \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://"${CONTAINER_IMAGE}" \
   python check_qc.py "${OUTDIR}"/group_T1w.tsv "${OUTDIR}"/group_bold.tsv \
-  --token "$(<.token)" \
+  --token "$(<token)" \
   --imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv
 
 # singularity exec \
@@ -48,7 +48,7 @@ singularity exec \
   -B "${INROOT}":"${INROOT}":ro \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://"${CONTAINER_IMAGE}" \
-  python update-qclog.py --token "$(<.token)"  \
+  python update-qclog.py --token "$(<token)"  \
   --json_dir /corral-secure/projects/A2CPS/shared/psadil/qclog/mriqc-reviews \
   --imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv 
 
