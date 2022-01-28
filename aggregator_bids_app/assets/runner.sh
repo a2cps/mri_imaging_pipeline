@@ -11,8 +11,8 @@ date
 # allows running when SUBLONG is specified with job.json, and if not 
 # defaulting to updated list of participants for which bids_validation == 1
 if [[ -z "${SUBLONG}" ]]; then
-  # assumes that bids_validation is column 18 in this file
-  readarray -t SUBSLONG < <(awk -F ',' '{ if ($18 == 1)  print $1$2$3 }' "${CSV}")
+  # assumes that bids_validation is column 19 in this file
+  readarray -t SUBSLONG < <(awk -F ',' '{ if ($19 == 1)  print $1$2$3 }' "${CSV}")
 else
   read -ra SUBSLONG <<< "${SUBLONG}"
 fi
@@ -59,3 +59,6 @@ done
 echo symlinked > "${OUTDIR}/README"
 cp dataset_description.json "${OUTDIR}"
 cat bids_ignore >> "${OUTDIR}"/.bidsignore
+
+# delete broken symlinks (e.g., files created by previous run of heudiconv that no longer exist)
+find "${OUTDIR}" -xtype l -delete
