@@ -1,14 +1,15 @@
 {
-  "name": "{{ app.name }}-test",
+  "name": "{{ app.name }}",
   "appId": "{{ app.name }}-{{ app.version}}",
   "archive": false,
   "batchQueue": "normal",
-  "maxRunTime": "12:00:00",
+  "maxRunTime": "2:00:00",
   "processorsPerNode": 4,
   "inputs": {},
   "parameters": { 
-    "CONTAINER_IMAGE": "cat12.sif",
-      "NIFTI": "/scratch1/08266/psadil/traveling/NS_northshore/bids/NStravel2/sub-travel2/ses-NS/anat/sub-travel2_ses-NS_T1w.nii.gz /scratch1/08266/psadil/traveling/UC_uchicago/bids/UCtravel2/sub-travel2/ses-UC/anat/sub-travel2_ses-UC_T1w.nii.gz  /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UM_umichigan/bids/UMtravel2/sub-travel2/ses-UM/anat/sub-travel2_ses-UM_T1w.nii.gz /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UM_umichigan/bids/UM1travel2/sub-travel2/ses-UM1/anat/sub-travel2_ses-UM_T1w.nii.gz",
-      "OUTDIR": "NStravel2 UCtravel2 UM2travel2 UM1travel2"
+    "CONTAINER_IMAGE": "library://psadil/default/cat:0.0.1",
+    "BIND_DIR": "${PWD}",
+    "NIFTI": "/corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/bids/NStravel2/sub-travel2/ses-NS/anat/sub-travel2_ses-NS_T1w.nii.gz /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UC_uchicago/bids/UCtravel2/sub-travel2/ses-UC/anat/sub-travel2_ses-UC_T1w.nii.gz",
+    "OUTDIR": "NStravel2 UCtravel2"
   }
 }
