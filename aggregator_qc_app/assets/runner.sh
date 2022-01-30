@@ -21,7 +21,7 @@ set -e
 # symlinks must also be bound (hence -B for INROOT)
 singularity exec \
   --cleanenv \
-  -B "${INROOT}":"${INROOT}":ro \
+  -B "${INROOT}":"${INROOT}" \
   -B "${BIDS}":/bids:ro \
   -B "${OUTDIR}":/mriqc \
   docker://"${CONTAINER_IMAGE}" \
@@ -29,7 +29,7 @@ singularity exec \
 
 singularity exec \
   --cleanenv \
-  -B "${INROOT}":"${INROOT}":ro \
+  -B "${INROOT}":"${INROOT}" \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://"${CONTAINER_IMAGE}" \
   python check_qc.py "${OUTDIR}"/group_T1w.tsv "${OUTDIR}"/group_bold.tsv \
@@ -45,7 +45,7 @@ singularity exec \
 
 singularity exec \
   --cleanenv \
-  -B "${INROOT}":"${INROOT}":ro \
+  -B "${INROOT}":"${INROOT}" \
   -B "${OUTDIR}":"${OUTDIR}" \
   docker://"${CONTAINER_IMAGE}" \
   python update-qclog.py --token "$(<token)"  \
