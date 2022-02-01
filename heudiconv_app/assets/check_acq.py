@@ -1,4 +1,5 @@
 import os, argparse, pathlib, requests
+import logging
 from glob import glob
 from itertools import chain
 import bids
@@ -52,8 +53,8 @@ def assert_constant(jsons: list, meta:list, key: str, post: bool = False) -> boo
 def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) -> None:
   '''
   Some parameters won't be consistant from participant to participant, even while
-  they should have a single value within a session. This function checks for
-  that consistency, raising AssertionErrors if there is variability
+  they should have a single value within a session. This function organizes checks for
+  that consistency
   
   '''
   json_list = layout.get(suffix='T1w', extension="nii.gz", return_type="file") \
@@ -90,7 +91,7 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
   rb = np.array(pd.eval(reference['bval']), dtype=float).squeeze()
   rv = np.array(pd.eval(reference['bvec']), dtype=float).squeeze()
   if not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
-    print("unexpected bvals or bvecs!")
+    logging.warning("unexpected bvals or bvecs!")
     print(f"bvals: {bval_observed}")
     print(f"bvecs: {bvec_observed}")
     ok = False
@@ -212,7 +213,7 @@ def main(root: str, site: str, post: bool = False) -> None:
 
   ok *= compare_withinsub(layout, site=site, post=post)
   if not ok:
-    raise AssertionError ("Unexpected parameters! See logs")
+    logging.warning("Unexpected parameters! See logs")
 
   return
 
