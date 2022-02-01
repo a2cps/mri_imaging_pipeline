@@ -1,4 +1,5 @@
 import os, argparse, pathlib, requests
+import logging
 from glob import glob
 from itertools import chain
 import bids
@@ -41,9 +42,7 @@ def assert_constant(jsons: list, meta:list, key: str, post: bool = False) -> boo
     })
   
   if len(tocheck.drop_duplicates(subset=key)) > 1:
-    print(f"Visit has multiple values for {key}")
-    pprint(tocheck) 
-    post_notification(tocheck.to_string(), post=post)   
+    print_and_post(f"Visit has multiple values for {key}\n" + tocheck.to_string(), post=post)   
     ok = False
   else:
     ok  = True
@@ -54,8 +53,8 @@ def assert_constant(jsons: list, meta:list, key: str, post: bool = False) -> boo
 def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) -> None:
   '''
   Some parameters won't be consistant from participant to participant, even while
-  they should have a single value within a session. This function checks for
-  that consistency, raising AssertionErrors if there is variability
+  they should have a single value within a session. This function organizes checks for
+  that consistency
   
   '''
   json_list = layout.get(suffix='T1w', extension="nii.gz", return_type="file") \
@@ -92,7 +91,7 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
   rb = np.array(pd.eval(reference['bval']), dtype=float).squeeze()
   rv = np.array(pd.eval(reference['bvec']), dtype=float).squeeze()
   if not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
-    print("unexpected bvals or bvecs!")
+    logging.warning("unexpected bvals or bvecs!")
     print(f"bvals: {bval_observed}")
     print(f"bvecs: {bvec_observed}")
     ok = False
@@ -102,10 +101,9 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
   return ok
 
 
-def print_if_not_none(dd, post: bool = False) -> None:
-  if dd is not None: 
-    print(dd.pretty())
-    post_notification(dd.pretty(), post=post)
+def print_and_post(notification: str, post: bool = False) -> None:
+  pprint(notification)
+  post_notification(notification, post=post)
 
 
 def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, post: bool = False) -> bool:
@@ -118,9 +116,8 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     if check_receivecoil(meta, reference):
       reference.drop(['ReceiveCoilActiveElements'], axis=1, inplace=True)      
     else:
-      print(f"{js_observed} has invalid ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}")
-      post_notification(
-        f"{js_observed} has invalid ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}",
+      print_and_post(
+        f"{os.path.basename(js_observed)} has unexpected ReceiveCoilActiveElements: {meta.get('ReceiveCoilActiveElements')}",
         post=post)
       ok = False
 
@@ -145,8 +142,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
         ignore_numeric_type_changes=True)
       if dd1:
         ok = False
-        print(f"json for {js_observed} has unexpected values at epsilon: {epsilon}!")
-        print_if_not_none(dd1, post=post)
+        print_and_post(f"json for {os.path.basename(js_observed)} has unexpected values at epsilon: {epsilon}!\n" + dd1.pretty(), post=post)
 
   dd2 = DeepDiff(
     {key:js_goal[key] for key in js_goal.keys() if key not in list(chain(*FLOATING_PARAMS.values()))}, 
@@ -154,11 +150,10 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     ignore_numeric_type_changes=True)
 
   if dd2:
-    print(f"json for {js_observed} has unexpected values at epsilon: 0!")
-    print_if_not_none(dd2, post=post)
+    print_and_post( f"json for {os.path.basename(js_observed)} has unexpected values at epsilon: 0!\n" + dd2.pretty(), post=post)
     ok = False
   else:
-    print(f"json for {js_observed} looks okay")
+    print(f"json for {os.path.basename(js_observed)} looks okay")
     ok *= True
 
   return ok
@@ -218,7 +213,7 @@ def main(root: str, site: str, post: bool = False) -> None:
 
   ok *= compare_withinsub(layout, site=site, post=post)
   if not ok:
-    raise AssertionError ("Unexpected parameters! See logs")
+    logging.warning("Unexpected parameters! See logs")
 
   return
 

@@ -285,13 +285,14 @@
 		{
 			"id": "POST",
 			"details": {
-				"argument": "--post",
-				"showArgument": true,
+				"argument": "",
+				"showArgument": false,
 				"description": "flag indicating whether unexpected acqusition parameters should be posted to slack"
 			},
 			"value": {
-				"default": 0,
-				"type": "flag",
+				"default": "--no-post",
+				"type": "enumeration",
+				"enumValues": ["--post", "--no-post"],
 				"visible": true,
 				"required": false
 			}

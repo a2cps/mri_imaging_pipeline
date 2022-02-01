@@ -1,0 +1,17 @@
+---
+debug: false
+
+logs:
+  level: DEBUG
+  token: ~
+
+main:
+  appId: urrutia-aggregator_qc-0.0.1
+  name: main
+  archive: true
+  archivePath: '/corral-secure/projects/A2CPS/all_sites/mriqc-group'
+  maxRunTime: "01:00:00"
+  parameters:
+    SITES: "UI_uic UC_uchicago NS_northshore UM_umichigan"
+    OUTDIR: "."
+    
