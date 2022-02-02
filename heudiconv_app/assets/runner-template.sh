@@ -20,6 +20,18 @@ LOCAL_DICOM=$(basename ${FILES})
 LOCAL_DICOM=${LOCAL_DICOM%.*}
 unzip ${FILES} -d ${LOCAL_DICOM}
 
+# UM occasionally sends duplicated DICOM files, which will break dcmstack.
+# A known pattern is that these files are nested inside the folder of the scan that is duplicated 
+# (hence -mindepth 2), and the directory of files starts with the letter s.
+if [[ ${SITE} == UM ]]; then
+  duplicate=$(find ${LOCAL_DICOM} -mindepth 2 -type d)
+  duplicate_dir=$(basename "${duplicate}")
+  if [[ ${duplicate_dir:0:1} == s ]]; then
+    echo "deleting UM duplicate $duplicate"
+    rm -r "${duplicate}"
+  fi
+fi
+
 if [[ ${SITE} == UC ]]; then
 
   echo singularity exec \
