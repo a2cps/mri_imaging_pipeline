@@ -26,8 +26,8 @@ def main() -> None:
     context=r.context  # Actor context
     print(json.dumps(context, indent=4))
 
-    if context.message_dict['status'] != "FINISHED":
-        exit(0)
+    # if context.message_dict['status'] != "FINISHED":
+    #     exit(0)
 
     submit(ag=r.client, job_def=r.settings.main)
 
