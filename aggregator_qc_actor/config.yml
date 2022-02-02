@@ -7,7 +7,7 @@ logs:
 
 main:
   appId: urrutia-aggregator_qc-0.0.1
-  name: main
+  name: aggregator_qc_job
   archive: false
   archivePath: ''
   maxRunTime: "01:00:00"
