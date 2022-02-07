@@ -1,0 +1,23 @@
+---
+debug: false
+
+logs:
+  level: DEBUG
+  token: ~
+
+main:
+  appId: urrutia-cat-0.0.1
+  name: cat_job
+  archive: false
+  archivePath: ''
+  maxRunTime: "02:00:00"
+  parameters:
+    CONTAINER_IMAGE: "library://psadil/default/cat:0.0.1"
+    BIND_DIR: "/corral-secure/projects/A2CPS"
+    NIFTI: /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/bids/NStravel2/sub-travel2/ses-NS/anat/sub-travel2_ses-NS_T1w.nii.gz
+    OUTDIR: NStravel2
+    A1: "6"
+pipelines:
+  api_server: https://portals-api.tacc.utexas.edu
+  cat_alias: cat.prod
+  
