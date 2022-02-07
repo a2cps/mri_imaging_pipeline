@@ -1,6 +1,6 @@
 {
-  "checkpointable": false,
-  "name": "{{ app.name }}",
+  "checkpointable": false, 
+  "name": "{{ agave.username }}-{{ app.name }}",
   "executionSystem": "{{ app.hpc_system }}",
   "executionType": "HPC",
   "defaultQueue": "{{ app.queue }}",
