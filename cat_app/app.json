@@ -84,8 +84,12 @@
         "required": true
       },
       "details": {
-        "description": "Anatomical image(s) to process, as space separated strings",
+        "description": "Anatomical image(s) to process, as comma separated strings",
         "showArgument": false
+      },
+      "semantics": {
+        "minCardinality": 1,
+        "maxCardinality": -1
       }
     },
     {
@@ -97,8 +101,12 @@
         "required": true
       },
       "details": {
-        "description": "Space separated list of directories to which results will be written",
+        "description": "Comma separated list of directories to which results will be written",
         "showArgument": false
+      },
+      "semantics": {
+        "minCardinality": 1,
+        "maxCardinality": -1
       }
     }
   ],
