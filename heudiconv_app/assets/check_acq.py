@@ -6,7 +6,6 @@ import bids
 import numpy as np
 import pandas as pd
 from deepdiff import DeepDiff
-from pprint import pprint
 
 
 # parameters to check for numerical equivalence
@@ -67,6 +66,8 @@ def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) ->
   if site == "NS":
     ok = assert_constant(json_list, meta_list, "ReceiveCoilActiveElements", post=post)
     ok *= assert_constant(json_list, meta_list, "ShimSettings", post=post)
+  elif site == "WS":
+    ok = assert_constant(json_list, meta_list, "CoilString", post=post)
   else:
     ok = True
 
@@ -102,7 +103,7 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
 
 
 def print_and_post(notification: str, post: bool = False) -> None:
-  pprint(notification)
+  print(notification)
   post_notification(notification, post=post)
 
 
@@ -128,6 +129,9 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     if n in js_goal.columns.values.tolist():
       js_goal[n] = pd.eval(js_goal.loc[:,n])
 
+  if "dir" in js_goal.keys():
+    js_goal.drop(["acq","dir"], inplace=True, axis=1)
+  
   js_goal = js_goal.to_dict(orient="records")[0]
   observed = {key:meta[key] for key in js_goal.keys()}
   observed = remove_translation(observed)
@@ -155,10 +159,10 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
   else:
     print(f"json for {os.path.basename(js_observed)} looks okay")
     ok *= True
-
+    
   return ok
 
-
+"NS"
 def getUM(t1w_meta: dict) -> str:
   if t1w_meta.get("DeviceSerialNumber") == "000000000UM750MR":
     site = "UM1"
@@ -183,6 +187,7 @@ def main(root: str, site: str, post: bool = False) -> None:
   reference = (
     pd.read_csv(
       "acq-params.tsv", 
+      low_memory=False,
       delimiter="\t",
       converters={
         'ImageOrientationPatientDICOM': pd.eval,
@@ -205,11 +210,15 @@ def main(root: str, site: str, post: bool = False) -> None:
   for task in ["rest", "cuff"]:
     for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
       ok *= compare(layout, scan, reference.query("suffix == 'bold' & task == @task").copy(), post=post)
-
+  
+  fmaps = layout.get(extension="nii.gz", return_type="file", suffix="epi")
   for acq in ["dwib0", "fmrib0"]:
-    for dir in ["AP", "PA"]:
-      for scan in layout.get(acq=acq,dir=dir, extension="nii.gz", return_type="file", invalid_filters='allow'):
-        ok *= compare(layout, scan, reference.query("suffix == 'epi' & acq == @aqc & dir == @dir").copy(), post=post)   
+    for dir in ["AP", "PA"]: 
+      ok *= compare(
+          layout, 
+          [x for x in fmaps if dir in x and acq in x][0], 
+          reference.query("suffix == 'epi' & acq == @acq & dir == @dir").copy(), 
+          post=post)   
 
   ok *= compare_withinsub(layout, site=site, post=post)
   if not ok:
