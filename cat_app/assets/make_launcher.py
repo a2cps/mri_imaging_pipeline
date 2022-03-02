@@ -8,17 +8,20 @@ def main(
   batch: str,
   nifti: list,
   a1: Optional[str] = None,
+  outdir: list = [],
   launchfile: Union[str, bytes, os.PathLike] = "launchfile"
   ) -> None:
 
+  if not len(outdir) == len(nifti):
+    outdir = [os.getcwd()] * len(nifti)
   with open(launchfile, "w") as f:
-    for t, t1w in enumerate(nifti): 
-      if a1 is None:
-        f.writelines(f'singularity exec -B {bind_dir}:{bind_dir} --cleanenv  {container} /bin/cat_standalone.sh -b {batch} {t1w} > {t}.out 2> {t}.err \n')
+    for t, (t1w, logdir) in enumerate(zip(nifti, outdir)): 
+      cmd = f'singularity exec -B {bind_dir}:{bind_dir} --cleanenv  {container} /bin/cat_standalone.sh -b {batch}'
+      log = f"> {logdir}/{t}.out 2> {logdir}/{t}.err \n"
+      if a1 == None or a1 == "":
+        f.writelines(f'{cmd} -a1 8 {t1w} {log}')
       else:
-        f.writelines(f'singularity exec -B {bind_dir}:{bind_dir} --cleanenv  {container} /bin/cat_standalone.sh -b {batch} -a1 {a1} {t1w} > {t}.out 2> {t}.err \n')
-        
-  return
+        f.writelines(f'{cmd} -a1 {a1} {t1w} {log}')
 
 
 if __name__ == '__main__':
@@ -34,6 +37,7 @@ if __name__ == '__main__':
   parser.add_argument('NIFTI', nargs="+", help="list of anatomical files to parse, separated by spaces")
   parser.add_argument('--launchfile', default="launchfile")
   parser.add_argument('--a1', default=None)
+  parser.add_argument('--outdir', nargs="+", default=None)
 
   args = parser.parse_args()
   main(
@@ -41,5 +45,6 @@ if __name__ == '__main__':
     container=args.CONTAINER_IMAGE, 
     batch=args.BATCH, 
     nifti=args.NIFTI, 
-    a1=args.a1, 
+    a1=args.a1,
+    outdir=args.outdir, 
     launchfile=args.launchfile)

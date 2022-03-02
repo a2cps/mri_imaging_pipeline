@@ -27,7 +27,7 @@ done
 
 # write launcher file
 python3 make_launcher.py  --launchfile "${LAUNCHER_JOB_FILE}" \
-    "${BIND_DIR}" "${CONTAINER_IMAGE}" "${BATCH}" "${niftis[@]}" --a1 "${A1}"
+    "${BIND_DIR}" "${CONTAINER_IMAGE}" "${BATCH}" "${niftis[@]}" --a1 "${A1}" --outdir "${outs[@]}"
 
 # run all jobs
 "${LAUNCHER_DIR}"/paramrun
