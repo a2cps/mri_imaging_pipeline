@@ -13,6 +13,7 @@ import numpy as np
 
 from atlassian import Confluence
 
+
 def _zscore(scores: np.array) -> np.array:
   return (scores - scores.mean()) / scores.std()
 
@@ -181,12 +182,13 @@ def gather_cat(root: str =  os.path.join('/corral-secure', 'projects', 'A2CPS', 
 
 
 def auto_rate_bold_scan(row) -> str:
-  if row.fd_mean > 0.55:
+  if (row.fd_mean > 0.55) or (row.dummy_trs + row.size_t < 450):
     rating = "red"
-  elif row.fd_mean > 0.25 or row.fd_perc > 0.2:
+  elif row.fd_mean > 0.25 or row.fd_perc > 20:
     rating = "yellow"
   else:
     rating = "green"
+
   return rating
 
 
@@ -203,8 +205,33 @@ def start_session(token: str, pem: str) -> requests.Session:
   return s
 
 
+def source_to_code(src) -> int:
+  if src in ["auto", "technologist"]:
+    out = 0
+  else:
+    out = 1
+  return out
+
+
+def rating_to_code(src) -> int:
+  if src == "green":
+    out = 3
+  elif src == "yellow":
+    out = 2
+  else:
+    out = 1
+  return out
+
+
 def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
 
+  # manual ratings always overwrite auto + tech scans
+  d['source_code'] = [source_to_code(x) for x in d['source'].values]
+
+  # of the auto scans, always take the lowest
+  d['rating_grade'] = [rating_to_code(x) for x in d['rating'].values]
+
+  # if multiple grades remain, take the most recent
   # currently there are no dates for tech ratings. this hack of fake date is to ensure that they stay 
   # selecting the most recent rating  
   d['date'] = pd.to_datetime(d['date'])
@@ -213,7 +240,13 @@ def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
   single_rating = (
     d
     .groupby(['site','sub','ses','scan'], as_index=False)
-    .apply(lambda x: x[x['date'] == x['date'].max(skipna = False)]))
+    .apply(lambda x: x[x['source_code'] == x['source_code'].max(skipna = False)])
+    .groupby(['site','sub','ses','scan'], as_index=False)
+    .apply(lambda x: x[x['rating_grade'] == x['rating_grade'].min(skipna = False)])
+    .groupby(['site','sub','ses','scan'], as_index=False)
+    .apply(lambda x: x[x['date'] == x['date'].max(skipna = False)]) 
+    .drop(['source_code', 'rating_grade'], axis=1)
+  )
   single_rating.loc[single_rating['date'] == pd.to_datetime("2000-01-01"),'date'] = pd.to_datetime('')
   single_rating['date'] = single_rating['date'].copy().dt.date
   single_rating.to_csv("qc-log-latest.csv", index=False)
@@ -240,7 +273,8 @@ def update_qclog(
   "rest_run-02_bold": "REST2",
   "cuff_run-01_bold": "CUFF1",
   "cuff_run-02_bold": "CUFF2",
-  "_T1w": "T1w"
+  "_T1w": "T1w",
+  "dwi": "DWI"
   }
   LOG_KEYS = {
     "T1 Received": "T1w",
