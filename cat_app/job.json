@@ -1,0 +1,15 @@
+{
+  "name": "{{ app.name }}",
+  "appId": "{{ app.name }}-{{ app.version}}",
+  "archive": false,
+  "batchQueue": "normal",
+  "maxRunTime": "2:00:00",
+  "processorsPerNode": 4,
+  "inputs": {},
+  "parameters": { 
+    "CONTAINER_IMAGE": "library://psadil/default/cat:0.0.1",
+    "BIND_DIR": "/corral-secure/projects/A2CPS",
+    "NIFTI": "/corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/bids/NStravel2/sub-travel2/ses-NS/anat/sub-travel2_ses-NS_T1w.nii.gz /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UC_uchicago/bids/UCtravel2/sub-travel2/ses-UC/anat/sub-travel2_ses-UC_T1w.nii.gz",
+    "OUTDIR": "NStravel2 UCtravel2"
+  }
+}

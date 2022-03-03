@@ -1,9 +1,25 @@
 from reactors.utils import Reactor, agaveutils
 import os
 import copy
-import sys
+import glob
 import json
 import re
+import logging
+
+
+def _make_callback(server: str, alias: str, nonce: str) -> str:
+    return f"{server}/actors/v2/{alias}/messages?x-nonce={os.getenv(nonce)}"
+
+
+def _get_t1w_file(bids: str) -> str:
+    t1ws = glob.glob(os.path.join(bids, "**", "*_T1w.nii.gz"), recursive=True)
+    if len(t1ws) > 1:
+        logging.warning("found more than 1 T1w image! Check logs to ensure the correct one is being analyzed")
+    return t1ws[0]
+
+
+def _get_output_dir(bids: str) -> str:
+    return os.path.basename(bids)
 
 
 def submit_bids_validate(r,bids,filename,subject_id,site):
@@ -34,6 +50,11 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
         qsiprep_nonce = os.getenv('_QSIPREP_NONCE')
         qsiprep_alias = pipeline_config['qsiprep_alias']
         qsiprep_callback = api_server + '/actors/v2/' + qsiprep_alias + '/messages?x-nonce=' + qsiprep_nonce
+
+        cat_callback = _make_callback(
+            server=pipeline_config['api_server'], 
+            alias=pipeline_config['cat_alias'], 
+            nonce='_CAT_NONCE')
 
         # bids_validator_nonce = os.getenv('_BIDS_VALIDATOR_NONCE')
         # bids_validator_alias = pipeline_config['bids_validator_alias']
@@ -76,6 +97,13 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
                '&bids=' + bids +
                '&filename='+ filename +
                '&site='+ site
+               },
+               {
+                    'event': 'FINISHED',
+                    "persistent": False,
+                    'url': cat_callback + '&status=${JOB_STATUS}' +
+                    '&NIFTI=' + _get_t1w_file(bids) +
+                    '&OUTDIR=' + _get_output_dir(bids)
                }
             ]
     job_def.notifications = notif

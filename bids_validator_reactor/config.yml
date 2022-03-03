@@ -21,3 +21,4 @@ pipelines:
   bids_validator_alias: bids-validator.prod
   vbr_actor_alias: vbr-actor.prod
   qsiprep_alias: qsiprep.prod
+  cat_alias: cat.prod

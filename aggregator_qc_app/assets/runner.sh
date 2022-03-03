@@ -34,22 +34,7 @@ singularity exec \
   docker://"${CONTAINER_IMAGE}" \
   python check_qc.py "${OUTDIR}"/group_T1w.tsv "${OUTDIR}"/group_bold.tsv \
   --token "$(<token)" \
-  --imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv
-
-# singularity exec \
-#   --cleanenv \
-#   -B "${INROOT}":"${INROOT}":ro \
-#   -B "${OUTDIR}":"${OUTDIR}" \
-#   docker://"${CONTAINER_IMAGE}" \
-#   jupyter nbconvert qc_report.ipynb --to html --no-input --no-prompt --output "${OUTDIR}"/qc_report.html --execute
-
-singularity exec \
-  --cleanenv \
-  -B "${INROOT}":"${INROOT}" \
-  -B "${OUTDIR}":"${OUTDIR}" \
-  docker://"${CONTAINER_IMAGE}" \
-  python update-qclog.py --token "$(<token)"  \
   --json_dir /corral-secure/projects/A2CPS/shared/psadil/qclog/mriqc-reviews \
-  --imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv 
+  --imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv
 
 date

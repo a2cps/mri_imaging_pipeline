@@ -61,10 +61,10 @@ protocols2fix.update({
             ('^ORIG T1_MPRAGE$', 'anat-T1w'),
             # this rule must come *after* DWI_B0
             ('^DWI', 'dwi'),
-            ('^REST([12])$', r'func_task-rest_run-\1'),
-            ('^Rest([12])$', r'func_task-rest_run-\1'),
-            ('^CUFF([12])$', r'func_task-cuff_run-\1'), 
-            ('^Cuff([12])$', r'func_task-cuff_run-\1'), 
+            ('^REST([12])([_\s]R[1-9])*$', r'func_task-rest_run-\1'),
+            ('^Rest([12])([_\s]R[1-9])*$', r'func_task-rest_run-\1'),
+            ('^CUFF([12])([_\s]R[1-9])*$', r'func_task-cuff_run-\1'), 
+            ('^Cuff([12])([_\s]R[1-9])*$', r'func_task-cuff_run-\1'), 
         ],
 })
 
