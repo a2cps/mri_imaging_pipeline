@@ -223,7 +223,9 @@ def rating_to_code(src) -> int:
   return out
 
 
-def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
+def write_ratings_unique(
+  d: pd.DataFrame, 
+  outdir: str = os.path.join("/corral-secure','projects','A2CPS','shared','urrutia','imaging_report")) -> pd.DataFrame:
 
   # manual ratings always overwrite auto + tech scans
   d['source_code'] = [source_to_code(x) for x in d['source'].values]
@@ -249,7 +251,7 @@ def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
   )
   single_rating.loc[single_rating['date'] == pd.to_datetime("2000-01-01"),'date'] = pd.to_datetime('')
   single_rating['date'] = single_rating['date'].copy().dt.date
-  single_rating.to_csv("qc-log-latest.csv", index=False)
+  single_rating.to_csv(os.path.join(outdir, "qc-log-latest.csv"), index=False)
 
   return single_rating
 
