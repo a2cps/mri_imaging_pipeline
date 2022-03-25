@@ -33,16 +33,15 @@ def read_json(f) -> pd.DataFrame:
 def post_notification(notification: str, confluence: Optional[Confluence] = None) -> None:
   if confluence is not None:
     confluence.update_page(
-      page_id="25755998", 
-      title="QC Aggregation", 
-      body=notification, 
-      parent_id=None, 
-      type='page', 
-      representation='storage', 
+      page_id="25755998",
+      title="QC Aggregation",
+      body=notification,
+      parent_id=None,
+      type='page',
+      representation='storage',
       minor_edit=True)
   else:
     print(notification)
-  return 
 
 
 def build_notification(outliers: pd.DataFrame, notification) -> str:
@@ -52,7 +51,7 @@ def build_notification(outliers: pd.DataFrame, notification) -> str:
       if row.source in ["technologist", "auto"]:
         notification.append(f'<p><strong>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</strong></p>')
       else:
-        notification.append(f'<p>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</p>')    
+        notification.append(f'<p>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</p>')
 
   return '\n'.join(notification)
 
@@ -101,7 +100,6 @@ def get_outliers(
   "SH": "SH_spectrum_health"
   }
 
-  
   sites = (
     pd.read_csv(
       imaging_log,
@@ -200,10 +198,18 @@ def auto_rate_bold_scan(row) -> str:
   return rating
 
 
+def auto_annotate_bold_scan(row):
+  notes = ""
+  if row.dummy_trs + row.size_t < 450:
+    notes += "truncated"
+  return notes
+
+
 def rate_motion(d: pd.DataFrame, bold_iqm: pd.DataFrame) -> pd.DataFrame:
   bold_iqm['rating'] = [auto_rate_bold_scan(x) for x in bold_iqm.itertuples()]
   bold_iqm['source'] = "auto"
-  return d.merge(bold_iqm[["bids_name","rating","source"]], on="bids_name").drop(['bids_name'], axis=1)
+  bold_iqm['notes'] = [auto_annotate_bold_scan(x) for x in bold_iqm.itertuples()]
+  return d.merge(bold_iqm[["bids_name","rating","source","notes"]], on="bids_name").drop(['bids_name'], axis=1)
 
 
 def start_session(token: str, pem: str) -> requests.Session:
@@ -330,15 +336,16 @@ def update_qclog(
       ses = [re.findall("(?<=ses-)[Vv][13]", x)[0] for x in d["subject"]],
       rating = [RATING[str(x)] for x in d["rating"]],
       scan = [SCAN[re.findall('|'.join(SCAN.keys()), x)[0]] for x in d["subject"]]
-    )    
+    )
     .drop(['subject',"artifacts"], axis=1)
     .merge(log_short)
     .merge(
       log_all, 
       how="outer")
-    .query("rating!=''")
   )
-  names = ['site','sub', 'ses', 'scan','rating','source','date','notes']
+  d2['source'] = d2.apply(lambda row : "default" if row["rating"] == "" else row["source"], axis=1)
+  d2['rating'] = d2.apply(lambda row : "green" if row["source"] == "default" else row["rating"], axis=1)
+  names = ['site', 'sub', 'ses', 'scan', 'rating', 'source', 'date', 'notes']
   to_upload = d2[names].sort_values(names)
 
 
