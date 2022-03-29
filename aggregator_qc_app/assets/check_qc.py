@@ -198,18 +198,10 @@ def auto_rate_bold_scan(row) -> str:
   return rating
 
 
-def auto_annotate_bold_scan(row):
-  notes = ""
-  if row.dummy_trs + row.size_t < 450:
-    notes += "truncated"
-  return notes
-
-
 def rate_motion(d: pd.DataFrame, bold_iqm: pd.DataFrame) -> pd.DataFrame:
   bold_iqm['rating'] = [auto_rate_bold_scan(x) for x in bold_iqm.itertuples()]
   bold_iqm['source'] = "auto"
-  bold_iqm['notes'] = [auto_annotate_bold_scan(x) for x in bold_iqm.itertuples()]
-  return d.merge(bold_iqm[["bids_name","rating","source","notes"]], on="bids_name").drop(['bids_name'], axis=1)
+  return d.merge(bold_iqm[["bids_name","rating","source"]], on="bids_name").drop(['bids_name'], axis=1)
 
 
 def start_session(token: str, pem: str) -> requests.Session:
