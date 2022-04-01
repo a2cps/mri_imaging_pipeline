@@ -14,7 +14,7 @@ main:
   parameters:
     CONTAINER_IMAGE: "library://psadil/default/cat:0.0.1"
     BIND_DIR: "/corral-secure/projects/A2CPS"
-    NIFTI: /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/bids/NStravel2/sub-travel2/ses-NS/anat/sub-travel2_ses-NS_T1w.nii.gz
+    BIDS: /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/bids/NStravel2
     OUTDIR: NStravel2
     A1: "6"
 pipelines:
