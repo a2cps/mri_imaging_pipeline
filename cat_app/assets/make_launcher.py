@@ -23,8 +23,7 @@ def get_io(indirs: list, outdirs: list):
 
     # if the bids folder had multiple t1w (e.g., run on some aggregated dataset), they will all be 
     # deposited into the same output directory
-    if len(t1ws) > 1:
-      out += [o] * outdirs
+    out += [o] * len(t1ws)
 
   return nii, out
 
