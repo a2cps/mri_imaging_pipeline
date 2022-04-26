@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": "NIFTI",
+      "id": "BIDS",
       "value": {
         "default": "",
         "visible": true,
@@ -84,7 +84,7 @@
         "required": true
       },
       "details": {
-        "description": "Anatomical image(s) to process, as comma separated strings",
+        "description": "Directory containing *_T1w.nii.gz files (will search for files recursively)",
         "showArgument": false
       },
       "semantics": {

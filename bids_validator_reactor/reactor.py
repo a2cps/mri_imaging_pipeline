@@ -1,21 +1,12 @@
 from reactors.utils import Reactor, agaveutils
 import os
 import copy
-import glob
 import json
 import re
-import logging
 
 
 def _make_callback(server: str, alias: str, nonce: str) -> str:
     return f"{server}/actors/v2/{alias}/messages?x-nonce={os.getenv(nonce)}"
-
-
-def _get_t1w_file(bids: str) -> str:
-    t1ws = glob.glob(os.path.join(bids, "**", "*_T1w.nii.gz"), recursive=True)
-    if len(t1ws) > 1:
-        logging.warning("found more than 1 T1w image! Check logs to ensure the correct one is being analyzed")
-    return t1ws[0]
 
 
 def _get_output_dir(bids: str) -> str:
@@ -102,7 +93,7 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
                     'event': 'FINISHED',
                     "persistent": False,
                     'url': cat_callback + '&status=${JOB_STATUS}' +
-                    '&NIFTI=' + _get_t1w_file(bids) +
+                    '&BIDS=' + bids +
                     '&OUTDIR=' + _get_output_dir(bids)
                }
             ]
