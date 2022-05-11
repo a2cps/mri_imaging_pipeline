@@ -111,6 +111,8 @@ for j in jsons:
       d['BitsStored'] = data.get('global').get('const').get('BitsStored')
 
     # parameters that follow a set whitelist
+    # note that WS stores this information in "CoilString" and so does not need to be included
+    # in this check
     if scanner == "NS":
       d['ReceiveCoilActiveElements'] = [
         ["HC1-6", "HC3-6", "HC1-7", "HC1-7;NC1", "HC1-7;NC1,2", "HC1-7;NC2;SP1", "HC3-7;NC1", "HEA;HEP","HC1,3-7;NC1"]]

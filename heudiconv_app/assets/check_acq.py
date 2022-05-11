@@ -162,7 +162,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     
   return ok
 
-"NS"
+
 def getUM(t1w_meta: dict) -> str:
   if t1w_meta.get("DeviceSerialNumber") == "000000000UM750MR":
     site = "UM1"
