@@ -1,4 +1,5 @@
 import os, argparse, pathlib, requests
+import re
 import logging
 from glob import glob
 from itertools import chain
@@ -211,14 +212,14 @@ def main(root: str, site: str, post: bool = False) -> None:
     for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
       ok *= compare(layout, scan, reference.query("suffix == 'bold' & task == @task").copy(), post=post)
   
-  fmaps = layout.get(extension="nii.gz", return_type="file", suffix="epi")
-  for acq in ["dwib0", "fmrib0"]:
-    for dir in ["AP", "PA"]: 
-      ok *= compare(
-          layout, 
-          [x for x in fmaps if dir in x and acq in x][0], 
-          reference.query("suffix == 'epi' & acq == @acq & dir == @dir").copy(), 
-          post=post)   
+  for fmap in layout.get(extension="nii.gz", return_type="file", suffix="epi"):
+    acq = re.findall('acq-(dwib0|fmrib0)', fmap)[0]
+    dir = re.findall('dir-(AP|PA)', fmap)[0]
+    ok *= compare(
+      layout, 
+      fmap,
+      reference.query("suffix == 'epi' & acq == @acq & dir == @dir").copy(), 
+      post=post)
 
   ok *= compare_withinsub(layout, site=site, post=post)
   if not ok:
