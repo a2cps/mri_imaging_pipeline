@@ -192,19 +192,6 @@ def get_manufacturer(json_file: str) -> str:
     return manufacturer
 
 
-def check_dummy_fields_in_appa(b0_json: list):
-
-    for ap, pa in zip([x for x in b0_json if 'AP' in str(Path(x).name)], [x for x in b0_json if 'PA' in str(Path(x).name)]):
-        with open(ap, 'r') as a, open(pa, 'r') as p:
-            ap_data = json.load(a)
-            pa_data = json.load(p)
-            if not (ap_data["EstimatedTotalReadoutTime"] == pa_data["EstimatedTotalReadoutTime"]):
-                print(f'WARNING: dummy values for EstimatedTotalReadoutTime do not match in {ap} and {pa}.')
-                
-            if not (ap_data["EstimatedEffectiveEchoSpacing"] == pa_data["EstimatedEffectiveEchoSpacing"]):
-                print(f'WARNING: dummy values for EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}.')
-            
-
 def write_dummy_fields(filename: str):
     with open(filename, "r+") as f:
         json_data = json.load(f)
@@ -316,9 +303,6 @@ def edit_json(data_path):
     # these are just dummy values, which works for distortion correction
     # but the units will not end up scaled correctly
     if manufacturer == "philips":
-        check_dummy_fields_in_appa(func_b0_json)
-        check_dummy_fields_in_appa(dwi_b0_json)
-
         for filename in dwi_json_file + func_json + func_b0_json + dwi_b0_json:
             write_dummy_fields(filename)
             
