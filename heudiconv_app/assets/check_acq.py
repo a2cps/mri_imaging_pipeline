@@ -89,13 +89,31 @@ def add_deepkeys(observed: dict) -> dict:
   return observed
 
 
-def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, reference: pd.DataFrame) -> bool:
+def check_bvalsbvecs(
+  bval_observed: np.ndarray, bvec_observed: np.ndarray, 
+  reference: pd.DataFrame,
+  scan: str,
+  post: bool = False) -> bool:  
+  '''
+    in the case of UC scans, we don't get a full dcmstack output in the DWI, so we can't check 
+    dcmmeta_shape. The length of bvals serves as the check for truncated scans
+    
+    root issue seems to be: https://github.com/moloney/dcmstack/issues/51  
+  '''
+  
   rb = np.array(pd.eval(reference['bval']), dtype=float).squeeze()
   rv = np.array(pd.eval(reference['bvec']), dtype=float).squeeze()
-  if not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
-    logging.warning("unexpected bvals or bvecs!")
-    print(f"bvals: {bval_observed}")
-    print(f"bvecs: {bvec_observed}")
+  
+  # in the case of UC scans, we don't get a full dcmstack output in the DWI, so notification must 
+  # happen 
+  # root issue seems to be: https://github.com/moloney/dcmstack/issues/51
+  if bval_observed.shape[0] < rb.shape[0]:
+    print_and_post(f"{os.path.basename(scan)} appears truncated", post=post)
+    ok = False
+  elif not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
+    print_and_post(f"{os.path.basename(scan)} has unexpected bvals or bvecs", post=post)
+    logging.warning(f"bvals: {bval_observed}")
+    logging.warning(f"bvecs: {bvec_observed}")
     ok = False
   else:
     ok = True
@@ -104,7 +122,7 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
 
 
 def print_and_post(notification: str, post: bool = False) -> None:
-  print(notification)
+  logging.warning(notification)
   post_notification(notification, post=post)
 
 
@@ -199,7 +217,10 @@ def main(root: str, site: str, post: bool = False) -> None:
     ok *= check_bvalsbvecs(
       np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0]),
       np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0]),
-      reference.query("suffix == 'dwi'").copy())   
+      reference.query("suffix == 'dwi'").copy(),
+      scan=scan,
+      post=post)
+
     ok *= compare(layout, scan, reference.query("suffix == 'dwi'").copy(), post=post)
 
   ok *= compare(
