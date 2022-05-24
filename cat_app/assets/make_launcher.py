@@ -19,7 +19,7 @@ def get_io(indirs: list, outdirs: list):
       
     # NOTE: this will overwrite existing files without asking
     for t1w in t1ws:
-      nii += shutil.copy2(t1w, o)
+      nii += [shutil.copy2(t1w, o)]
 
     # if the bids folder had multiple t1w (e.g., run on some aggregated dataset), they will all be 
     # deposited into the same output directory
