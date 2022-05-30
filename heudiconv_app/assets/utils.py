@@ -171,25 +171,26 @@ def save_as_json(data: dict, json_filename: str):
          json.dump(data, data_file,indent=1)
 
 
-def get_manufacturer(json_data: dict) -> str:
-    if not ('Manufacturer' in  json_data.keys()):
-        raise AssertionError("No Manufacturer specified. Post-conversion fixes likely wrong.")
-    return json_data['Manufacturer'].lower()
+def get_manufacturer(json_file: str) -> str:
+    '''
+    extract manufacturer field from json_file
 
+    Args:
+        json_file: path to json data, presumably containing the field "manufacturer"
 
-def check_dummy_fields_in_appa(b0_json: list):
-    ap = [x for x in b0_json if 'AP' in str(Path(x).name)][0]
-    pa = [x for x in b0_json if 'PA' in str(Path(x).name)][0]
+    Returns:
+        extracted key
 
-    with open(ap, 'r') as a, open(pa, 'r') as p:
-        ap_data = json.load(a)
-        pa_data = json.load(p)
-        if not (ap_data["EstimatedTotalReadoutTime"] == pa_data["EstimatedTotalReadoutTime"]):
-            print(f'WARNING: dummy values for EstimatedTotalReadoutTime do not match in {ap} and {pa}.')
-            
-        if not (ap_data["EstimatedEffectiveEchoSpacing"] == pa_data["EstimatedEffectiveEchoSpacing"]):
-            print(f'WARNING: dummy values for EstimatedEffectiveEchoSpacing do not match in {ap} and {pa}.')
-            
+    Raises:
+        AssertionError: file was opened, but key was not found
+    '''
+    with open(json_file, 'r') as f:
+        json_data = json.load(f)    
+        if not ('Manufacturer' in  json_data.keys()):
+            raise AssertionError("No Manufacturer specified. Post-conversion fixes likely wrong.")
+        manufacturer = json_data['Manufacturer'].lower()
+    return manufacturer
+
 
 def write_dummy_fields(filename: str):
     with open(filename, "r+") as f:
@@ -215,14 +216,16 @@ def edit_json(data_path):
     # Getting json and nifti files under dwi and func directories
     json_files = glob.glob(os.path.join(sub_dir,sess_name,'fmap','*b0*.json'))
     dwi_json_file = glob.glob(os.path.join(sub_dir,sess_name,'dwi','*dwi*.json'))
-    dwi_b0_json = sorted([i for i in json_files if 'dwi' in i])
-    dwi_data = Path(glob.glob(os.path.join(sub_dir,sess_name,'dwi','*.nii.gz'))[0]).name # assuming simple case of 1 DWI data
+
+    # might be empy in cases where no dwi was run
+    dwi_b0_json = [i for i in json_files if 'dwi' in i]
+
     func_b0_json = sorted([i for i in json_files if 'fmri' in i])
     func_json = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.json')))
     func_data = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.nii.gz')))
 
-    with open(dwi_json_file[0], 'r') as f:
-        manufacturer = get_manufacturer(json.load(f))
+    # assume that, if any jsons are available, the anat will be available
+    manufacturer = get_manufacturer(glob.glob(os.path.join(sub_dir, sess_name, 'anat', '*.json'))[0])
 
     print(f"Will try to apply post-conversion fixes specific to images from {manufacturer}...")    
 
@@ -239,9 +242,12 @@ def edit_json(data_path):
                  json_data = add_fields_to_json(json_data, 'PhaseEncodingDirection',  value)
             print(f"PhaseEncodingDirection for {i} set to {value}")
 
-        value = [os.path.join(sess_name,'dwi',dwi_data)]
+        # this could be empty, if, e.g., the b0 was run but then the DWI was skipped
+        dwi_data_files = glob.glob(os.path.join(sub_dir,sess_name,'dwi','*.nii.gz'))
+        value = [os.path.join(sess_name, 'dwi', Path(x).name) for x in dwi_data_files]
         updated_json = add_fields_to_json(json_data, 'IntendedFor',  value)
-        save_as_json(updated_json,i)
+            
+        save_as_json(updated_json, i)
         print("IntendedField is added to %s"%i)
         f.close()
 
@@ -297,9 +303,6 @@ def edit_json(data_path):
     # these are just dummy values, which works for distortion correction
     # but the units will not end up scaled correctly
     if manufacturer == "philips":
-        check_dummy_fields_in_appa(func_b0_json)
-        check_dummy_fields_in_appa(dwi_b0_json)
-
         for filename in dwi_json_file + func_json + func_b0_json + dwi_b0_json:
             write_dummy_fields(filename)
             
