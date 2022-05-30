@@ -248,7 +248,7 @@
 				"description": "JSON file for additional dcm2niix configuration"
 			},
 			"value": {
-				"default": null,
+				"default": "dcmconfig.json",
 				"type": "string",
 				"visible": true,
 				"required": false
