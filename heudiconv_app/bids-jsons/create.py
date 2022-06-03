@@ -76,7 +76,7 @@ keep_list = [
   "dcmmeta_slice_dim",
   "dcmmeta_version"]
 
-root = os.path.join("/home/psadil/Documents/git/a2cps/mri_imaging_pipeline/heudiconv_app")
+root = os.path.join("/home/psadil/git/a2cps/mri_imaging_pipeline/heudiconv_app")
 bak = os.path.join(root, "bids-jsons")
 
 jsons = glob(os.path.join(bak, "*json"))
@@ -111,7 +111,9 @@ for j in jsons:
       d['BitsStored'] = data.get('global').get('const').get('BitsStored')
 
     # parameters that follow a set whitelist
-    if scanner == "NS":
+    # note that WS stores this information in "CoilString" and so does not need to be included
+    # in this check
+    if scanner in ["NS", "SH"]:
       d['ReceiveCoilActiveElements'] = [
         ["HC1-6", "HC3-6", "HC1-7", "HC1-7;NC1", "HC1-7;NC1,2", "HC1-7;NC2;SP1", "HC3-7;NC1", "HEA;HEP","HC1,3-7;NC1"]]
 
