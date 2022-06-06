@@ -6,6 +6,14 @@ import os
 import re
 
 
+def parse_phantom_date(subject: str) -> str:
+    month = subject[0:2]
+    day = subject[2:4]
+    # NS stores the year as YYYY, but other sites us YY. The following works for all
+    year = subject[-2:]
+    return ''.join([year, month, day])
+
+
 def submit_heudiconv(r,site,subject,session,dicoms,outdir):
     # Create agave client from reactor object
     ag = r.client
@@ -17,6 +25,10 @@ def submit_heudiconv(r,site,subject,session,dicoms,outdir):
     parameters["FILES"] = dicoms
     # split subject from path
     #parameters['OUTDIR'] = outdir
+    if session == "QA":
+        session = parse_phantom_date(subject)
+        subject = f"{site.lower()}phantom"
+ 
     parameters['LIST_OF_SUBJECTS'] = subject
     #parameters['LOCATOR'] = site + '/bids'
     parameters['SESSION_FOR_LONGITUDINAL'] = session

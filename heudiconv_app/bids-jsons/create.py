@@ -76,7 +76,7 @@ keep_list = [
   "dcmmeta_slice_dim",
   "dcmmeta_version"]
 
-root = os.path.join("/home/psadil/Documents/git/a2cps/mri_imaging_pipeline/heudiconv_app")
+root = os.path.join("/home/psadil/git/a2cps/mri_imaging_pipeline/heudiconv_app")
 bak = os.path.join(root, "bids-jsons")
 
 jsons = glob(os.path.join(bak, "*json"))
@@ -92,9 +92,10 @@ for j in jsons:
       for i,row in enumerate(affine):
         json_out['dcmmeta_affine'][i] = row[0:-1]
     d = pd.json_normalize(json_out)
-    scanner = re.findall('site-([A-Z]{2,3}[12]?)', j)[0]
+    scanner = re.findall('site-(NS|SH|WS|UM1|UM2|UI|UC)', j)[0]
     d['scanner'] = scanner
-    d['source'] = 'bids_json'
+    phantom = len(re.findall('phantom_', j)) > 0
+    d['phantom'] = phantom
     suffix = re.findall('_(dwi|bold|T1w|epi)\.', j)[0]
     d['suffix'] = suffix
     if suffix == 'bold':
@@ -103,15 +104,23 @@ for j in jsons:
       d['acq'] = re.findall('acq-(dwib0|fmrib0)', j)[0]
       d['dir'] = re.findall('(?<=dir-)(AP|PA)', j)[0]
     elif suffix == 'dwi':
-      d['bval'] = [np.genfromtxt(f'site-{scanner}_dwi.bval').tolist()]
-      d['bvec'] = [np.genfromtxt(f'site-{scanner}_dwi.bvec').tolist()] 
+      if phantom:
+        acq = re.findall('acq-(b1000|b2000)', j)[0]
+        d['acq'] = acq
+        d['bval'] = [np.genfromtxt(f'site-{scanner}phantom_acq-{acq}_dwi.bval').tolist()]
+        d['bvec'] = [np.genfromtxt(f'site-{scanner}phantom_acq-{acq}_dwi.bvec').tolist()]
+      else:
+        d['bval'] = [np.genfromtxt(f'site-{scanner}_dwi.bval').tolist()]
+        d['bvec'] = [np.genfromtxt(f'site-{scanner}_dwi.bvec').tolist()]
     
     # parameters stored deeper in the file
     if data.__contains__('global'):
       d['BitsStored'] = data.get('global').get('const').get('BitsStored')
 
     # parameters that follow a set whitelist
-    if scanner == "NS":
+    # note that WS stores this information in "CoilString" and so does not need to be included
+    # in this check
+    if scanner in ["NS", "SH"]:
       d['ReceiveCoilActiveElements'] = [
         ["HC1-6", "HC3-6", "HC1-7", "HC1-7;NC1", "HC1-7;NC1,2", "HC1-7;NC2;SP1", "HC3-7;NC1", "HEA;HEP","HC1,3-7;NC1"]]
 
