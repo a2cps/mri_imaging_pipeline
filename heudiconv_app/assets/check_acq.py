@@ -151,7 +151,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
       js_goal[n] = pd.eval(js_goal.loc[:,n])
   
   js_goal = js_goal.to_dict(orient="records")[0]
-  observed = {key:meta[key] for key in js_goal.keys()}
+  observed = {key:meta.get(key) for key in js_goal.keys()}
   observed = remove_translation(observed)
 
   # These are the parameters 
@@ -220,19 +220,23 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
     for scan in T1ws:
       ok *= compare(layout, scan, reference.query("suffix == 'T1w'").copy(), post=post)
   else:
-    print_and_post(f"No T1w scans found when processing {root}", post=post)
+    print_and_post(f"No T1w scans found when checking jsons in {root}", post=post)
   
 
   for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):    
     # phantom scans have the DWI split into acq-b1000 and acq-b2000, but there is no
     # acq tag in typical patient scans
     if phantom:
-      acq = re.findall('acq-(b1000|b2000)', scan)[0]
-      query = "suffix == 'dwi' & acq == @acq"
-      bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", f"*{acq}*bval"), recursive=True)[0])
-      bvec_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", f"*{acq}*bvec"), recursive=True)[0])
+      acq = re.findall('acq-(b1000|b2000)', scan)
+      if len(acq) > 0:
+        query = "suffix == 'dwi' & acq == @acq"
+        bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", f"*{acq[0]}*bval"), recursive=True)[0])
+        bvec_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", f"*{acq[0]}*bvec"), recursive=True)[0])
+      else:
+        # this happens for some (early) SH phantom scans that were collected with the patient protocol
+        print_and_post(f"Expected phantom protocol at {root}, but acq-b1000/acq-b2000 not found", post=post)
     else:
-      query = "suffix == 'dwi'"      
+      query = "suffix == 'dwi'" 
       bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0])
       bvec_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0])
 

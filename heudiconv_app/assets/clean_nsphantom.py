@@ -46,7 +46,7 @@ def main(bids_path: pathlib.Path) -> None:
 if __name__ == '__main__':
     '''
     Example:
-        python clean_phantom_dwi.py bids
+        python clean_shphantom.py bids
     '''
     parser = argparse.ArgumentParser(
         description='''Derived (DWI) scans get stored by heudiconv as duplicates, 

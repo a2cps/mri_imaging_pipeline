@@ -67,9 +67,12 @@ protocols2fix.update({
             # phantom scan heuristics
             # anat should grab one that has ORIG
             (".*(anat-T1w)_acq-GRE$", r"\1"),
-            # also expect ORIG in DWI
-            (".*(dwi-dwi_acq-)(b[12]000)", r"\1\2"),
-            ("func-bold_acq-QA", "func_task-rest")
+            # also expect ORIG in some DWI (and sometimes also a suffix )
+            (".*(b[12]000).*", r"dwi-dwi_acq-\1"),
+            ("func-bold_acq-QA", "func_task-rest"),
+            # WS had some atypical names early on
+            ("REST1_17DSV", "func_task-rest"),
+            ("^Axial GRE scan$", "anat-T1w")
         ],
 })
 

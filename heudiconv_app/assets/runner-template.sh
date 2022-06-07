@@ -111,13 +111,21 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       singularity exec --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} \
-        python3 clean_phantom_dwi.py "${OUTDIR}"
+        python3 clean_nsphantom.py "${OUTDIR}"
       ;;
     UC)
       # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
       # avoided by using the -i y flag, except that flag would also cause dcm2niix to skip the anat 
       # scans from NS
       find "${OUTDIR}" -name "*ADC*" -delete
+      ;;
+    WS)
+      # heuristic can result in run-1 tag, unlike all other sites
+      singularity exec --cleanenv \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://${CONTAINER_IMAGE} \
+        python3 clean_wsphantom.py "${OUTDIR}"
+      ;;
   esac
   else
   PHANTOM="--no-phantom"

@@ -104,7 +104,7 @@ for j in jsons:
       d['acq'] = re.findall('acq-(dwib0|fmrib0)', j)[0]
       d['dir'] = re.findall('(?<=dir-)(AP|PA)', j)[0]
     elif suffix == 'dwi':
-      if phantom:
+      if phantom and (not scanner == "SH"):
         acq = re.findall('acq-(b1000|b2000)', j)[0]
         d['acq'] = acq
         d['bval'] = [np.genfromtxt(f'site-{scanner}phantom_acq-{acq}_dwi.bval').tolist()]
