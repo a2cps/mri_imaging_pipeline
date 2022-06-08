@@ -4,14 +4,25 @@ import sys
 import json
 import os
 import re
+import pydicom
+import zipfile
+import datetime
 
-
-def parse_phantom_date(subject: str) -> str:
-    month = subject[0:2]
-    day = subject[2:4]
-    # NS stores the year as YYYY, but other sites us YY. The following works for all
-    year = subject[-2:]
-    return ''.join([year, month, day])
+def extract_phantom_date(dicoms: str) -> str:
+    """
+    the label of the file should have the date, but this is unreliable
+    here, we get the date from the dicom header in the first file 
+    of the zip
+    """
+    zip = zipfile.ZipFile(dicoms)
+    dicom_file = ""
+    for f in zip.filelist:
+        if not f.is_dir():
+            dicom_file = zip.extract(f)
+            break
+    day = pydicom.dcmread(dicom_file, stop_before_pixels=True).AcquisitionDate
+    tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
+    return datetime.date.strftime(tmp, "%y%m%d")
 
 
 def submit_heudiconv(r,site,subject,session,dicoms,outdir):
@@ -26,7 +37,7 @@ def submit_heudiconv(r,site,subject,session,dicoms,outdir):
     # split subject from path
     #parameters['OUTDIR'] = outdir
     if session == "QA":
-        session = parse_phantom_date(subject)
+        session = extract_phantom_date(dicoms)
         subject = f"{site.lower()}phantom"
  
     parameters['LIST_OF_SUBJECTS'] = subject
