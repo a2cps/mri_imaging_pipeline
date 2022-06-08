@@ -62,7 +62,17 @@ protocols2fix.update({
             ('^REST([12])([_\s]R[1-9]*)*$', r'func_task-rest_run-\1'),
             ('^Rest([12])([_\s]R[1-9]*)*$', r'func_task-rest_run-\1'),
             ('^CUFF([12])([_\s]R[1-9]*)*$', r'func_task-cuff_run-\1'), 
-            ('^Cuff([12])([_\s]R[1-9]*)*$', r'func_task-cuff_run-\1'), 
+            ('^Cuff([12])([_\s]R[1-9]*)*$', r'func_task-cuff_run-\1'),
+
+            # phantom scan heuristics
+            # anat should grab one that has ORIG
+            (".*(anat-T1w)_acq-GRE$", r"\1"),
+            # also expect ORIG in some DWI (and sometimes also a suffix )
+            (".*(b[12]000).*", r"dwi-dwi_acq-\1"),
+            ("func-bold_acq-QA", "func_task-rest"),
+            # WS had some atypical names early on
+            ("REST1_17DSV", "func_task-rest"),
+            ("^Axial GRE scan$", "anat-T1w")
         ],
 })
 
@@ -86,6 +96,15 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
       (dcmdata.SeriesDescription == "DTI" or
       dcmdata.SeriesDescription == "DWI" or 
       dcmdata.SeriesDescription == "T1_MPRAGE")):
+        exclude = True
+    # similar issue for UI phantom scans
+    elif (
+        dcmdata.__contains__('DeviceSerialNumber') and dcmdata.DeviceSerialNumber == "000000312996MR3T" and
+        (
+            dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"] or
+            dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
+        )
+    ):
         exclude = True
 
     return exclude

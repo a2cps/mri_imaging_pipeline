@@ -102,6 +102,35 @@ rm -rf ${LOCAL_DICOM}
 # add bval, bvec, betc to .bidsignore
 cat bids_ignore >> "${OUTDIR}"/.bidsignore
 
+# Phantom-specific post-processing
+if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
+  PHANTOM="--phantom"
+  case "${SITE}" in
+    NS) 
+      # dcm2niix generates several extra scans, derivatives from NS.
+      singularity exec --cleanenv \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://${CONTAINER_IMAGE} \
+        python3 clean_nsphantom.py "${OUTDIR}"
+      ;;
+    UC)
+      # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
+      # avoided by using the -i y flag, except that flag would also cause dcm2niix to skip the anat 
+      # scans from NS
+      find "${OUTDIR}" -name "*ADC*" -delete
+      ;;
+    WS)
+      # heuristic can result in run-1 tag, unlike all other sites
+      singularity exec --cleanenv \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://${CONTAINER_IMAGE} \
+        python3 clean_wsphantom.py "${OUTDIR}"
+      ;;
+  esac
+  else
+  PHANTOM="--no-phantom"
+fi
+
 # Need to inject IntendedFor field into some jsons, and in the case of GE images
 # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
 # give write access to user, read to group
@@ -158,12 +187,15 @@ singularity exec \
 # so delete any that are found
 find "${OUTDIR}" -type f -name '*task-rest*events.tsv' -delete
 
-set -xeu
+set -x
 if [[ ${CHECK_JSONS} == 1 ]]; then
+  # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
+  # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
+  # be divided by whether we're dealing with a phantom scan or not.
   singularity exec \
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" ${POST}
+    docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
 else
   echo "Skipping check of jsons"
 fi

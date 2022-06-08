@@ -1,0 +1,185 @@
+{
+  "AcquisitionMatrixPE": 128,
+  "AcquisitionNumber": 1,
+  "AcquisitionTime": "09:43:37.000000",
+  "BodyPartExamined": "HEAD",
+  "CoilString": "RM:Nova32ch",
+  "ConversionSoftware": "dcm2niix",
+  "ConversionSoftwareVersion": "v1.0.20211006",
+  "DeviceSerialNumber": "000000312996MR3T",
+  "EchoTime": 0.0638,
+  "EffectiveEchoSpacing": 0.000372533,
+  "FlipAngle": 90,
+  "ImageOrientationPatientDICOM": [1, 0, 0, 0, 1, 0],
+  "ImageType": [
+    "ORIGINAL",
+    "PRIMARY",
+    "OTHER"
+],
+  "ImagingFrequency": 127.779,
+  "InPlanePhaseEncodingDirectionDICOM": "COL",
+  "InstitutionName": "UNIVERSITY OF ILLINOIS",
+  "InternalPulseSequenceName": "EPI2",
+  "MRAcquisitionType": "2D",
+  "MagneticFieldStrength": 3,
+  "Manufacturer": "GE",
+  "ManufacturersModelName": "DISCOVERY MR750",
+  "Modality": "MR",
+  "PatientPosition": "HFS",
+  "PercentPhaseFOV": 100,
+  "PercentSampling": 100,
+  "PhaseEncodingDirection": "j",
+  "PhaseEncodingPolarityGE": "Flipped",
+  "PixelBandwidth": 1953.12,
+  "ProtocolName": "UM1_A2CPS QA_6.24.21",
+  "ReconMatrixPE": 256,
+  "RepetitionTime": 2,
+  "SAR": 0.04248,
+  "ScanOptions": "EDR_GEMS\\EPI_GEMS\\PFF",
+  "ScanningSequence": "EP\\SE",
+  "SequenceVariant": "NONE",
+  "SeriesDescription": "ORIG dwi-dwi_acq-b1000",
+  "SeriesNumber": 40005,
+  "SliceThickness": 5,
+  "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
+  "SpacingBetweenSlices": 6,
+  "StationName": "GEMSGEMS",
+  "TotalReadoutTime": 0.094996,
+  "dcmmeta_affine": [
+    [-0.8593999743461609, 0.0, 0.0, 106.44499969482422],
+    [0.0, 0.8593999743461609, 0.0, -102.70099639892578],
+    [0.0, 0.0, 6.0, -7.874499797821045],
+    [0.0, 0.0, 0.0, 1.0]
+],
+  "dcmmeta_reorient_transform": [
+    [0.0, -1.0, 0.0, 255.0],
+    [1.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, -1.0, 2.0],
+    [0.0, 0.0, 0.0, 1.0]
+],
+  "dcmmeta_shape": [256, 256, 3, 5],
+  "dcmmeta_slice_dim": 2,
+  "dcmmeta_version": 0.6,
+  "global": {
+    "const": {
+      "AcquisitionMatrix": [128, 0, 0, 128],
+      "AcquisitionNumber": 1,
+      "AcquisitionTime": "094337",
+      "AnatomicRegionSequence": [
+        {
+          "CodeMeaning": "Head",
+          "CodeValue": "T-D1100",
+          "CodingSchemeDesignator": "SRT",
+          "GroupLength": 40}
+],
+      "AngioFlag": "N",
+      "BeatRejectionFlag": "Y",
+      "BitsAllocated": 16,
+      "BitsStored": 16,
+      "BodyPartExamined": "HEAD",
+      "CardiacNumberOfImages": 0,
+      "Columns": 256,
+      "ContentTime": "094337",
+      "EchoNumbers": 1,
+      "EchoTime": 63.8,
+      "EchoTrainLength": 1,
+      "FlipAngle": 90.0,
+      "GroupLength_0X10_0X0": 96,
+      "GroupLength_0X28_0X0": 156,
+      "GroupLength_0X40_0X0": 82,
+      "GroupLength_0X7FE0_0X0": 131080,
+      "GroupLength_0X8_0X0": 878,
+      "HeartRate": 0,
+      "HighBit": 15,
+      "ImageOrientationPatient": [1.0, -0.0, 0.0, -0.0, 1.0, 0.0],
+      "ImageType": [
+        "ORIGINAL",
+        "PRIMARY",
+        "OTHER"
+],
+      "ImagedNucleus": "1H",
+      "ImagesInAcquisition": 15,
+      "ImagingFrequency": 127.778718,
+      "InPlanePhaseEncodingDirection": "COL",
+      "MRAcquisitionType": "2D",
+      "MagneticFieldStrength": 3.0,
+      "Manufacturer": "GE MEDICAL SYSTEMS",
+      "ManufacturerModelName": "DISCOVERY MR750",
+      "Modality": "MR",
+      "NumberOfAverages": 1.0,
+      "PercentPhaseFieldOfView": 100.0,
+      "PercentSampling": 100.0,
+      "PerformedLocation": "GEMS",
+      "PerformedProcedureStepStartTime": "093944",
+      "PhotometricInterpretation": "MONOCHROME2",
+      "PixelBandwidth": 1953.12,
+      "PixelRepresentation": 1,
+      "PixelSpacing": [0.8594, 0.8594],
+      "ProtocolName": "UM1_A2CPS QA_6.24.21",
+      "ReceiveCoilName": "RM:Nova32ch",
+      "ReconstructionDiameter": 220.0,
+      "ReferencedPerformedProcedureStepSequence": [
+        {
+          "GroupLength": 100,
+          "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
+          "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.245161380640528400974807034451794986253"}
+],
+      "RepetitionTime": 2000.0,
+      "Rows": 256,
+      "SAR": 0.04248,
+      "SamplesPerPixel": 1,
+      "ScanOptions": [
+        "EDR_GEMS",
+        "EPI_GEMS",
+        "PFF"
+],
+      "ScanningSequence": [
+        "EP",
+        "SE"
+],
+      "SequenceVariant": "NONE",
+      "SeriesDescription": "ORIG dwi-dwi_acq-b1000",
+      "SeriesNumber": 40005,
+      "SeriesTime": "094337",
+      "SliceThickness": 5.0,
+      "SmallestImagePixelValue": 0,
+      "SoftwareVersions": [
+ "27",
+        "LX",
+        "MR Software release:DV26.0_R02_1810.b"
+],
+      "SpacingBetweenSlices": 6.0,
+      "SpecificCharacterSet": "ISO_IR 100",
+      "StackID": "1",
+      "StudyID": "10394",
+      "StudyTime": "093949",
+      "TriggerWindow": 0,
+      "VariableFlipAngleFlag": "N",
+      "VolumetricProperties": "VOLUME"
+    },
+    "slices": {
+      "InstanceNumber": [3, 2, 1, 6, 5, 4, 9, 8, 7, 12, 11, 10, 15, 14, 13],
+      "LargestImagePixelValue": [2224, 2153, 2118, 2416, 2338, 2273, 2414, 2365, 2279, 2335, 2225, 2191, 2035, 1985, 1906],
+      "WindowCenter": [1112.0, 1076.0, 1059.0, 1208.0, 1169.0, 1136.0, 1207.0, 1182.0, 1139.0, 1167.0, 1112.0, 1095.0, 1017.0, 992.0, 953.0],
+      "WindowWidth": [2224.0, 2153.0, 2118.0, 2416.0, 2338.0, 2273.0, 2414.0, 2365.0, 2279.0, 2335.0, 2225.0, 2191.0, 2035.0, 1985.0, 1906.0]
+    }
+  },
+  "time": {
+    "samples": {
+      "DiffusionBValue": [
+ 1000.0,
+        null, 1000.0, 1000.0, 1000.0],
+      "GroupLength_0X18_0X0": [508, 492, 508, 508, 508]
+    },
+    "slices": {
+      "GroupLength_0X20_0X0": [408, 408, 404],
+      "ImagePositionPatient": [
+        [-106.445, -116.446, -7.8745],
+        [-106.445, -116.446, -1.8745],
+        [-106.445, -116.446, 4.1255]
+],
+      "InStackPositionNumber": [3, 2, 1],
+      "SliceLocation": [-7.87449646, -1.87449646, 4.12550354]
+    }
+  }
+}
