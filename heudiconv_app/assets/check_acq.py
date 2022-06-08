@@ -235,6 +235,9 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
       else:
         # this happens for some (early) SH phantom scans that were collected with the patient protocol
         print_and_post(f"Expected phantom protocol at {root}, but acq-b1000/acq-b2000 not found", post=post)
+        query = "suffix == 'dwi'" 
+        bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0])
+        bvec_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0])
     else:
       query = "suffix == 'dwi'" 
       bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0])

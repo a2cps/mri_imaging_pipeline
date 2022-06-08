@@ -187,7 +187,7 @@ singularity exec \
 # so delete any that are found
 find "${OUTDIR}" -type f -name '*task-rest*events.tsv' -delete
 
-set -xeu
+set -x
 if [[ ${CHECK_JSONS} == 1 ]]; then
   # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
   # have both a patient protocol and a phantom protocol, which always differ. So, the checks must

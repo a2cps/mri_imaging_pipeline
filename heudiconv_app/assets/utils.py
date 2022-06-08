@@ -205,6 +205,7 @@ def edit_json(data_path):
     dirs = Path(data_path)
     
     # Hardcoded slice timings to be added to fmri json file. Used only for Philips scanner
+    # From Xiaodong: The fMRI sequence in phantom QA is the same as that for subjects scan (June 7th, 2022): 
     slice_timing = [0,0.444,0.089,0.533,0.178,0.622,0.267,0.711,0.356,0,0.444,0.089,0.533,
                    0.178,0.622,0.267,0.711,0.356,0,0.444,0.089,0.533,0.178,0.622,0.267,0.711,0.356,0,0.444,
                    0.089,0.533,0.178,0.622,0.267,0.711,0.356,0,0.444,0.089,0.533,0.178,0.622,0.267,0.711,
