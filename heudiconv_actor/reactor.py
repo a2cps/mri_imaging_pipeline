@@ -17,7 +17,8 @@ def extract_phantom_date(dicoms: str) -> str:
     zip = zipfile.ZipFile(dicoms)
     dicom_file = ""
     for f in zip.filelist:
-        if not f.is_dir():
+        if not f.is_dir() and not f.filename == "DICOMDIR":
+            print(f)
             dicom_file = zip.extract(f)
             break
     day = pydicom.dcmread(dicom_file, stop_before_pixels=True).AcquisitionDate
