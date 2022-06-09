@@ -6,6 +6,26 @@ import requests
 import sys
 import pydicom
 import re
+import datetime
+
+def extract_phantom_date(dicoms: str) -> str:
+    """
+    the label of the file should have the date, but this is unreliable
+    here, we get the date from the dicom header in the first file 
+    of the zip
+    """
+    zip = zipfile.ZipFile(dicoms)
+    dicom_file = ""
+    for f in zip.filelist:
+        if not f.is_dir() and not  "DICOMDIR" in f.filename:
+            dicom_file = zip.extract(f)
+            header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
+            if header.__contains__("AcquisitionDate"):
+                day = header.get("AcquisitionDate")
+                break
+    tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
+    return datetime.date.strftime(tmp, "%y%m%d")
+
 
 def post_notification(notification):
     endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
@@ -168,12 +188,20 @@ def main(filename, predefined_subject_id):
     output_path = determine_output_path(site_id, subject_id, session_id, qc)
     print(output_path)
     write_outputs(filename, output_path, isZip)
-    message = {
-        "site_id": site_id,
-        "subject_id": subject_id,
-        "session_id": session_id,
-        "dicoms": output_path + '.zip'
-    }
+    if qc == "":
+        message = {
+            "site_id": site_id,
+            "subject_id": subject_id,
+            "session_id": session_id,
+            "dicoms": output_path + '.zip'
+        }
+    else:
+        message = {
+            "site_id": site_id,
+            "subject_id": f"{site_id}phantom",
+            "session_id": extract_phantom_date(dicom_file),
+            "dicoms": output_path + '.zip'
+        }
     message_heudiconv(message)
     notification = "Input file " + os.path.basename(filename) + " processed for " + \
                     subject_id + " output under " + output_path

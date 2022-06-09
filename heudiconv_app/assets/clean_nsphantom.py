@@ -39,7 +39,7 @@ def main(bids_path: pathlib.Path) -> None:
     # repeat removal and renaming for the scans.tsv
     for scans in bids_path.glob("*/ses*/*scans.tsv"):
         d = pd.read_csv(scans, delimiter="\t")
-        d.drop([index for index, row in d.iterrows() if pathlib.Path(row.filename).stem in to_del], inplace=True)
+        d.drop([index for index, row in d.iterrows() if pathlib.Path(row.filename).with_suffix('').stem in to_del], inplace=True)
         out = d.assign(filename = d.filename.str.replace(pattern,  "", regex=True))
         out.to_csv(scans, index=False, sep="\t", na_rep="n/a")
 

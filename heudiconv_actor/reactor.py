@@ -4,26 +4,6 @@ import sys
 import json
 import os
 import re
-import pydicom
-import zipfile
-import datetime
-
-def extract_phantom_date(dicoms: str) -> str:
-    """
-    the label of the file should have the date, but this is unreliable
-    here, we get the date from the dicom header in the first file 
-    of the zip
-    """
-    zip = zipfile.ZipFile(dicoms)
-    dicom_file = ""
-    for f in zip.filelist:
-        if not f.is_dir() and not f.filename == "DICOMDIR":
-            print(f)
-            dicom_file = zip.extract(f)
-            break
-    day = pydicom.dcmread(dicom_file, stop_before_pixels=True).AcquisitionDate
-    tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
-    return datetime.date.strftime(tmp, "%y%m%d")
 
 
 def submit_heudiconv(r,site,subject,session,dicoms,outdir):
@@ -36,11 +16,7 @@ def submit_heudiconv(r,site,subject,session,dicoms,outdir):
     # was sent in the notificaton message
     parameters["FILES"] = dicoms
     # split subject from path
-    #parameters['OUTDIR'] = outdir
-    if session == "QA":
-        session = extract_phantom_date(dicoms)
-        subject = f"{site.lower()}phantom"
- 
+    #parameters['OUTDIR'] = outdir 
     parameters['LIST_OF_SUBJECTS'] = subject
     #parameters['LOCATOR'] = site + '/bids'
     parameters['SESSION_FOR_LONGITUDINAL'] = session
