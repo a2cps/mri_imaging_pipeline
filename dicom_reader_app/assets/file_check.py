@@ -15,14 +15,12 @@ def extract_phantom_date(dicoms: str) -> str:
     of the zip
     """
     zip = zipfile.ZipFile(dicoms)
-    dicom_file = ""
-    for f in zip.filelist:
-        if not f.is_dir() and not  "DICOMDIR" in f.filename:
-            dicom_file = zip.extract(f)
-            header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
-            if header.__contains__("AcquisitionDate"):
-                day = header.get("AcquisitionDate")
-                break
+    dicom_file = zip.extract(f)
+    header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
+    if not header.__contains__("AcquisitionDate"):
+        AssertionError ("AcquisitionDate not found in dicom. Incorrect file unzipped?")
+        
+    day = header.get("AcquisitionDate")
     tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
     return datetime.date.strftime(tmp, "%y%m%d")
 
