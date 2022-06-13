@@ -3,6 +3,7 @@ import os
 import copy
 import json
 import re
+import logging
 
 
 def _make_callback(server: str, alias: str, nonce: str) -> str:
@@ -64,40 +65,47 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
     #          {'event': 'FINISHED',
     #           "persistent": False,
     #           'url': mpj.callback + '&status=${JOB_STATUS}'},
-    notif = [
-              {'event': 'FINISHED',
-               "persistent": False,
-               'url': fmriprep_callback + '&status=${JOB_STATUS}' +
-               '&subject_id=' + subject_id +
-               '&bids=' + bids +
-               '&filename='+ filename +
-               '&site='+ site +
-               '&next_step=anat'},
-               {'event': 'FINISHED',
-               "persistent": False,
-               'url': mriqc_callback + '&status=${JOB_STATUS}' +
-               '&subject_id=' + subject_id +
-               '&bids=' + bids +
-               '&filename='+ filename +
-               '&site='+ site
-               },
-               {'event': 'FINISHED',
-               "persistent": False,
-               'url': qsiprep_callback + '&status=${JOB_STATUS}' +
-               '&subject_id=' + subject_id +
-               '&bids=' + bids +
-               '&filename='+ filename +
-               '&site='+ site
-               },
-               {
-                    'event': 'FINISHED',
-                    "persistent": False,
-                    'url': cat_callback + '&status=${JOB_STATUS}' +
-                    '&BIDS=' + bids +
-                    '&OUTDIR=' + _get_output_dir(bids)
-               }
-            ]
-    job_def.notifications = notif
+    if "QC" in filename:
+        logging.info(f"{filename} appears to be a phantom. pipeline will stop after validation")
+    else:
+        notif = [
+            {
+                'event': 'FINISHED',
+                "persistent": False,
+                'url': fmriprep_callback + '&status=${JOB_STATUS}' +
+                '&subject_id=' + subject_id +
+                '&bids=' + bids +
+                '&filename='+ filename +
+                '&site='+ site +
+                '&next_step=anat'
+            },
+            {
+                'event': 'FINISHED',
+                "persistent": False,
+                'url': mriqc_callback + '&status=${JOB_STATUS}' +
+                '&subject_id=' + subject_id +
+                '&bids=' + bids +
+                '&filename='+ filename +
+                '&site='+ site
+            },
+            {
+                'event': 'FINISHED',
+                "persistent": False,
+                'url': qsiprep_callback + '&status=${JOB_STATUS}' +
+                '&subject_id=' + subject_id +
+                '&bids=' + bids +
+                '&filename='+ filename +
+                '&site='+ site
+            },
+            {
+                'event': 'FINISHED',
+                "persistent": False,
+                'url': cat_callback + '&status=${JOB_STATUS}' +
+                '&BIDS=' + bids +
+                '&OUTDIR=' + _get_output_dir(bids)
+            }
+        ]
+        job_def.notifications = notif
 
     # Submit the job in a try/except block
     try:
