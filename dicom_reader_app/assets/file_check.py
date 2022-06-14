@@ -8,14 +8,14 @@ import pydicom
 import re
 import datetime
 
-def extract_phantom_date(dicoms: str) -> str:
+def extract_phantom_date(dicom_file: str) -> str:
     """
     the label of the file should have the date, but this is unreliable
     here, we get the date from the dicom header in the first file 
     of the zip
     """
-    zip = zipfile.ZipFile(dicoms)
-    dicom_file = zip.extract(f)
+    #zip = zipfile.ZipFile(dicoms)
+    #dicom_file = zip.extract(f)
     header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
     if not header.__contains__("AcquisitionDate"):
         AssertionError ("AcquisitionDate not found in dicom. Incorrect file unzipped?")
