@@ -108,16 +108,16 @@ def message_vbr(r,filename,site,subject,session,zipfile,outdir):
     #r.send_message(actorId=vbr_actor_alias, message=message)
     return
 
-def parse_file_metadata(zipfile):
-    # get file name, site.redcap_id.visit
-    # ex NS10008V1
-    filename = os.path.basename(zipfile).split('.zip')[0]
-    directory_name=os.path.dirname(zipfile)
-    site = os.path.basename(directory_name)
-    # split filename into site code, subject, session
-    (site_id, subject, v, session, space) = re.split('(\d+)',filename)
-    outdir = re.sub('submissions', 'products/mirs', directory_name) + '/bids/'
-    return filename, site, subject, session, outdir
+# def parse_file_metadata(zipfile):
+#     # get file name, site.redcap_id.visit
+#     # ex NS10008V1
+#     filename = os.path.basename(zipfile).split('.zip')[0]
+#     directory_name=os.path.dirname(zipfile)
+#     site = os.path.basename(directory_name)
+#     # split filename into site code, subject, session
+#     (site_id, subject, v, session, space) = re.split('(\d+)',filename)
+#     outdir = re.sub('submissions', 'products/mirs', directory_name) + '/bids/'
+#     return filename, site, subject, session, outdir
 
 def main():
     """Main function"""
