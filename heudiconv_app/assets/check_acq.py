@@ -1,4 +1,5 @@
 import os, argparse, pathlib, requests
+import re
 import logging
 from glob import glob
 from itertools import chain
@@ -63,7 +64,7 @@ def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) ->
     + layout.get(suffix='epi', extension="nii.gz", return_type="file")
   meta_list = [layout.get_metadata(x) for x in json_list]
   
-  if site == "NS":
+  if site in ["NS", "SH"]:
     ok = assert_constant(json_list, meta_list, "ReceiveCoilActiveElements", post=post)
     ok *= assert_constant(json_list, meta_list, "ShimSettings", post=post)
   elif site == "WS":
@@ -88,13 +89,31 @@ def add_deepkeys(observed: dict) -> dict:
   return observed
 
 
-def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, reference: pd.DataFrame) -> bool:
+def check_bvalsbvecs(
+  bval_observed: np.ndarray, bvec_observed: np.ndarray, 
+  reference: pd.DataFrame,
+  scan: str,
+  post: bool = False) -> bool:  
+  '''
+    in the case of UC scans, we don't get a full dcmstack output in the DWI, so we can't check 
+    dcmmeta_shape. The length of bvals serves as the check for truncated scans
+    
+    root issue seems to be: https://github.com/moloney/dcmstack/issues/51  
+  '''
+  
   rb = np.array(pd.eval(reference['bval']), dtype=float).squeeze()
   rv = np.array(pd.eval(reference['bvec']), dtype=float).squeeze()
-  if not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
-    logging.warning("unexpected bvals or bvecs!")
-    print(f"bvals: {bval_observed}")
-    print(f"bvecs: {bvec_observed}")
+  
+  # in the case of UC scans, we don't get a full dcmstack output in the DWI, so notification must 
+  # happen 
+  # root issue seems to be: https://github.com/moloney/dcmstack/issues/51
+  if bval_observed.shape[0] < rb.shape[0]:
+    print_and_post(f"{os.path.basename(scan)} appears truncated", post=post)
+    ok = False
+  elif not (np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()):
+    print_and_post(f"{os.path.basename(scan)} has unexpected bvals or bvecs", post=post)
+    logging.warning(f"bvals: {bval_observed}")
+    logging.warning(f"bvecs: {bvec_observed}")
     ok = False
   else:
     ok = True
@@ -103,7 +122,7 @@ def check_bvalsbvecs(bval_observed: np.ndarray, bvec_observed: np.ndarray, refer
 
 
 def print_and_post(notification: str, post: bool = False) -> None:
-  print(notification)
+  logging.warning(notification)
   post_notification(notification, post=post)
 
 
@@ -113,7 +132,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
   meta = layout.get_metadata(js_observed)
   meta = add_deepkeys(meta)
 
-  if reference.scanner.unique()[0] == "NS":
+  if reference.scanner.unique()[0] in ["NS", "SH"]:
     if check_receivecoil(meta, reference):
       reference.drop(['ReceiveCoilActiveElements'], axis=1, inplace=True)      
     else:
@@ -122,18 +141,17 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
         post=post)
       ok = False
 
-  reference.drop(['task', 'suffix', 'source', 'scanner', 'bval', 'bvec'], axis=1, inplace=True)
+  # these columns will not be found in any of the jsons. they are mainly indicies used to 
+  # locate rows in the reference table
+  reference.drop(['task', 'suffix', 'acq', 'dir', 'scanner', 'phantom', 'bval', 'bvec'], axis=1, inplace=True)
   js_goal = reference.dropna(axis=1).copy()
 
   for n in ['dcmmeta_affine', 'dcmmeta_reorient_transform', 'dcmmeta_shape','SliceTiming']:
     if n in js_goal.columns.values.tolist():
       js_goal[n] = pd.eval(js_goal.loc[:,n])
-
-  if "dir" in js_goal.keys():
-    js_goal.drop(["acq","dir"], inplace=True, axis=1)
   
   js_goal = js_goal.to_dict(orient="records")[0]
-  observed = {key:meta[key] for key in js_goal.keys()}
+  observed = {key:meta.get(key) for key in js_goal.keys()}
   observed = remove_translation(observed)
 
   # These are the parameters 
@@ -146,7 +164,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
         ignore_numeric_type_changes=True)
       if dd1:
         ok = False
-        print_and_post(f"json for {os.path.basename(js_observed)} has unexpected values at epsilon: {epsilon}!\n" + dd1.pretty(), post=post)
+        print_and_post(f"json for {os.path.basename(js_observed)} has unexpected values! Checked with threshold {epsilon}!\n" + dd1.pretty(), post=post)
 
   dd2 = DeepDiff(
     {key:js_goal[key] for key in js_goal.keys() if key not in list(chain(*FLOATING_PARAMS.values()))}, 
@@ -154,7 +172,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     ignore_numeric_type_changes=True)
 
   if dd2:
-    print_and_post( f"json for {os.path.basename(js_observed)} has unexpected values at epsilon: 0!\n" + dd2.pretty(), post=post)
+    print_and_post( f"json for {os.path.basename(js_observed)} has unexpected values! Checked with threshold 0\n" + dd2.pretty(), post=post)
     ok = False
   else:
     print(f"json for {os.path.basename(js_observed)} looks okay")
@@ -162,7 +180,7 @@ def compare(layout: bids.BIDSLayout, js_observed: str, reference: pd.DataFrame, 
     
   return ok
 
-"NS"
+
 def getUM(t1w_meta: dict) -> str:
   if t1w_meta.get("DeviceSerialNumber") == "000000000UM750MR":
     site = "UM1"
@@ -174,7 +192,7 @@ def getUM(t1w_meta: dict) -> str:
   return site
 
 
-def main(root: str, site: str, post: bool = False) -> None:
+def main(root: str, site: str, phantom: bool = False, post: bool = False) -> None:
   ok = 1
 
   layout = bids.layout.BIDSLayout(root, validate=False)
@@ -192,33 +210,59 @@ def main(root: str, site: str, post: bool = False) -> None:
       converters={
         'ImageOrientationPatientDICOM': pd.eval,
         'ImageType': pd.eval})
-    .query("scanner == @site"))
+    .query("scanner == @site & phantom == @phantom" ))
 
-  for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):
+  
+  # T1w is easy and _should_ always be present by now. But if it isn't we still don't want the app to 
+  # fail, so this does a check only if one can be found
+  T1ws = layout.get(suffix='T1w', extension="nii.gz", return_type="file")
+  if len(T1ws) > 0:
+    for scan in T1ws:
+      ok *= compare(layout, scan, reference.query("suffix == 'T1w'").copy(), post=post)
+  else:
+    print_and_post(f"No T1w scans found when checking jsons in {root}", post=post)
+  
+
+  for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):    
+    # phantom scans have the DWI split into acq-b1000 and acq-b2000, but there is no
+    # acq tag in typical patient scans
+    if phantom:
+      acq = re.findall('acq-(b1000|b2000)', scan)
+      if len(acq) > 0:
+        query = "suffix == 'dwi' & acq == @acq"
+        bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", f"*{acq[0]}*bval"), recursive=True)[0])
+        bvec_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", f"*{acq[0]}*bvec"), recursive=True)[0])
+      else:
+        # this happens for some (early) SH phantom scans that were collected with the patient protocol
+        print_and_post(f"Expected phantom protocol at {root}, but acq-b1000/acq-b2000 not found", post=post)
+        query = "suffix == 'dwi'" 
+        bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0])
+        bvec_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0])
+    else:
+      query = "suffix == 'dwi'" 
+      bval_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0])
+      bvec_obs = np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0])
+
     ok *= check_bvalsbvecs(
-      np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bval"), recursive=True)[0]),
-      np.genfromtxt(glob(os.path.join(root, "**","dwi", "*bvec"), recursive=True)[0]),
-      reference.query("suffix == 'dwi'").copy())   
-    ok *= compare(layout, scan, reference.query("suffix == 'dwi'").copy(), post=post)
-
-  ok *= compare(
-    layout, 
-    layout.get(suffix='T1w', extension="nii.gz", return_type="file")[0],
-    reference.query("suffix == 'T1w'").copy(),
-    post=post)
+      bval_observed=bval_obs,
+      bvec_observed=bvec_obs,
+      reference=reference.query(query).copy(),
+      scan=scan,
+      post=post)
+    ok *= compare(layout, scan, reference.query(query).copy(), post=post)
 
   for task in ["rest", "cuff"]:
     for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
       ok *= compare(layout, scan, reference.query("suffix == 'bold' & task == @task").copy(), post=post)
   
-  fmaps = layout.get(extension="nii.gz", return_type="file", suffix="epi")
-  for acq in ["dwib0", "fmrib0"]:
-    for dir in ["AP", "PA"]: 
-      ok *= compare(
-          layout, 
-          [x for x in fmaps if dir in x and acq in x][0], 
-          reference.query("suffix == 'epi' & acq == @acq & dir == @dir").copy(), 
-          post=post)   
+  for fmap in layout.get(extension="nii.gz", return_type="file", suffix="epi"):
+    acq = re.findall('acq-(dwib0|fmrib0)', fmap)[0]
+    dir = re.findall('dir-(AP|PA)', fmap)[0]
+    ok *= compare(
+      layout, 
+      fmap,
+      reference.query("suffix == 'epi' & acq == @acq & dir == @dir").copy(), 
+      post=post)
 
   ok *= compare_withinsub(layout, site=site, post=post)
   if not ok:
@@ -232,9 +276,13 @@ if __name__ == '__main__':
   parser.add_argument('root', type=pathlib.Path)
   parser.add_argument('site', choices=['NS', 'SH', 'UC', 'UI', 'UM', 'WS'])  
   parser.add_argument(
+    '--phantom', 
+    action=argparse.BooleanOptionalAction, 
+    default=False)  
+  parser.add_argument(
     '--post', 
     action=argparse.BooleanOptionalAction,
     default=False)  
 
   args = parser.parse_args()  
-  main(root=args.root, site=args.site, post=args.post)
+  main(root=args.root, site=args.site, phantom=args.phantom, post=args.post)

@@ -154,10 +154,18 @@ def extract_iqr(xml: str) -> float:
   return  105 - 10*iqr
 
 
+def extract_defects(xml: str) -> float:
+  f = ET.parse(xml) 
+  n = float(f.getroot().find('qualitymeasures').find('SurfaceEulerNumber').text)
+  return  2 - 2 * n
+
+
 def build_cat_df(xml: str) -> pd.DataFrame:
   rating = "green"
   iqr = extract_iqr(xml) 
-  if iqr < 60:
+  defects = extract_defects(xml)
+  # defect threshold from Table 3 of Rosen et al. 2018; 10.1016/j.neuroimage.2017.12.059
+  if iqr < 60 or defects < -217: 
     rating = "red"
   elif iqr < 80:
     rating = "yellow"  
@@ -223,7 +231,9 @@ def rating_to_code(src) -> int:
   return out
 
 
-def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
+def write_ratings_unique(
+  d: pd.DataFrame, 
+  outdir: str = os.path.join("/corral-secure','projects','A2CPS','shared','urrutia','imaging_report")) -> pd.DataFrame:
 
   # manual ratings always overwrite auto + tech scans
   d['source_code'] = [source_to_code(x) for x in d['source'].values]
@@ -249,7 +259,7 @@ def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
   )
   single_rating.loc[single_rating['date'] == pd.to_datetime("2000-01-01"),'date'] = pd.to_datetime('')
   single_rating['date'] = single_rating['date'].copy().dt.date
-  single_rating.to_csv("qc-log-latest.csv", index=False)
+  single_rating.to_csv(os.path.join(outdir, "qc-log-latest.csv"), index=False)
 
   return single_rating
 
@@ -258,6 +268,7 @@ def update_qclog(
   imaging_log,
   json_dir,
   bold_iqm: pd.DataFrame,
+  outdir: str,
   token: Optional[str] = None, 
   pem: Optional[Union[str, bytes, os.PathLike]] = None,
   ) -> pd.DataFrame:
@@ -348,7 +359,7 @@ def update_qclog(
   else:
     print(to_upload)
 
-  return write_ratings_unique(to_upload.copy())
+  return write_ratings_unique(to_upload.copy(), outdir=outdir)
     
 
 def main(
@@ -356,6 +367,7 @@ def main(
   bold_fname: Union[str, bytes, os.PathLike],
   json_dir: str,
   imaging_log: Union[str, bytes, os.PathLike] = os.path.join('/corral-secure', 'projects', 'A2CPS', 'shared', 'urrutia', 'imaging_report', 'imaging_log.csv'),
+  outdir: str = os.path.join("/corral-secure','projects','A2CPS','shared','urrutia','imaging_report"),
   token: Optional[str] = None, 
   pem: Optional[Union[str, bytes, os.PathLike]] = None) -> None:
 
@@ -364,7 +376,8 @@ def main(
     json_dir=json_dir,
     bold_iqm=pd.read_csv(bold_fname, delimiter="\t"),
     token=token,
-    pem=pem)
+    pem=pem,
+    outdir=outdir)
 
   qclog_anat = (
     build_bids_name(qclog.query("scan=='T1w'").drop(["scan"],axis=1).copy(), "T1w")
@@ -465,6 +478,11 @@ if __name__ == '__main__':
     '--pem', 
     default='confluence-a2cps-org-chain.pem',
     type=str)
+  parser.add_argument(
+    '--outdir',
+    help="Location to deposit qc-log-latest.csv, which has one rating per scan", 
+    default="/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",
+    type=str)
 
   args = parser.parse_args()
   main(
@@ -473,4 +491,5 @@ if __name__ == '__main__':
     json_dir=args.json_dir, 
     token=args.token, 
     pem=args.pem, 
-    imaging_log=args.imaging_log)
+    imaging_log=args.imaging_log,
+    outdir=args.outdir)

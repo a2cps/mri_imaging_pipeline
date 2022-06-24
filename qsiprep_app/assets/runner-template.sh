@@ -45,27 +45,27 @@ singularity exec -e \
 echo singularity run -e --nv \
  -B ${BIND_DIR}:${BIND_DIR} \
   docker://${CONTAINER_IMAGE} \
-  ${BIDS_DIRECTORY} ${OUTPUT_DIR} \
+  ${BIDS_DIRECTORY} $(realpath ${OUTPUT_DIR}) \
   participant \
-  --output-resolution 1.7 \
+  --output-resolution ${OUTPUT_RESOLUTION} \
   --bids-filter-file ${BIDS_FILTER} \
   --denoise-method patch2self \
   --unringing-method mrdegibbs \
   --hmc_model eddy ${EDDY_PARAMS} \
-  ${FSL_license} -w ${OUTPUT_DIR} \
+  ${FSL_license} -w $(realpath ${OUTPUT_DIR}) \
   --participant_label ${PARTICIPANT_LABEL} -vvv
 
 singularity run -e --nv \
 -B ${BIND_DIR}:${BIND_DIR} \
  docker://${CONTAINER_IMAGE} \
- ${BIDS_DIRECTORY} ${OUTPUT_DIR} \
+ ${BIDS_DIRECTORY} $(realpath ${OUTPUT_DIR}) \
  participant \
- --output-resolution 1.7 \
+ --output-resolution ${OUTPUT_RESOLUTION} \
  --bids-filter-file ${BIDS_FILTER} \
  --denoise-method patch2self \
  --unringing-method mrdegibbs \
  --hmc_model eddy ${EDDY_PARAMS} \
- ${FSL_license} -w ${OUTPUT_DIR} \
+ ${FSL_license} -w $(realpath ${OUTPUT_DIR}) \
  --participant_label ${PARTICIPANT_LABEL} -vvv
 
 echo computing DTI measures...

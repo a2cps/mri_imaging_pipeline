@@ -3,7 +3,7 @@ logs:
   level: DEBUG
   token: ~
 run_qsiprep:
-  appId: urrutia-qsiprep-0.14.2.1
+  appId: urrutia-qsiprep-0.14.2.2
   name: anat
   archive: true
   archiveSystem: a2cps.storage-frontera-protected 

@@ -6,6 +6,24 @@ import requests
 import sys
 import pydicom
 import re
+import datetime
+
+def extract_phantom_date(dicom_file: str) -> str:
+    """
+    the label of the file should have the date, but this is unreliable
+    here, we get the date from the dicom header in the first file 
+    of the zip
+    """
+    #zip = zipfile.ZipFile(dicoms)
+    #dicom_file = zip.extract(f)
+    header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
+    if not header.__contains__("AcquisitionDate"):
+        AssertionError ("AcquisitionDate not found in dicom. Incorrect file unzipped?")
+        
+    day = header.get("AcquisitionDate")
+    tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
+    return datetime.date.strftime(tmp, "%y%m%d")
+
 
 def post_notification(notification):
     endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
@@ -39,8 +57,8 @@ def find_dicom(filename, isZip):
     # Find first zip dicom
     if isZip is True:
         site_zip = zipfile.ZipFile(filename)
-        for listing in site_zip.filelist:
-            if zipfile.Path.is_file(listing):
+        for listing in site_zip.filelist: 
+            if zipfile.Path.is_file(listing): #and 'DICOMDIR' not in listing.orig_filename
                 break
         dicom_file = site_zip.extract(listing)
         return dicom_file
@@ -67,7 +85,7 @@ def read_dicom_metadata(dicom_file, filename):
     print(std_name)
     std_name = str(std_name).upper()
 
-    patient_id = re.search('(NS|WS|UC|UM|UI)\d{5}[vV](1|3)',std_name)
+    patient_id = re.search('(NS|WS|UC|UM|UI|SH)\d{5}[vV](1|3)',std_name)
     # Check if it's a QA scan
     qa = re.search('[Qq][Aa]',std_name)
     if qa is not None:
@@ -168,12 +186,20 @@ def main(filename, predefined_subject_id):
     output_path = determine_output_path(site_id, subject_id, session_id, qc)
     print(output_path)
     write_outputs(filename, output_path, isZip)
-    message = {
-        "site_id": site_id,
-        "subject_id": subject_id,
-        "session_id": session_id,
-        "dicoms": output_path + '.zip'
-    }
+    if qc == "":
+        message = {
+            "site_id": site_id,
+            "subject_id": subject_id,
+            "session_id": session_id,
+            "dicoms": output_path + '.zip'
+        }
+    else:
+        message = {
+            "site_id": site_id,
+            "subject_id": f"{site_id}phantom",
+            "session_id": extract_phantom_date(dicom_file),
+            "dicoms": output_path + '.zip'
+        }
     message_heudiconv(message)
     notification = "Input file " + os.path.basename(filename) + " processed for " + \
                     subject_id + " output under " + output_path

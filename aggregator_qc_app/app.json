@@ -61,7 +61,21 @@
 				"required": true
 			}
 		},
-    {
+		{
+			"id": "LOGDIR",
+			"details":{
+				"description": "directory to deposit qc log",
+				"argument": "",
+				"showArgument": false
+			},
+			"value": {
+				"default": "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",				
+				"type": "string",
+				"visible": true,
+				"required": true
+			}
+		},
+		{
 			"id": "OUTDIR",
 			"details":{
 				"description": "directory for outputs",
