@@ -57,8 +57,8 @@ def find_dicom(filename, isZip):
     # Find first zip dicom
     if isZip is True:
         site_zip = zipfile.ZipFile(filename)
-        for listing in site_zip.filelist:
-            if zipfile.Path.is_file(listing):
+        for listing in site_zip.filelist: 
+            if zipfile.Path.is_file(listing): #and 'DICOMDIR' not in listing.orig_filename
                 break
         dicom_file = site_zip.extract(listing)
         return dicom_file
@@ -85,7 +85,7 @@ def read_dicom_metadata(dicom_file, filename):
     print(std_name)
     std_name = str(std_name).upper()
 
-    patient_id = re.search('(NS|WS|UC|UM|UI)\d{5}[vV](1|3)',std_name)
+    patient_id = re.search('(NS|WS|UC|UM|UI|SH)\d{5}[vV](1|3)',std_name)
     # Check if it's a QA scan
     qa = re.search('[Qq][Aa]',std_name)
     if qa is not None:
