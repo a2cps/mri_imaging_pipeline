@@ -43,7 +43,8 @@ DESCRIPTION = {
 def get_valid(inroot = pathlib.Path) -> List[pathlib.Path]:
     passed = []
     for site in SITE_LONG.values():
-        passed.append((d for d in inroot.glob(f"{site}/bids_validation/*QC*") ))
+        # append only if the *out file is present in the folder
+        passed.append((d for d in inroot.glob(f"{site}/bids_validation/*QC*") if len([x for x in d.glob('*out')]) > 0 ))
 
     return passed
 

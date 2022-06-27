@@ -51,7 +51,10 @@ class Log:
             .merge(self._scans, on=["site", "date"], how="left")
             .merge(self._oldlog, on=["site", "date"], how="left")
         )
-        self._newlog = newlog[["site", "date", "notes", "dicom", "bids", "T1w", "b1000", "b2000", "bold", "id"]]
+        self._newlog = (
+            newlog[["site", "date", "notes", "dicom", "bids", "bids_validation", "T1w", "b1000", "b2000", "bold", "id"]]
+            .sort_values(by = ["site", "date"])
+        )
 
 
     def post_log(self):
@@ -72,9 +75,10 @@ class Log:
         dicoms = []
         bids = []
         for site in ["NS_northshore", "SH_spectrum_health", "WS_wayne_state", "UI_uic", "UC_uchicago", "UM_umichigan"]:
-            dicoms += [z for z in (self.products / site / "dicoms").glob("*QC*")]
-            # add to bids list each QC folder that contains a .err file
-            bids += [z for z in (self.products / site / "bids").glob("*QC*")]
+            # add to dicoms each zip file with QC in the string
+            dicoms += [z for z in (self.products / site / "dicoms").glob("*QC*zip")]
+            # add to bids list each QC folder that contains the .out file
+            bids += [z for z in (self.products / site / "bids").glob("*QC*") if len([x for x in z.glob('*out')]) > 0]
 
         bids_df = pd.DataFrame({"bids": bids})
         bids_df["id"] = bids_df['bids'].apply(lambda x: x.stem)
@@ -89,10 +93,8 @@ class Log:
         dicoms_df['id'] = dicoms_df['dicom'].apply(lambda x: x.stem)
         dicoms_df['site'] = self._extract_site(dicoms_df['id'])
         dicoms_df["dicom"] = dicoms_df['dicom'].apply(lambda x: datetime.datetime.fromtimestamp(x.stat().st_ctime).date())
-        d = dicoms_df.merge(bids_df, on="id", how="left")
-
-        self.processing = d
-
+        self.processing = dicoms_df.merge(bids_df, on="id", how="left")
+        
 
     def set_current_scans(self):
         scans = pd.concat(
