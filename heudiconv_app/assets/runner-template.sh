@@ -153,24 +153,30 @@ else
   sed -i '/_dup/d' ${OUTDIR}/sub-*/ses-*/*scans.tsv
 fi
 
-case "${SITE}" in
-  UI | UM)
-    echo singularity exec \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+if [[ "${PHANTOM}" == "--no-phantom" ]]; then
+  case "${SITE}" in
+    UI | UM)
+      echo singularity exec \
+        --cleanenv \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
 
-    singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+      singularity exec \
+        --cleanenv \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
 
-    # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
-    echo "Replacing correct bval and bvec files..."
-    cat correct_bval_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bval
-    cat correct_bvec_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bvec
+      # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
+      echo "Replacing correct bval and bvec files..."
+      cat correct_bval_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bval
+      cat correct_bvec_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bvec
     ;;
-esac
+  esac
+else
+  echo "INFO: phantom scan detected. not creating fieldmaps and not replacing bvals/bvecs"
+  # NOTE: not current replacing bvals/bvecs for phantom scans as we don't know what they 
+  # should be (and it's not clear that these values will be helpful)
+fi
 
 echo singularity exec \
   --cleanenv \
