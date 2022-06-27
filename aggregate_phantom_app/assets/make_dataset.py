@@ -1,0 +1,94 @@
+import argparse
+import pathlib
+import re
+from typing import List
+import shutil
+import json
+
+SITE_LONG = {
+    "NS": "NS_northshore",
+    "UI": "UI_uic",
+    "UC": "UC_uchicago",
+    "UM": "UM_umichigan",
+    "SH": "SH_spectrum_health",
+    "WS": "WS_wayne_state"
+}
+
+BIDS_IGNORE = """
+*.err\n
+*.out\n
+__pycache__*\n
+"""
+
+
+DESCRIPTION = {
+    "Acknowledgements": "TODO: more",
+    "Authors": [
+        "TODO:"
+    ],
+    "BIDSVersion": "1.9.3",
+    "DatasetDOI": "TODO: eventually a DOI for the dataset",
+    "Funding": [
+        "TODO"
+    ],
+    "HowToAcknowledge": "TODO: describe how to acknowledge -- either cite a corresponding paper, or just in acknowledgement section",
+    "License": "TODO: choose a license, e.g. PDDL (http://opendatacommons.org/licenses/pddl/)",
+    "Name": "TODO: name of the dataset",
+    "ReferencesAndLinks": [
+        "TODO"
+    ]
+}
+
+
+def get_valid(inroot = pathlib.Path) -> List[pathlib.Path]:
+    passed = []
+    for site in SITE_LONG.values():
+        passed.append((d for d in inroot.glob(f"{site}/bids_validation/*QC*") ))
+
+    return passed
+
+
+def main(
+    outdir: pathlib.Path, 
+    inroot: pathlib.Path = pathlib.Path("/corral-secure/projects/A2CPS/products/mris")
+    ) -> None:
+
+    if not outdir.exists():
+        outdir.mkdir(parents=True, exist_ok=True)
+
+    bids_src = get_valid(inroot=inroot)
+    for d in bids_src:
+        bids = pathlib.Path(re.sub(r"_validation", "", str(d.absolute())))
+        for phantom_id in bids.glob("sub-*"):
+            for ses in phantom_id.glob("ses*"):
+                target = outdir / phantom_id.name / ses.name
+                if not target.exists() or ses.stat().st_mtime > target.stat().st_mtime:
+                    print(f"copying {phantom_id.absolute()} -> {target.absolute()}")
+                    shutil.copytree(ses.absolute(), target.absolute(), dirs_exist_ok=True)
+                else:
+                    print(f"skipping {phantom_id.absolute()}")
+
+    readme = outdir / "README"
+    readme.touch()
+    readme.write_text("phantom dataset")
+
+    description = outdir / "dataset_description.json"
+    description.write_text(json.dumps(DESCRIPTION, indent=2))
+
+    bids_ignore = outdir / ".bidsignore"
+    bids_ignore.write_text(BIDS_IGNORE)
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('outdir', type=pathlib.Path)
+    parser.add_argument('--inroot', type=pathlib.Path)
+
+    args = parser.parse_args()
+    main(
+        inroot=args.inroot,
+        outdir=args.outdir
+    )
+
+
