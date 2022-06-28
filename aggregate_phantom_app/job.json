@@ -1,11 +1,11 @@
 {
-  "name": "{{ app.name }}-test-{{ iso8601_basic_short }}",
+  "name": "{{ app.name }}-test",
   "appId": "{{ app.name }}-{{ app.version}}",
   "archive": false,
   "inputs": {},
   "parameters": {
     "BIND_DIR": "/corral-secure/projects/A2CPS",
     "OUTDIR": "/corral-secure/projects/A2CPS/shared/psadil/phantom/all_sites/bids",
-    "INROOT": "/corral-secure/projects/A2CPS/shared/psadil/phantom/mris"
+    "INROOT": "/corral-secure/projects/A2CPS/products/mris"
   }
 }

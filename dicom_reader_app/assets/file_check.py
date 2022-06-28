@@ -196,7 +196,7 @@ def main(filename, predefined_subject_id):
     else:
         message = {
             "site_id": site_id,
-            "subject_id": f"{site_id}phantom",
+            "subject_id": f"{site_id.lower()}phantom",
             "session_id": extract_phantom_date(dicom_file),
             "dicoms": output_path + '.zip'
         }

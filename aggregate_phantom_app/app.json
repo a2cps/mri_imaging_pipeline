@@ -1,6 +1,6 @@
 {
   "checkpointable": false,
-  "name": "{{ app.name }}",
+  "name": "{{ agave.username }}-{{ app.name }}",
   "executionSystem": "{{ app.hpc_system }}",
   "executionType": "HPC",
   "defaultQueue": "{{ app.queue }}",  
@@ -26,7 +26,7 @@
     {
       "id": "CONTAINER_IMAGE",
       "value": {
-        "default": "{{ docker.namespace }}/{{ docker.repo }}:{{ docker.tag }}",
+        "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
         "type": "string",
         "visible": false,
         "required": true,

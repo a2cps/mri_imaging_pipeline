@@ -1,7 +1,6 @@
 import argparse
 import pathlib
 import re
-from typing import List
 import shutil
 import json
 
@@ -19,7 +18,6 @@ BIDS_IGNORE = """
 *.out\n
 __pycache__*\n
 """
-
 
 DESCRIPTION = {
     "Acknowledgements": "TODO: more",
@@ -39,12 +37,14 @@ DESCRIPTION = {
     ]
 }
 
+README = "phantom dataset"
 
-def get_valid(inroot = pathlib.Path) -> List[pathlib.Path]:
+
+def get_valid(inroot = pathlib.Path) -> list[pathlib.Path]:
     passed = []
     for site in SITE_LONG.values():
         # append only if the *out file is present in the folder
-        passed.append((d for d in inroot.glob(f"{site}/bids_validation/*QC*") if len([x for x in d.glob('*out')]) > 0 ))
+        passed += [ d for d in inroot.glob(f"{site}/bids_validation/*QC*") if len([x for x in d.glob('*out')]) > 0 ]
 
     return passed
 
@@ -57,8 +57,7 @@ def main(
     if not outdir.exists():
         outdir.mkdir(parents=True, exist_ok=True)
 
-    bids_src = get_valid(inroot=inroot)
-    for d in bids_src:
+    for d in get_valid(inroot=inroot):
         bids = pathlib.Path(re.sub(r"_validation", "", str(d.absolute())))
         for phantom_id in bids.glob("sub-*"):
             for ses in phantom_id.glob("ses*"):
@@ -71,7 +70,7 @@ def main(
 
     readme = outdir / "README"
     readme.touch()
-    readme.write_text("phantom dataset")
+    readme.write_text(README)
 
     description = outdir / "dataset_description.json"
     description.write_text(json.dumps(DESCRIPTION, indent=2))
@@ -84,7 +83,10 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('outdir', type=pathlib.Path)
-    parser.add_argument('--inroot', type=pathlib.Path)
+    parser.add_argument(
+        '--inroot', 
+        type=pathlib.Path, 
+        default=pathlib.Path("/corral-secure/projects/A2CPS/products/mris"))
 
     args = parser.parse_args()
     main(
