@@ -10,7 +10,7 @@ keep_list = [
   "AcquisitionMatricPE",
   "BandwidthPerPixelPhaseEncode",
   "BaseResolution",
-  "BodyPartExamined",
+  # "BodyPartExamined",
   # "CoilCombinationMethod",
   "CoilString",
   "ConsistencyInfo",
