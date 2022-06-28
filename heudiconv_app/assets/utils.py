@@ -225,8 +225,8 @@ def edit_json(data_path):
     func_json = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.json')))
     func_data = sorted(glob.glob(os.path.join(sub_dir,sess_name,'func','*.nii.gz')))
 
-    # assume that, if any jsons are available, the anat will be available
-    manufacturer = get_manufacturer(glob.glob(os.path.join(sub_dir, sess_name, 'anat', '*.json'))[0])
+    # assume that if there was a conversion then there should be at least 1 json
+    manufacturer = get_manufacturer(glob.glob(os.path.join(sub_dir, sess_name, '*', '*.json'))[0])
 
     print(f"Will try to apply post-conversion fixes specific to images from {manufacturer}...")    
 
@@ -306,69 +306,35 @@ def edit_json(data_path):
     if manufacturer == "philips":
         for filename in dwi_json_file + func_json + func_b0_json + dwi_b0_json:
             write_dummy_fields(filename)
-            
+
+    if manufacturer == "siemens":
+        # https://github.com/nipy/heudiconv/issues/303
+        for f in dirs.glob("sub*/ses*/*/*json"):
+            sanitize_json(f)
+
+
+def sanitize_json(f) -> None:
+    rewrite = False
+    with open(f, "r") as j:
+        data = json.load(j)
+        if (
+            data.__contains__("global") and 
+            data['global'].__contains__("slices") and 
+            data['global']['slices'].__contains__("DataSetTrailingPadding")
+        ):
+            del data['global']["slices"]["DataSetTrailingPadding"]
+            if check_for_null(data):
+                raise AssertionError(f"file {f} still has null characters, which will cause issues downstream")
+            rewrite = True
+    if rewrite:
+        save_as_json(data, f)
+
+
+def check_for_null(data: dict) -> bool:
+    return '\\u0000' in json.dumps(data)
+
 
 def get_b0_index(df,bval_value):
     ind = df.index[df['bvals'] == bval_value].tolist()
     return ind
 
-def split_shells(basepath):
-    if os.path.exists(os.path.join(basepath,'preprocess-dti')):
-        pass
-    else:
-        os.mkdir(os.path.join(basepath,'preprocess-dti'))
-    resultpath=os.path.join(basepath,'preprocess-dti')
-    # Find the filepaths of dwi dataset
-    bval_filepath = glob.glob(os.path.join(basepath,'*T1w_desc-preproc_dwi.bval'))[0]
-    dwi_filepath = glob.glob(os.path.join(basepath,'*T1w_desc-preproc_dwi.nii.gz'))[0]
-    bvec_filepath = glob.glob(os.path.join(basepath,'*T1w_desc-preproc_dwi.bvec'))[0]
-
-    # Extract the base filename; useful when saving the results
-    base_fname = str(Path(bval_filepath).name).split('.')[0]
-
-    # Read the processed bval and bvec files
-    bval_file = pd.read_table(bval_filename,header=None)
-    bval_file.columns=['bvals']
-    bvec_file = pd.read_csv(bvec_filename,header=None,sep=' ')
-    bvec_file = bvec_file.T
-    dwi_data = load_img(dwi_filename)
-
-    # Find the index of each shells and adds a b0 shell at the beginning. Assuming there are 5 shells
-    shells = bval_file['bvals'].unique()
-    ind_3000 = [0]+get_b0_index(bval_file,3000)
-    ind_2000 = [0]+get_b0_index(bval_file,2000)
-    ind_1000 = [0]+get_b0_index(bval_file,1000)
-    ind_500 = [0]+get_b0_index(bval_file,500)
-
-    # Find the corresponding nifti, bvals and bvecs
-    dwi_data_3000 = index_img(dwi_data,ind_3000)
-    dwi_data_2000 = index_img(dwi_data,ind_2000)
-    dwi_data_1000 = index_img(dwi_data,ind_1000)
-    dwi_data_500 = index_img(dwi_data,ind_500)
-
-    bval_3000 = bval_file.iloc[ind_3000]
-    bval_2000 = bval_file.iloc[ind_2000]
-    bval_1000 = bval_file.iloc[ind_1000]
-    bval_500 = bval_file.iloc[ind_500]
-
-    bvec_3000 = bvec_file.iloc[ind_3000]
-    bvec_2000 = bvec_file.iloc[ind_2000]
-    bvec_1000 = bvec_file.iloc[ind_1000]
-    bvec_500 = bvec_file.iloc[ind_500]
-
-    # Saving nifti, bvals and bvecs
-    print("Saving files...")
-    dwi_data_3000.to_filename(os.path.join(resultpath,base_fname+'_2nd_shell.nii.gz'))
-    dwi_data_2000.to_filename(os.path.join(resultpath,base_fname+'_3rd_shell.nii.gz'))
-    dwi_data_1000.to_filename(os.path.join(resultpath,base_fname+'_4rth_shell.nii.gz'))
-    dwi_data_500.to_filename(os.path.join(resultpath,base_fname+'_5th_shell.nii.gz'))
-
-    bval_3000.to_csv(os.path.join(resultpath,base_fname+'_2nd_shell.bval'),header=None, index=None)
-    bval_2000.to_csv(os.path.join(resultpath,base_fname+'_3rd_shell.bval'),header=None, index=None)
-    bval_1000.to_csv(os.path.join(resultpath,base_fname+'_4rth_shell.bval'),header=None, index=None)
-    bval_500.to_csv(os.path.join(resultpath,base_fname+'_5th_shell.bval'),header=None, index=None)
-
-    bvec_3000.to_csv(os.path.join(resultpath,base_fname+'_2nd_shell.bvec'),header=None, index=None,sep=' ')
-    bvec_2000.to_csv(os.path.join(resultpath,base_fname+'_3rd_shell.bvec'),header=None, index=None,sep=' ')
-    bvec_1000.to_csv(os.path.join(resultpath,base_fname+'_4rth_shell.bvec'),header=None, index=None,sep=' ')
-    bvec_500.to_csv(os.path.join(resultpath,base_fname+'_5th_shell.bvec'),header=None, index=None,sep=' ')

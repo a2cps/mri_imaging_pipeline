@@ -11,9 +11,10 @@ from deepdiff import DeepDiff
 
 # parameters to check for numerical equivalence
 FLOATING_PARAMS = {
-  0.001: ["dcmmeta_affine","EffectiveEchoSpacing","RepetitionTime"],
+  0.001: ["dcmmeta_affine","EffectiveEchoSpacing","RepetitionTime", "ImageOrientationPatientDICOM"],
   0.01: ["ImagingFrequency","WaterFatShift"],
-  0.1: ["SliceTiming","EchoTime"]}
+  0.1: ["SliceTiming","EchoTime"]
+  }
 
 
 def post_notification(notification: str, post: bool = False):
