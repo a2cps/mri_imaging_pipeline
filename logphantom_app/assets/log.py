@@ -70,6 +70,11 @@ class Log:
         self.session.update_page(page_id=self.pageid, title=self.pagetitle, body=str(soup))
 
 
+    def write_log(self):
+        self._newlog.to_csv("phantomlog.tsv", sep="\t", index=False)
+
+
+
     def set_processing(self):
 
         dicoms = []
@@ -147,11 +152,10 @@ def main(bidsroot: pathlib.Path, products: pathlib.Path, post: bool = False) -> 
         log.set_session(token=json.load(j).get("PAT"))
     log.set_oldlog()
     log.merge_logs()
+    log.write_log()
 
     if post:
        log.post_log()
-    else:
-        log._newlog.to_csv("phantomlog.tsv", sep="\t")
 
 
 if __name__ == '__main__':
