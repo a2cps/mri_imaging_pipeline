@@ -36,7 +36,64 @@
         "required": true,
         "order": 1000
       }
-    }
+    },
+    {
+			"id": "BIDS",
+			"details":{
+				"description": "root directory of the full bids dataset",
+				"argument": "",
+				"showArgument": false
+			},
+			"value": {
+				"default": "/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids",				
+				"type": "string",
+				"visible": true,
+				"required": true
+			}
+		},
+    {
+			"id": "BIND_DIR",
+			"details":{
+				"description": "root directory bound to singularity container",
+				"argument": "",
+				"showArgument": false
+			},
+			"value": {
+				"default": null,				
+				"type": "string",
+				"visible": true,
+				"required": true
+			}
+		},
+    {
+			"id": "PRODUCTS",
+			"details":{
+				"description": "root directory where individual phantom scan derivatives are stored",
+				"argument": "",
+				"showArgument": false
+			},
+			"value": {
+				"default": "/corral-secure/projects/A2CPS/products/mris",				
+				"type": "string",
+				"visible": true,
+				"required": true
+			}
+		},
+		{
+			"id": "POST",
+			"details": {
+				"argument": "",
+				"showArgument": false,
+				"description": "flag indicating whether to update the log on Confluence"
+			},
+			"value": {
+				"default": "--no-post",
+				"type": "enumeration",
+				"enumValues": ["--post", "--no-post"],
+				"visible": true,
+				"required": false
+			}
+		}
   ],
   "outputs": []
 }

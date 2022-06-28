@@ -138,7 +138,7 @@ class Log:
         return filename.str.extract(r"(ns|ws|sh|ui|uc|um)", expand=False, flags=re.IGNORECASE).str.upper()
 
 
-def main(bidsroot: pathlib.Path, products: pathlib.Path, upload: bool = False) -> None:
+def main(bidsroot: pathlib.Path, products: pathlib.Path, post: bool = False) -> None:
 
     log = Log(bidsroot=bidsroot, products=products)
     log.set_current_scans()
@@ -148,7 +148,7 @@ def main(bidsroot: pathlib.Path, products: pathlib.Path, upload: bool = False) -
     log.set_oldlog()
     log.merge_logs()
 
-    if upload:
+    if post:
        log.post_log()
     else:
         log._newlog.to_csv("phantomlog.tsv", sep="\t")
@@ -166,13 +166,13 @@ if __name__ == '__main__':
         type=pathlib.Path,
         default=pathlib.Path("/corral-secure/projects/A2CPS/products/mris"))
     parser.add_argument(
-        '--upload', 
+        '--post', 
         action=argparse.BooleanOptionalAction,
-        default="--no-upload")
+        default="--no-post")
 
     args = parser.parse_args()
     main(
         bidsroot=args.bidsroot,
         products=args.products,
-        upload=args.upload
+        post=args.post
     )

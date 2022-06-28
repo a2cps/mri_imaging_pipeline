@@ -2,6 +2,12 @@
   "name": "{{ app.name }}-test-{{ iso8601_basic_short }}",
   "appId": "{{ app.name }}-{{ app.version}}",
   "archive": false,
-  "inputs": {},
-  "parameters": {}
+  "batchQueue": "normal",
+  "maxRunTime": "09:00:00",
+  "parameters": { 
+      "BIND_DIR": "/corral-secure/projects/A2CPS",
+      "BIDS": "/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids",
+      "PRODUCTS": "/corral-secure/projects/A2CPS/products/mris",
+      "POST": "--post"
+  }
 }
