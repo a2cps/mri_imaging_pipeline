@@ -239,7 +239,7 @@ def create_fieldmaps(data_path) -> None:
 
 def save_as_json(data: dict, json_filename: str):
     with open(json_filename, "w") as data_file:
-        json.dump(data, data_file, indent=1, sort_keys=True)
+        json.dump(obj=data, fp=data_file, indent=1, sort_keys=True)
 
 
 def get_manufacturer(dirs: pathlib.Path) -> str:
@@ -265,12 +265,13 @@ def get_manufacturer(dirs: pathlib.Path) -> str:
 
 
 def write_dummy_fields(filename: str):
-    with open(filename, "r+") as f:
+    with open(filename) as f:
         json_data = json.load(f)
         json_data["TotalReadoutTime"] = json_data["EstimatedTotalReadoutTime"]
         json_data["EffectiveEchoSpacing"] = json_data["EstimatedEffectiveEchoSpacing"]
-        save_as_json(json_data, filename)
-        print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {filename}")
+
+    save_as_json(json_data, filename)
+    print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {filename}")
 
 
 def add_intendedfor(json_data: dict, dirs: pathlib.Path, modality: str) -> dict:
@@ -280,7 +281,7 @@ def add_intendedfor(json_data: dict, dirs: pathlib.Path, modality: str) -> dict:
         with open(nii) as n:
             phase_axis_nii = json.load(n).get("PhaseEncodingDirection")[0]
             if phase_axis_nii in json_data.get("PhaseEncodingDirection"):
-                intendedior.append(nii.with_suffix(".nii.gz"))
+                intendedior.append(str(nii.with_suffix(".nii.gz")))
     if len(intendedior) > 0:
         json_data["IntendedFor"] = intendedior
 
@@ -371,7 +372,7 @@ def edit_json(data_path):
 
 def sanitize_json(f) -> None:
     rewrite = False
-    with open(f, "r") as j:
+    with open(f) as j:
         data = json.load(j)
         if (
             data.__contains__("global")
