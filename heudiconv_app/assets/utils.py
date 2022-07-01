@@ -281,7 +281,10 @@ def add_intendedfor(json_data: dict, dirs: pathlib.Path, modality: str) -> dict:
         with open(nii) as n:
             phase_axis_nii = json.load(n).get("PhaseEncodingDirection")[0]
             if phase_axis_nii in json_data.get("PhaseEncodingDirection"):
-                intendedior.append(str(nii.with_suffix(".nii.gz")))
+                # assumes that there is always a session
+                intendedior.append(
+                    str(nii.relative_to(nii.parents[2]).with_suffix(".nii.gz"))
+                )
     if len(intendedior) > 0:
         json_data["IntendedFor"] = intendedior
 
@@ -289,7 +292,7 @@ def add_intendedfor(json_data: dict, dirs: pathlib.Path, modality: str) -> dict:
 
 
 def edit_json(data_path):
-    dirs = Path(data_path)
+    dirs = Path(data_path).absolute()
 
     # assume that if there was a conversion then there should be at least 1 json
     manufacturer = get_manufacturer(dirs)
