@@ -135,6 +135,7 @@ class Log:
         scans["scan"] = scans.filename.str.extract(
             r"(b1000|b2000|T1w|bold)", expand=False
         )
+        scans.dropna(subset="scan", inplace=True)
         scans.drop(
             ["operator", "acq_time", "randstr", "filename"], axis=1, inplace=True
         )
