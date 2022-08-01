@@ -55,7 +55,7 @@
   "SeriesNumber": 4,
   "ShimSetting": [-7331, 5536, 11541, -682, -195, -130, -33, -355],
   "SliceThickness": 5,
-  "SliceTiming": [0, 0.10938, 0.0625],
+  "SliceTiming": [0, 0.08594, 0.01562, 0.10156, 0.03125, 0.11719, 0.04688, 0.13281, 0.07031],
   "SoftwareVersions": "syngo MR E11",
   "SpacingBetweenSlices": 5,
   "StationName": "MRC40210",
@@ -69,7 +69,7 @@
   "dcmmeta_reorient_transform": [
     [0.0, -1.0, 0.0, 207.0],
     [1.0, 0.0, 0.0, 0.0],
-    [0.0, 0.0, -1.0, 2.0],
+    [0.0, 0.0, -1.0, 8.0],
     [0.0, 0.0, 0.0, 1.0]
 ],
   "dcmmeta_shape": [256, 208, 9],
