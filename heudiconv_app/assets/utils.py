@@ -274,21 +274,31 @@ def write_dummy_fields(filename: str):
     print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {filename}")
 
 
-def add_intendedfor(json_data: dict, dirs: pathlib.Path, modality: str) -> dict:
+def add_intendedfor(meta: pathlib.Path, dirs: pathlib.Path, modality: str) -> None:
     # add each fmri or dwi to the fmap intendedfor, but only if the phase encoding axes match
-    intendedior = []
+    intendedfor = []
+    json_data = json.loads(meta.read_text())
     for nii in dirs.glob(f"sub*/ses*/{modality}/*json"):
         with open(nii) as n:
             phase_axis_nii = json.load(n).get("PhaseEncodingDirection")[0]
-            if phase_axis_nii in json_data.get("PhaseEncodingDirection"):
-                # assumes that there is always a session
-                intendedior.append(
-                    str(nii.relative_to(nii.parents[2]).with_suffix(".nii.gz"))
-                )
-    if len(intendedior) > 0:
-        json_data["IntendedFor"] = intendedior
+        if phase_axis_nii in json_data.get("PhaseEncodingDirection"):
+            # assumes that there is always a session
+            intendedfor.append(
+                str(nii.relative_to(nii.parents[2]).with_suffix(".nii.gz"))
+            )
+    if len(intendedfor) > 0:
+        json_data["IntendedFor"] = intendedfor
+        save_as_json(json_data, meta)
+        print(f"IntendedField is added to {meta}")
 
-    return json_data
+
+def set_jsonfield(meta: pathlib.Path, key: str, value: str) -> None:
+    with open(meta) as f:
+        json_data = json.load(f)
+        json_data[key] = value
+
+    save_as_json(json_data, meta)
+    print(f"{key} for {meta} is set to {value}")
 
 
 def edit_json(data_path):
@@ -301,64 +311,14 @@ def edit_json(data_path):
         f"Will try to apply post-conversion fixes specific to images from {manufacturer}"
     )
 
-    # Adding IntendedFor field in the b0 json files for DWI data
-    for i in dirs.glob("sub*/ses*/fmap/*dwib0*json"):
-        with open(i) as f:
-            json_data = json.load(f)
-
-            if manufacturer in ["philips", "ge"]:
-                if "AP" in str(Path(i).name):
-                    value = "j-"
-                else:
-                    value = "j"
-                json_data["PhaseEncodingDirection"] = value
-                print(f"PhaseEncodingDirection for {i} set to {value}")
-
-            json_data = add_intendedfor(json_data, dirs, "dwi")
-
-        save_as_json(json_data, i)
-        print(f"IntendedField is added to {i}")
-
     for i in dirs.glob("sub*/ses*/dwi/*dwi*json"):
-        with open(i) as f:
-            json_data = json.load(f)
-            json_data["PhaseEncodingDirection"] = "j"
-
-        save_as_json(json_data, i)
-        print(f"PhaseEncodingDirection is added to {i}")
-
-    # Adding IntendedFor field in the json files for rest and cuff data and PhaseEncodingDirection for Philips/GE
-    for i in dirs.glob("sub*/ses*/fmap/*fmrib0*json"):
-        with open(i) as f:
-            json_data = json.load(f)
-
-            # Add PhaseEncodingDirection for Philips (not previously present)
-            # fix PhaseEncodingDirection for GE
-            if manufacturer in ["philips"]:
-                if "AP" in str(Path(i).name):
-                    value = "j-"
-                else:
-                    value = "j"
-                json_data["PhaseEncodingDirection"] = value
-                print(f"PhaseEncodingDirection for {i} set to {value}")
-
-            # Adds IntendedFor in the json files regardless of any scanner
-            json_data = add_intendedfor(json_data, dirs, "func")
-
-        save_as_json(json_data, i)
-        print(f"IntendedFor is added to {i}")
+        set_jsonfield(i, key="PhaseEncodingDirection", value="j")
 
     # Add SliceTiming to the json files of rest/cuff json files
     if manufacturer == "philips":
         for i in dirs.glob("sub*/ses*/func/*json"):
-            with open(i) as f:
-                json_data = json.load(f)
-                json_data["PhaseEncodingDirection"] = "j"
-                json_data["SliceTiming"] = slice_timing
-
-            save_as_json(json_data, i)
-            print(f"PhaseEncodingDirection is added to {i}")
-            print(f"SliceTiming is added to {i}")
+            set_jsonfield(i, key="PhaseEncodingDirection", value="j")
+            set_jsonfield(i, key="SliceTiming", value=slice_timing)
 
         # add parameters missing from philips: TotalReadoutTime, EffectiveEchoSpacing
         # see: https://confluence.a2cps.org/x/kwnz
@@ -366,6 +326,30 @@ def edit_json(data_path):
         # but the units will not end up scaled correctly
         for filename in dirs.glob("sub*/ses*/*/*json"):
             write_dummy_fields(filename)
+
+    # Adding IntendedFor field in the b0 json files for DWI data
+    # NOTE: for Philips, this must happen after the PhaseEncodingDirection has been set
+    for i in dirs.glob("sub*/ses*/fmap/*dwib0*json"):
+        if manufacturer in ["philips", "ge"]:
+            if "AP" in str(Path(i).name):
+                value = "j-"
+            else:
+                value = "j"
+            set_jsonfield(i, key="PhaseEncodingDirection", value=value)
+
+        add_intendedfor(i, dirs, "dwi")
+
+    # Adding IntendedFor field in the json files for rest and cuff data, all sites
+    # also add PhaseEncodingDirection for Philips
+    for i in dirs.glob("sub*/ses*/fmap/*fmrib0*json"):
+        if manufacturer in ["philips"]:
+            if "AP" in str(Path(i).name):
+                value = "j-"
+            else:
+                value = "j"
+            set_jsonfield(i, key="PhaseEncodingDirection", value=value)
+
+        add_intendedfor(i, dirs, "func")
 
     if manufacturer == "siemens":
         # https://github.com/nipy/heudiconv/issues/303
