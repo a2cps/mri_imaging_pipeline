@@ -6,7 +6,7 @@ logs:
   token: ~
 
 main:
-  appId: urrutia-aggregate_phantom-0.1
+  appId: urrutia-aggregator_phantom-0.1
   name: aggregator_phantom_job
   archive: false
   archivePath: ''

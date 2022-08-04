@@ -26,7 +26,7 @@
     {
       "id": "CONTAINER_IMAGE",
       "value": {
-        "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
+        "default": "docker://{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
         "type": "string",
         "visible": false,
         "required": true,
@@ -34,62 +34,61 @@
       }
     },
     {
-			"id": "BIDS",
-			"details":{
-				"description": "root directory of the full bids dataset",
-				"argument": "",
-				"showArgument": false
-			},
-			"value": {
-				"default": "/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids",				
-				"type": "string",
-				"visible": true,
-				"required": true
-			}
+		"id": "BIND_DIR",
+		"details":{
+			"description": "root directory bound to singularity container",
+			"argument": "",
+			"showArgument": false
 		},
-    {
-			"id": "BIND_DIR",
-			"details":{
-				"description": "root directory bound to singularity container",
-				"argument": "",
-				"showArgument": false
-			},
-			"value": {
-				"default": null,				
-				"type": "string",
-				"visible": true,
-				"required": true
-			}
-		},
-    {
-			"id": "PRODUCTS",
-			"details":{
-				"description": "root directory where individual phantom scan derivatives are stored",
-				"argument": "",
-				"showArgument": false
-			},
-			"value": {
-				"default": "/corral-secure/projects/A2CPS/products/mris",				
-				"type": "string",
-				"visible": true,
-				"required": true
-			}
-		},
-		{
-			"id": "POST",
-			"details": {
-				"argument": "",
-				"showArgument": false,
-				"description": "flag indicating whether to update the log on Confluence"
-			},
-			"value": {
-				"default": "--no-post",
-				"type": "enumeration",
-				"enumValues": ["--post", "--no-post"],
-				"visible": true,
-				"required": false
-			}
+		"value": {
+			"default": null,				
+			"type": "string",
+			"visible": true,
+			"required": true
 		}
+	},
+    {
+		"id": "PRODUCTS",
+		"details":{
+			"description": "root directory where individual phantom scan derivatives are stored",
+			"argument": "--products ",
+			"showArgument": true
+		},
+		"value": {
+			"default": "/corral-secure/projects/A2CPS/products/mris",				
+			"type": "string",
+			"visible": true,
+			"required": true
+		}
+	},
+	{
+		"id": "POST",
+		"details": {
+			"argument": "--post",
+			"showArgument": false,
+			"description": "flag indicating whether to update the log on Confluence"
+		},
+		"value": {
+			"default": false,
+			"type": "flag",
+			"visible": true,
+			"required": false
+		}
+	},
+    {
+		"id": "URL",
+		"details":{
+			"description": "path of the database file to write",
+			"argument": "--url ",
+			"showArgument": true
+		},
+		"value": {
+			"default": "phantom.db",				
+			"type": "string",
+			"visible": true,
+			"required": true
+		}
+	}
   ],
   "outputs": []
 }
