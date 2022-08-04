@@ -3,7 +3,6 @@ import os
 import copy
 import json
 import re
-import logging
 
 
 def _make_callback(server: str, alias: str, nonce: str) -> str:
@@ -43,6 +42,10 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
         qsiprep_alias = pipeline_config['qsiprep_alias']
         qsiprep_callback = api_server + '/actors/v2/' + qsiprep_alias + '/messages?x-nonce=' + qsiprep_nonce
 
+        qaphantom_nonce = os.getenv('_QAPHANTOM_NONCE')
+        qaphantom_alias = pipeline_config['qaphantom_alias']
+        qaphantom_callback = api_server + '/actors/v2/' + qaphantom_alias + '/messages?x-nonce=' + qaphantom_nonce
+
         # cat_callback = _make_callback(
         #     server=pipeline_config['api_server'], 
         #     alias=pipeline_config['cat_alias'], 
@@ -66,7 +69,14 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
     #           "persistent": False,
     #           'url': mpj.callback + '&status=${JOB_STATUS}'},
     if "QC" in filename:
-        logging.info(f"{filename} appears to be a phantom. pipeline will stop after validation")
+        notif = [
+            {
+                'event': 'FINISHED',
+                "persistent": False,
+                'url': qaphantom_callback + '&status=${JOB_STATUS}' +
+                '&bids=' + bids             
+            }
+        ]
     else:
         notif = [
             {

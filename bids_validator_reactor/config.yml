@@ -22,3 +22,4 @@ pipelines:
   vbr_actor_alias: vbr-actor.prod
   qsiprep_alias: qsiprep.prod
   cat_alias: cat.prod
+  qaphantom_alias: qaphantom.prod
