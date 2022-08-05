@@ -6,7 +6,6 @@
   "batchQueue": "normal",
   "inputs": {},
   "parameters": {
-    "SUBLONG": "",
-    "OUTDIR": "/corral-secure/projects/A2CPS/shared/psadil/group/mris/sites_all/bids/a2cps"
+    "OUTDIR": "/corral-secure/projects/A2CPS/shared/psadil/tmp/all_sites/bids"
   }
 }

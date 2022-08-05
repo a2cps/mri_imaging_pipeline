@@ -1,5 +1,0 @@
-*.err
-*.out
-__pycache__*
-sub-*/ses-*/fmap/*.bval
-sub-*/ses-*/fmap/*.bvec
