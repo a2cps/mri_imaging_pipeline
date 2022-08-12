@@ -85,7 +85,7 @@ def main(
         if len(target[1] + target[2]) == 0:
             to_del = pathlib.Path(target[0])
             print(f"deleting empty directory: {to_del}")
-            to_del.unlink()
+            os.removedirs(to_del)
 
     readme = outdir / "README"
     readme.touch()
