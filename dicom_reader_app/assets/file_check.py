@@ -87,9 +87,11 @@ def read_dicom_metadata(dicom_file, filename):
 
     patient_id = re.search('(NS|WS|UC|UM|UI|SH)\d{5}[vV](1|3)',std_name)
     # Check if it's a QA scan
-    qa = re.search('[Qq][Aa]',std_name)
+    qa = re.search('[q][ac]', std_name, flags=re.IGNORECASE)
     if qa is not None:
-        # If it's not a QC scan we don't add the QC prefix
+        # NOTE: subject_id and session_id will be changed during the submission. They are kept here so that
+        # the output path is determined in a way that is analgous to the patient scan (based on
+        # the PatientName). 
         qa_id = re.search('[A-Z][A-Z]\d+',std_name)
         std_name = qa_id.group(0)
         qc = 'QC_'
