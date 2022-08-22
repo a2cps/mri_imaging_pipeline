@@ -283,10 +283,13 @@ def auto_rate_bold_scan(row) -> str:
 def rate_motion(d: pd.DataFrame) -> pd.DataFrame:
     bold_iqm = gather_motion()
     bold_iqm["rating"] = [auto_rate_bold_scan(x) for x in bold_iqm.itertuples()]
-    bold_iqm["source"] = "auto"
-    return d.merge(bold_iqm[["bids_name", "rating", "source"]], on="bids_name").drop(
+    rated = d.merge(bold_iqm[["bids_name", "rating"]], on="bids_name", how="left").drop(
         ["bids_name"], axis=1
     )
+    rated["source"] = "auto"
+    # fmriprep processing often lags. default assumes scan is okay
+    rated["rating"] = rated["rating"].fillna("green")
+    return rated
 
 
 def start_session(token: str, pem: Path) -> requests.Session:
