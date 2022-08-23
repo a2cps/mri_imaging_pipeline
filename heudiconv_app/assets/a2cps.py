@@ -35,7 +35,7 @@ protocols2fix.update({
             # (e.g., T1_MPRAGE_R1 is the first repeat of T1).
             # the following finds those files and marks them so that the reproin
             # heuristic can mark duplicate T1w scans 
-            ('^T1_MPRAGE([_\s]R[1-9]*)*', 'anat-T1w'),
+            ('^(T1[_\s])*MPRAGE([_\s]R[1-9]*)*', 'anat-T1w'),
             ('^GE_EPI_B0_(AP|PA)', r'fmap-epi_acq-fmrib0_dir-\1'),
             ('^GE_EPI_B0', 'fmap-epi_acq-fmrib0'),  
             ('^SE_EPI_B0_(AP|PA)', r'fmap-epi_acq-dwib0_dir-\1'),
@@ -70,9 +70,11 @@ protocols2fix.update({
             # also expect ORIG in some DWI (and sometimes also a suffix )
             (".*(b[12]000).*", r"dwi-dwi_acq-\1"),
             ("func-bold_acq-QA", "func_task-rest"),
-            # WS had some atypical names early on
+            # WS/UI had some atypical names early on
             ("REST1_17DSV", "func_task-rest"),
-            ("^Axial GRE scan$", "anat-T1w")
+            ("^Ax.*GRE.*", "anat-T1w"),
+            ("^fMRI QA$", "func_task-rest"),
+            ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1")
         ],
 })
 
@@ -105,6 +107,15 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
             dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
         )
     ):
+        exclude = True
+    elif (
+        "QA_4.1.21" in dcmdata.ProtocolName and 
+        (
+            dcmdata.SeriesDescription == "DWI 2000" or
+            dcmdata.SeriesDescription == "DWI 1000"
+        )
+    ):
+        # there is an ORIG DWI [12]000 that must be picked up, but not these
         exclude = True
 
     return exclude

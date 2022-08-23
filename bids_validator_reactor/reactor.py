@@ -43,10 +43,10 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
         qsiprep_alias = pipeline_config['qsiprep_alias']
         qsiprep_callback = api_server + '/actors/v2/' + qsiprep_alias + '/messages?x-nonce=' + qsiprep_nonce
 
-        # cat_callback = _make_callback(
-        #     server=pipeline_config['api_server'], 
-        #     alias=pipeline_config['cat_alias'], 
-        #     nonce='_CAT_NONCE')
+        cat_callback = _make_callback(
+            server=pipeline_config['api_server'], 
+            alias=pipeline_config['cat_alias'], 
+            nonce='_CAT_NONCE')
 
         # bids_validator_nonce = os.getenv('_BIDS_VALIDATOR_NONCE')
         # bids_validator_alias = pipeline_config['bids_validator_alias']
@@ -96,14 +96,14 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
                 '&bids=' + bids +
                 '&filename='+ filename +
                 '&site='+ site
-            }#,
-            # {
-            #     'event': 'FINISHED',
-            #     "persistent": False,
-            #     'url': cat_callback + '&status=${JOB_STATUS}' +
-            #     '&BIDS=' + bids +
-            #     '&OUTDIR=' + _get_output_dir(bids)
-            # }
+            },
+            {
+                'event': 'FINISHED',
+                "persistent": False,
+                'url': cat_callback + '&status=${JOB_STATUS}' +
+                '&bids=' + bids +
+                '&filename=' + _get_output_dir(bids)
+            }
         ]
         job_def.notifications = notif
 

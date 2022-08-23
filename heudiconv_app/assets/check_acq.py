@@ -11,9 +11,10 @@ from deepdiff import DeepDiff
 
 # parameters to check for numerical equivalence
 FLOATING_PARAMS = {
-  0.001: ["dcmmeta_affine","EffectiveEchoSpacing","RepetitionTime"],
+  0.001: ["dcmmeta_affine","EffectiveEchoSpacing","RepetitionTime", "ImageOrientationPatientDICOM"],
   0.01: ["ImagingFrequency","WaterFatShift"],
-  0.1: ["SliceTiming","EchoTime"]}
+  0.1: ["SliceTiming","EchoTime"]
+  }
 
 
 def post_notification(notification: str, post: bool = False):
@@ -220,7 +221,7 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
     for scan in T1ws:
       ok *= compare(layout, scan, reference.query("suffix == 'T1w'").copy(), post=post)
   else:
-    print_and_post(f"No T1w scans found when checking jsons in {root}", post=post)
+    print_and_post(f"No T1w scans found when checking jsons in {pathlib.Path(root).absolute()}", post=post)
   
 
   for scan in layout.get(suffix='dwi', extension="nii.gz", return_type="file"):    
