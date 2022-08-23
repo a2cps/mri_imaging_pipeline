@@ -29,8 +29,33 @@ def main() -> None:
     # pull in reactor context
     context=r.context  # Actor context
     print(json.dumps(context, indent=4))
+    #archivePath=context.archivePath
+    subject_id=context.subject_id
+    filename=context.filename
+    bids=context.bids
+    message=context.message_dict
+    site=context.site
 
-    submit(ag=r.client, job_def=r.settings.main)
+    site_codes = \
+                {
+                    "UI": "UI_uic",
+                    "NS": "NS_northshore",
+                    "UC": "UC_uchicago",
+                    "UM": "UM_umichigan",
+                    "WS": "WS_wayne_state",
+                    "SH": "SH_spectrum_health"
+                }
+    site_name = site_codes[site]
+
+    job_def=r.settings.main
+    job_def.name = 'cat12_' + filename
+    job_def.archivePath = 'products/development/mris/{}/cat12/'.format(site_name)
+    parameters = job_def["parameters"]
+    parameters['BIDS'] = bids
+    parameters['OUTDIR'] = filename
+
+    #print(json.dumps(job_def, indent=4))
+    submit(ag=r.client, job_def=job_def)
 
     return
 
