@@ -49,7 +49,7 @@ def main() -> None:
 
     job_def=r.settings.main
     job_def.name = 'cat12_' + filename
-    job_def.archivePath = 'products/development/mris/{}/cat12/'.format(site_name)
+    job_def.archivePath = 'products/mris/{}/cat12/'.format(site_name)
     parameters = job_def["parameters"]
     parameters['BIDS'] = bids
     parameters['OUTDIR'] = filename
