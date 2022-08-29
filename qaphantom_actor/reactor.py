@@ -1,5 +1,4 @@
 import json
-import re
 import pathlib
 from reactors.utils import Reactor
 
