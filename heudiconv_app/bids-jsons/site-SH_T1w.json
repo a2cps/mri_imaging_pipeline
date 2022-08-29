@@ -50,7 +50,7 @@
   "SAR": 0.0250267,
   "ScanOptions": "IR",
   "ScanningSequence": "GR\\IR",
-  "SequenceName": "*tfl3d1_16ns",
+  "SequenceName": "*tfl3d1_16",
   "SequenceVariant": "SK\\SP\\MP",
   "SeriesDescription": "T1_MPRAGE",
   "SeriesNumber": 2,
