@@ -1,0 +1,15 @@
+{
+  "appId": "{{ agave.username }}-{{ app.name }}-{{ app.version}}",
+  "name": "{{ app.name }}-test",
+  "archive": false,
+  "batchQueue": "normal",
+  "maxRunTime": "00:30:00",
+  "processorsOnEachNode": 10,
+  "nodeCount": 1,
+  "inputs": {},
+  "parameters": { 
+    "BIND_DIR": "/scratch1/08266/psadil",
+    "BIDS": ["/scratch1/08266/psadil/phantom/mris/SH_spectrum_health/bids/QC_SH043022QA","/scratch1/08266/psadil/phantom/mris/SH_spectrum_health/bids/QC_SH050422QA","/scratch1/08266/psadil/phantom/mris/UC_uchicago/bids/QC_UC071422QA"],
+    "OUTDIR": ["SH_spectrum_health/aa-fmri-phantom-qa/QC_SH043022QA","SH_spectrum_health/aa-fmri-phantom-qa/QC_SH050422QA","UC_uchicago/aa-fmri-phantom-qa/QC_UC071422QA"]  
+  }
+}
