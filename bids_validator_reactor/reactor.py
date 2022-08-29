@@ -65,13 +65,13 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
         cat_callback = _make_callback(
             server=pipeline_config["api_server"],
             alias=pipeline_config["cat_alias"],
-            nonce="_CAT_NONCE",
+            nonce="_CAT12_NONCE",
         )
 
         qaphantom_callback = _make_callback(
             server=pipeline_config["api_server"],
-            alias=pipeline_config["cat_alias"],
-            nonce="_CAT_NONCE",
+            alias=pipeline_config["qaphantom_alias"],
+            nonce="_QAPHANTOM_NONCE",
         )
 
         # bids_validator_nonce = os.getenv('_BIDS_VALIDATOR_NONCE')
