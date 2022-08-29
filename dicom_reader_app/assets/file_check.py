@@ -31,6 +31,7 @@ SUBMISSION_SITE = {
     "UM_umichigan": "UM",
     "NS_northshore": "NS",
     "SH_spectrum_health_grand_rapids": "SH",
+    "SH_spectrum_health": "SH",  # helps to have this when testing on files stored in products
     "WS_wayne_state": "WS",
 }
 
