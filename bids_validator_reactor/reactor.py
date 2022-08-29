@@ -96,11 +96,7 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
             {
                 "event": "FINISHED",
                 "persistent": False,
-                "url": qaphantom_callback 
-                + "&status=${JOB_STATUS}" 
-                + "&bids=" + bids 
-                + "&site="+ site
-                + "&filename=" _get_output_dir(bids)
+                "url": qaphantom_callback + "&status=${JOB_STATUS}&bids=" + bids,
             }
         ]
     else:
@@ -157,7 +153,7 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
                 + bids
                 + "&filename="
                 + _get_output_dir(bids),
-            }
+            },
         ]
         job_def.notifications = notif
 

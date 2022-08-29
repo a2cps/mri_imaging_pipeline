@@ -14,7 +14,7 @@ main:
   parameters:
     BIND_DIR: "/corral-secure/projects/A2CPS"
     BIDS: /scratch1/08266/psadil/phantom/mris/SH_spectrum_health/bids/QC_SH043022QA
-    OUTDIR: SH_spectrum_health/aa-fmri-phantom-qa/QC_SH043022QA
+    OUTDIR: .
 pipelines:
   api_server: https://portals-api.tacc.utexas.edu
   qaphantom_alias: qaphantom.prod
