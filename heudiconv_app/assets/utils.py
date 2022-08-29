@@ -357,23 +357,30 @@ def edit_json(data_path):
             sanitize_json(f)
 
 
+def remove_key_inplace(d, remove_key: str) -> bool:
+    original = True
+    if isinstance(d, dict):
+        # list required to be able to modify the dict in place
+        for key in list(d.keys()):
+            if key == remove_key:
+                print(f"deleting key: {key}")
+                del d[key]
+                original = False
+            else:
+                original *= remove_key_inplace(d[key], remove_key)
+    return original
+
+
 def sanitize_json(f) -> None:
-    rewrite = False
+    print(f"looking for null bytes in {f}")
     with open(f) as j:
         data = json.load(j)
-        if (
-            data.__contains__("global")
-            and data["global"].__contains__("slices")
-            and data["global"]["slices"].__contains__("DataSetTrailingPadding")
-        ):
-            del data["global"]["slices"]["DataSetTrailingPadding"]
-            if check_for_null(data):
-                raise AssertionError(
-                    f"file {f} still has null characters, which will cause issues downstream"
-                )
-            rewrite = True
-    if rewrite:
+    if not remove_key_inplace(data, "DataSetTrailingPadding"):
         save_as_json(data, f)
+    if check_for_null(data):
+        raise AssertionError(
+            f"file {f} still has null characters, which will cause issues downstream"
+        )
 
 
 def check_for_null(data: dict) -> bool:

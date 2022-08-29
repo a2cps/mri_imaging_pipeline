@@ -46,7 +46,7 @@ def submit_bids_validate(r,bids,filename,subject_id,site):
         cat_callback = _make_callback(
             server=pipeline_config['api_server'], 
             alias=pipeline_config['cat_alias'], 
-            nonce='_CAT_NONCE')
+            nonce='_CAT12_NONCE')
 
         # bids_validator_nonce = os.getenv('_BIDS_VALIDATOR_NONCE')
         # bids_validator_alias = pipeline_config['bids_validator_alias']
