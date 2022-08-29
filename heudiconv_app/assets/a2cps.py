@@ -124,5 +124,10 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     ):
         # there is an ORIG DWI [12]000 that must be picked up, but not these
         exclude = True
+    # SH20146V1 was sent with with a set of derived T1w images that included the flag "MPR"
+    # in the ImageType field, presumably indicing "multi-plane reconstruction". We don't want
+    # these derived images in the bids dataset
+    elif "MPR" in dcmdata.ImageType:
+        exclude = True
 
     return exclude

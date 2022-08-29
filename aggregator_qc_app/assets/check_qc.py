@@ -1,11 +1,9 @@
-import os
-import glob
 import re
 import argparse
 import requests
 from pathlib import Path
 from datetime import date
-from typing import Union, Optional
+from typing import Optional
 import tempfile
 import xml.etree.ElementTree as ET
 
@@ -13,6 +11,17 @@ import pandas as pd
 import numpy as np
 
 from atlassian import Confluence
+
+SCAN = {
+    "rest_run-01_bold": "REST1",
+    "rest_run-02_bold": "REST2",
+    "cuff_run-01_bold": "CUFF1",
+    "cuff_run-02_bold": "CUFF2",
+    "_T1w": "T1w",
+    "dwi": "DWI",
+}
+
+TASK_THRESH = {"rest": 0.3, "cuff": 0.9}
 
 
 def _zscore(scores: np.array) -> np.array:
@@ -23,11 +32,11 @@ def _format_url(url: str, text: str = "link") -> str:
     return f'<a href="{url}">{text}</a>'
 
 
-def read_json(f) -> pd.DataFrame:
+def read_json(f: Path) -> pd.DataFrame:
     d = pd.read_json(f, orient="index").T
     d.drop("dataset", axis=1, inplace=True)
-    d["source"] = re.findall("^[a-z]+", os.path.basename(f))
-    d["date"] = date.fromtimestamp(os.path.getmtime(f))
+    d["source"] = re.findall("^[a-z]+", f.name)
+    d["date"] = date.fromtimestamp(f.stat().st_mtime)
     return d
 
 
@@ -99,14 +108,8 @@ def get_outliers(
     d: pd.DataFrame,
     groups,
     url_root: str = "https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
-    imaging_log: Union[str, bytes, os.PathLike] = os.path.join(
-        "/corral-secure",
-        "projects",
-        "A2CPS",
-        "shared",
-        "urrutia",
-        "imaging_report",
-        "imaging_log.csv",
+    imaging_log: Path = Path(
+        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
 ) -> pd.DataFrame:
     """
@@ -161,26 +164,16 @@ def get_outliers(
     return outliers
 
 
-def gather_dwi(
-    root: Union[str, bytes, os.PathLike] = os.path.join(
-        "/corral-secure", "projects", "A2CPS", "products", "mris"
-    )
-):
-    csvs = glob.glob(
-        os.path.join(
-            root,
-            "*",
-            "qsiprep",
-            "*",
-            "qsiprep",
-            "sub*",
-            "ses*",
-            "dwi",
-            "*_desc-ImageQC_dwi.csv",
-        )
-    )
+def gather_dwi(root: Path = Path("/corral-secure/projects/A2CPS/products/mris")):
     d = (
-        pd.concat([pd.read_csv(x) for x in csvs])
+        pd.concat(
+            [
+                pd.read_csv(x)
+                for x in root.glob(
+                    "*/qsiprep/*/qsiprep/sub*/ses*/dwi/*_desc-ImageQC_dwi.csv"
+                )
+            ]
+        )
         .rename(columns={"file_name": "bids_name"})
         .drop(
             columns=[
@@ -198,19 +191,19 @@ def gather_dwi(
     return d
 
 
-def extract_iqr(xml: str) -> float:
+def extract_iqr(xml: Path) -> float:
     f = ET.parse(xml)
     iqr = float(f.getroot().find("qualityratings/IQR").text)
     return 105 - 10 * iqr
 
 
-def extract_defects(xml: str) -> float:
+def extract_defects(xml: Path) -> float:
     f = ET.parse(xml)
     n = float(f.getroot().find("qualitymeasures").find("SurfaceEulerNumber").text)
     return 2 - 2 * n
 
 
-def build_cat_df(xml: str) -> pd.DataFrame:
+def build_cat_df(xml: Path) -> pd.DataFrame:
     rating = "green"
     iqr = extract_iqr(xml)
     defects = extract_defects(xml)
@@ -222,29 +215,64 @@ def build_cat_df(xml: str) -> pd.DataFrame:
     d = pd.DataFrame(
         [
             {
-                "sub": int(re.findall("\d{5}", xml)[0]),
-                "ses": re.findall("(?<=ses-)[Vv][13]", xml)[0],
+                "sub": int(re.findall("\d{5}", str(xml))[0]),
+                "ses": re.findall("(?<=ses-)[Vv][13]", str(xml))[0],
                 "scan": "T1w",
                 "rating": rating,
                 "source": "auto",
-                "date": date.fromtimestamp(os.path.getctime(xml)),
+                "date": date.fromtimestamp(xml.stat().st_ctime),
             }
         ]
     )
     return d
 
 
-def gather_cat(
-    root: str = os.path.join("/corral-secure", "projects", "A2CPS", "products", "mris")
-):
-    xmls = glob.glob(os.path.join(root, "*", "cat12", "*", "report", "*.xml"))
-    return pd.concat([build_cat_df(x) for x in xmls])
+def gather_cat(root: Path = Path("/corral-secure/projects/A2CPS/products/mris")):
+    return pd.concat([build_cat_df(x) for x in root.glob("*/cat12/*/report/*xml")])
+
+
+def gather_motion(
+    root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
+) -> pd.DataFrame:
+    confounds = []
+    for s in [
+        "NS_northshore",
+        "SH_spectrum_health",
+        "UC_uchicago",
+        "UI_uic",
+        "UM_umichigan",
+        "WS_wayne_state",
+    ]:
+        for task in ["rest", "cuff"]:
+            for tsv in (root / s / "fmriprep").glob(
+                f"{s[0:2]}*/{task}/fmriprep/sub*/ses*/func/*confounds_timeseries.tsv"
+            ):
+                rmsd = pd.read_csv(
+                    tsv, sep="\t", usecols=["rmsd"], dtype={"rmsd": np.float64}
+                )
+                # current version of fmriprep strips leading 0, so for matching later need to add it back
+                bids_name_raw = re.search(
+                    r"sub-\w+_ses-\w+_task-\w+_run-\d+", str(tsv)
+                ).group(0)
+                confounds.append(
+                    pd.DataFrame(
+                        {
+                            "bids_name": bids_name_raw[0:-1] + "0" + bids_name_raw[-1],
+                            "fd_mean": rmsd.mean(),
+                            "fd_max": rmsd.max(),
+                            "fd_perc": np.mean(rmsd.to_numpy() > TASK_THRESH[task]),
+                            "n_trs": len(rmsd),
+                        }
+                    )
+                )
+
+    return pd.concat(confounds, ignore_index=True)
 
 
 def auto_rate_bold_scan(row) -> str:
-    if (row.fd_mean > 0.55) or (row.dummy_trs + row.size_t < 450):
+    if (row.fd_mean > 0.55) or (row.n_trs < 450):
         rating = "red"
-    elif row.fd_mean > 0.25 or row.fd_perc > 20:
+    elif (row.fd_mean > 0.25) or (row.fd_perc > 0.2) or (row.fd_max > 5):
         rating = "yellow"
     else:
         rating = "green"
@@ -252,18 +280,22 @@ def auto_rate_bold_scan(row) -> str:
     return rating
 
 
-def rate_motion(d: pd.DataFrame, bold_iqm: pd.DataFrame) -> pd.DataFrame:
+def rate_motion(d: pd.DataFrame) -> pd.DataFrame:
+    bold_iqm = gather_motion()
     bold_iqm["rating"] = [auto_rate_bold_scan(x) for x in bold_iqm.itertuples()]
-    bold_iqm["source"] = "auto"
-    return d.merge(bold_iqm[["bids_name", "rating", "source"]], on="bids_name").drop(
+    rated = d.merge(bold_iqm[["bids_name", "rating"]], on="bids_name", how="left").drop(
         ["bids_name"], axis=1
     )
+    rated["source"] = "auto"
+    # fmriprep processing often lags. default assumes scan is okay
+    rated["rating"] = rated["rating"].fillna("green")
+    return rated
 
 
-def start_session(token: str, pem: str) -> requests.Session:
+def start_session(token: str, pem: Path) -> requests.Session:
     s = requests.Session()
     s.headers.update({"Authorization": f"Bearer {token}"})
-    s.verify = pem
+    s.verify = str(pem)
     return s
 
 
@@ -336,9 +368,7 @@ def rate_dwi(
 
 def write_ratings_unique(
     d: pd.DataFrame,
-    outdir: str = os.path.join(
-        "/corral-secure','projects','A2CPS','shared','urrutia','imaging_report"
-    ),
+    outdir: Path = Path("/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"),
 ) -> pd.DataFrame:
 
     # manual ratings always overwrite auto + tech scans
@@ -366,28 +396,19 @@ def write_ratings_unique(
         single_rating["date"] == pd.to_datetime("2000-01-01"), "date"
     ] = pd.to_datetime("")
     single_rating["date"] = single_rating["date"].copy().dt.date
-    single_rating.to_csv(os.path.join(outdir, "qc-log-latest.csv"), index=False)
+    single_rating.to_csv(outdir / "qc-log-latest.csv", index=False)
 
     return single_rating
 
 
 def update_qclog(
-    imaging_log,
-    json_dir,
-    bold_iqm: pd.DataFrame,
-    outdir: str,
+    imaging_log: Path,
+    json_dir: Path,
+    outdir: Path,
     token: Optional[str] = None,
-    pem: Optional[Union[str, bytes, os.PathLike]] = None,
+    pem: Optional[Path] = None,
 ) -> pd.DataFrame:
     RATING = {"4": "green", "3": "green", "2": "yellow", "1": "red", "0": ""}
-    SCAN = {
-        "rest_run-01_bold": "REST1",
-        "rest_run-02_bold": "REST2",
-        "cuff_run-01_bold": "CUFF1",
-        "cuff_run-02_bold": "CUFF2",
-        "_T1w": "T1w",
-        "dwi": "DWI",
-    }
     LOG_KEYS = {
         "T1 Received": "T1w",
         "fMRI Individualized Pressure Received": "CUFF1",
@@ -431,8 +452,7 @@ def update_qclog(
     log_bold = rate_motion(
         d=build_bids_name(log.query("not scan in ['DWI','T1w']").copy(), "bold").drop(
             ["rating", "source", "task", "run"], axis=1
-        ),
-        bold_iqm=bold_iqm,
+        )
     )
     log_short = log_t1w[["site", "sub"]].drop_duplicates()
 
@@ -441,7 +461,7 @@ def update_qclog(
 
     log_all = pd.concat([log_bold, log_t1w, log_dwi, log_cat])
 
-    d = pd.concat([read_json(x) for x in glob.glob(os.path.join(json_dir, "*json"))])
+    d = pd.concat([read_json(x) for x in json_dir.glob("*json")])
     d2 = (
         d.assign(
             notes=[", ".join(x) for x in d["artifacts"]],
@@ -476,29 +496,20 @@ def update_qclog(
 
 
 def main(
-    t1w_fname: Union[str, bytes, os.PathLike],
-    bold_fname: Union[str, bytes, os.PathLike],
-    json_dir: str,
-    imaging_log: Union[str, bytes, os.PathLike] = os.path.join(
-        "/corral-secure",
-        "projects",
-        "A2CPS",
-        "shared",
-        "urrutia",
-        "imaging_report",
-        "imaging_log.csv",
+    t1w_fname: Path,
+    bold_fname: Path,
+    json_dir: Path,
+    imaging_log: Path = Path(
+        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
-    outdir: str = os.path.join(
-        "/corral-secure','projects','A2CPS','shared','urrutia','imaging_report"
-    ),
+    outdir: Path = Path("/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"),
     token: Optional[str] = None,
-    pem: Optional[Union[str, bytes, os.PathLike]] = None,
+    pem: Optional[Path] = None,
 ) -> None:
 
     qclog = update_qclog(
         imaging_log=imaging_log,
         json_dir=json_dir,
-        bold_iqm=pd.read_csv(bold_fname, delimiter="\t"),
         token=token,
         pem=pem,
         outdir=outdir,
@@ -581,28 +592,38 @@ if __name__ == "__main__":
         description="check mriqc-group output for outliers"
     )
     parser.add_argument(
-        "t1w_fname", default="group_T1w.tsv", help="group level tsv for T1w images"
+        "t1w_fname",
+        default="group_T1w.tsv",
+        help="group level tsv for T1w images",
+        type=Path,
     )
     parser.add_argument(
-        "bold_fname", default="group_bold.tsv", help="group level tsv for bold images"
+        "bold_fname",
+        default="group_bold.tsv",
+        help="group level tsv for bold images",
+        type=Path,
     )
     parser.add_argument(
         "--imaging_log",
         default="/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
         help="log of received scans",
+        type=Path,
     )
     parser.add_argument(
         "--json_dir",
         default="/corral-secure/projects/A2CPS/shared/psadil/qclog/mriqc-reviews",
         help="log of received scans",
+        type=Path,
     )
     parser.add_argument("--token", type=str)
-    parser.add_argument("--pem", default="confluence-a2cps-org-chain.pem", type=str)
+    parser.add_argument(
+        "--pem", default=Path("confluence-a2cps-org-chain.pem"), type=Path
+    )
     parser.add_argument(
         "--outdir",
         help="Location to deposit qc-log-latest.csv, which has one rating per scan",
-        default="/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",
-        type=str,
+        default=Path("/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"),
+        type=Path,
     )
 
     args = parser.parse_args()
