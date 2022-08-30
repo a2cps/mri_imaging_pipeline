@@ -156,7 +156,11 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
                 + "&bids="
                 + bids
                 + "&filename="
-                + _get_output_dir(bids),
+                + _get_output_dir(bids)
+                + "&site="
+                + site
+                + "&subject_id="
+                + subject_id
             }
         ]
         job_def.notifications = notif

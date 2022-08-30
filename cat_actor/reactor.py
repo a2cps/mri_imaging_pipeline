@@ -30,7 +30,7 @@ def main() -> None:
     context=r.context  # Actor context
     print(json.dumps(context, indent=4))
     #archivePath=context.archivePath
-    subject_id=context.subject_id
+    #subject_id=context.subject_id
     filename=context.filename
     bids=context.bids
     message=context.message_dict
