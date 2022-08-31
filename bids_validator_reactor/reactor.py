@@ -100,7 +100,7 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
                 + "&status=${JOB_STATUS}" 
                 + "&bids=" + bids 
                 + "&site="+ site
-                + "&filename=" _get_output_dir(bids)
+                + "&filename=" + _get_output_dir(bids)
             }
         ]
     else:
