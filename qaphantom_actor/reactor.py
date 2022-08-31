@@ -1,15 +1,17 @@
 import json
+import pathlib
 from reactors.utils import Reactor
 
 """
 default actor to print the message from user input
 """
 
+
 def submit(ag, job_def) -> None:
     # Submit the job in a try/except block
     try:
         # Submit the job and get the job ID
-        job_id = ag.jobs.submit(body=job_def)['id']
+        job_id = ag.jobs.submit(body=job_def)["id"]
         print(job_id)
         print(json.dumps(job_def, indent=4))
     except Exception as e:
@@ -27,36 +29,21 @@ def main() -> None:
     r.logger.info(f"Hello this is actor {r.uid}")
 
     # pull in reactor context
-    context=r.context  # Actor context
+    context = r.context  # Actor context
     print(json.dumps(context, indent=4))
-    filename=context.filename
-    bids=context.bids
-    site=context.site
+    bids = pathlib.Path(context.bids)
 
-    site_codes = \
-                {
-                    "UI": "UI_uic",
-                    "NS": "NS_northshore",
-                    "UC": "UC_uchicago",
-                    "UM": "UM_umichigan",
-                    "WS": "WS_wayne_state",
-                    "SH": "SH_spectrum_health"
-                }
-    site_name = site_codes[site]
-
-    job_def=r.settings.main
-    job_def.name = 'qaPhantom_' + filename
-    # SH_spectrum_health/aa-fmri-phantom-qa/QC_SH043022QA
-    job_def.archivePath = 'products/development/mris/{}/aa-fmri-phantom-qa/{}'.format(site_name, filename)
-    parameters = job_def["parameters"]
-    parameters['BIDS'] = bids
-    parameters['OUTDIR'] = '.'
-
+    job_def = r.settings.main
+    job_def.name = f"qaphantom_{bids.name}"
+    job_def.archivePath = str(
+        bids.relative_to("/corral-secure/projects/A2CPS")
+    ).replace("/bids/", "/aa-fmri-phantom-qa/")
+    job_def["parameters"]["BIDS"] = str(bids)
 
     submit(ag=r.client, job_def=job_def)
 
     return
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()
