@@ -122,7 +122,10 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # SH20146V1 was sent with with a set of derived T1w images that included the flag "MPR"
     # in the ImageType field, presumably indicing "multi-plane reconstruction". We don't want
     # these derived images in the bids dataset
-    elif "MPR" in dcmdata.ImageType:
+    #
+    # at least some UC files that are carried along with the zip do not have the ImageType field,
+    # so we have to check for it's existence
+    elif dcmdata.__contains__("ImageType") and "MPR" in dcmdata.ImageType:
         exclude = True
 
     return exclude
