@@ -30,7 +30,7 @@ def main() -> None:
     context=r.context  # Actor context
     print(json.dumps(context, indent=4))
     #archivePath=context.archivePath
-    subject_id=context.subject_id
+    #subject_id=context.subject_id
     filename=context.filename
     bids=context.bids
     message=context.message_dict
@@ -49,7 +49,7 @@ def main() -> None:
 
     job_def=r.settings.main
     job_def.name = 'cat12_' + filename
-    job_def.archivePath = 'products/development/mris/{}/cat12/'.format(site_name)
+    job_def.archivePath = 'products/mris/{}/cat12/'.format(site_name)
     parameters = job_def["parameters"]
     parameters['BIDS'] = bids
     parameters['OUTDIR'] = filename

@@ -16,9 +16,10 @@ bids_validator:
     url: me@mail.com
 pipelines:
   fmriprep_alias: fmriprep.prod
-  api_server: https://portals-api.tacc.utexas.edu
+  api_server: https://api.a2cps.org
   mriqc_alias: mriqc.prod
   bids_validator_alias: bids-validator.prod
   vbr_actor_alias: vbr-actor.prod
   qsiprep_alias: qsiprep.prod
   cat_alias: cat.prod
+  qaphantom_alias: qaphantom.prod
