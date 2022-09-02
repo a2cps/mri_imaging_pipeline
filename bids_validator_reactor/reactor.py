@@ -163,7 +163,7 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
                 + subject_id
             }
         ]
-        job_def.notifications = notif
+    job_def.notifications = notif
 
     # Submit the job in a try/except block
     try:
