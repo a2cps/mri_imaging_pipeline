@@ -6,7 +6,7 @@ logs:
   token: ~
 
 main:
-  appId: urrutia-cat-0.0.1
+  appId: urrutia-cat-0.0.2
   name: cat_job
   archive: true
   archivePath: ''
