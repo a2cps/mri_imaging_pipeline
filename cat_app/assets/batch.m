@@ -14,3 +14,13 @@
 % INPUT FILE
 matlabbatch{1}.spm.tools.cat.estwrite.data(1) = '<UNDEFINED>';
 matlabbatch{1}.spm.tools.cat.estwrite.nproc = '<UNDEFINED>';
+
+% GM/WM/CSF/WMH
+matlabbatch{1}.spm.tools.cat.estwrite.output.GM.native = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.GM.warped = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.GM.mod = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.GM.dartel = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.WM.native = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.WM.warped = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.WM.mod = 1;
+matlabbatch{1}.spm.tools.cat.estwrite.output.WM.dartel = 1;
