@@ -6,7 +6,7 @@ logs:
   token: ~
 
 main:
-  appId: urrutia-qaphantom-0.1
+  appId: urrutia-qaphantom_app-0.1
   name: qaphantom_job
   archive: true
   archivePath: ''
