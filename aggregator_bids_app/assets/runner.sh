@@ -1,64 +1,13 @@
 #!/bin/bash
 
-. lib/container_exec.sh
-
 set -x
+OUTDIR='/corral-secure/projects/A2CPS/products/mris/all_sites/bids'
+INROOT="/corral-secure/projects/A2CPS/products/mris"
 
 date
-
-[[ ! -d "${OUTDIR}" ]] && mkdir -p "${OUTDIR}"
-
-# allows running when SUBLONG is specified with job.json, and if not 
-# defaulting to updated list of participants for which bids_validation == 1
-if [[ -z "${SUBLONG}" ]]; then
-  # assumes that bids_validation is column 19 in this file
-  readarray -t SUBSLONG < <(awk -F ',' '{ if ($19 == 1)  print $1$2$3 }' "${CSV}")
-else
-  read -ra SUBSLONG <<< "${SUBLONG}"
-fi
-
-for s in "${SUBSLONG[@]}"; do
-  site=${s:0:2}
-  case ${site} in
-    NS)
-      sitelong=NS_northshore
-      ;;
-    UI)
-      sitelong=UI_uic
-      ;;
-    UM)
-      sitelong=UM_umichigan
-      ;;
-    UC)
-      sitelong=UC_uchicago
-      ;;
-    WS)
-      sitelong=WS_wayne_state
-      ;;
-    SH)
-      sitelong=SH_spectrum_health
-      ;;
-  esac
-
-  sub=${s:2:5}  
-  in_sub_dir="${INROOT}/${sitelong}/bids/${s}"
-
-  cp -sRu "${in_sub_dir}/sub-${sub}" "${OUTDIR}/"
-    
-  # singularity exec \
-  #   --cleanenv \
-  #   -B "${INROOT}":"${INROOT}":ro \
-  #   -B "${OUTDIR}":"${OUTDIR}" \
-  #   docker://"${CONTAINER_IMAGE}" \
-  #   python update_participants.py "${OUTDIR}/participants.tsv" "${in_sub_dir}/participants.tsv" "${site}"
-
-done
-
-# extra files required to make valid BIDS dataset
-# these are placeholders only and don't contain relevant information
-echo symlinked > "${OUTDIR}/README"
-cp dataset_description.json "${OUTDIR}"
-cat bids_ignore >> "${OUTDIR}"/.bidsignore
-
-# delete broken symlinks (e.g., files created by previous run of heudiconv that no longer exist)
-find "${OUTDIR}" -xtype l -delete
+source /corral-secure/projects/A2CPS/system/cronjob/virtual_bids/venv/bin/activate
+cd /corral-secure/projects/A2CPS/system/cronjob/virtual_bids/
+export 
+LD_LIBRARY_PATH=/opt/apps/cuda/10.0/lib64:/opt/apps/hwloc/1.11.12/lib:/opt/apps/pmix/3.1.4/lib:/opt/apps/intel19/python3/3.7.0/lib:/opt/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/lib:/opt/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib/release:/opt/intel/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib:/opt/intel/debugger_2020/libipt/intel64/lib:/opt/intel/compilers_and_libraries_2020.1.217/linux/daal/lib/intel64_lin:/opt/intel/compilers_and_libraries_2020.1.217/linux/tbb/lib/intel64_lin/gcc4.8:/opt/intel/compilers_and_libraries_2020.1.217/linux/mkl/lib/intel64_lin:/opt/intel/compilers_and_libraries_2020.1.217/linux/ipp/lib/intel64:/opt/intel/compilers_and_libraries_2020.1.217/linux/compiler/lib/intel64_lin:/opt/apps/gcc/8.3.0/lib64:/opt/apps/gcc/8.3.0/lib
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/apps/intel19/python3/3.9.2/lib/
+/corral-secure/projects/A2CPS/system/cronjob/virtual_bids/venv/bin/python /corral-secure/projects/A2CPS/system/cronjob/virtual_bids/make_dataset.py "${OUTDIR}" --inroot "${INROOT}"
