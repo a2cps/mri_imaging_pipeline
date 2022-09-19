@@ -41,7 +41,7 @@ def main(
     lines = []
     for t, (t1w, logdir) in enumerate(zip(nifti, outdir)):
         lines.append(
-            f"singularity exec -B {bind_dir}:{bind_dir} --cleanenv  {container} /bin/cat_standalone.sh -b {batch} -a1 {a1} {t1w} > {logdir}/{t}.out 2> {logdir}/{t}.err"
+            f"singularity run -B {bind_dir}:{bind_dir} --cleanenv  {container} -b {batch} -a1 {a1} {t1w} > {logdir}/{t}.out 2> {logdir}/{t}.err"
         )
     launchfile.write_text("\n".join(lines) + "\n")
 
