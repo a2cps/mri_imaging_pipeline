@@ -6,13 +6,13 @@ logs:
   token: ~
 
 main:
-  appId: urrutia-aggregator_phantom-0.1
+  appId: urrutia-aggregator_phantom_app-0.1
   name: aggregator_phantom_job
   archive: false
   archivePath: ''
   maxRunTime: "01:00:00"
   parameters:
     OUTDIR: "/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids"
-    INDIR: "/corral-secure/projects/A2CPS/products/mris"
+    INROOT: "/corral-secure/projects/A2CPS/products/mris"
     BIND_DIR: "/corral-secure/projects/A2CPS"
     
