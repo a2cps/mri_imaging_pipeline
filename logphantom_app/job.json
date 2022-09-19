@@ -1,0 +1,12 @@
+{
+  "name": "{{ app.name }}-test",
+  "appId": "{{ agave.username }}-{{ app.name }}-{{ app.version}}",
+  "archive": false,
+  "batchQueue": "normal",
+  "maxRunTime": "01:00:00",
+  "parameters": { 
+      "BIND_DIR": "/corral-secure/projects/A2CPS",
+      "PRODUCTS": "/corral-secure/projects/A2CPS/products/mris",
+      "POST": true
+  }
+}

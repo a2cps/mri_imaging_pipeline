@@ -11,6 +11,9 @@ if [[ ! "${#ins[@]}" == "${#outs[@]}" ]]; then
         exit 1
 fi
 
+# run once to confirm that the image has been cached (otherwise, may be downloaded by each job)
+singularity run --cleanenv "${CONTAINER_IMAGE}" --help
+
 # write launcher file
 echo python3 make_launcher.py  --launchfile "${LAUNCHER_JOB_FILE}" \
     "${BIND_DIR}" "${CONTAINER_IMAGE}" "${BATCH}" --bidsdir "${ins[@]}" --a1 "${A1}" --outdir "${outs[@]}"
