@@ -1,8 +1,8 @@
 import os
 import pathlib
-from typing import Tuple
+from typing import Tuple, Literal
 
-import zipfile38 as zipfile
+import zipfile
 from shutil import copyfile, copytree, make_archive, rmtree
 import requests
 import sys
@@ -17,22 +17,6 @@ SITE_CODES = {
     "UM": "UM_umichigan",
     "WS": "WS_wayne_state",
     "SH": "SH_spectrum_health",
-}
-
-# for phantom scans, the sites do not reliably encode their id in either the
-# dicom PatientName (see: UM) or the filename (see: UI), and unlike with patient scans there is
-# no external source of truth. So, site code is read based on the submission folder (fortunately,
-# sites can only upload to their own folder).
-#
-# this is not done for patient scans, as the site id *should* be in the PatientName field
-SUBMISSION_SITE = {
-    "a2dtn01": "UI",
-    "UC_uchicago": "UC",
-    "UM_umichigan": "UM",
-    "NS_northshore": "NS",
-    "SH_spectrum_health_grand_rapids": "SH",
-    "SH_spectrum_health": "SH",  # helps to have this when testing on files stored in products
-    "WS_wayne_state": "WS",
 }
 
 
@@ -70,7 +54,7 @@ def message_heudiconv(message):
     return data
 
 
-def test_zip(filename):
+def test_zip(filename: str) -> bool:
     try:
         zipfile.ZipFile(filename).testzip()
         return True
@@ -79,14 +63,12 @@ def test_zip(filename):
         return False
 
 
-def find_dicom(filename, isZip):
+def find_dicom(filename: str, isZip: bool) -> str:
     # Find first zip dicom
-    if isZip is True:
+    if isZip:
         site_zip = zipfile.ZipFile(filename)
-        for listing in site_zip.filelist:
-            if zipfile.Path.is_file(
-                listing
-            ):  # and 'DICOMDIR' not in listing.orig_filename
+        for listing in site_zip.infolist():
+            if not listing.is_dir():  # and 'DICOMDIR' not in listing.orig_filename
                 break
         dicom_file = site_zip.extract(listing)
         return dicom_file
@@ -96,6 +78,26 @@ def find_dicom(filename, isZip):
             dicom_file = root + "/" + files[0]
             print(dicom_file)
             return dicom_file
+
+
+def get_site_from_zipfile(
+    zipfile: pathlib.Path,
+) -> Literal["UI", "NS", "UC", "UM", "WS", "SH"]:
+
+    SUBMISSION_SITE = {
+        "a2dtn01": "UI",
+        "UI_uic": "UI",  # helps to have this when testing on files stored in products
+        "UC_uchicago": "UC",
+        "UM_umichigan": "UM",
+        "NS_northshore": "NS",
+        "SH_spectrum_health_grand_rapids": "SH",
+        "SH_spectrum_health": "SH",  # helps to have this when testing on files stored in products
+        "WS_wayne_state": "WS",
+    }
+
+    return SUBMISSION_SITE.get(
+        [key for key in SUBMISSION_SITE.keys() if key in str(zipfile.absolute())][0]
+    )
 
 
 def read_dicom_metadata(
@@ -119,11 +121,14 @@ def read_dicom_metadata(
         # but this has not been enforced and so patient name is very unreliable.
         # moreover, when building the bids dataset, the subject id is based on the site
         # and the session is based on the acquisition date (and for better sorting the ses is yymmdd
-        site_id = SUBMISSION_SITE[
-            re.search("|".join(SUBMISSION_SITE.keys()), str(zipfile.absolute())).group(
-                0
-            )
-        ]
+
+        # for phantom scans, the sites do not reliably encode their id in either the
+        # dicom PatientName (see: UM) or the filename (see: UI), and unlike with patient scans there is
+        # no external source of truth. So, site code is read based on the submission folder (fortunately,
+        # sites can only upload to their own folder).
+        #
+        # this is not done for patient scans, as the site id *should* be in their PatientName field
+        site_id = get_site_from_zipfile(zipfile=zipfile)
         subject_id = f"{site_id.lower()}phantom"
         session_id = extract_phantom_date(dicom_file)
         output_path = determine_output_path(
@@ -143,7 +148,8 @@ def read_dicom_metadata(
 def determine_output_path(
     site_id: str, subject_id: str, session_id: str, qc: str = ""
 ) -> str:
-    base_path = "/corral-secure/projects/A2CPS/products/mris/"
+    base_path = "/corral-secure/projects/A2CPS/shared/psadil/products/mris"
+    # base_path = "/corral-secure/projects/A2CPS/products/mris/"
     # if it's not a qc scan, the qc object is an empty string
     output_path = (
         base_path
