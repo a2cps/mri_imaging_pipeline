@@ -148,8 +148,7 @@ def read_dicom_metadata(
 def determine_output_path(
     site_id: str, subject_id: str, session_id: str, qc: str = ""
 ) -> str:
-    base_path = "/corral-secure/projects/A2CPS/shared/psadil/products/mris"
-    # base_path = "/corral-secure/projects/A2CPS/products/mris/"
+    base_path = "/corral-secure/projects/A2CPS/products/mris/"
     # if it's not a qc scan, the qc object is an empty string
     output_path = (
         base_path
