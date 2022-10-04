@@ -6,14 +6,14 @@ logs:
   token: ~
 
 main:
-  appId: urrutia-logphantom-0.1
+  appId: urrutia-logphantom_app-0.1
   name: logphantom_job
   archive: false
   archivePath: ''
   maxRunTime: "01:00:00"
   parameters:
-    BIDS: "/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids"
     BIND_DIR: "/corral-secure/projects/A2CPS"
     PRODUCTS: "/corral-secure/projects/A2CPS/products/mris"
-    POST: "--post"
+    POST: True
+    URL: "/corral-secure/projects/A2CPS/products/development/mris/all_sites/phantom_db/phantom.db"
     
