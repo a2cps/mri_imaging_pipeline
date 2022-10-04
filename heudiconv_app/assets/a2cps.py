@@ -73,6 +73,8 @@ protocols2fix.update(
             ("^Ax.*GRE.*", "anat-T1w"),
             ("^fMRI QA$", "func_task-rest"),
             ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1"),
+            # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
+            ("t1spgr_208sl", "anat-T1w"),
         ],
     }
 )
