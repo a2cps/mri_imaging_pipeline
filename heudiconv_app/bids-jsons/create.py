@@ -77,7 +77,7 @@ keep_list = [
     "dcmmeta_version",
 ]
 
-root = os.path.join("/home/psadil/git/a2cps/mri_imaging_pipeline/heudiconv_app")
+root = os.path.realpath(os.path.join(os.path.dirname(__file__), ".."))
 bak = os.path.join(root, "bids-jsons")
 
 jsons = glob(os.path.join(bak, "*json"))
