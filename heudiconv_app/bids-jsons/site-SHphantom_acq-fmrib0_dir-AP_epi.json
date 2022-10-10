@@ -48,7 +48,7 @@
   "ProtocolName": "fMRI_B0_AP",
   "PulseSequenceDetails": "%SiemensSeq%\\ep2d_diff",
   "ReceiveCoilActiveElements": "HE1-4;NE1,2",
-  "ReceiveCoilName": "HeadNeck_20",
+  "ReceiveCoilName": "HeadNeck_64",
   "ReconMatrixPE": 90,
   "RepetitionTime": 7.1,
   "SAR": 0.0681445,

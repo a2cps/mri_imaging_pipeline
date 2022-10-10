@@ -77,6 +77,7 @@ def create_dwi_b0(dwi_b0_file, dwi_file):
 
     # most GE scanners give b0 images with 8 volumes (4D image)
     # second UM scanner gives just a single volume (only 3D image)
+    # after upgrade, UM1 scanner matches UM2
     if len(b0_imgs.shape) == 4:
         AP = index_img(b0_imgs, [0, 1])
         PA = index_img(dwi_imgs, [0, 1])

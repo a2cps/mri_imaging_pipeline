@@ -18,8 +18,7 @@
     "ORIGINAL",
     "PRIMARY",
     "M",
-    "ND",
-    "NORM"
+    "ND"
 ],
   "ImagingFrequency": 123.234,
   "InPlanePhaseEncodingDirectionDICOM": "ROW",
@@ -94,8 +93,7 @@
         "ORIGINAL",
         "PRIMARY",
         "M",
-        "ND",
-        "NORM"
+        "ND"
 ],
       "ImagedNucleus": "1H",
       "ImagingFrequency": 123.23419,
