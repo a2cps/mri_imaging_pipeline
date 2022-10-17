@@ -54,8 +54,8 @@ singularity exec \
         ${BIDS_FILTER_FILE} ${FS_NO_RECONALL} ${FS_SUBJECTS_DIR} ${SKIP_BIDS_VALIDATION} \
         --fs-license-file /opt/freesurfer_license/license.txt
 
-if [[ $(grep -q "fMRIPrep finished successfully" ./*out) == 0 ]]; then
-        exit 0
+if [[ -n $(grep "fMRIPrep finished successfully" ./*out) ]]; then
+    exit 0
 else
-        exit 1
+    exit 1
 fi
