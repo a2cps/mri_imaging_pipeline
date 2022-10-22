@@ -64,10 +64,10 @@ protocols2fix.update(
             ("^Cuff([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
             # phantom scan heuristics
             # anat should grab one that has ORIG
-            (".*(anat-T1w)_acq-GRE$", r"\1"),
+            (".*(anat-T1w)[-_]acq[-_]GRE$", r"\1"),
             # also expect ORIG in some DWI (and sometimes also a suffix )
             (".*(b[12]000).*", r"dwi-dwi_acq-\1"),
-            ("func-bold_acq-QA", "func_task-rest"),
+            ("func[-_]bold[-_]acq[-_]QA", "func_task-rest"),
             # WS/UI had some atypical names early on
             ("REST1_17DSV", "func_task-rest"),
             ("^Ax.*GRE.*", "anat-T1w"),
@@ -75,9 +75,11 @@ protocols2fix.update(
             ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1"),
             # UM (ABCD) phantom heuristics
             ("ORIG: MB_Diffusion_QA", "dwi"),  # b3000
-            ("MB_fMRI_QA", "func_task-rest"),
+            ("MB_fMRI_QA", "func_task-rest_acq-mb"),
             ("Standard_fBIRN_QA", "func_task-rest_acq-fBIRN"),
             ("Coil_QA", "anat-T1w"),
+            # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
+            ("t1spgr_208sl", "anat-T1w"),
         ],
     }
 )
@@ -127,7 +129,13 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # SH20146V1 was sent with with a set of derived T1w images that included the flag "MPR"
     # in the ImageType field, presumably indicing "multi-plane reconstruction". We don't want
     # these derived images in the bids dataset
-    elif "MPR" in dcmdata.ImageType:
+    #
+    # at least some UC files that are carried along with the zip do not have the ImageType field,
+    # so we have to check for it's existence
+    elif dcmdata.__contains__("ImageType") and "MPR" in dcmdata.ImageType:
+        exclude = True
+    # SH sends derived dwi phantom scans. the following excludes those
+    elif any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]):
         exclude = True
 
     return exclude

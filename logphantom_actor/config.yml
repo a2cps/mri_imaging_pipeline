@@ -1,0 +1,19 @@
+---
+debug: false
+
+logs:
+  level: DEBUG
+  token: ~
+
+main:
+  appId: urrutia-logphantom_app-0.1
+  name: logphantom_job
+  archive: false
+  archivePath: ''
+  maxRunTime: "01:00:00"
+  parameters:
+    BIND_DIR: "/corral-secure/projects/A2CPS"
+    PRODUCTS: "/corral-secure/projects/A2CPS/products/mris"
+    POST: True
+    URL: "/corral-secure/projects/A2CPS/products/development/mris/all_sites/phantom_db/phantom.db"
+    

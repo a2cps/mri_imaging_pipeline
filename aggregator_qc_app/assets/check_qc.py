@@ -257,7 +257,7 @@ def gather_motion(
                 confounds.append(
                     pd.DataFrame(
                         {
-                            "bids_name": bids_name_raw[0:-1] + "0" + bids_name_raw[-1],
+                            "bids_name": bids_name_raw[0:-1] + "0" + bids_name_raw[-1] + "_bold",
                             "fd_mean": rmsd.mean(),
                             "fd_max": rmsd.max(),
                             "fd_perc": np.mean(rmsd.to_numpy() > TASK_THRESH[task]),

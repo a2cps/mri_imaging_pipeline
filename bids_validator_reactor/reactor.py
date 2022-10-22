@@ -96,7 +96,11 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
             {
                 "event": "FINISHED",
                 "persistent": False,
-                "url": qaphantom_callback + "&status=${JOB_STATUS}" + "&bids=" + bids,
+                "url": qaphantom_callback 
+                + "&status=${JOB_STATUS}" 
+                + "&bids=" + bids 
+                + "&site="+ site
+                + "&filename=" + _get_output_dir(bids)
             }
         ]
     else:
@@ -152,10 +156,14 @@ def submit_bids_validate(r, bids, filename, subject_id, site):
                 + "&bids="
                 + bids
                 + "&filename="
-                + _get_output_dir(bids),
-            },
+                + _get_output_dir(bids)
+                + "&site="
+                + site
+                + "&subject_id="
+                + subject_id
+            }
         ]
-        job_def.notifications = notif
+    job_def.notifications = notif
 
     # Submit the job in a try/except block
     try:
