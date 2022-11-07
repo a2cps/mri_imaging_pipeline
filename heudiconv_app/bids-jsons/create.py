@@ -100,12 +100,14 @@ for j in jsons:
         suffix = re.findall("_(dwi|bold|T1w|epi)\.", j)[0]
         d["suffix"] = suffix
         if suffix == "bold":
+            if acq := re.findall("(?<=acq-)[a-zA-Z]+", j):
+                d["acq"] = acq[0]
             d["task"] = re.findall("task-(rest|cuff)", j)[0]
         elif suffix == "epi":
             d["acq"] = re.findall("acq-(dwib0|fmrib0)", j)[0]
             d["dir"] = re.findall("(?<=dir-)(AP|PA)", j)[0]
         elif suffix == "dwi":
-            if phantom:
+            if phantom and (not scanner == "UM2"):
                 acq = re.findall("acq-(b1000|b2000)", j)[0]
                 d["acq"] = acq
                 d["bval"] = [
@@ -114,6 +116,10 @@ for j in jsons:
                 d["bvec"] = [
                     np.genfromtxt(f"site-{scanner}phantom_acq-{acq}_dwi.bvec").tolist()
                 ]
+            elif phantom and scanner == "UM2":
+                d["bval"] = [np.genfromtxt(f"site-{scanner}phantom_dwi.bval").tolist()]
+                d["bvec"] = [np.genfromtxt(f"site-{scanner}phantom_dwi.bvec").tolist()]
+
             else:
                 d["bval"] = [np.genfromtxt(f"site-{scanner}_dwi.bval").tolist()]
                 d["bvec"] = [np.genfromtxt(f"site-{scanner}_dwi.bvec").tolist()]

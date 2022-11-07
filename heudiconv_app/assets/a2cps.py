@@ -73,6 +73,11 @@ protocols2fix.update(
             ("^Ax.*GRE.*", "anat-T1w"),
             ("^fMRI QA$", "func_task-rest"),
             ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1"),
+            # UM (ABCD) phantom heuristics
+            ("ORIG: MB_Diffusion_QA", "dwi"),  # b3000
+            ("MB_fMRI_QA", "func_task-rest_acq-mb"),
+            ("Standard_fBIRN_QA", "func_task-rest_acq-fBIRN"),
+            ("Coil_QA", "anat-T1w"),
             # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
             ("t1spgr_208sl", "anat-T1w"),
         ],
