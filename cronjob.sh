@@ -31,7 +31,7 @@ function skip_file() {
 # most received DICOMs follow this pattern
 #zips=("$indir"/*/*.zip)
 zips=()
-for site in NS_northshore UC_uchicago UM_umichigan SH_spectrum_health WS_wayne_state; do
+for site in NS_northshore UC_uchicago UM_umichigan SH_spectrum_health_grand_rapids WS_wayne_state; do
   zips+=("${indir}"/${site}/*zip)
 done
 # but WS sends two sets of phantom dicoms:
