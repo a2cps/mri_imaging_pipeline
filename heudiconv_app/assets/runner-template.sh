@@ -32,69 +32,104 @@ if [[ ${SITE} == UM ]]; then
   fi
 fi
 
-if [[ ${SITE} == UC ]]; then
+case "${SITE}" in
+  UC) 
+    echo singularity run \
+      --cleanenv \
+      --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      heudiconv \
+      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+      ${LIST_OF_SUBJECTS} \
+      ${CONVERTER} \
+      --outdir ${OUTDIR} \
+      ${LOCATOR} ${ANON_CMD} \
+      ${HEURISTIC} \
+      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+      ${DATALAD} ${DCMCONFIG}
 
-  echo singularity exec \
-    --cleanenv \
-    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+    singularity run \
+      --cleanenv \
+      --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      heudiconv \
+      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+      ${LIST_OF_SUBJECTS} \
+      ${CONVERTER} \
+      --outdir ${OUTDIR} \
+      ${LOCATOR} ${ANON_CMD} \
+      ${HEURISTIC} \
+      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+      ${DATALAD} ${DCMCONFIG}
+    ;;
 
-  singularity exec \
-    --cleanenv \
-    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+  SH)
+    echo singularity run \
+      --cleanenv \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      heudiconv \
+      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+      ${LIST_OF_SUBJECTS} \
+      ${CONVERTER} \
+      --outdir ${OUTDIR} \
+      --minmeta \
+      ${LOCATOR} ${ANON_CMD} \
+      ${HEURISTIC} \
+      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+      ${DATALAD} ${DCMCONFIG}
 
-else
+    singularity run \
+      --cleanenv \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      heudiconv \
+      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+      ${LIST_OF_SUBJECTS} \
+      ${CONVERTER} \
+      --outdir ${OUTDIR} \
+      --minmeta \
+      ${LOCATOR} ${ANON_CMD} \
+      ${HEURISTIC} \
+      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+      ${DATALAD} ${DCMCONFIG}
+    ;;
 
-  echo singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+  *)
+    echo singularity run \
+      --cleanenv \
+      --env PREPEND_PATH=/opt/dcm2niix-v1.0.20211006/bin \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      heudiconv \
+      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+      ${LIST_OF_SUBJECTS} \
+      ${CONVERTER} \
+      --outdir ${OUTDIR} \
+      ${LOCATOR} ${ANON_CMD} \
+      ${HEURISTIC} \
+      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+      ${DATALAD} ${DCMCONFIG}
 
-  singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+    singularity run \
+      --cleanenv \
+      --env PREPEND_PATH=/opt/dcm2niix-v1.0.20211006/bin \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      heudiconv \
+      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+      ${LIST_OF_SUBJECTS} \
+      ${CONVERTER} \
+      --outdir ${OUTDIR} \
+      ${LOCATOR} ${ANON_CMD} \
+      ${HEURISTIC} \
+      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+      ${DATALAD} ${DCMCONFIG}
+    ;;
+esac
 
-fi
 
 # Remove local dicom directory
 rm -rf ${LOCAL_DICOM}
@@ -108,7 +143,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   case "${SITE}" in
     NS) 
       # dcm2niix generates several extra scans, derivatives from NS.
-      singularity exec --cleanenv \
+      singularity run --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} \
         python3 clean_nsphantom.py "${OUTDIR}"
@@ -121,7 +156,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       ;;
     WS)
       # heuristic can result in run-1 tag, unlike all other sites
-      singularity exec --cleanenv \
+      singularity run --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} \
         python3 clean_wsphantom.py "${OUTDIR}"
@@ -156,12 +191,12 @@ fi
 if [[ "${PHANTOM}" == "--no-phantom" ]]; then
   case "${SITE}" in
     UI | UM)
-      echo singularity exec \
+      echo singularity run \
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
 
-      singularity exec \
+      singularity run \
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
@@ -178,12 +213,12 @@ else
   # should be (and it's not clear that these values will be helpful)
 fi
 
-echo singularity exec \
+echo singularity run \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
 
-singularity exec \
+singularity run \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
@@ -198,7 +233,7 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
   # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
   # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
   # be divided by whether we're dealing with a phantom scan or not.
-  singularity exec \
+  singularity run \
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
