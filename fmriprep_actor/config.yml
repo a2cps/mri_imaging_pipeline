@@ -4,7 +4,7 @@ logs:
   token: ~
 cuff:
   appId: urrutia-fmriprep_LTS-20.2.3
-  maxRunTime: "22:59:00"
+  maxRunTime: "32:59:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.3
   name: name
@@ -32,7 +32,7 @@ cuff:
 rest:
   appId: urrutia-fmriprep_LTS-20.2.3
   name: name
-  maxRunTime: "22:59:00"
+  maxRunTime: "32:59:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.3
   parameters:
@@ -58,7 +58,7 @@ rest:
       url: your@email.com
 anat:
   appId: urrutia-fmriprep_LTS-20.2.3
-  maxRunTime: "22:59:00"
+  maxRunTime: "32:59:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.3
   name: name

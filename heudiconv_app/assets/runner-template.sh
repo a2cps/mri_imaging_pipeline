@@ -208,9 +208,22 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
     ;;
   esac
 else
-  echo "INFO: phantom scan detected. not creating fieldmaps and not replacing bvals/bvecs"
-  # NOTE: not current replacing bvals/bvecs for phantom scans as we don't know what they 
-  # should be (and it's not clear that these values will be helpful)
+  case "${SITE}" in
+    UI | UM)
+      echo "INFO: phantom scan detected. not creating fieldmaps and not replacing bvals/bvecs"
+      # NOTE: not replacing bvals/bvecs for phantom scans because we don't know what they 
+      # should be (and it's not clear that these values will be helpful)
+    ;;    
+  esac
+  case "${SITE}" in
+    UM)
+      echo "overwritting coil_QA with final volume"
+      singularity exec \
+        --cleanenv \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://${CONTAINER_IMAGE} python3 index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
+    ;;
+  esac
 fi
 
 echo singularity run \

@@ -281,7 +281,7 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
     for scan in layout.get(suffix="dwi", extension="nii.gz", return_type="file"):
         # phantom scans have the DWI split into acq-b1000 and acq-b2000, but there is no
         # acq tag in typical patient scans
-        if phantom:
+        if phantom and (not site == "UM2"):
             acq = re.findall("acq-(b1000|b2000)", scan)
             if len(acq) > 0:
                 query = "suffix == 'dwi' & acq == @acq"
@@ -330,10 +330,14 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
 
     for task in ["rest", "cuff"]:
         for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
+            if acq := re.findall("(?<=acq-)[a-zA-Z]+", scan):
+                query = "suffix == 'bold' & task == @task & acq == @acq"
+            else:
+                query = "suffix == 'bold' & task == @task"
             ok *= compare(
                 layout,
                 scan,
-                reference.query("suffix == 'bold' & task == @task").copy(),
+                reference.query(query).copy(),
                 post=post,
             )
 
