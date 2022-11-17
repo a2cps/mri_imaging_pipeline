@@ -36,97 +36,116 @@ case "${SITE}" in
   UC) 
     echo singularity run \
       --cleanenv \
-      --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+      --env ENV_NAME=UC \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} \
-      heudiconv \
-      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-      ${LIST_OF_SUBJECTS} \
-      ${CONVERTER} \
-      --outdir ${OUTDIR} \
-      ${LOCATOR} ${ANON_CMD} \
-      ${HEURISTIC} \
-      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-      ${DATALAD} ${DCMCONFIG}
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
+      
 
     singularity run \
       --cleanenv \
-      --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
+      --env ENV_NAME=UC \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} \
-      heudiconv \
-      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-      ${LIST_OF_SUBJECTS} \
-      ${CONVERTER} \
-      --outdir ${OUTDIR} \
-      ${LOCATOR} ${ANON_CMD} \
-      ${HEURISTIC} \
-      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-      ${DATALAD} ${DCMCONFIG}
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
     ;;
 
   SH)
     echo singularity run \
       --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} \
-      heudiconv \
-      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-      ${LIST_OF_SUBJECTS} \
-      ${CONVERTER} \
-      --outdir ${OUTDIR} \
-      --minmeta \
-      ${LOCATOR} ${ANON_CMD} \
-      ${HEURISTIC} \
-      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-      ${DATALAD} ${DCMCONFIG}
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
 
     singularity run \
       --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} \
-      heudiconv \
-      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-      ${LIST_OF_SUBJECTS} \
-      ${CONVERTER} \
-      --outdir ${OUTDIR} \
-      --minmeta \
-      ${LOCATOR} ${ANON_CMD} \
-      ${HEURISTIC} \
-      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-      ${DATALAD} ${DCMCONFIG}
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
     ;;
 
   *)
     echo singularity run \
       --cleanenv \
-      --env PREPEND_PATH=/opt/dcm2niix-v1.0.20211006/bin \
+      --env ENV_NAME=v1.0.20211006 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} \
-      heudiconv \
-      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-      ${LIST_OF_SUBJECTS} \
-      ${CONVERTER} \
-      --outdir ${OUTDIR} \
-      ${LOCATOR} ${ANON_CMD} \
-      ${HEURISTIC} \
-      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-      ${DATALAD} ${DCMCONFIG}
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
 
     singularity run \
       --cleanenv \
-      --env PREPEND_PATH=/opt/dcm2niix-v1.0.20211006/bin \
+      --env ENV_NAME=v1.0.20211006 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://${CONTAINER_IMAGE} \
-      heudiconv \
-      ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-      ${LIST_OF_SUBJECTS} \
-      ${CONVERTER} \
-      --outdir ${OUTDIR} \
-      ${LOCATOR} ${ANON_CMD} \
-      ${HEURISTIC} \
-      ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-      ${DATALAD} ${DCMCONFIG}
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
     ;;
 esac
 
@@ -143,10 +162,12 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   case "${SITE}" in
     NS) 
       # dcm2niix generates several extra scans, derivatives from NS.
-      singularity run --cleanenv \
+      singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} \
-        python3 clean_nsphantom.py "${OUTDIR}"
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python clean_nsphantom.py ${OUTDIR}
+        "
       ;;
     UC)
       # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
@@ -156,10 +177,12 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       ;;
     WS)
       # heuristic can result in run-1 tag, unlike all other sites
-      singularity run --cleanenv \
+      singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} \
-        python3 clean_wsphantom.py "${OUTDIR}"
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python clean_wsphantom.py ${OUTDIR}
+        "
       ;;
   esac
   else
@@ -193,13 +216,21 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
     UI | UM)
       echo singularity run \
         --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+        docker://${CONTAINER_IMAGE} \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
+          "
 
       singularity run \
         --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+        docker://${CONTAINER_IMAGE} \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
+          "
 
       # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
       echo "Replacing correct bval and bvec files..."
@@ -220,21 +251,33 @@ else
       echo "overwritting coil_QA with final volume"
       singularity exec \
         --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} python3 index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
+        docker://${CONTAINER_IMAGE} \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python index_coilqa.py ${OUTDIR}/sub-umphantom/ses*/anat/*T1w.nii.gz
+          "
     ;;
   esac
 fi
 
 echo singularity run \
   --cleanenv \
+  --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
+  docker://${CONTAINER_IMAGE} \
+    bash -c "
+      source /usr/local/bin/_activate_current_env.sh && python edit_json.py ${OUTDIR}
+      "
 
 singularity run \
   --cleanenv \
+  --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
+  docker://${CONTAINER_IMAGE} \
+    bash -c "
+      source /usr/local/bin/_activate_current_env.sh && python edit_json.py ${OUTDIR}
+      "
 
 
 # resting state scans do not require events files (there are no events)
@@ -248,8 +291,13 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
   # be divided by whether we're dealing with a phantom scan or not.
   singularity run \
     --cleanenv \
+    --env ENV_NAME=v1.0.20211006 \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
+    docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+          && python check_acq.py ${OUTDIR} ${SITE} ${PHANTOM} ${POST}
+        "
 else
   echo "Skipping check of jsons"
 fi
