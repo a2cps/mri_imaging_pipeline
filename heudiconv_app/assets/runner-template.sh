@@ -3,17 +3,6 @@
 # Import Agave runtime extensions
 . _lib/extend-runtime.sh
 
-# Allow CONTAINER_IMAGE over-ride via local file
-if [ -z "${CONTAINER_IMAGE}" ]; then
-    if [ -f "./_lib/CONTAINER_IMAGE" ]; then
-        CONTAINER_IMAGE=$(cat ./_lib/CONTAINER_IMAGE)
-    fi
-    if [ -z "${CONTAINER_IMAGE}" ]; then
-        echo "CONTAINER_IMAGE was not set via the app or CONTAINER_IMAGE file"
-        CONTAINER_IMAGE="jurrutia/ubuntu17"
-    fi
-fi
-
 # Unzip dicoms locally 
 LOCAL_DICOM=$(basename ${FILES})
 # remove zip suffix
@@ -302,3 +291,9 @@ else
   echo "Skipping check of jsons"
 fi
 
+# end with check of newly created directory. if the output is not valid, the job will fail
+singularity run \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
+  --env ENV_NAME=v1.0.20220720 \
+  docker://${CONTAINER_IMAGE} bids-validator --ignoreWarnings "${OUTDIR}"
+  
