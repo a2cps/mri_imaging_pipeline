@@ -33,10 +33,10 @@ def post_notification(notification: str, post: bool = False):
 
 
 def remove_translation(meta: dict) -> dict:
-    affine = meta.get("dcmmeta_affine")
-    if affine:
+    if (affine := meta.get("dcmmeta_affine")) is not None:
         for i, row in enumerate(affine):
             meta["dcmmeta_affine"][i] = row[0:-1]
+
     return meta
 
 
@@ -195,6 +195,7 @@ def compare(
                 {key: observed[key] for key in params if js_goal.__contains__(key)},
                 math_epsilon=epsilon,
                 ignore_numeric_type_changes=True,
+                ignore_type_subclasses=True,
             )
             if dd1:
                 ok = False
@@ -216,6 +217,7 @@ def compare(
             if key not in list(chain(*FLOATING_PARAMS.values()))
         },
         ignore_numeric_type_changes=True,
+        ignore_type_subclasses=True,
     )
 
     if dd2:
