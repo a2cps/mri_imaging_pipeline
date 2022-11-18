@@ -81,7 +81,7 @@ case "${SITE}" in
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
-          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
           --outdir ${OUTDIR} \
@@ -99,7 +99,7 @@ case "${SITE}" in
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
-          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
           --outdir ${OUTDIR} \
