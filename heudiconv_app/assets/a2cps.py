@@ -7,9 +7,14 @@ from heudiconv.heuristics.reproin import *
 
 protocols2fix.update(
     {
-        "": [  # for any study given.  Needs recent heudiconv
-            # All those come untested!
+        "": [
             # regular expression, what to replace with
+            # At the start of data collection, repeated scans were marked _R#
+            # (e.g., T1_MPRAGE_R1 is the first repeat of T1).
+            # for any scan that has a repeat suffix (e.g., _R2), strip the suffix
+            # this lets them be marked as duplicates, which can then be deleted after heudiconv
+            # (they'll end with a suffix _dup)
+            ("(.*)([_\s]R[1-9]*)$", r"\1"),
             ("AAHead_Scout_.*", "anat-scout"),
             ("^dti_.*", "dwi"),
             ("^space_top_distortion_corr.*_([ap]+)_([12])", r"fmap-epi_dir-\1_run-\2"),
@@ -30,11 +35,7 @@ protocols2fix.update(
             # ('^research/ABCD/epi_pepolar', 'fmap-epi_run-1'),
             # ('^research/ABCD/muxepi$', 'func_task-unk_run-unk'),
             ("^3Plane_Loc.*", "anat-scout"),
-            # At the start of data collection, repeated scans were marked _R#
-            # (e.g., T1_MPRAGE_R1 is the first repeat of T1).
-            # the following finds those files and marks them so that the reproin
-            # heuristic can mark duplicate T1w scans
-            ("^(T1[_\s])*MPRAGE([_\s]R[1-9]*)*", "anat-T1w"),
+            ("^(T1[_\s])*MPRAGE", "anat-T1w"),
             ("^GE_EPI_B0_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
             ("^GE_EPI_B0", "fmap-epi_acq-fmrib0"),
             ("^SE_EPI_B0_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),

@@ -1,4 +1,4 @@
-import os, argparse, pathlib, requests
+import os, argparse, pathlib
 import re
 import logging
 from glob import glob
@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from deepdiff import DeepDiff
 
+from utils import print_and_post
 
 # parameters to check for numerical equivalence
 FLOATING_PARAMS = {
@@ -20,16 +21,6 @@ FLOATING_PARAMS = {
     0.01: ["ImagingFrequency", "WaterFatShift"],
     0.1: ["SliceTiming", "EchoTime"],
 }
-
-
-def post_notification(notification: str, post: bool = False):
-    if post:
-        endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
-        content = requests.post(url=endpoint, json={"text": notification})
-        data = content.json()
-    else:
-        data = None
-    return data
 
 
 def remove_translation(meta: dict) -> dict:
@@ -137,11 +128,6 @@ def check_bvalsbvecs(
         ok = True
 
     return ok
-
-
-def print_and_post(notification: str, post: bool = False) -> None:
-    logging.warning(notification)
-    post_notification(notification, post=post)
 
 
 def compare(
