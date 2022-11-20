@@ -1,4 +1,6 @@
-import os, json, glob, shutil, re
+import json, shutil, re
+import typing
+import logging
 import pathlib
 from pathlib import Path
 from nilearn.image import load_img, index_img
@@ -107,7 +109,9 @@ def create_dwi_b0(dwi_b0_file, dwi_file):
     return output_AP_fname, output_PA_fname
 
 
-def rename_fmri_b0(fmri_b0_nifti: list, fmri_b0_json: list) -> None:
+def rename_fmri_b0(
+    fmri_b0_nifti: typing.Tuple[Path], fmri_b0_json: typing.Tuple[Path]
+) -> None:
     # rename from epi# to dir-ap or dir-pa based on PhaseEncodingDirection in
     # sidecar (the labels epi1 vs epi2 are not reliable)
 
@@ -136,14 +140,16 @@ def rename_fmri_b0(fmri_b0_nifti: list, fmri_b0_json: list) -> None:
                 f"PhaseEncodingDirection set to {phaseencoding}! Don't know what to do with this."
             )
 
-        name_translations.update({re.findall(r"epi\d", filename)[0]: epi_dir})
+        name_translations.update({re.findall(r"epi\d", str(filename))[0]: epi_dir})
 
     for src in fmri_b0_nifti + fmri_b0_json:
-        dst = src.replace("epi1", name_translations["epi1"]).replace(
-            "epi2", name_translations["epi2"]
+        dst = (
+            str(src)
+            .replace("epi1", name_translations["epi1"])
+            .replace("epi2", name_translations["epi2"])
         )
         print(f"renaming {src} as {dst}")
-        shutil.move(src, dst)
+        src.rename(dst)
 
 
 def edit_scansdf(scans_df: pd.DataFrame) -> pd.DataFrame:
@@ -183,59 +189,64 @@ def edit_scansdf(scans_df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def create_fieldmaps(data_path) -> None:
+def create_fieldmaps(dirs: Path) -> None:
     """
     Creates DWI fieldmaps for GE data
-    data_path: str full path of subject
-    e.g. create_fieldmaps('/home/tanmay/hacking/AC2PC/data/uic/development/UI_uic/UI_travhuman')
+    data_path: full path of subject
+    e.g. create_fieldmaps(Path('/home/tanmay/hacking/AC2PC/data/uic/development/UI_uic/UI_travhuman'))
     """
-    dirs = Path(data_path)
+    for sub_dir in dirs.glob("sub-*"):
+        for ses_dir in sub_dir.glob("ses-*"):
+            dwi_b0_file = tuple(ses_dir.glob("fmap/*dwib0*.nii.gz"))
+            dwi_file = tuple(ses_dir.glob("dwi/*dwi*.nii.gz"))
+            dwi_json_file = tuple(ses_dir.glob("dwi/*dwi*.json"))
 
-    # Accessing subject directory, removing hidden directory and sourcedata
-    sub_dir = str(Path(glob.glob(os.path.join(dirs, "sub-*"))[0]))
+            if len(dwi_b0_file) > 1 or len(dwi_file) > 1 or len(dwi_json_file) > 1:
+                raise AssertionError(
+                    f"found too many files related to DWI in {ses_dir}. Not sure how to proceed."
+                )
 
-    # Getting session name
-    sess_name = os.listdir(sub_dir)[0]  # Assuming there is only a single session
+            if len(dwi_b0_file) == 1 and len(dwi_file) == 1 and len(dwi_json_file) == 1:
+                only_dwi_file: Path = dwi_file[0]
+                only_dwi_b0_file: Path = dwi_b0_file[0]
+                only_dwi_json_file: Path = dwi_json_file[0]
+                print("Creating fieldmaps for dwi data...")
+                output_AP_fname_dwi, output_PA_fname_dwi = create_dwi_b0(
+                    only_dwi_b0_file, only_dwi_file
+                )
 
-    # Getting nifti files under fmap directory
-    dwi_b0_file = glob.glob(os.path.join(sub_dir, sess_name, "fmap", "*dwib0*.nii.gz"))
-    dwi_file = glob.glob(os.path.join(sub_dir, sess_name, "dwi", "*dwi*.nii.gz"))
+                print("Creating json files for DWI data...")
+                shutil.copyfile(
+                    only_dwi_json_file,
+                    output_AP_fname_dwi.with_suffix("").with_suffix(".json")(
+                        "nii.gz", "json"
+                    ),
+                )
+                shutil.copyfile(
+                    only_dwi_json_file,
+                    output_PA_fname_dwi.with_suffix("").with_suffix(".json")(
+                        "nii.gz", "json"
+                    ),
+                )
+                only_dwi_json_file.unlink()
+                only_dwi_b0_file.unlink()
 
-    # Getting json files under fmap directory
-    dwi_json_file = glob.glob(os.path.join(sub_dir, sess_name, "fmap", "*dwib0*.json"))
+            else:
+                logging.WARN("missing inputs needed for creating fieldmaps")
 
-    print("Creating fieldmaps for dwi data...")
-    output_AP_fname_dwi, output_PA_fname_dwi = create_dwi_b0(
-        dwi_b0_file[0], dwi_file[0]
-    )
+            fmri_b0_file = tuple(ses_dir.glob("fmap/*fmrib0_epi*.nii.gz"))
+            fmri_json_file = tuple(ses_dir.glob("fmap/*fmrib0_epi*.json"))
+            if len(fmri_b0_file) > 0:
+                print("Renaming fieldmaps for fmri data...")
+                rename_fmri_b0(fmri_b0_file, fmri_json_file)
+            else:
+                print("No fmrib0 found. Nothing to rename")
 
-    fmri_b0_file = glob.glob(
-        os.path.join(sub_dir, sess_name, "fmap", "*fmrib0_epi*.nii.gz")
-    )
-    fmri_json_file = glob.glob(
-        os.path.join(sub_dir, sess_name, "fmap", "*fmrib0_epi*.json")
-    )
-    if len(fmri_b0_file) > 0:
-        print("Renaming fieldmaps for fmri data...")
-        rename_fmri_b0(fmri_b0_file, fmri_json_file)
-    else:
-        print("No fmrib0 found. Nothing to rename")
-
-    # remove original fieldmaps from scans.tsv and append new ones
-    print("Updating scans.tsv file")
-    scans_tsv = glob.glob(os.path.join(sub_dir, sess_name, "sub-*_scans.tsv"))[0]
-    scans_df = edit_scansdf(pd.read_csv(scans_tsv, sep="\t"))
-    scans_df.to_csv(scans_tsv, sep="\t", index=False)
-
-    print("Creating json files for DWI data...")
-    AP_fname_dwi = str(output_AP_fname_dwi).replace("nii.gz", "json")
-    PA_fname_dwi = str(output_PA_fname_dwi).replace("nii.gz", "json")
-    shutil.copyfile(dwi_json_file[0], AP_fname_dwi)
-    shutil.copyfile(dwi_json_file[0], PA_fname_dwi)
-
-    # Remove the original fieldmap
-    os.remove(str(dwi_b0_file[0]))
-    os.remove(str(dwi_json_file[0]))
+            # remove original fieldmaps from scans.tsv and append new ones
+            print("Updating scans.tsv file")
+            for scans_tsv in ses_dir.glob("sub*scans.tsv"):
+                scans_df = edit_scansdf(pd.read_csv(scans_tsv, sep="\t"))
+                scans_df.to_csv(scans_tsv, sep="\t", index=False)
 
 
 def save_as_json(data: dict, json_filename: str):

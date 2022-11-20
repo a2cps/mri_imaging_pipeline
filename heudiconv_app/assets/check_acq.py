@@ -251,11 +251,11 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
     layout = bids.layout.BIDSLayout(root, validate=False)
 
     if site == "UM":
-        site = getUM(
-            layout.get_metadata(
-                layout.get(suffix="T1w", extension="nii.gz", return_type="file")[0]
-            )
-        )
+        any_nii = layout.get(extension="nii.gz", return_type="file")
+        if len(any_nii) > 0:
+            site = getUM(layout.get_metadata(any_nii[0]))
+        else:
+            raise AssertionError("No scan jsons found")
 
     reference = pd.read_csv(
         "acq-params.tsv",
