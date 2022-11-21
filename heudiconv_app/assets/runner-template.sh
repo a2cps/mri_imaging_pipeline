@@ -4,15 +4,19 @@
 . _lib/extend-runtime.sh
 
 # Unzip dicoms locally 
+#shellcheck disable=SC2086
 LOCAL_DICOM=$(basename ${FILES})
 # remove zip suffix
+#shellcheck disable=SC2086
 LOCAL_DICOM=${LOCAL_DICOM%.*}
+#shellcheck disable=SC2086
 unzip ${FILES} -d ${LOCAL_DICOM}
 
 # UM occasionally sends duplicated DICOM files, which will break dcmstack.
 # A known pattern is that these files are nested inside the folder of the scan that is duplicated 
 # (hence -mindepth 2), and the directory of files starts with the letter s.
 if [[ ${SITE} == UM ]]; then
+#shellcheck disable=SC2086
   duplicate=$(find ${LOCAL_DICOM} -mindepth 2 -type d)
   duplicate_dir=$(basename "${duplicate}")
   if [[ ${duplicate_dir:0:1} == s ]]; then
@@ -70,7 +74,7 @@ case "${SITE}" in
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
-          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
           --outdir ${OUTDIR} \
@@ -88,7 +92,7 @@ case "${SITE}" in
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
-          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
           --outdir ${OUTDIR} \
@@ -140,6 +144,7 @@ esac
 
 
 # Remove local dicom directory
+#shellcheck disable=SC2086
 rm -rf ${LOCAL_DICOM}
 
 # add bval, bvec, betc to .bidsignore
@@ -186,18 +191,28 @@ readonly FILE_EDITS=("${OUTDIR}"/sub-*/ses-*/*/*) \
 
 # Delete duplicate scans if flag is set
 echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
-if [ ${DELETE_DUPLICATES} == 1 ]; then
-  # delete duplicte scans
-  echo "removing duplicate scans"
-  rm -rf ${OUTDIR}/sub-*/ses-*/*/*_dup*
+mapfile -t dups <<< "$(find "${OUTDIR}" -type f -name "*dup*")"
+if [[ ${#dups[@]} -gt 0 ]]; then
+  # post about found duplicates to slack channel
+  msg="duplicate scans found: ${dups[*]}"
+
+  singularity run \
+    -B "${BIND_DIR}":"${BIND_DIR}" \
+    --env ENV_NAME=v1.0.20211006 \
+    --cleanenv docker://${CONTAINER_IMAGE} python3 log.py "${msg}" "${POST}"
+  if [[ ${DELETE_DUPLICATES} == 1 ]]; then
+    # delete duplicte scans
+    echo "removing duplicate scans" 
+    rm -rf "${dups[@]}"
+  else
+    echo "adding duplicate scans to bids ignore"
+    # otherwise add to bids ignore
+    echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bidsignore
+  fi
   # remove duplicate scans from scans.tsv
-  sed -i '/_dup/d' ${OUTDIR}/sub-*/ses-*/*scans.tsv
-else
-  echo "adding duplicate scans to bids ignore"
-  # otherwise add to bids ignore
-  echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bidsignore
-  # remove duplicate scans from scans.tsv
-  sed -i '/_dup/d' ${OUTDIR}/sub-*/ses-*/*scans.tsv
+  sed -i '/_dup/d' "${OUTDIR}"/sub-*/ses-*/*scans.tsv
+  else
+    echo "no duplicate scans found"
 fi
 
 if [[ "${PHANTOM}" == "--no-phantom" ]]; then
@@ -238,7 +253,7 @@ else
   case "${SITE}" in
     UM)
       echo "overwritting coil_QA with final volume"
-      singularity exec \
+      singularity run \
         --cleanenv \
         --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \

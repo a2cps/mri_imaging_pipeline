@@ -3,6 +3,7 @@ import typing
 import logging
 import pathlib
 from pathlib import Path
+import requests
 from nilearn.image import load_img, index_img
 import pandas as pd
 
@@ -397,3 +398,18 @@ def sanitize_json(f) -> None:
 
 def check_for_null(data: dict) -> bool:
     return "\\u0000" in json.dumps(data)
+
+
+def post_notification(notification: str, post: bool = False):
+    if post:
+        endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
+        content = requests.post(url=endpoint, json={"text": notification})
+        data = content.json()
+    else:
+        data = None
+    return data
+
+
+def print_and_post(notification: str, post: bool = False) -> None:
+    logging.warning(notification)
+    post_notification(notification, post=post)
