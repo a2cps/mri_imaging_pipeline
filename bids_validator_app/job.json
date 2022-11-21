@@ -1,9 +1,0 @@
-{
-  "name": "urrutia-bids_validator test-1613425790",
-  "appId": "urrutia-bids_validator-1.6.1",
-  "archive": false,
-  "inputs": {},
-  "parameters": {
-    "BIDS_DIRECTORY": "/work/03372/yoh/stampede2/a2cps/data/uic/bids/"
-  }
-}

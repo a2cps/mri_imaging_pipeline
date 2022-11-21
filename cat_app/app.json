@@ -36,34 +36,6 @@
       }
     },
     {
-      "id": "A1",
-      "value": {
-        "default": "6",
-        "visible": true,
-        "type": "string",
-        "required": false
-      },
-      "details": {
-        "description": "extra parameter for batch file (e.g., number processors)",
-        "argument": "--a1 ",
-        "showArgument": false
-      }
-    },
-    {
-      "id": "BATCH",
-      "value": {
-        "default": "batch.m",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "details": {
-        "description": "Batch file defining job to run",
-        "argument": "-b ",
-        "showArgument": false
-      }
-    },
-    {
       "id": "BIND_DIR",
       "value": {
         "default": "/corral-secure/projects/A2CPS/",
@@ -91,6 +63,21 @@
         "minCardinality": 1,
         "maxCardinality": -1
       }
+    },
+    {
+      "id": "NPROC",
+      "value": {
+        "default": "1",
+        "visible": true,
+        "type": "string",
+        "required": true,
+        "validator": "[1-9][0-9]*"
+      },
+      "details": {
+        "description": "integer number of participants to process in parallel (should be smaller than cores on a node). Distinct from launcher option -- this refers to max anatomical images in in BIDS",
+        "showArgument": true,
+        "argument": "--n-proc "
+      } 
     },
     {
       "id": "OUTDIR",

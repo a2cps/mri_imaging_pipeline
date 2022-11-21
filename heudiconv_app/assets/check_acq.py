@@ -1,4 +1,4 @@
-import os, argparse, pathlib, requests
+import os, argparse, pathlib
 import re
 import logging
 from glob import glob
@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from deepdiff import DeepDiff
 
+from utils import print_and_post
 
 # parameters to check for numerical equivalence
 FLOATING_PARAMS = {
@@ -22,21 +23,11 @@ FLOATING_PARAMS = {
 }
 
 
-def post_notification(notification: str, post: bool = False):
-    if post:
-        endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
-        content = requests.post(url=endpoint, json={"text": notification})
-        data = content.json()
-    else:
-        data = None
-    return data
-
-
 def remove_translation(meta: dict) -> dict:
-    affine = meta.get("dcmmeta_affine")
-    if affine:
+    if (affine := meta.get("dcmmeta_affine")) is not None:
         for i, row in enumerate(affine):
             meta["dcmmeta_affine"][i] = row[0:-1]
+
     return meta
 
 
@@ -139,11 +130,6 @@ def check_bvalsbvecs(
     return ok
 
 
-def print_and_post(notification: str, post: bool = False) -> None:
-    logging.warning(notification)
-    post_notification(notification, post=post)
-
-
 def compare(
     layout: bids.BIDSLayout,
     js_observed: str,
@@ -195,6 +181,7 @@ def compare(
                 {key: observed[key] for key in params if js_goal.__contains__(key)},
                 math_epsilon=epsilon,
                 ignore_numeric_type_changes=True,
+                ignore_type_subclasses=True,
             )
             if dd1:
                 ok = False
@@ -216,6 +203,7 @@ def compare(
             if key not in list(chain(*FLOATING_PARAMS.values()))
         },
         ignore_numeric_type_changes=True,
+        ignore_type_subclasses=True,
     )
 
     if dd2:
@@ -249,11 +237,11 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
     layout = bids.layout.BIDSLayout(root, validate=False)
 
     if site == "UM":
-        site = getUM(
-            layout.get_metadata(
-                layout.get(suffix="T1w", extension="nii.gz", return_type="file")[0]
-            )
-        )
+        any_nii = layout.get(extension="nii.gz", return_type="file")
+        if len(any_nii) > 0:
+            site = getUM(layout.get_metadata(any_nii[0]))
+        else:
+            raise AssertionError("No scan jsons found")
 
     reference = pd.read_csv(
         "acq-params.tsv",
