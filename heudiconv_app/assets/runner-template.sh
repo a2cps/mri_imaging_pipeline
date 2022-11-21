@@ -206,23 +206,21 @@ mapfile -t dups <<< "$(find "${OUTDIR}" -type f -name "*dup*")"
 if [[ ${#dups[@]} -gt 0 ]]; then
   # post about found duplicates to slack channel
   msg="duplicate scans found: ${dups[*]}"
-  #shellcheck disable=SC2086
+
   singularity run \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    --cleanenv docker://${CONTAINER_IMAGE} python3 log.py "${msg}" ${POST}
+    --cleanenv docker://${CONTAINER_IMAGE} python3 log.py "${msg}" "${POST}"
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
     # delete duplicte scans
     echo "removing duplicate scans" 
     rm -rf "${dups[@]}"
-    # remove duplicate scans from scans.tsv
-    sed -i '/_dup/d' "${OUTDIR}"/sub-*/ses-*/*scans.tsv
   else
     echo "adding duplicate scans to bids ignore"
     # otherwise add to bids ignore
     echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bidsignore
-    # remove duplicate scans from scans.tsv
-    sed -i '/_dup/d' "${OUTDIR}"/sub-*/ses-*/*scans.tsv
   fi
+  # remove duplicate scans from scans.tsv
+  sed -i '/_dup/d' "${OUTDIR}"/sub-*/ses-*/*scans.tsv
   else
     echo "no duplicate scans found"
 fi
