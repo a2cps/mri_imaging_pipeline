@@ -25,7 +25,7 @@ def submit_heudiconv(
     parameters["SESSION_FOR_LONGITUDINAL"] = session
     parameters["SITE"] = site
     job_def.parameters = parameters
-    archivePath = outdir.relative_to("/corral-secure/projects/A2CPS/")
+    archivePath = str(outdir.relative_to("/corral-secure/projects/A2CPS/"))
 
     job_def.archivePath = str(archivePath)
     job_def.name = f"heudiconv-{outdir.name}"
@@ -79,7 +79,7 @@ def submit_heudiconv(
                 "url": qaphantom_callback
                 + "&status=${JOB_STATUS}"
                 + "&bids="
-                + outdir
+                + str(outdir)
                 + "&site="
                 + site
                 + "&filename="
@@ -96,7 +96,7 @@ def submit_heudiconv(
                 + "&subject_id="
                 + subject_id
                 + "&bids="
-                + outdir
+                + str(outdir)
                 + "&filename="
                 + filename
                 + "&site="
@@ -111,7 +111,7 @@ def submit_heudiconv(
                 + "&subject_id="
                 + subject_id
                 + "&bids="
-                + outdir
+                + str(outdir)
                 + "&filename="
                 + filename
                 + "&site="
@@ -125,7 +125,7 @@ def submit_heudiconv(
                 + "&subject_id="
                 + subject_id
                 + "&bids="
-                + outdir
+                + str(outdir)
                 + "&filename="
                 + filename
                 + "&site="
@@ -137,7 +137,7 @@ def submit_heudiconv(
                 "url": cat_callback
                 + "&status=${JOB_STATUS}"
                 + "&bids="
-                + outdir
+                + str(outdir)
                 + "&filename="
                 + filename
                 + "&site="
