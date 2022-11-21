@@ -209,6 +209,7 @@ if [[ ${#dups[@]} -gt 0 ]]; then
 
   singularity run \
     -B "${BIND_DIR}":"${BIND_DIR}" \
+    --env ENV_NAME=v1.0.20211006 \
     --cleanenv docker://${CONTAINER_IMAGE} python3 log.py "${msg}" "${POST}"
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
     # delete duplicte scans
