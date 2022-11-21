@@ -81,6 +81,10 @@ protocols2fix.update(
             ("Coil_QA", "anat-T1w"),
             # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
             ("t1spgr_208sl", "anat-T1w"),
+
+            # after SH upgrade
+            ("Tra T1 MPRAGE orthog", "anat-T1w"),
+            ("^T1_MPRAGE_ND$", "anat-T1w"),
         ],
     }
 )
@@ -137,6 +141,15 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         exclude = True
     # SH sends derived dwi phantom scans. the following excludes those
     elif any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]):
+        exclude = True
+    elif (
+        dcmdata.__contains__("DeviceSerialNumber")
+        and dcmdata.DeviceSerialNumber == "66022"
+        and dcmdata.SoftwareVersions == "syngo MR XA30"
+        and (
+            dcmdata.SeriesDescription == "T1_MPRAGE"
+        )
+    ):
         exclude = True
 
     return exclude

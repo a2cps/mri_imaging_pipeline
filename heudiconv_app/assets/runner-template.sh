@@ -36,73 +36,123 @@ if [[ ${SITE} == UM ]]; then
   fi
 fi
 
-if [[ ${SITE} == UC ]]; then
+case "${SITE}" in
+  UC) 
+    echo singularity run \
+      --cleanenv \
+      --env ENV_NAME=UC \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
+      
 
-  #shellcheck disable=SC2086
-  echo singularity exec \
-    --cleanenv \
-    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+    singularity run \
+      --cleanenv \
+      --env ENV_NAME=UC \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
+    ;;
 
-  #shellcheck disable=SC2086
-  singularity exec \
-    --cleanenv \
-    --env PREPEND_PATH=/opt/dcm2niix-UC/bin \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+  SH)
+    echo singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
 
-else
+    singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
+    ;;
 
-  #shellcheck disable=SC2086
-  echo singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+  *)
+    echo singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20211006 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
 
-  #shellcheck disable=SC2086
-  singularity exec \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
-    heudiconv \
-    ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-    ${LIST_OF_SUBJECTS} \
-    ${CONVERTER} \
-    --outdir ${OUTDIR} \
-    ${LOCATOR} ${ANON_CMD} \
-    ${HEURISTIC} \
-    ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-    ${DATALAD} ${DCMCONFIG}
+    singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20211006 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && heudiconv \
+          ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
+          ${LIST_OF_SUBJECTS} \
+          ${CONVERTER} \
+          --outdir ${OUTDIR} \
+          ${LOCATOR} ${ANON_CMD} \
+          ${HEURISTIC} \
+          ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
+          ${DATALAD} ${DCMCONFIG}
+      "
+    ;;
+esac
 
-fi
 
 # Remove local dicom directory
 #shellcheck disable=SC2086
@@ -117,10 +167,12 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   case "${SITE}" in
     NS) 
       # dcm2niix generates several extra scans, derivatives from NS.
-      singularity exec --cleanenv \
+      singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} \
-        python3 clean_nsphantom.py "${OUTDIR}"
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python clean_nsphantom.py ${OUTDIR}
+        "
       ;;
     UC)
       # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
@@ -130,10 +182,12 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       ;;
     WS)
       # heuristic can result in run-1 tag, unlike all other sites
-      singularity exec --cleanenv \
+      singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://${CONTAINER_IMAGE} \
-        python3 clean_wsphantom.py "${OUTDIR}"
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python clean_wsphantom.py ${OUTDIR}
+        "
       ;;
   esac
   else
@@ -153,7 +207,7 @@ if [[ ${#dups[@]} -gt 0 ]]; then
   # post about found duplicates to slack channel
   msg="duplicate scans found: ${dups[*]}"
   #shellcheck disable=SC2086
-  singularity exec \
+  singularity run \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     --cleanenv docker://${CONTAINER_IMAGE} python3 log.py "${msg}" ${POST}
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
@@ -176,15 +230,23 @@ fi
 if [[ "${PHANTOM}" == "--no-phantom" ]]; then
   case "${SITE}" in
     UI | UM)
-      echo singularity exec \
+      echo singularity run \
         --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+        docker://${CONTAINER_IMAGE} \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
+          "
 
-      singularity exec \
+      singularity run \
         --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} python3 create_fieldmaps_GE.py "${OUTDIR}"
+        docker://${CONTAINER_IMAGE} \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
+          "
 
       # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
       echo "Replacing correct bval and bvec files..."
@@ -203,23 +265,35 @@ else
   case "${SITE}" in
     UM)
       echo "overwritting coil_QA with final volume"
-      singularity exec \
+      singularity run \
         --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} python3 index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
+        docker://${CONTAINER_IMAGE} \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python index_coilqa.py ${OUTDIR}/sub-umphantom/ses*/anat/*T1w.nii.gz
+          "
     ;;
   esac
 fi
 
-echo singularity exec \
+echo singularity run \
   --cleanenv \
+  --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
+  docker://${CONTAINER_IMAGE} \
+    bash -c "
+      source /usr/local/bin/_activate_current_env.sh && python edit_json.py ${OUTDIR}
+      "
 
-singularity exec \
+singularity run \
   --cleanenv \
+  --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} python3 edit_json.py "${OUTDIR}"
+  docker://${CONTAINER_IMAGE} \
+    bash -c "
+      source /usr/local/bin/_activate_current_env.sh && python edit_json.py ${OUTDIR}
+      "
 
 
 # resting state scans do not require events files (there are no events)
@@ -231,11 +305,15 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
   # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
   # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
   # be divided by whether we're dealing with a phantom scan or not.
-  #shellcheck disable=SC2086
-  singularity exec \
+  singularity run \
     --cleanenv \
+    --env ENV_NAME=v1.0.20211006 \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} python3 check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
+    docker://${CONTAINER_IMAGE} \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+          && python check_acq.py ${OUTDIR} ${SITE} ${PHANTOM} ${POST}
+        "
 else
   echo "Skipping check of jsons"
 fi
