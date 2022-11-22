@@ -31,7 +31,7 @@ case "${SITE}" in
       --cleanenv \
       --env ENV_NAME=UC \
       -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} \
+      docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
@@ -50,7 +50,7 @@ case "${SITE}" in
       --cleanenv \
       --env ENV_NAME=UC \
       -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} \
+      docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
@@ -70,7 +70,27 @@ case "${SITE}" in
       --cleanenv \
       --env ENV_NAME=v1.0.20220720 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} \
+      docker://"${CONTAINER_IMAGE}" \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && python exclude_derived-dwi_sh.py ${LOCAL_DICOM}
+      "
+
+    singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://"${CONTAINER_IMAGE}" \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && python exclude_derived-dwi_sh.py ${LOCAL_DICOM}
+      "
+
+    echo singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
@@ -88,7 +108,7 @@ case "${SITE}" in
       --cleanenv \
       --env ENV_NAME=v1.0.20220720 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} \
+      docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
@@ -101,6 +121,28 @@ case "${SITE}" in
           ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
           ${DATALAD} ${DCMCONFIG}
       "
+
+    # heudiconv is unable to find the acquisition datetime, so we fill them manually
+    # note that this script does not currently add the exact time, just the acq_date
+    echo singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://"${CONTAINER_IMAGE}" \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && python add_date_to_sh.py ${LOCAL_DICOM} ${OUTDIR}
+      "
+
+    singularity run \
+      --cleanenv \
+      --env ENV_NAME=v1.0.20220720 \
+      -B "${BIND_DIR}":"${BIND_DIR}" \
+      docker://"${CONTAINER_IMAGE}" \
+      bash -c "
+        source /usr/local/bin/_activate_current_env.sh \
+        && python add_date_to_sh.py ${LOCAL_DICOM} ${OUTDIR}
+      "
     ;;
 
   *)
@@ -108,7 +150,7 @@ case "${SITE}" in
       --cleanenv \
       --env ENV_NAME=v1.0.20211006 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} \
+      docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
@@ -126,7 +168,7 @@ case "${SITE}" in
       --cleanenv \
       --env ENV_NAME=v1.0.20211006 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://${CONTAINER_IMAGE} \
+      docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
         && heudiconv \
@@ -158,7 +200,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       # dcm2niix generates several extra scans, derivatives from NS.
       singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} \
+        docker://"${CONTAINER_IMAGE}" \
         bash -c "
           source /usr/local/bin/_activate_current_env.sh && python clean_nsphantom.py ${OUTDIR}
         "
@@ -173,7 +215,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       # heuristic can result in run-1 tag, unlike all other sites
       singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} \
+        docker://"${CONTAINER_IMAGE}" \
         bash -c "
           source /usr/local/bin/_activate_current_env.sh && python clean_wsphantom.py ${OUTDIR}
         "
@@ -191,15 +233,20 @@ readonly FILE_EDITS=("${OUTDIR}"/sub-*/ses-*/*/*) \
 
 # Delete duplicate scans if flag is set
 echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
-mapfile -t dups <<< "$(find "${OUTDIR}" -type f -name "*dup*")"
-if [[ ${#dups[@]} -gt 0 ]]; then
+
+# when there are no matches the array has 1 element that is a single blank character
+# when there is a match, there is one or more elements, each of which are longer than 1 
+# the first test (length array > 1) may be unnecessary but is here to demonstrate that the 0th 
+# element should exist when accessed
+dups=( "$( find "${OUTDIR}" -type f -name "*dup*" )" )
+if (( ${#dups[@]} > 1 )) && (( ${#dups[0]} > 1 )); then
   # post about found duplicates to slack channel
   msg="duplicate scans found: ${dups[*]}"
 
   singularity run \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     --env ENV_NAME=v1.0.20211006 \
-    --cleanenv docker://${CONTAINER_IMAGE} python3 log.py "${msg}" "${POST}"
+    --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" "${POST}"
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
     # delete duplicte scans
     echo "removing duplicate scans" 
@@ -222,7 +269,7 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
         --cleanenv \
         --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} \
+        docker://"${CONTAINER_IMAGE}" \
         bash -c "
           source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
           "
@@ -231,7 +278,7 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
         --cleanenv \
         --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} \
+        docker://"${CONTAINER_IMAGE}" \
         bash -c "
           source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
           "
@@ -257,7 +304,7 @@ else
         --cleanenv \
         --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://${CONTAINER_IMAGE} \
+        docker://"${CONTAINER_IMAGE}" \
         bash -c "
           source /usr/local/bin/_activate_current_env.sh && python index_coilqa.py ${OUTDIR}/sub-umphantom/ses*/anat/*T1w.nii.gz
           "
@@ -269,7 +316,7 @@ echo singularity run \
   --cleanenv \
   --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} \
+  docker://"${CONTAINER_IMAGE}" \
     bash -c "
       source /usr/local/bin/_activate_current_env.sh && python edit_json.py ${OUTDIR}
       "
@@ -278,7 +325,7 @@ singularity run \
   --cleanenv \
   --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://${CONTAINER_IMAGE} \
+  docker://"${CONTAINER_IMAGE}" \
     bash -c "
       source /usr/local/bin/_activate_current_env.sh && python edit_json.py ${OUTDIR}
       "
@@ -297,7 +344,7 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
     --cleanenv \
     --env ENV_NAME=v1.0.20211006 \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://${CONTAINER_IMAGE} \
+    docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
           && python check_acq.py ${OUTDIR} ${SITE} ${PHANTOM} ${POST}
@@ -310,5 +357,5 @@ fi
 singularity run \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   --env ENV_NAME=v1.0.20220720 \
-  docker://${CONTAINER_IMAGE} bids-validator --ignoreWarnings "${OUTDIR}"
+  docker://"${CONTAINER_IMAGE}" bids-validator --ignoreWarnings "${OUTDIR}"
   
