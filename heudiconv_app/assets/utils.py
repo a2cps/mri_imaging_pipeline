@@ -7,6 +7,8 @@ import requests
 from nilearn.image import load_img, index_img
 import pandas as pd
 
+import nibabel as nb
+
 # Hardcoded slice timings to be added to fmri json file. Used only for Philips scanner
 # From Xiaodong: The fMRI sequence in phantom QA is the same as that for subjects scan (June 7th, 2022):
 slice_timing = [
@@ -75,7 +77,7 @@ def create_dwi_b0(dwi_b0_file, dwi_file):
     basepath = str(Path(dwi_b0_file).parents[0])
 
     # load images
-    b0_imgs = load_img(dwi_b0_file)
+    b0_imgs: nb.Nifti1Image = load_img(dwi_b0_file)  # type: ignore
     dwi_imgs = load_img(dwi_file)
 
     # most GE scanners give b0 images with 8 volumes (4D image)
@@ -219,21 +221,17 @@ def create_fieldmaps(dirs: Path) -> None:
                 print("Creating json files for DWI data...")
                 shutil.copyfile(
                     only_dwi_json_file,
-                    output_AP_fname_dwi.with_suffix("").with_suffix(".json")(
-                        "nii.gz", "json"
-                    ),
+                    output_AP_fname_dwi.with_suffix("").with_suffix(".json"),
                 )
                 shutil.copyfile(
                     only_dwi_json_file,
-                    output_PA_fname_dwi.with_suffix("").with_suffix(".json")(
-                        "nii.gz", "json"
-                    ),
+                    output_PA_fname_dwi.with_suffix("").with_suffix(".json"),
                 )
                 only_dwi_json_file.unlink()
                 only_dwi_b0_file.unlink()
 
             else:
-                logging.WARN("missing inputs needed for creating fieldmaps")
+                logging.warning("missing inputs needed for creating fieldmaps")
 
             fmri_b0_file = tuple(ses_dir.glob("fmap/*fmrib0_epi*.nii.gz"))
             fmri_json_file = tuple(ses_dir.glob("fmap/*fmrib0_epi*.json"))
@@ -250,7 +248,7 @@ def create_fieldmaps(dirs: Path) -> None:
                 scans_df.to_csv(scans_tsv, sep="\t", index=False)
 
 
-def save_as_json(data: dict, json_filename: str):
+def save_as_json(data: dict, json_filename: typing.Union[str, Path]):
     with open(json_filename, "w") as data_file:
         json.dump(obj=data, fp=data_file, indent=1, sort_keys=True)
 
@@ -277,7 +275,7 @@ def get_manufacturer(dirs: pathlib.Path) -> str:
     raise AssertionError("Unable to find json with Manufacturer field")
 
 
-def write_dummy_fields(filename: str):
+def write_dummy_fields(filename: typing.Union[str, Path]):
     with open(filename) as f:
         json_data = json.load(f)
         json_data["TotalReadoutTime"] = json_data["EstimatedTotalReadoutTime"]
@@ -305,7 +303,7 @@ def add_intendedfor(meta: pathlib.Path, dirs: pathlib.Path, modality: str) -> No
         print(f"IntendedField is added to {meta}")
 
 
-def set_jsonfield(meta: pathlib.Path, key: str, value: str) -> None:
+def set_jsonfield(meta: pathlib.Path, key: str, value: typing.Any) -> None:
     with open(meta) as f:
         json_data = json.load(f)
         json_data[key] = value
@@ -380,7 +378,7 @@ def remove_key_inplace(d, remove_key: str) -> bool:
                 del d[key]
                 original = False
             else:
-                original *= remove_key_inplace(d[key], remove_key)
+                original &= remove_key_inplace(d[key], remove_key)
     return original
 
 

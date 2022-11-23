@@ -14,7 +14,7 @@ protocols2fix.update(
             # for any scan that has a repeat suffix (e.g., _R2), strip the suffix
             # this lets them be marked as duplicates, which can then be deleted after heudiconv
             # (they'll end with a suffix _dup)
-            ("(.*)([_\s]R[1-9]*)$", r"\1"),
+            (r"(.*)([_\s]R[1-9]*)$", r"\1"),
             ("AAHead_Scout_.*", "anat-scout"),
             ("^dti_.*", "dwi"),
             ("^space_top_distortion_corr.*_([ap]+)_([12])", r"fmap-epi_dir-\1_run-\2"),
@@ -35,7 +35,7 @@ protocols2fix.update(
             # ('^research/ABCD/epi_pepolar', 'fmap-epi_run-1'),
             # ('^research/ABCD/muxepi$', 'func_task-unk_run-unk'),
             ("^3Plane_Loc.*", "anat-scout"),
-            ("^(T1[_\s])*MPRAGE", "anat-T1w"),
+            (r"^(T1[_\s])*MPRAGE", "anat-T1w"),
             ("^GE_EPI_B0_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
             ("^GE_EPI_B0", "fmap-epi_acq-fmrib0"),
             ("^SE_EPI_B0_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),
@@ -59,10 +59,10 @@ protocols2fix.update(
             ("^ORIG T1_MPRAGE$", "anat-T1w"),
             # this rule must come *after* DWI_B0
             ("^DWI", "dwi"),
-            ("^REST([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
-            ("^Rest([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
-            ("^CUFF([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
-            ("^Cuff([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
+            (r"^REST([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
+            (r"^Rest([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
+            (r"^CUFF([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
+            (r"^Cuff([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
             # phantom scan heuristics
             # anat should grab one that has ORIG
             (".*(anat-T1w)[-_]acq[-_]GRE$", r"\1"),
@@ -81,7 +81,6 @@ protocols2fix.update(
             ("Coil_QA", "anat-T1w"),
             # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
             ("t1spgr_208sl", "anat-T1w"),
-
             # after SH upgrade
             ("Tra T1 MPRAGE orthog", "anat-T1w"),
             ("^T1_MPRAGE_ND$", "anat-T1w"),
@@ -142,13 +141,14 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # SH sends derived dwi phantom scans. the following excludes those
     elif any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]):
         exclude = True
+
+    # after the SH upgrade, (i.e., software "syngo MR XA30"), SH sends the raw anatomical as
+    # T1_MPRAGE_ND ("No Distorction Correction"), but also always a derived scan called T1_MPRAGE
     elif (
         dcmdata.__contains__("DeviceSerialNumber")
         and dcmdata.DeviceSerialNumber == "66022"
         and dcmdata.SoftwareVersions == "syngo MR XA30"
-        and (
-            dcmdata.SeriesDescription == "T1_MPRAGE"
-        )
+        and (dcmdata.SeriesDescription == "T1_MPRAGE")
     ):
         exclude = True
 
