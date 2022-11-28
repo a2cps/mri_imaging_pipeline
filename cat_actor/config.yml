@@ -12,11 +12,9 @@ main:
   archivePath: ''
   maxRunTime: "02:00:00"
   parameters:
-    CONTAINER_IMAGE: "library://psadil/default/cat:0.1"
     BIND_DIR: "/corral-secure/projects/A2CPS"
     BIDS: /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/bids/NStravel2
     OUTDIR: NStravel2
-    A1: "1"
 pipelines:
   api_server: https://portals-api.tacc.utexas.edu
   cat_alias: cat.prod
