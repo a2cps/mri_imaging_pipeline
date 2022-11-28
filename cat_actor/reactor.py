@@ -29,6 +29,10 @@ def main() -> None:
     # pull in reactor context
     context=r.context  # Actor context
     print(json.dumps(context, indent=4))
+    # if job status not in finished state, exit cleanly 
+    if context.message_dict['status'] != "FINISHED":
+        exit(0)
+
     #archivePath=context.archivePath
     #subject_id=context.subject_id
     filename=context.filename
