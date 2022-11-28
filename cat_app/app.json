@@ -28,7 +28,7 @@
     {
       "id": "CONTAINER_IMAGE",
       "value": {
-        "default": "docker://{{ docker.namespace }}/{{ docker.repo }}:{{ docker.tag }}",
+        "default": "library://{{ docker.namespace }}/default/{{ docker.repo }}:{{ docker.tag }}",
         "type": "string",
         "visible": true,
         "required": true,

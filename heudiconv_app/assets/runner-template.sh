@@ -190,7 +190,7 @@ esac
 rm -rf ${LOCAL_DICOM}
 
 # add bval, bvec, betc to .bidsignore
-cat bids_ignore >> "${OUTDIR}"/.bidsignore
+cat bids_ignore >> "${OUTDIR}"/.bidsignore && cat .agave.archive >> "${OUTDIR}"/.bidsignore
 
 # Phantom-specific post-processing
 if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
