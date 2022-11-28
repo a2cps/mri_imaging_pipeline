@@ -67,9 +67,11 @@ def submit_heudiconv(
         print(e)
         r.logger.error("Unable to generate Audit callback")
 
-    # none of the upcoming apps use filename
-    # but for api consistency the parameter is specified
-    filename = "NA"
+    # "filename" is esentially the patient_id.
+    # it'll end up as the output directory name for cat12,
+    # the jobs names for mriqc/qsiprep
+    # and is parsed to get session (ex V1) for qsiprep
+    filename = str(outdir.name)
 
     if "QC" in outdir.name:
         notif = [
