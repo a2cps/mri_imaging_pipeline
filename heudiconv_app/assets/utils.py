@@ -202,17 +202,21 @@ def create_fieldmaps(dirs: Path) -> None:
         for ses_dir in sub_dir.glob("ses-*"):
             dwi_b0_file = tuple(ses_dir.glob("fmap/*dwib0*.nii.gz"))
             dwi_file = tuple(ses_dir.glob("dwi/*dwi*.nii.gz"))
-            dwi_json_file = tuple(ses_dir.glob("dwi/*dwi*.json"))
+            dwi_b0_json_file = tuple(ses_dir.glob("fmap/*dwib0*.json"))
 
-            if len(dwi_b0_file) > 1 or len(dwi_file) > 1 or len(dwi_json_file) > 1:
+            if len(dwi_b0_file) > 1 or len(dwi_file) > 1 or len(dwi_b0_json_file) > 1:
                 raise AssertionError(
                     f"found too many files related to DWI in {ses_dir}. Not sure how to proceed."
                 )
 
-            if len(dwi_b0_file) == 1 and len(dwi_file) == 1 and len(dwi_json_file) == 1:
+            if (
+                len(dwi_b0_file) == 1
+                and len(dwi_file) == 1
+                and len(dwi_b0_json_file) == 1
+            ):
                 only_dwi_file: Path = dwi_file[0]
                 only_dwi_b0_file: Path = dwi_b0_file[0]
-                only_dwi_json_file: Path = dwi_json_file[0]
+                only_dwi_b0_json_file: Path = dwi_b0_json_file[0]
                 print("Creating fieldmaps for dwi data...")
                 output_AP_fname_dwi, output_PA_fname_dwi = create_dwi_b0(
                     only_dwi_b0_file, only_dwi_file
@@ -220,14 +224,14 @@ def create_fieldmaps(dirs: Path) -> None:
 
                 print("Creating json files for DWI data...")
                 shutil.copyfile(
-                    only_dwi_json_file,
+                    only_dwi_b0_json_file,
                     output_AP_fname_dwi.with_suffix("").with_suffix(".json"),
                 )
                 shutil.copyfile(
-                    only_dwi_json_file,
+                    only_dwi_b0_json_file,
                     output_PA_fname_dwi.with_suffix("").with_suffix(".json"),
                 )
-                only_dwi_json_file.unlink()
+                only_dwi_b0_json_file.unlink()
                 only_dwi_b0_file.unlink()
 
             else:
