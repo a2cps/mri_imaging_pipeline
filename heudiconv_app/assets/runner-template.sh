@@ -234,12 +234,8 @@ readonly FILE_EDITS=("${OUTDIR}"/sub-*/ses-*/*/*) \
 # Delete duplicate scans if flag is set
 echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
 
-# when there are no matches the array has 1 element that is a single blank character
-# when there is a match, there is one or more elements, each of which are longer than 1 
-# the first test (length array > 1) may be unnecessary but is here to demonstrate that the 0th 
-# element should exist when accessed
-dups=( "$( find "${OUTDIR}" -type f -name "*dup*" )" )
-if (( ${#dups[@]} > 1 )) && (( ${#dups[0]} > 1 )); then
+mapfile -t dups < <(find "${OUTDIR}" -type f -name "*dup*")
+if (( ${#dups[@]} > 1 )); then
   # post about found duplicates to slack channel
   msg="duplicate scans found: ${dups[*]}"
 
