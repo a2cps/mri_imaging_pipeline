@@ -40,7 +40,7 @@ def get_valid(inroot=pathlib.Path) -> list[pathlib.Path]:
         # append only if the *out file is present in the folder
         passed += [
             d
-            for d in inroot.glob(f"{site}/bids_validation/*QC*")
+            for d in inroot.glob(f"{site}/bids/*QC*")
             if len([x for x in d.glob("*out")]) > 0
         ]
 
@@ -55,8 +55,7 @@ def main(
     if not outdir.exists():
         outdir.mkdir(parents=True, exist_ok=True)
 
-    for d in get_valid(inroot=inroot):
-        bids = pathlib.Path(re.sub(r"_validation", "", str(d.absolute())))
+    for bids in get_valid(inroot=inroot):
         for phantom_id in bids.glob("sub-*"):
             for ses in phantom_id.glob("ses*"):
                 target = outdir / phantom_id.name / ses.name
