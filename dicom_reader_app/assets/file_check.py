@@ -27,12 +27,12 @@ def extract_phantom_date(dicom_file: str) -> str:
     of the zip
     """
     header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
-    if not header.__contains__("AcquisitionDate"):
-        AssertionError("AcquisitionDate not found in dicom. Incorrect file unzipped?")
 
-    day = header.get("AcquisitionDate")
-    tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
-    return datetime.date.strftime(tmp, "%y%m%d")
+    if (day := header.get("SeriesDate")) or (day := header.get("AcquisitionDate")):
+        tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
+        return datetime.date.strftime(tmp, "%y%m%d")
+
+    raise AssertionError("AcquisitionDate not found in dicom. Incorrect file unzipped?")
 
 
 def yymmdd_to_mmddyy(day: str) -> str:

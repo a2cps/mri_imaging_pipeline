@@ -80,7 +80,7 @@ protocols2fix.update(
             ("Standard_fBIRN_QA", "func_task-rest_acq-fBIRN"),
             ("Coil_QA", "anat-T1w"),
             # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
-            ("t1spgr_208sl", "anat-T1w"),
+            (".*t1spgr_208sl.*", "anat-T1w"),
             # after SH upgrade
             ("Tra T1 MPRAGE orthog", "anat-T1w"),
             ("^T1_MPRAGE_ND$", "anat-T1w"),
