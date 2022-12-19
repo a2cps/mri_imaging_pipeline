@@ -326,12 +326,11 @@ def edit_json(data_path):
         f"Will try to apply post-conversion fixes specific to images from {manufacturer}"
     )
 
-    for i in dirs.glob("sub*/ses*/dwi/*dwi*json"):
-        set_jsonfield(i, key="PhaseEncodingDirection", value="j")
-
     # Add SliceTiming to the json files of rest/cuff json files
     if manufacturer == "philips":
         for i in dirs.glob("sub*/ses*/func/*json"):
+            # For Philips, the field PhaseEncodingDirection is not available in dicom header and so
+            # not reported by dcm2niix. it must be set manually
             set_jsonfield(i, key="PhaseEncodingDirection", value="j")
             set_jsonfield(i, key="SliceTiming", value=slice_timing)
 
@@ -342,8 +341,13 @@ def edit_json(data_path):
         for filename in dirs.glob("sub*/ses*/*/*json"):
             write_dummy_fields(filename)
 
+        # https://confluence.a2cps.org/x/AQPz
+        for i in dirs.glob("sub*/ses*/dwi/*dwi*json"):
+            set_jsonfield(i, key="PhaseEncodingDirection", value="j")
+
     # Adding IntendedFor field in the b0 json files for DWI data
-    # NOTE: for Philips, this must happen after the PhaseEncodingDirection has been set
+    # NOTE: for Philips, this must happen after the PhaseEncodingDirection has been set (PED not
+    # filled automatically)
     for i in dirs.glob("sub*/ses*/fmap/*dwib0*json"):
         if manufacturer in ["philips", "ge"]:
             if "AP" in str(Path(i).name):
