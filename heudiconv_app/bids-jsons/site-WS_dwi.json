@@ -50,7 +50,7 @@
  "PatientPosition": "HFS",
  "PercentPhaseFOV": 100,
  "PercentSampling": 100,
- "PhaseEncodingDirection": "j",
+ "PhaseEncodingDirection": "j-",
  "PhaseEncodingSteps": 105,
  "PhaseResolution": 1,
  "PixelBandwidth": 1488,
