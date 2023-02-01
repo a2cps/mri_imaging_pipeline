@@ -1,3 +1,4 @@
 **/.DS_Store
 fmriprep_app/opt/license.txt
 secrets.json
+cronjobs/imaging/secrets.json
