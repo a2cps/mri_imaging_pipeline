@@ -16,6 +16,13 @@ for site in ${SITES}; do
 
 done
 
+# remove any symlinks that are broken
+# (e.g., a subject was deleted after renaming)
+find "${OUTDIR}" -xtype l -delete
+
+# prune empty directories
+find "${OUTDIR}" -type d -empty -delete
+
 set -e
 # since bids and mriqc files are only symlinks, the targets of the 
 # symlinks must also be bound (hence -B for INROOT)
