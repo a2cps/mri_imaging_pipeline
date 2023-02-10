@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 import pathlib
-import re
 from typing import List
 
 SITE_LONG = {
@@ -43,7 +42,7 @@ def get_valid(inroot=pathlib.Path) -> List[pathlib.Path]:
         # append only if the *out file is present in the folder
         passed += [
             d
-            for d in inroot.glob(f"{site}/bids_validation/*")
+            for d in inroot.glob(f"{site}/bids/*")
             if (not "QC" in d.name) and (len([x for x in d.glob("*out")]) > 0)
         ]
 
@@ -58,8 +57,7 @@ def main(
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
-    for d in get_valid(inroot=inroot):
-        bids = pathlib.Path(re.sub(r"_validation", "", str(d.absolute())))
+    for bids in get_valid(inroot=inroot):
         for src_id in bids.glob("sub-*"):
             # bids validator is confused by symlinked folders, so need to create real folders and
             # symlink to individual files
