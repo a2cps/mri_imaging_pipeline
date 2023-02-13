@@ -12,7 +12,7 @@ for site in ${SITES}; do
   find "${INROOT}/products/mris/${site}/mriqc" -name "*work*" -prune -o -type f -name "sub-[12]*html" -exec cp -svu -t "${OUTDIR}" -- '{}' \+
 
   # also copy json files, and the folders they're stored in
-  find "${INROOT}/products/mris/${site}/mriqc" -name "*work*" -prune -o -type d -name "sub-[12]*" -exec cp -vau -t "${OUTDIR}" -- '{}' \+
+  find "${INROOT}/products/mris/${site}/mriqc" -name "*work*" -prune -o -type d -name "sub-[12]*" -exec cp -vsau -t "${OUTDIR}" -- '{}' \+
 
 done
 
