@@ -54,3 +54,4 @@ singularity exec \
         ${BIDS_FILTER_FILE} ${FS_NO_RECONALL} ${FS_SUBJECTS_DIR} ${SKIP_BIDS_VALIDATION} \
         --fs-license-file /opt/freesurfer_license/license.txt
 
+find “${OUTDIR}” -name “*nii.gz” -exec gunzip -t {} \+
