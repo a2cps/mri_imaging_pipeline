@@ -57,19 +57,6 @@ def main(
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
-    for bids in get_valid(inroot=inroot):
-        for src_id in bids.glob("sub-*"):
-            # bids validator is confused by symlinked folders, so need to create real folders and
-            # symlink to individual files
-            for src in os.walk(src_id):
-                src_dir = pathlib.Path(src[0]).relative_to(src_id.parent)
-                target_dir = outdir / src_dir
-                target_dir.mkdir(exist_ok=True)
-                print(f"linking contents of {src_id.parent / src_dir} -> {target_dir}")
-                for f in src[2]:
-                    if not (target := target_dir / f).exists():
-                        target.symlink_to(src_id.parent / src_dir / f)
-
     # delete broken symlinks (e.g., files created by previous run of heudiconv that no longer exist)
     for target in os.walk(outdir):
         tar_dir = pathlib.Path(target[0])
@@ -84,6 +71,19 @@ def main(
             to_del = pathlib.Path(target[0])
             print(f"deleting empty directory: {to_del}")
             os.removedirs(to_del)
+
+    for bids in get_valid(inroot=inroot):
+        for src_id in bids.glob("sub-*"):
+            # bids validator is confused by symlinked folders, so need to create real folders and
+            # symlink to individual files
+            for src in os.walk(src_id):
+                src_dir = pathlib.Path(src[0]).relative_to(src_id.parent)
+                target_dir = outdir / src_dir
+                target_dir.mkdir(exist_ok=True)
+                print(f"linking contents of {src_id.parent / src_dir} -> {target_dir}")
+                for f in src[2]:
+                    if not (target := target_dir / f).exists():
+                        target.symlink_to(src_id.parent / src_dir / f)
 
     readme = outdir / "README"
     readme.touch()
