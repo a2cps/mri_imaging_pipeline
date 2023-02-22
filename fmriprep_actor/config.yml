@@ -3,10 +3,10 @@ logs:
   level: DEBUG
   token: ~
 cuff:
-  appId: urrutia-fmriprep_LTS-20.2.3
+  appId: urrutia-fmriprep_LTS-20.2.4
   maxRunTime: "32:59:00"
   archive: true
-  archivePath: testing/actor-fmriprep-20.2.3
+  archivePath: testing/actor-fmriprep-20.2.4
   name: name
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
@@ -30,11 +30,11 @@ cuff:
       event: FINISHED
       url: your@email.com
 rest:
-  appId: urrutia-fmriprep_LTS-20.2.3
+  appId: urrutia-fmriprep_LTS-20.2.4
   name: name
   maxRunTime: "32:59:00"
   archive: true
-  archivePath: testing/actor-fmriprep-20.2.3
+  archivePath: testing/actor-fmriprep-20.2.4
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     PARTICIPANT_LABEL: sub-01
@@ -57,10 +57,10 @@ rest:
       event: FINISHED
       url: your@email.com
 anat:
-  appId: urrutia-fmriprep_LTS-20.2.3
+  appId: urrutia-fmriprep_LTS-20.2.4
   maxRunTime: "32:59:00"
   archive: true
-  archivePath: testing/actor-fmriprep-20.2.3
+  archivePath: testing/actor-fmriprep-20.2.4
   name: name
   parameters:
     BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
