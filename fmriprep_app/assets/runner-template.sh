@@ -54,4 +54,6 @@ singularity exec \
         ${BIDS_FILTER_FILE} ${FS_NO_RECONALL} ${FS_SUBJECTS_DIR} ${SKIP_BIDS_VALIDATION} \
         --fs-license-file /opt/freesurfer_license/license.txt
 
-find "${OUTDIR}"/fmriprep -name "*nii.gz" -print0 | xargs -0 -n50 gunzip -t
+# for this test to be effictive, we need to exit with a non-zero status 
+# if one of our zips fails the -t integrity check
+find "${OUTDIR}"/fmriprep -name "*nii.gz" -print0 | xargs -0 -P 50 gunzip -t
