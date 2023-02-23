@@ -14,7 +14,8 @@ protocols2fix.update(
             # for any scan that has a repeat suffix (e.g., _R2), strip the suffix
             # this lets them be marked as duplicates, which can then be deleted after heudiconv
             # (they'll end with a suffix _dup)
-            (r"(.*)([_\s]*R[1-9]*)$", r"\1"),
+            (r"(.*)(R[1-9]*)$", r"\1"),  # strip any trailing R#
+            (r"(.*)([_\s]+)$", r"\1"),  # strip any trailing characters
             ("AAHead_Scout_.*", "anat-scout"),
             ("^dti_.*", "dwi"),
             ("^space_top_distortion_corr.*_([ap]+)_([12])", r"fmap-epi_dir-\1_run-\2"),
