@@ -21,16 +21,20 @@ fmrib0 = {"fmap-epi_acq-fmrib0": ["fMRI_B0"]}
 SCANS = [anatomical, dwi, rest, cuff, dwib0, fmrib0]
 
 
+def _apply_substitutions(
+    mappings: dict[str, list[tuple[str, str]]], original: str
+) -> str:
+    # cf https://github.com/nipy/heudiconv/blob/94911c7d1605c076f6f62c3943dc8a5ad74ba8c6/heudiconv/heuristics/reproin.py#L334
+    out = original
+    for _, substitutions in mappings.items():
+        for substring, replacement in substitutions:
+            out = re.sub(substring, replacement, out)
+    return out
+
+
 def test_substitutions():
     for scan in SCANS:
         for expected, observed in scan.items():
-            results = set()
             for i in observed:
-                value = i
-                for _, substitutions in p2f.items():
-                    for substring, replacement in substitutions:
-                        value = re.sub(substring, replacement, value)
-                results.update([value])
-                print(f"{i} -> {value}")
-
-            assert results == set([expected])
+                value = _apply_substitutions(p2f, i)
+                assert value == expected
