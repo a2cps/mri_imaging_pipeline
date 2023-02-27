@@ -3,21 +3,17 @@ logs:
   level: DEBUG
   token: ~
 run_qsiprep:
-  appId: urrutia-qsiprep-0.14.2.3
+  appId: urrutia-qsiprep-0.16.1.0
   name: anat
   archive: true
   archiveSystem: a2cps.storage-frontera-protected 
   maxRunTime: "12:00:00"
   parameters:
-    BIDS_DIRECTORY: agave://a2cps.storage.public/a2cps_openneuro_testdata/
+    BIDS: agave://a2cps.storage.public/a2cps_openneuro_testdata/
     BIND_DIR: /corral-secure/projects/A2CPS/
-    PARTICIPANT_LABEL: 01
-    BIDS_FILTER: bids.json
-    EDDY_PARAMS: eddy_params.json
-    FSL_license: license.txt
-    OUTPUT_DIR: .
-    SESSION_FOR_LONGITUDINAL: ses-V1
-    OUTPUT_RESOLUTION: 1.7
+    OUTDIR: .
+    MEMMB: 190000
+    NTHREADS: 56
 pipelines:
   fmriprep_alias: fmriprep.prod
   api_server: https://portals-api.tacc.utexas.edu

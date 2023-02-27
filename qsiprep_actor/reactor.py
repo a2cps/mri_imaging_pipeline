@@ -26,12 +26,12 @@ def specify_jobdef(job_def, subject_id: str, bids: str, filename: str):
 
     job_def.name = f'qsiprep-{filename}'
     parameters = job_def["parameters"]
-    parameters["PARTICIPANT_LABEL"] = subject_id
-    parameters["BIDS_DIRECTORY"] = bids
+    #parameters["PARTICIPANT_LABEL"] = subject_id
+    parameters["BIDS"] = bids
     # get session from filename
     # TO DO: pass this in the callback from bids_validation instead of string parsing
-    session_id = 'ses-' + filename[-2:]
-    parameters["SESSION_FOR_LONGITUDINAL"] = session_id
+    #session_id = 'ses-' + filename[-2:]
+    #parameters["SESSION_FOR_LONGITUDINAL"] = session_id
     job_def.parameters = parameters
     job_def.archivePath = re.sub('bids', 'qsiprep', bids).split('/corral-secure/projects/A2CPS/')[1] 
     return job_def
