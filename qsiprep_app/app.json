@@ -10,12 +10,18 @@
 	"defaultNodeCount": 1,
 	"defaultQueue": "{{ app.queue }}",
 	"label": "qsiprep",
-	"modules": ["load tacc-singularity", "load python3"],
+	"modules": [
+		"unload xalt",
+		"load tacc-singularity",
+		"load python3",
+		"load launcher"
+	],
 	"shortDescription": "{{ app.description }}",
 	"templatePath": "runner-template.sh",
 	"testPath": "tester.sh",
 	"inputs": [],
-	"parameters": [{
+	"parameters": [
+		{
 			"id": "CONTAINER_IMAGE",
 			"value": {
 				"default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
@@ -25,73 +31,40 @@
 				"required": true
 			}
 		},
-
 		{
-			"id": "BIDS_DIRECTORY",
-			"details": {
-				"showArgument": false,
-				"description": "Path of the subject directory"
-			},
+			"id": "BIDS",
 			"value": {
-				"default": null,
+				"default": "",
+				"visible": true,
 				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "PARTICIPANT_LABEL",
-			"details": {
-				"showArgument": false,
-				"description": "Specify the subject ID"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "OUTPUT_RESOLUTION",
-			"details": {
-				"showArgument": false,
-				"description": "Specify the output resolution"
-			},
-			"value": {
-				"default": 1.7,
-				"type": "number",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "FSL_license",
-			"details": {
-				"description": "Path of license file of FSL",
-				"argument": "--fs-license-file ",
-				"showArgument": true
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
 				"required": true
+			},
+			"details": {
+				"description": "Directory containing files to analyze",
+				"showArgument": false
+			},
+			"semantics": {
+				"minCardinality": 1,
+				"maxCardinality": -1
 			}
 		},
 		{
-			"id": "OUTPUT_DIR",
+			"id": "OUTDIR",
 			"value": {
-				"default": ".",
-				"description": "output directory for conversion setup (for further customization and future reference. This directory will refer to non-anonymized subject IDs",
-				"type": "string",
+				"default": "",
 				"visible": true,
+				"type": "string",
 				"required": true
+			},
+			"details": {
+				"description": "Comma separated list of directories to which results will be written",
+				"showArgument": false
+			},
+			"semantics": {
+				"minCardinality": 1,
+				"maxCardinality": -1
 			}
 		},
-
 		{
 			"id": "BIND_DIR",
 			"value": {
@@ -102,69 +75,33 @@
 				"required": true
 			}
 		},
-
 		{
-			"id": "EDDY_PARAMS",
+			"id": "MEMMB",
 			"details": {
-				"argument": "--eddy_config ",
-				"showArgument": true,
-				"description": "Name of a known eddy config or path to the configuration file containing eddy params"
+				"argument": "--mem-mb ",
+				"showArgument": true
 			},
 			"value": {
-				"default": "eddy_config.json",
-				"description": "Name of a known eddy config or path to the configuration file containing eddy params",
-				"type": "string",
+				"default": 190000,
+				"description": "Maximum amount of MB available to QSIprep when processing each participant",
+				"type": "number",
 				"visible": true,
-				"required": false
+				"required": true
 			}
 		},
-
 		{
-			"id": "BIDS_FILTER",
+			"id": "NTHREADS",
 			"details": {
-				"argument": "--bids-filter-file ",
-				"showArgument": false,
-				"description": "Name of a known bids filter files for specifying the session"
+				"argument": "--nthreads ",
+				"showArgument": true
 			},
 			"value": {
-				"default": "bids.json",
-				"description": "Name of a known bids filter files for specifying the session",
-				"type": "string",
+				"default": 56,
+				"description": "Maximum number of threads available to QSIprep when processing each participant",
+				"type": "number",
 				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "SESSION_FOR_LONGITUDINAL",
-			"details": {
-				"argument": "--ses ",
-				"showArgument": false,
-				"description": "session for longitudinal study_sessions, default is none"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "SITE",
-			"details": {
-				"argument": "",
-				"showArgument": false,
-				"description": "site where patient was imaged"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
+				"required": true
 			}
 		}
-
-
 	]
 }
