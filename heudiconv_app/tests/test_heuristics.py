@@ -15,7 +15,7 @@ anatomical = {
 }
 dwi = {"dwi": ["DWI", "dwi"]}
 rest = {"func_task-rest_run-1": ["Rest1", "REST1"]}
-cuff = {"func_task-cuff_run-1": ["Cuff1", "CUFF1"]}
+cuff = {"func_task-cuff_run-1": ["Cuff1", "CUFF1", "CUFF1R2", "CUFF1R2"]}
 dwib0 = {"fmap-epi_acq-dwib0": ["DWI_B0"]}
 fmrib0 = {"fmap-epi_acq-fmrib0": ["fMRI_B0"]}
 
