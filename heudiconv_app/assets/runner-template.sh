@@ -228,8 +228,7 @@ fi
 # Need to inject IntendedFor field into some jsons, and in the case of GE images
 # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
 # give write access to user, read to group
-readonly FILE_EDITS=("${OUTDIR}"/sub-*/ses-*/*/*) \
-  && chmod +640 "${FILE_EDITS[@]}"
+chmod +640 "${OUTDIR}"/sub-*/ses-*/*/*
 
 # Delete duplicate scans if flag is set
 echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
@@ -279,10 +278,23 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
           source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
           "
 
-      # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
-      echo "Replacing correct bval and bvec files..."
-      cat correct_bval_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bval
-      cat correct_bvec_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bvec
+      echo singularity run \
+        --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://"${CONTAINER_IMAGE}" \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python handle_ge_bvalbvecs.py ${OUTDIR}
+          "
+
+      singularity run \
+        --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://"${CONTAINER_IMAGE}" \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python handle_ge_bvalbvecs.py ${OUTDIR}
+          "
     ;;
   esac
 else
