@@ -12,18 +12,29 @@ LOCAL_DICOM=${LOCAL_DICOM%.*}
 #shellcheck disable=SC2086
 unzip ${FILES} -d ${LOCAL_DICOM}
 
+set -e
 # UM occasionally sends duplicated DICOM files, which will break dcmstack.
 # A known pattern is that these files are nested inside the folder of the scan that is duplicated 
 # (hence -mindepth 2), and the directory of files starts with the letter s.
 if [[ ${SITE} == UM ]]; then
+# If first directory is "dicom" then we need to change the mindepth of the find
+# command to list out the duplicate scan directories 
 #shellcheck disable=SC2086
-  duplicate=$(find ${LOCAL_DICOM} -mindepth 2 -type d)
+  FIRST_DIR=$(ls -d ${LOCAL_DICOM}/* | head -n 1 | xargs -n 1 basename)
+  if [[ ${FIRST_DIR} == dicom ]]; then
+    MIN_DEPTH=3
+  else
+    MIN_DEPTH=2
+  fi
+
+  duplicate=$(find ${LOCAL_DICOM} -mindepth ${MIN_DEPTH} -type d)
   duplicate_dir=$(basename "${duplicate}")
   if [[ ${duplicate_dir:0:1} == s ]]; then
     echo "deleting UM duplicate $duplicate"
     rm -r "${duplicate}"
   fi
 fi
+set +e
 
 case "${SITE}" in
   UC) 
