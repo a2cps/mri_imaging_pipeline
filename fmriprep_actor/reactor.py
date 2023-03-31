@@ -1,9 +1,10 @@
 from reactors.utils import Reactor, agaveutils
 import copy
-import sys
 import os
 import json
 import re
+
+from typing import Literal
 
 
 # def check_metadata_file(r, file_uri):
@@ -49,49 +50,78 @@ import re
 #     return job_def
 
 
-def submit_fmriprep(r,subject_id, bids, filename,site,next_step,job_def,image_type):
+def submit_fmriprep(
+    r,
+    subject_id: str,
+    bids: str,
+    filename: str,
+    site: str,
+    next_step: Literal["cuff_rest", "finished"],
+    job_def,
+    image_type: Literal["anat", "cuff", "rest"],
+):
     # Create agave client from reactor object
     ag = r.client
     parameters = job_def["parameters"]
-    job_def.name = 'fmriprep-' + image_type +'-'+filename
+    job_def.name = "fmriprep-" + image_type + "-" + filename
     # Define the input for the job as the file that
     # was sent in the notificaton message
-    parameters["PARTICIPANT_LABEL"] = 'sub-' + subject_id
+    parameters["PARTICIPANT_LABEL"] = "sub-" + subject_id
     parameters["BIDS_DIRECTORY"] = bids
-    if image_type in ['cuff', 'rest']:
-         parameters["FS_SUBJECTS_DIR"] = re.sub('bids', 'fmriprep', bids) + '/anat/freesurfer'
+    if image_type in ["cuff", "rest"]:
+        parameters["FS_SUBJECTS_DIR"] = (
+            re.sub("bids", "fmriprep", bids) + "/anat/freesurfer"
+        )
     job_def.parameters = parameters
     # archivePath = os.path.dirname(os.path.dirname(os.path.normpath(bids))) \
     #               + '/fmriprep/'+ image_type + '/' + filename
-    archivePath = re.sub('bids', 'fmriprep', bids).split('/corral-secure/projects/A2CPS')[1] + '/' + image_type
+    archivePath = (
+        re.sub("bids", "fmriprep", bids).split("/corral-secure/projects/A2CPS")[1]
+        + "/"
+        + image_type
+    )
     job_def.archivePath = archivePath
     try:
         pipeline_config = copy.copy(r.settings.pipelines)
-        api_server = pipeline_config['api_server']
+        api_server = pipeline_config["api_server"]
 
-        fmriprep_nonce = os.getenv('_FMRIPREP_NONCE')
-        fmriprep_alias = pipeline_config['fmriprep_alias']
-        fmriprep_callback = api_server + '/actors/v2/' + fmriprep_alias + '/messages?x-nonce=' + fmriprep_nonce
+        fmriprep_nonce = os.getenv("_FMRIPREP_NONCE")
+        fmriprep_alias = pipeline_config["fmriprep_alias"]
+        fmriprep_callback = (
+            api_server
+            + "/actors/v2/"
+            + fmriprep_alias
+            + "/messages?x-nonce="
+            + fmriprep_nonce
+        )
 
     except Exception as e:
-        print(e)
         r.logger.error("Unable to generate Audit callback")
+        raise Exception(e)
 
     notif = [
-            {'event': 'FINISHED',
+        {
+            "event": "FINISHED",
             "persistent": False,
-            'url': fmriprep_callback + '&status=${JOB_STATUS}' +
-            '&subject_id=' + subject_id +
-            '&bids=' + bids +
-            '&filename='+ filename +
-            '&site='+ site +
-            '&next_step=' + next_step}
-            ]
+            "url": fmriprep_callback
+            + "&status=${JOB_STATUS}"
+            + "&subject_id="
+            + subject_id
+            + "&bids="
+            + bids
+            + "&filename="
+            + filename
+            + "&site="
+            + site
+            + "&next_step="
+            + next_step,
+        }
+    ]
     job_def.notifications = notif
     # Submit the job in a try/except block
     try:
         # Submit the job and get the job ID
-        job_id = ag.jobs.submit(body=job_def)['id']
+        job_id = ag.jobs.submit(body=job_def)["id"]
         print(job_id)
         print(json.dumps(job_def, indent=4))
     except Exception as e:
@@ -107,29 +137,29 @@ def main():
     r = Reactor()
     r.logger.info("Hello this is actor {}".format(r.uid))
     # pull in reactor context
-    context=r.context  # Actor context
+    context = r.context  # Actor context
     print(json.dumps(context, indent=4))
-    #archivePath=context.archivePath
-    subject_id=context.subject_id
-    filename=context.filename
-    bids=context.bids
-    message=context.message_dict
-    site=context.site
+    # archivePath=context.archivePath
+    subject_id = context.subject_id
+    filename = context.filename
+    bids = context.bids
+    message = context.message_dict
+    site = context.site
 
     next_step = context.next_step
-    if message['status'] != "FINISHED":
+    if message["status"] != "FINISHED":
         exit(0)
 
-    if next_step == 'anat':
-        next_step = 'cuff_rest'
+    if next_step == "anat":
+        next_step = "cuff_rest"
         job_def = copy.copy(r.settings.anat)
-        submit_fmriprep(r,subject_id, bids, filename,site,next_step,job_def, 'anat')
-    elif next_step == 'cuff_rest':
-        next_step = 'finished'
+        submit_fmriprep(r, subject_id, bids, filename, site, next_step, job_def, "anat")
+    elif next_step == "cuff_rest":
+        next_step = "finished"
         job_def = copy.copy(r.settings.cuff)
-        submit_fmriprep(r,subject_id, bids, filename,site,next_step,job_def, 'cuff')
+        submit_fmriprep(r, subject_id, bids, filename, site, next_step, job_def, "cuff")
         job_def = copy.copy(r.settings.rest)
-        submit_fmriprep(r,subject_id, bids, filename,site,next_step,job_def, 'rest')
+        submit_fmriprep(r, subject_id, bids, filename, site, next_step, job_def, "rest")
     # tapis_jobId=message['id']
     # if m['status'] != 'FINISHED':
     #     r.on_failure("Tapis jobId={} has status {}.".format(
@@ -138,10 +168,9 @@ def main():
     # print(message)
     # check the file_uri from the message
     # depending on the file_uri, set fmriprp parameters for a rest or cuff fmri
-    #job_def = check_metadata_file(r, file_uri)
+    # job_def = check_metadata_file(r, file_uri)
     return
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

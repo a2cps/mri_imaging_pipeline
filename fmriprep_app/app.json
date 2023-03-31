@@ -10,12 +10,16 @@
   "defaultNodeCount": 1,
   "defaultQueue": "{{ app.queue }}",
   "label": "fMRIPRep",
-	"modules": ["load tacc-singularity", "unload xalt"],
+  "modules": [
+    "load tacc-singularity",
+    "unload xalt"
+  ],
   "shortDescription": "{{ app.description }}",
   "templatePath": "runner-template.sh",
   "testPath": "tester.sh",
   "inputs": [],
-  "parameters": [{
+  "parameters": [
+    {
       "id": "CONTAINER_IMAGE",
       "value": {
         "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
@@ -107,7 +111,14 @@
       "value": {
         "default": "",
         "type": "enumeration",
-        "enumValues": ["--bold2t1w-dof 6", "--bold2t1w-dof 9", "--bold2t1w-dof 12", {"": "undefined"}],
+        "enumValues": [
+          "--bold2t1w-dof 6",
+          "--bold2t1w-dof 9",
+          "--bold2t1w-dof 12",
+          {
+            "": "undefined"
+          }
+        ],
         "visible": true,
         "required": true
       }
@@ -177,82 +188,121 @@
       "value": {
         "default": "--cifti-output 91k",
         "type": "enumeration",
-        "enumValues": ["--cifti-output 91k", "--cifti-output 170k", {"": "undefined"}],
+        "enumValues": [
+          "--cifti-output 91k",
+          "--cifti-output 170k",
+          {
+            "": "undefined"
+          }
+        ],
         "visible": true,
         "required": false
       }
     },
     {
-  "id": "ANAT_ONLY",
-  "details": {
-    "argument": "--anat-only ",
-    "showArgument": true,
-    "description": "run anatomical workflows only"
-  },
-  "value": {
-    "default": 0,
-    "type": "flag",
-    "visible": true,
-    "required": false
-  }
-},
-{
-  "id": "BIDS_FILTER_FILE",
-  "details": {
-    "argument": "--bids-filter-file ",
-    "showArgument": false,
-    "description": "run anatomical workflows only"
-  },
-  "value": {
-    "default": "",
-    "type": "enumeration",
-    "enumValues": ["--bids-filter-file rest_only.json", "--bids-filter-file cuff_only.json", {"": "undefined"}],
-    "visible": true,
-    "required": false
-  }
-},
-{
-  "id": "FS_NO_RECONALL",
-  "details": {
-    "argument": "--fs-no-reconall ",
-    "showArgument": true,
-    "description": "run anatomical workflows only"
-  },
-  "value": {
-    "default": true,
-    "type": "flag",
-    "visible": true,
-    "required": false
-  }
-},
-{
-  "id": "SKIP_BIDS_VALIDATION",
-  "details": {
-    "argument": "--skip-bids-validation ",
-    "showArgument": true,
-    "description": "skip bids validation step"
-  },
-  "value": {
-    "default": true,
-    "type": "flag",
-    "visible": true,
-    "required": false
-  }
-},
-{
-  "id": "FS_SUBJECTS_DIR",
-  "details": {
-    "argument": "--fs-subjects-dir ",
-    "showArgument": true,
-    "description": "use precomputed freesurfer directory"
-  },
-  "value": {
-    "default": "",
-    "type": "string",
-    "visible": true,
-    "required": false
-  }
-}
-
+      "id": "ANAT_ONLY",
+      "details": {
+        "argument": "--anat-only ",
+        "showArgument": true,
+        "description": "run anatomical workflows only"
+      },
+      "value": {
+        "default": 0,
+        "type": "flag",
+        "visible": true,
+        "required": false
+      }
+    },
+    {
+      "id": "BIDS_FILTER_FILE",
+      "details": {
+        "argument": "--bids-filter-file ",
+        "showArgument": false,
+        "description": "run anatomical workflows only"
+      },
+      "value": {
+        "default": "",
+        "type": "enumeration",
+        "enumValues": [
+          "--bids-filter-file rest_only.json",
+          "--bids-filter-file cuff_only.json",
+          {
+            "": "undefined"
+          }
+        ],
+        "visible": true,
+        "required": false
+      }
+    },
+    {
+      "id": "FS_NO_RECONALL",
+      "details": {
+        "argument": "--fs-no-reconall ",
+        "showArgument": true,
+        "description": "run anatomical workflows only"
+      },
+      "value": {
+        "default": true,
+        "type": "flag",
+        "visible": true,
+        "required": false
+      }
+    },
+    {
+      "id": "SKIP_BIDS_VALIDATION",
+      "details": {
+        "argument": "--skip-bids-validation ",
+        "showArgument": true,
+        "description": "skip bids validation step"
+      },
+      "value": {
+        "default": true,
+        "type": "flag",
+        "visible": true,
+        "required": false
+      }
+    },
+    {
+      "id": "FS_SUBJECTS_DIR",
+      "details": {
+        "argument": "--fs-subjects-dir ",
+        "showArgument": true,
+        "description": "use precomputed freesurfer directory"
+      },
+      "value": {
+        "default": "",
+        "type": "string",
+        "visible": true,
+        "required": false
+      }
+    },
+    {
+      "id": "MEMMB",
+      "details": {
+        "argument": "--mem-mb ",
+        "showArgument": true
+      },
+      "value": {
+        "default": 190000,
+        "description": "Maximum amount of MB available to QSIprep when processing each participant",
+        "type": "number",
+        "visible": true,
+        "required": true
+      }
+    },
+    {
+      "id": "NTHREADS",
+      "details": {
+        "argument": "--nthreads ",
+        "showArgument": true
+      },
+      "value": {
+        "default": 56,
+        "description": "Maximum number of threads available to QSIprep when processing each participant",
+        "type": "number",
+        "visible": true,
+        "required": true
+      }
+    }
   ]
 }
