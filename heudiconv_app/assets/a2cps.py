@@ -53,13 +53,11 @@ protocols2fix.update(
             ("^dMRI_distortionmap", "fmap-epi_acq-dwib0"),
             # the next few refer to variations on names provided by second
             # UM scanner
-            ("^ORIG: DTI$", "dwi"),
-            ("^ORIG: DWI$", "dwi"),
-            ("^REV_POL: DTI$", "fmap-epi_acq-dwib0"),
-            ("^REV_POL: DWI$", "fmap-epi_acq-dwib0"),
+            ("^ORIG: D[TW]I$", "dwi"),
+            ("^REV_POL: D[TW]I$", "fmap-epi_acq-dwib0"),
             ("^ORIG T1_MPRAGE$", "anat-T1w"),
             # this rule must come *after* DWI_B0
-            ("^DWI", "dwi"),
+            ("^D[TW]I", "dwi"),
             (r"^REST([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
             (r"^Rest([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
             (r"^CUFF([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
@@ -105,24 +103,26 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # want."
     # For T1w, we get both a modified "T1_MPRAGE" and "ORIG T1_MPRAGE". This
     # prevents the modifed one from going through conversion
-    elif (
-        dcmdata.__contains__("DeviceSerialNumber")
-        and dcmdata.DeviceSerialNumber == "0007347633TMRFIX"
-        and (
-            dcmdata.SeriesDescription == "DTI"
-            or dcmdata.SeriesDescription == "DWI"
-            or dcmdata.SeriesDescription == "T1_MPRAGE"
-        )
+    elif dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX" and (
+        dcmdata.SeriesDescription == "DTI"
+        or dcmdata.SeriesDescription == "DWI"
+        or dcmdata.SeriesDescription == "T1_MPRAGE"
     ):
         exclude = True
     # similar issue for UI phantom scans
-    elif (
-        dcmdata.__contains__("DeviceSerialNumber")
-        and dcmdata.DeviceSerialNumber == "000000312996MR3T"
-        and (
-            dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"]
-            or dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
+    elif dcmdata.get("DeviceSerialNumber") == "000000312996MR3T" and (
+        dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"]
+        or dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
+    ):
+        exclude = True
+    # Also need to exclude a particular case for UM1, since it is not appropriately
+    # truncated (UM20191V3, DTI -- non ORIG)
+    elif dcmdata.get("DeviceSerialNumber") == "000000000UM750MR" and (
+        (
+            dcmdata.x.SeriesInstanceUID
+            == "1.2.840.113619.2.495.11554579.1334848.32096.1676398992.675"
         )
+        and (dcmdata.SeriesDescription == "DTI")
     ):
         exclude = True
     elif "QA_4.1.21" in dcmdata.ProtocolName and (
@@ -146,8 +146,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # after the SH upgrade, (i.e., software "syngo MR XA30"), SH sends the raw anatomical as
     # T1_MPRAGE_ND ("No Distorction Correction"), but also always a derived scan called T1_MPRAGE
     elif (
-        dcmdata.__contains__("DeviceSerialNumber")
-        and dcmdata.DeviceSerialNumber == "66022"
+        dcmdata.get("DeviceSerialNumber") == "66022"
         and dcmdata.SoftwareVersions == "syngo MR XA30"
         and (dcmdata.SeriesDescription == "T1_MPRAGE")
     ):

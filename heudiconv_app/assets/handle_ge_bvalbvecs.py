@@ -5,44 +5,27 @@ from pathlib import Path
 import shutil
 import typing
 
-import nibabel as nb
-
 
 CORRECT_BVAL = Path("correct_bval_GE")
 CORRECT_BVEC = Path("correct_bvec_GE")
 
 
-def get_length_of_dwi(f: Path) -> int:
-    dwi: nb.Nifti1Image = nb.load(f)
-    assert len(dwi.shape) == 4
-
-    return dwi.shape[-1]
-
-
 def replace_niigz(orig: Path, suffix: str) -> Path:
+    """Replace .nii.gz with other suffix
+
+    Args:
+        orig (Path): filename with ending .nii.gz
+        suffix (str): suffix to use instead of .nii.gz
+
+    Returns:
+        Path: filename with .nii.gz replaced by suffix
+
+    Example:
+        replace_niigz(Path("dwi.nii.gz"), ".bval") -> dwi.bval
+    """
+
     # need double because files will have two suffixes (.nii.gz)
     return orig.with_suffix("").with_suffix(suffix)
-
-
-def split_truncate_join_line(line: str, n: int) -> str:
-    return " ".join(line.split()[:n])
-
-
-def truncate_bvalbvec(outdir: Path) -> None:
-    # DWI images can be truncated, but the number of bvals/bvecs must match the
-    # number of volumes
-    for dwi in outdir.glob("sub*/ses*/dwi/*nii.gz"):
-        n_dwi_volumes = get_length_of_dwi(dwi)
-
-        bval_f = replace_niigz(dwi, ".bval")
-        bval_f.write_text(split_truncate_join_line(bval_f.read_text(), n_dwi_volumes))
-
-        bvec_f = replace_niigz(dwi, ".bvec")
-        with open(bvec_f) as f:
-            bvec_lines = f.read().splitlines()
-
-        bvecs = [split_truncate_join_line(v, n_dwi_volumes) for v in bvec_lines]
-        bvec_f.write_text("\n".join(bvecs))
 
 
 def write_expected(outdir: Path) -> None:
@@ -59,7 +42,8 @@ def main(outdir: Path) -> None:
 
         assert not (version is None)
 
-        # Issues with bvals and bvecs in dicom header only fixed in 28
+        # Issues with bvals and bvecs in dicom header only fixed in version >=28
+        # At least, have only seen that up to 29 is correct
         # https://confluence.a2cps.org/display/DOC/GE+V26+%28UIC%29+DWI+Incorrect+DICOM+Headers
         if not (("28" in version) or ("29" in version)):
             logging.warning("Overwriting bval and bvec files produced by dcm2niix")
@@ -68,11 +52,6 @@ def main(outdir: Path) -> None:
             # if not those cases, leave bval/bvec untouched because
             # the one that dcm2niix produced shoudl be fine
             logging.warning("Leaving bval and bvec files produced by dcm2niix")
-
-        logging.warning(
-            "Truncating bval and bvec files to match number of volumes in DWI"
-        )
-        truncate_bvalbvec(outdir=outdir)
 
 
 if __name__ == "__main__":
