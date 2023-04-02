@@ -11,6 +11,8 @@
   "defaultQueue": "{{ app.queue }}",
   "label": "fMRIPRep",
   "modules": [
+    "load launcher",
+    "load python3",
     "load tacc-singularity",
     "unload xalt"
   ],
@@ -32,7 +34,7 @@
     {
       "id": "BIDS_DIRECTORY",
       "value": {
-        "default": "agave://a2cps.storage.public/a2cps_openneuro_testdata/",
+        "default": "",
         "visible": true,
         "type": "string",
         "required": true
@@ -40,10 +42,13 @@
       "semantics": {
         "ontology": [
           "https://bids.neuroimaging.io/specification.html"
-        ]
+        ],
+        "minCardinality": 1,
+        "maxCardinality": -1
       },
       "details": {
-        "description": "The root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder)."
+        "description": "The root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder).",
+        "showArgument": false
       }
     },
     {
@@ -64,13 +69,18 @@
     {
       "id": "OUTPUT_DIR",
       "details": {
-        "description": "The output directory name for the outcomes of preprocessing and visual reports"
+        "description": "The output directory name for the outcomes of preprocessing and visual reports",
+        "showArgument": false
       },
       "value": {
-        "default": "outputs",
-        "type": "string",
+        "default": "",
         "visible": true,
+        "type": "string",
         "required": true
+      },
+      "semantics": {
+        "minCardinality": 1,
+        "maxCardinality": -1
       }
     },
     {
