@@ -19,7 +19,7 @@ set -e
 if [[ ${SITE} == UM ]]; then
 # If first directory is "dicom" then we need to change the mindepth of the find
 # command to list out the duplicate scan directories
-  FIRST_DIR=$(find "${LOCAL_DICOM}" -maxdepth 1 -type d | head -n 1 | xargs -n 1 basename)
+  FIRST_DIR=$(find "${LOCAL_DICOM}" -mindepth 1 -maxdepth 1 -type d | head -n 1 | xargs -n 1 basename)
   if [[ ${FIRST_DIR} == dicom ]]; then
     MIN_DEPTH=3
   else

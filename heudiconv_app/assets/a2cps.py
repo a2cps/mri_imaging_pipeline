@@ -119,7 +119,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # truncated (UM20191V3, DTI -- non ORIG)
     elif dcmdata.get("DeviceSerialNumber") == "000000000UM750MR" and (
         (
-            dcmdata.x.SeriesInstanceUID
+            dcmdata.SeriesInstanceUID
             == "1.2.840.113619.2.495.11554579.1334848.32096.1676398992.675"
         )
         and (dcmdata.SeriesDescription == "DTI")
