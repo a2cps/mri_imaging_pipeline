@@ -12,7 +12,7 @@
   "label": "fMRIPRep",
   "modules": [
     "load launcher",
-    "load python3",
+    "load python3/3.9.2",
     "load tacc-singularity",
     "unload xalt"
   ],
@@ -29,6 +29,19 @@
         "type": "string",
         "visible": false,
         "required": true
+      }
+    },
+    {
+      "id": "BINDDIR",
+      "value": {
+        "default": "/corral-secure/projects/A2CPS",
+        "visible": true,
+        "type": "string",
+        "required": true
+      },
+      "details": {
+        "description": "Directory which will be bound inside the singularity container",
+        "showArgument": false
       }
     },
     {
