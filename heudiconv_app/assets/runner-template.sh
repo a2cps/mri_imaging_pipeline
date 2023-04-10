@@ -14,20 +14,19 @@ unzip ${FILES} -d ${LOCAL_DICOM}
 
 set -e
 # UM occasionally sends duplicated DICOM files, which will break dcmstack.
-# A known pattern is that these files are nested inside the folder of the scan that is duplicated 
-# (hence -mindepth 2), and the directory of files starts with the letter s.
+# A known pattern is that these files are nested inside the folder of the scan that is duplicated
+# (hence -mindepth ), and the directory of files starts with the letter s.
 if [[ ${SITE} == UM ]]; then
 # If first directory is "dicom" then we need to change the mindepth of the find
-# command to list out the duplicate scan directories 
-#shellcheck disable=SC2086
-  FIRST_DIR=$(ls -d ${LOCAL_DICOM}/* | head -n 1 | xargs -n 1 basename)
+# command to list out the duplicate scan directories
+  FIRST_DIR=$(find "${LOCAL_DICOM}" -mindepth 1 -maxdepth 1 -type d | head -n 1 | xargs -n 1 basename)
   if [[ ${FIRST_DIR} == dicom ]]; then
     MIN_DEPTH=3
   else
     MIN_DEPTH=2
   fi
 
-  duplicate=$(find ${LOCAL_DICOM} -mindepth ${MIN_DEPTH} -type d)
+  duplicate=$(find "${LOCAL_DICOM}" -mindepth ${MIN_DEPTH} -type d)
   duplicate_dir=$(basename "${duplicate}")
   if [[ ${duplicate_dir:0:1} == s ]]; then
     echo "deleting UM duplicate $duplicate"
@@ -239,8 +238,7 @@ fi
 # Need to inject IntendedFor field into some jsons, and in the case of GE images
 # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
 # give write access to user, read to group
-readonly FILE_EDITS=("${OUTDIR}"/sub-*/ses-*/*/*) \
-  && chmod +640 "${FILE_EDITS[@]}"
+chmod +640 "${OUTDIR}"/sub-*/ses-*/*/*
 
 # Delete duplicate scans if flag is set
 echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
@@ -290,10 +288,23 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
           source /usr/local/bin/_activate_current_env.sh && python create_fieldmaps_GE.py ${OUTDIR}
           "
 
-      # Adding the correct GE bvals and bvec file. Added on Sept 28,2021.
-      echo "Replacing correct bval and bvec files..."
-      cat correct_bval_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bval
-      cat correct_bvec_GE>"${OUTDIR}"/sub-*/ses-*/dwi/*bvec
+      echo singularity run \
+        --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://"${CONTAINER_IMAGE}" \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python handle_ge_bvalbvecs.py ${OUTDIR}
+          "
+
+      singularity run \
+        --cleanenv \
+        --env ENV_NAME=v1.0.20211006 \
+        -B "${BIND_DIR}":"${BIND_DIR}" \
+        docker://"${CONTAINER_IMAGE}" \
+        bash -c "
+          source /usr/local/bin/_activate_current_env.sh && python handle_ge_bvalbvecs.py ${OUTDIR}
+          "
     ;;
   esac
 else
