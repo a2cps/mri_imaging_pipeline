@@ -206,14 +206,16 @@
     {
       "id": "CIFTI_OUTPUT",
       "details": {
-        "description": "output preprocessed BOLD as a CIFTI dense timeseries. Optionally, the number of grayordinate can be specified (default is 91k, which equates to 2mm resolution)"
+        "description": "output preprocessed BOLD as a CIFTI dense timeseries. Optionally, the number of grayordinate can be specified (default is 91k, which equates to 2mm resolution)",
+        "argument": "--cifti-output ",
+        "showArgument": true
       },
       "value": {
-        "default": "--cifti-output 91k",
+        "default": "91k",
         "type": "enumeration",
         "enumValues": [
-          "--cifti-output 91k",
-          "--cifti-output 170k",
+          "91k",
+          "170k",
           {
             "": "undefined"
           }
@@ -289,7 +291,7 @@
       "id": "FS_SUBJECTS_DIR",
       "details": {
         "argument": "--fs-subjects-dir ",
-        "showArgument": true,
+        "showArgument": false,
         "description": "use precomputed freesurfer directory"
       },
       "value": {
@@ -297,6 +299,10 @@
         "type": "string",
         "visible": true,
         "required": false
+      },
+      "semantics": {
+        "minCardinality": 1,
+        "maxCardinality": -1
       }
     },
     {

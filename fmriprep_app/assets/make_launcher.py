@@ -13,19 +13,18 @@ def main(
     nthreads: Optional[int] = None,
     mem_mb: Optional[int] = None,
     skip_bids_validation: bool = False,
-    fs_subjects_dir: Optional[pathlib.Path] = None,
+    fs_subjects_dir: Optional[List[pathlib.Path]] = None,
     fs_no_reconall: bool = False,
     bids_filter_file: Optional[pathlib.Path] = None,
     anat_only: bool = False,
     cifti_output: Optional[Literal["91k", "170k"]] = None,
-    fd_spike: Optional[float] = None,
-    ica_aroma_dimensionality: Optional[int] = None,
-    ica_aroma_use: bool = False,
+    fd_spike_threshold: Optional[float] = None,
+    aroma_melodic_dimensionality: Optional[int] = None,
+    use_aroma: bool = False,
     dummy_scans: Optional[int] = None,
     head_motion: Optional[Literal[6, 9, 12]] = None,
     ignore: Optional[List[Literal["slicetiming", "fieldmaps"]]] = None,
 ) -> None:
-
     lines = []
     for t, (bids, logdir) in enumerate(zip(bidsdir, outdir)):
         if not logdir.exists():
@@ -60,12 +59,14 @@ def main(
             args.extend(["--bold2t1w-dof", head_motion])
         if dummy_scans:
             args.extend(["--dummy-scans", dummy_scans])
-        if ica_aroma_use:
+        if use_aroma:
             args.append("--use-aroma")
-        if ica_aroma_dimensionality:
-            args.extend(["--aroma-melodic-dimensionality", ica_aroma_dimensionality])
-        if fd_spike:
-            args.extend(["--fd-spike-threshold", fd_spike])
+        if aroma_melodic_dimensionality:
+            args.extend(
+                ["--aroma-melodic-dimensionality", str(aroma_melodic_dimensionality)]
+            )
+        if fd_spike_threshold:
+            args.extend(["--fd-spike-threshold", str(fd_spike_threshold)])
         if cifti_output:
             args.extend(["--cifti-output", cifti_output])
         if anat_only:
@@ -77,7 +78,7 @@ def main(
         if skip_bids_validation:
             args.append("--skip-bids-validation")
         if fs_subjects_dir:
-            args.extend(["--fs-subjects-dir", fs_subjects_dir])
+            args.extend(["--fs-subjects-dir", str(fs_subjects_dir[t])])
 
         # Note safety risk!!! (e.g., what if logdir were "out; rm -rf /" !?)
         # https://docs.python.org/3/library/shlex.html#shlex.quote
@@ -99,14 +100,14 @@ if __name__ == "__main__":
     parser.add_argument("--nthreads")
     parser.add_argument("--mem-mb")
     parser.add_argument("--skip-bids-validation", action="store_true")
-    parser.add_argument("--fs-subjects-dir", type=pathlib.Path)
+    parser.add_argument("--fs-subjects-dir", nargs="*", type=pathlib.Path)
     parser.add_argument("--fs-no-reconall", action="store_true")
     parser.add_argument("--bids-filter-file", type=pathlib.Path)
     parser.add_argument("--anat-only", action="store_true")
     parser.add_argument("--cifti-output", choices=["91k", "170k"])
-    parser.add_argument("--fd-spike", type=float)
-    parser.add_argument("--ica-aroma-dimensionality", type=int)
-    parser.add_argument("--ica-aroma-use", action="store_true")
+    parser.add_argument("--fd-spike-threshold", type=float)
+    parser.add_argument("--aroma-melodic-dimensionality", type=int)
+    parser.add_argument("--use-aroma", action="store_true")
     parser.add_argument("--dummy-scans", type=int)
     parser.add_argument("--head-motion", type=int, choices=[6, 9, 12])
     parser.add_argument("--ignore", action="append")

@@ -10,6 +10,7 @@ declare -xr LAUNCHER_JOB_FILE="${PWD}/launchfile"
 
 read -ra ins <<< "${BIDS_DIRECTORY}"
 read -ra outs <<< "${OUTPUT_DIR}"
+read -ra fsdirs <<< "${FS_SUBJECTS_DIR}"
 
 if [[ ! "${#ins[@]}" == "${#outs[@]}" ]]; then
     echo "lengh of BIDS_DIRECTORY must equal length of OUTPUT_DIR"
@@ -27,11 +28,12 @@ python3 make_launcher.py \
   --container "${CONTAINER_IMAGE}" \
   --bidsdir "${ins[@]}" \
   --outdir "${outs[@]}" \
+  --fs-subjects-dir "${fsdirs[@]}" \
   ${MEMMB} \
   ${NTHREADS} \
   ${IGNORE_FIELD_MAPS} ${IGNORE_SLICE_TIMING} ${HEAD_MOTION} ${DUMMY_SCANS} \
   ${ICA_AROMA_USE} ${ICA_AROMA_DIMENSIONALITY} ${FD_SPIKE} ${CIFTI_OUTPUT} ${ANAT_ONLY} \
-  ${BIDS_FILTER_FILE} ${FS_NO_RECONALL} ${FS_SUBJECTS_DIR} ${SKIP_BIDS_VALIDATION} 
+  ${BIDS_FILTER_FILE} ${FS_NO_RECONALL} ${SKIP_BIDS_VALIDATION} 
 
 # run all jobs
 "${LAUNCHER_DIR}"/paramrun
