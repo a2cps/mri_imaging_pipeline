@@ -1,0 +1,4 @@
+pydantic
+agavepy
+pandas
+numpy
