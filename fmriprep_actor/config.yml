@@ -3,7 +3,7 @@ logs:
   level: DEBUG
   token: ~
 cuff:
-  appId: urrutia-fmriprep_LTS-20.2.4
+  appId: urrutia-fmriprep_LTS-20.2.5
   maxRunTime: "32:59:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.4
@@ -30,7 +30,7 @@ cuff:
       event: FINISHED
       url: your@email.com
 rest:
-  appId: urrutia-fmriprep_LTS-20.2.4
+  appId: urrutia-fmriprep_LTS-20.2.5
   name: name
   maxRunTime: "32:59:00"
   archive: true
@@ -57,7 +57,7 @@ rest:
       event: FINISHED
       url: your@email.com
 anat:
-  appId: urrutia-fmriprep_LTS-20.2.4
+  appId: urrutia-fmriprep_LTS-20.2.5
   maxRunTime: "32:59:00"
   archive: true
   archivePath: testing/actor-fmriprep-20.2.4
