@@ -125,8 +125,7 @@ class JobDef(pydantic.BaseModel):
     archiveSystem: str = "a2cps.storage-frontera-protected"
     archiveOnAppError: bool = False
     archive: bool = True
-    appId: str = "urrutia-fmriprep_LTS-20.2.4"
-    systemId: str = "a2cps.hpc-frontera-protected"
+    appId: str = "urrutia-fmriprep_LTS-20.2.6"
 
 
 def _gen_patientid(d: pd.DataFrame) -> pd.Series:
