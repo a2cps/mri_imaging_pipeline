@@ -56,4 +56,4 @@ singularity exec \
 
 # for this test to be effictive, we need to exit with a non-zero status 
 # if one of our zips fails the -t integrity check
-find "${OUTDIR}"/fmriprep -name "*nii.gz" -print0 | xargs -0 -P 50 gunzip -t
+find "${OUTPUT_DIR}"/fmriprep -name "*nii.gz" -print0 | xargs -0 -P 50 gunzip -t
