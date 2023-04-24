@@ -3,7 +3,7 @@ logs:
   level: DEBUG
   token: ~
 heudiconv:
-  appId: urrutia-heudiconv-0.12.0
+  appId: urrutia-heudiconv-0.12.1
   batchQueue: corralextra
   name: heudiconv_test
   archive: true
