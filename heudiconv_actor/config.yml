@@ -12,7 +12,7 @@ heudiconv:
   parameters:
     FILES: norshore/bids/1
     LIST_OF_SUBJECTS: sub-01
-    OUTDIR: '.'
+    OUTDIR: "."
     SESSION_FOR_LONGITUDINAL: session1
     BIDS: true
     BIND_DIR: /corral-secure/projects/A2CPS/
@@ -23,8 +23,7 @@ heudiconv:
     POST: "--post"
 
   notifications:
-    -
-      event: FINISHED
+    - event: FINISHED
       url: a2cps-dirc-notify-ui@a2cps.org
 pipelines:
   fmriprep_alias: fmriprep.prod
@@ -35,3 +34,4 @@ pipelines:
   qsiprep_alias: qsiprep.prod
   cat_alias: cat.prod
   qaphantom_alias: qaphantom.prod
+  fslanat_alias: fslanat.prod

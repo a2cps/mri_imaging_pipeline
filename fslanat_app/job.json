@@ -1,0 +1,20 @@
+{
+    "appId": "{{ agave.username }}-{{ app.name }}-{{ app.version}}",
+    "name": "{{ app.name }}-test",
+    "archive": false,
+    "batchQueue": "normal",
+    "maxRunTime": "2:00:00",
+    "processorsPerNode": 2,
+    "nodeCount": 1,
+    "parameters": {
+        "BIDS_DIR": [
+            "/corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UC_uchicago/bids/UCtravel1",
+            "/corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UC_uchicago/bids/UCtravel2"
+        ],
+        "OUTPUT_DIR": [
+            "UC_uchicago/fslanat/UCtravel1",
+            "UC_uchicago/fslanat/UCtravel2"
+        ],
+        "N_WORKERS": 1
+    }
+}

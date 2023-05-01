@@ -1,0 +1,19 @@
+---
+debug: false
+
+logs:
+  level: DEBUG
+  token: ~
+
+main:
+  appId: urrutia-fslanat-0.1
+  name: fslanat_job
+  archive: true
+  archivePath: ""
+  maxRunTime: "02:00:00"
+  parameters:
+    BIND_DIR: "/corral-secure/projects/A2CPS"
+    N_WORKERS: 1
+pipelines:
+  api_server: https://portals-api.tacc.utexas.edu
+  fslanat_alias: fslanat.prod
