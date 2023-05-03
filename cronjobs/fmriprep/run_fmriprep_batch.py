@@ -8,7 +8,7 @@ import pandas as pd
 
 import pydantic
 
-import agavepy
+# import agavepy
 
 """
 This script either 1) produces the jsons that can be used to run fMRIPrep jobs,
@@ -37,6 +37,7 @@ be submitted as jobs on TACC.
 This script requires python >= 3.9
 """
 
+APPID = "urrutia-fmriprep_LTS-20.2.6"
 
 # Number of participants to run per node
 BATCH_SIZE = 5
@@ -47,11 +48,12 @@ NTHREADS = 11
 
 # Location of Imaging Log on TACC
 ILOG_ = Path(
-    "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+    # "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+    "/Users/psadil/git/a2cps/simple-qaqc-report/data-raw/imaging-log-latest.csv"
 )
 
 BINDDIR = Path("/corral-secure/projects/A2CPS")
-ARCHIVE = BINDDIR / "products" / "mris"
+ARCHIVE = Path("products") / "mris"
 
 SITE_KEY = {
     "NS": "NS_northshore",
@@ -67,7 +69,7 @@ class JobParameters(pydantic.BaseModel):
     # one element per participant
     BIDS_DIRECTORY: list[Path]
     OUTPUT_DIR: list[Path]
-    FS_SUBJECTS_DIR: list[Path] = [Path("")]
+    FS_SUBJECTS_DIR: list[Path]
 
     # fmriprep options shared for all runs
     ANAT_ONLY: bool = True
@@ -97,6 +99,7 @@ class JobParameters(pydantic.BaseModel):
                 "CIFTI_OUTPUT": "91k",
                 "ICA_AROMA_USE": False,
                 "FD_SPIKE": 0.9,
+                "BIDS_FILTER_FILE": "--bids-filter-file cuff_only.json",
             }
         elif image_type == "rest":
             updated = {
@@ -105,6 +108,7 @@ class JobParameters(pydantic.BaseModel):
                 "ICA_AROMA_USE": True,
                 "ICA_AROMA_DIMENSIONALITY": -100,
                 "FD_SPIKE": 0.3,
+                "BIDS_FILTER_FILE": "--bids-filter-file rest_only.json",
             }
         else:
             raise AssertionError
@@ -125,7 +129,7 @@ class JobDef(pydantic.BaseModel):
     archiveSystem: str = "a2cps.storage-frontera-protected"
     archiveOnAppError: bool = False
     archive: bool = True
-    appId: str = "urrutia-fmriprep_LTS-20.2.6"
+    appId: str = APPID
 
 
 def _gen_patientid(d: pd.DataFrame) -> pd.Series:
@@ -151,7 +155,7 @@ def _gen_outputdirectory(d: pd.DataFrame, postpatient: str) -> pd.Series:
 def _gen_fsdirectory(d: pd.DataFrame) -> pd.Series:
     return d.apply(
         lambda x: (
-            ARCHIVE / re.sub(r"cuff|rest", "anat/freesurfer", x["OUTPUT_DIR"])
+            BINDDIR / ARCHIVE / re.sub(r"cuff|rest", "anat/freesurfer", x["OUTPUT_DIR"])
         ),  # type: ignore
         axis=1,
     )
@@ -201,11 +205,12 @@ def _gen_jobtable(image_type: str) -> pd.DataFrame:
     d["OUTPUT_DIR"] = _gen_outputdirectory(d, image_type)
     if image_type in ["rest", "cuff"]:
         d["FS_SUBJECTS_DIR"] = _gen_fsdirectory(d)
+    else:
+        d["FS_SUBJECTS_DIR"] = Path(".")
     return d
 
 
 def main(submit: bool = False):
-    ag = agavepy.Agave.restore()
     for image_type in ["anat", "rest", "cuff"]:
         jobtable = _gen_jobtable(image_type=image_type)
 
@@ -215,6 +220,7 @@ def main(submit: bool = False):
                 name=f"fmriprep-{image_type}-{jobid}", parameters=parameters
             ).json()
             if submit:
+                ag = agavepy.Agave.restore()
                 ag.jobs.submit(bold=job_def)
             else:
                 print(job_def)
