@@ -8,7 +8,7 @@ import pandas as pd
 
 import pydantic
 
-# import agavepy
+import agavepy
 
 """
 This script either 1) produces the jsons that can be used to run fMRIPrep jobs,
@@ -48,8 +48,7 @@ NTHREADS = 11
 
 # Location of Imaging Log on TACC
 ILOG_ = Path(
-    # "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-    "/Users/psadil/git/a2cps/simple-qaqc-report/data-raw/imaging-log-latest.csv"
+    "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
 )
 
 BINDDIR = Path("/corral-secure/projects/A2CPS")
