@@ -43,6 +43,7 @@ python3 make_launcher.py \
 for o in "${outs[@]}"; do
     if [[ -d ${o} ]]; then
         cp -t "${o}" ./*{out,err}
+        echo "${o}"/work >> .agave.archive
     fi
 done
 rm ./*{out,err} "${LAUNCHER_JOB_FILE}"

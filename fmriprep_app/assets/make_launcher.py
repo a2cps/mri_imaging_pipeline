@@ -78,7 +78,9 @@ def main(
         if skip_bids_validation:
             args.append("--skip-bids-validation")
         if fs_subjects_dir:
-            args.extend(["--fs-subjects-dir", str(fs_subjects_dir[t])])
+            fsd = str(fs_subjects_dir[t])
+            if not (fsd == "."):
+                args.extend(["--fs-subjects-dir", fsd])
 
         # Note safety risk!!! (e.g., what if logdir were "out; rm -rf /" !?)
         # https://docs.python.org/3/library/shlex.html#shlex.quote
