@@ -58,10 +58,8 @@ protocols2fix.update(
             ("^ORIG T1_MPRAGE$", "anat-T1w"),
             # this rule must come *after* DWI_B0
             ("^D[TW]I", "dwi"),
-            (r"^REST([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
-            (r"^Rest([12])([_\s]R[1-9]*)*$", r"func_task-rest_run-\1"),
-            (r"^CUFF([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
-            (r"^Cuff([12])([_\s]R[1-9]*)*$", r"func_task-cuff_run-\1"),
+            (r".*(REST|Rest)([12])([_\s]*R[1-9]*)*$", r"func_task-rest_run-\2"),
+            (r".*(CUFF|Cuff)([12])([_\s]*R[1-9]*)*$", r"func_task-cuff_run-\2"),
             # phantom scan heuristics
             # anat should grab one that has ORIG
             (".*(anat-T1w)[-_]acq[-_]GRE$", r"\1"),
