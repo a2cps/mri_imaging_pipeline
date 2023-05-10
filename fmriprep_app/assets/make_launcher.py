@@ -72,7 +72,7 @@ def main(
         if anat_only:
             args.append("--anat-only")
         if bids_filter_file:
-            args.extend(["--bids-filter-file", bids_filter_file])
+            args.extend(["--bids-filter-file", str(bids_filter_file)])
         if fs_no_reconall:
             args.append("--fs-no-reconall")
         if skip_bids_validation:

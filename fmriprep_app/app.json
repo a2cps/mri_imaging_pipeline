@@ -13,7 +13,7 @@
   "modules": [
     "load launcher",
     "load python3/3.9.2",
-    "load tacc-singularity",
+    "load tacc-apptainer",
     "unload xalt"
   ],
   "shortDescription": "{{ app.description }}",
