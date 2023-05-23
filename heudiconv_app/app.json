@@ -39,38 +39,8 @@
 			}
 		},
 		{
-			"id": "DICOM_DIR_TEMPLATE",
-			"details": {
-				"argument": "--dicom_dir_template ",
-				"showArgument": true,
-				"description": "location of dicomdir that can be indexed with subject id {subject} and session {session}. Tarballs (can be compressed) are supported in addition to directory. All matching tarballs for a subject are extracted and their content processed in a single pass"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "BIND_DIR",
-			"details":{
-				"description": "root directory bound to singularity container",
-				"argument": "",
-				"showArgument": false
-			},
-			"value": {
-				"default": null,				
-				"type": "string",
-				"visible": true,
-				"required": true
-			}
-		},
-		{
 			"id": "FILES",
 			"details": {
-				"argument": "--files ",
-				"showArgument": false,
 				"description": "Files (tarballs, dicoms) or directories containing files to process. Cannot be provided if using –dicom_dir_template or –subjects, don't use if dicom directory is provided separate files"
 			},
 			"value": {
@@ -95,25 +65,12 @@
 			}
 		},
 		{
-			"id": "CONVERTER",
+			"id": "OUTDIR",
 			"details": {
-				"description": "tool to use for DICOM conversion. Setting to “none” disables the actual conversion step – usefulfor testing heuristics.",
-				"argument": "--converter ",
-				"showArgument": true
+				"description": "output directory for conversion setup (for further customization and future reference. This directory will refer to non-anonymized subject IDs"
 			},
 			"value": {
-				"default": "dcm2niix",
-				"type": "enumeration",
-				"enumValues": ["dcm2niix", "none"],
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "OUTDIR",
-			"value": {
-				"default": null,
-				"description": "output directory for conversion setup (for further customization and future reference. This directory will refer to non-anonymized subject IDs",
+				"default": ".",
 				"type": "string",
 				"visible": true,
 				"required": true
@@ -123,7 +80,7 @@
 		{
 			"id": "LOCATOR",
 			"details": {
-				"argument": "--locator",
+				"argument": "--locator =''",
 				"showArgument": true,
 				"description": "study path under outdir. If provided, it overloads the value provided by the heuristic. If –datalad is enabled, every directory within locator becomes a super-dataset thus establishing a hierarchy. Setting to “unknown” will skip that dataset"
 			},
@@ -134,46 +91,15 @@
 				"required": false
 			}
 		},
-
-
-		{
-			"id": "CONVERTED_OUTDIR",
-			"details": {
-				"argument": "--conv-outdir ",
-				"showArgument": true,
-				"description": "output directory for converted files. By default this is identical to –outdir. This option is most useful in combination with –anon-cmd"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "ANON_CMD",
-			"details": {
-				"argument": "--anon-cmd ",
-				"showArgument": true,
-				"description": "command to run to convert subject IDs used for DICOMs to anonymized IDs. Such command must take a single argument and return a single anonymized ID. Also see –conv-outdir"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-
 		{
 			"id": "HEURISTIC",
 			"details": {
-				"argument": "--heuristic ",
+				"argument": "--heuristic /tapis/assets/a2cps.py",
 				"showArgument": true,
 				"description": "Name of a known heuristic or path to the Pythonscript containing heuristic"
 			},
 			"value": {
-				"default": "a2cps.py",
+				"default": null,
 				"description": "Name of a known heuristic or path to the Pythonscript containing heuristic",
 				"type": "string",
 				"visible": true,
@@ -210,55 +136,9 @@
 				"required": false
 			}
 		},
-
-		{
-			"id": "OVERWRITE",
-			"details": {
-				"argument": "--overwrite ",
-				"showArgument": true,
-				"description": "flag to allow overwriting existing converted files"
-			},
-			"value": {
-				"default": 0,
-				"type": "flag",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "DATALAD",
-			"details": {
-				"argument": "--datalad ",
-				"showArgument": true,
-				"description": "Store the entire collection as DataLad dataset(s). Small files will be committed directly to git, while large to annex. New version (6) of annex repositories will be used in a “thin” mode so it would look to mortals as just any other regular directory (i.e. no symlinks to under .git/annex). For now just for BIDS mode."
-			},
-			"value": {
-				"default": 0,
-				"type": "flag",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "DCMCONFIG",
-			"details": {
-				"argument": "--dcmconfig ",
-				"showArgument": true,
-				"description": "JSON file for additional dcm2niix configuration"
-			},
-			"value": {
-				"default": "",
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
 		{
 			"id": "SITE",
 			"details": {
-				"argument": "",
-				"showArgument": false,
 				"description": "site where patient was imaged"
 			},
 			"value": {
@@ -271,8 +151,6 @@
 		{
 			"id": "DELETE_DUPLICATES",
 			"details": {
-				"argument": "",
-				"showArgument": false,
 				"description": "boolean flag to delete duplicate scans"
 			},
 			"value": {
@@ -285,8 +163,6 @@
 		{
 			"id": "POST",
 			"details": {
-				"argument": "",
-				"showArgument": false,
 				"description": "flag indicating whether unexpected acqusition parameters should be posted to slack"
 			},
 			"value": {

@@ -1,19 +1,26 @@
 {
-    "appId": "urrutia-heudiconv-0.9.0.9",
-    "name": "heudiconv-test",
-    "archive": true,
-    "archivePath": "products/mris/UM_umichigan/bids/UM20007V3",
-    "maxRunTime": "19:59:00",
-    "parameters": {
-        "BIND_DIR": "/corral-secure/projects/A2CPS/",
-        "FILES": "/corral-secure/projects/A2CPS/products/mris/UM_umichigan/dicoms/UM20007V3",
-        "LIST_OF_SUBJECTS": "20007",
-        "OUTDIR": ".",
-        "SESSION_FOR_LONGITUDINAL": "V3",
-        "BIDS": true,
-        "HEURISTIC": "a2cps.py",
-        "LOCATOR": "=''",
-        "SITE": "UM",
-        "DELETE_DUPLICATES": true
-    }
-}
+    "name": "heuditest",
+    "appId": "heudiconv",
+    "appVersion": "3.0.0",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/development/mris/UI_uic/bids/",
+    "parameterSet": {
+       "envVariables": [
+       {
+       "key": "FILES",
+       "value": "/corral-secure/projects/A2CPS/products/mris/UI_uic/dicoms/UI10704V1.zip"
+       },
+       {
+        "key": "LIST_OF_SUBJECTS",
+        "value": "--subjects 10704"
+        },
+        {
+        "key": "SESSION_FOR_LONGITUDINAL",
+        "value": "--ses V1"
+        },
+        {
+        "key": "SITE",
+        "value": "UI"
+        }
+       ]
+     }
+   }

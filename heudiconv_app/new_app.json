@@ -1,0 +1,130 @@
+{
+    "id": "heudiconv",
+    "version": "3.0.0",
+    "description": "Run an interactive Jupyter Notebook session on an HPC compute node.",
+    "owner": "urrutia",
+    "enabled": true,
+    "runtime": "SINGULARITY",
+    "runtimeVersion": null,
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "containerImage": "docker://jurrutia/heudiconv:3.0.0",
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "strictFileInputs": true,
+    "jobAttributes": {
+        "description": null,
+        "dynamicExecSystem": false,
+        "execSystemConstraints": null,
+        "execSystemId": "secure.frontera",
+        "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemInputDir": "${JobWorkingDir}",
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "execSystemLogicalQueue": "corralextra",
+        "archiveSystemId": "secure.frontera",
+        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/${JobOwner}/tapis-jobs-archive/${JobCreateDate}/${JobName}-${JobUUID}",
+        "archiveOnAppError": true,
+        "isMpi": false,
+        "mpiCmd": null,
+        "cmdPrefix": null,
+        "parameterSet": {
+            "appArgs": [],
+            "containerArgs": [
+                {
+                    "name": "Container Mounts",
+                    "description": "Mount for TAP functions",
+                    "inputMode": "FIXED",
+                    "arg": "--bind /corral-secure/projects/A2CPS"
+                }
+            ],
+            "schedulerOptions": [
+                {
+                    "name": "TACC Scheduler Profile",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "arg": "--tapis-profile tacc-apptainer"
+                },
+                {
+                    "name": "TAP Session Substring",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "arg": "--job-name ${JobName}"
+                },
+                {
+                    "name": "TACC Allocation",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "arg": "-A A2CPS"
+                }
+            ],
+            "envVariables": [
+                {
+                    "key": "CHECK_JSONS",
+                    "value": "1"
+                },
+                {
+                    "key": "FILES",
+                    "value": null
+                },
+                {
+                    "key": "LIST_OF_SUBJECTS",
+                    "value": "--subjects "
+                },
+                {
+                    "key": "OUTDIR",
+                    "value": "."
+                },
+                {
+                    "key": "LOCATOR",
+                    "value": "--locator =''"
+                },
+                {
+                    "key": "HEURISTIC",
+                    "value": "--heuristic /tapis/assets/a2cps.py"
+                },
+                {
+                    "key": "SESSION_FOR_LONGITUDINAL",
+                    "value": "--ses "
+                },
+                {
+                    "key": "BIDS",
+                    "value": "--bids "
+                },
+                {
+                    "key": "SITE",
+                    "value": null
+                },
+                {
+                    "key": "DELETE_DUPLICATES",
+                    "value": "1"
+                },
+                {
+                    "key": "POST",
+                    "value": "--no-post"
+                }
+            ],
+            "archiveFilter": {
+                "includes": [],
+                "excludes": [],
+                "includeLaunchFiles": true
+            }
+        },
+        "fileInputs": [],
+        "fileInputArrays": [],
+        "nodeCount": 1,
+        "maxMinutes": 2880,
+        "subscriptions": [],
+        "tags": []
+    },
+    "tags": [],
+    "notes": {
+        "label": "Heudiconv is a flexible DICOM converter for organizing brain imaging data into structured directory layouts.",
+        "helpUrl": "",
+        "hideNodeCountAndCoresPerNode": false,
+        "isInteractive": false,
+        "icon": "",
+        "category": "Data Processing"
+    }
+}
