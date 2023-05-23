@@ -1,0 +1,17 @@
+{
+ "name": "test_job",
+ "appId": "dicom_reader",
+ "appVersion": "3.0.0",
+ "parameterSet": {
+    "appArgs": [
+	{
+	"name": "FILENAME",
+    	"arg": "FILE1"
+	},
+	{
+	"name": "SUBJECT_ID",
+	"arg": "SUB1"
+	}
+	]
+  }
+}

@@ -1,0 +1,104 @@
+{
+    "id": "dicom_reader",
+    "version": "3.0.0",
+    "description": "Run an interactive Jupyter Notebook session on an HPC compute node.",
+    "owner": "urrutia",
+    "enabled": true,
+    "runtime": "SINGULARITY",
+    "runtimeVersion": null,
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "containerImage": "docker://jurrutia/dicom_reader_app:3.0.0",
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "strictFileInputs": true,
+    "jobAttributes": {
+        "description": null,
+        "dynamicExecSystem": false,
+        "execSystemConstraints": null,
+        "execSystemId": "secure.frontera",
+        "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemInputDir": "${JobWorkingDir}",
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "execSystemLogicalQueue": "corralextra",
+        "archiveSystemId": "secure.frontera",
+        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/${JobOwner}/tapis-jobs-archive/${JobCreateDate}/${JobName}-${JobUUID}",
+        "archiveOnAppError": true,
+        "isMpi": false,
+        "mpiCmd": null,
+        "cmdPrefix": null,
+        "parameterSet": {
+            "appArgs": [
+                {
+                    "name": "FILENAME",
+                    "description": "The root folder uploaded from the data collection sites",
+                    "inputMode": "REQUIRED",
+                    "arg": "/corral-secure/projects/A2CPS/submissions/UC_uchicago/UC0001V1_A2CPS.zip",
+                    "notes": {
+                        "fieldType": "string"
+                    }
+                },
+                {
+                    "name": "SUBJECT_ID",
+                    "description": "Manually define the subject ID",
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "arg": null,
+                    "notes": {
+                        "fieldType": "string"
+                    }
+                }
+            ],
+            "containerArgs": [
+                {
+                    "name": "Container Mounts",
+                    "description": "Mount for TAP functions",
+                    "inputMode": "FIXED",
+                    "arg": "--bind /corral-secure/projects/A2CPS"
+                }
+            ],
+            "schedulerOptions": [
+                {
+                    "name": "TACC Scheduler Profile",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "arg": "--tapis-profile tacc-apptainer"
+                },
+                {
+                    "name": "TAP Session Substring",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "arg": "--job-name ${JobName}"
+                },
+                {
+                    "name": "TACC Allocation",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "arg": "-A A2CPS"
+                }
+            ],
+            "envVariables": [],
+            "archiveFilter": {
+                "includes": [],
+                "excludes": [],
+                "includeLaunchFiles": true
+            }
+        },
+        "fileInputs": [],
+        "fileInputArrays": [],
+        "nodeCount": 1,
+        "maxMinutes": 2880,
+        "subscriptions": [],
+        "tags": []
+    },
+    "tags": [],
+    "notes": {
+        "label": "dicom_reader",
+        "helpUrl": "",
+        "hideNodeCountAndCoresPerNode": false,
+        "isInteractive": false,
+        "icon": "",
+        "category": "Data Processing"
+    }
+}

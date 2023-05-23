@@ -40,7 +40,7 @@
     {
       "id": "SUBJECT_ID",
       "value": {
-        "default": "undefined",
+        "default": "",
         "visible": true,
         "type": "string",
         "required": false
