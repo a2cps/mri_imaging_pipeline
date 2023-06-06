@@ -1,20 +1,29 @@
 {
-    "appId": "{{ agave.username }}-{{ app.name }}-{{ app.version}}",
-    "name": "{{ app.name }}-test",
-    "archive": false,
-    "batchQueue": "normal",
-    "maxRunTime": "2:00:00",
-    "processorsPerNode": 2,
-    "nodeCount": 1,
-    "parameters": {
-        "BIDS_DIR": [
-            "/corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UC_uchicago/bids/UCtravel1",
-            "/corral-secure/projects/A2CPS/shared/psadil/traveling/mris/UC_uchicago/bids/UCtravel2"
-        ],
-        "OUTPUT_DIR": [
-            "UC_uchicago/fslanat/UCtravel1",
-            "UC_uchicago/fslanat/UCtravel2"
-        ],
-        "N_WORKERS": 1
-    }
+    "name": "test_fslanat",
+    "appId": "psadil-fslanat",
+    "appVersion": "0",
+    "archiveSystemDir": "${JobWorkingDir}",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "ANATS",
+                "arg": "--anats /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1/sub-travel1/ses-NS/anat/sub-travel1_ses-NS_T1w.nii.gz /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2/sub-travel2/ses-NS/anat/sub-travel2_ses-NS_T1w.nii.gz"
+            },
+            {
+                "name": "OUTPUT_DIR",
+                "arg": "--output-dir NS_northsthore/fslanat/travel1 NS_northsthore/fslanat/travel2"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ]
 }

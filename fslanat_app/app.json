@@ -1,99 +1,87 @@
 {
-  "name": "{{ agave.username }}-{{ app.name }}",
-  "version": "{{ app.version }}",
-  "executionType": "HPC",
-  "executionSystem": "{{ app.hpc_system}}",
-  "parallelism": "SERIAL",
-  "deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
-  "deploymentSystem": "{{ app.storage_system}}",
-  "defaultProcessorsPerNode": 40,
-  "defaultNodeCount": 1,
-  "defaultQueue": "{{ app.queue }}",
-  "label": "fMRIPRep",
-  "modules": [
-    "load launcher",
-    "load python3/3.9.2",
-    "load tacc-singularity",
-    "unload xalt"
+  "id": "psadil-fslanat",
+  "version": "0",
+  "description": "Run fsl_anat",
+  "owner": "${apiUserId}",
+  "enabled": true,
+  "runtime": "SINGULARITY",
+  "runtimeVersion": null,
+  "runtimeOptions": [
+    "SINGULARITY_RUN"
   ],
-  "shortDescription": "{{ app.description }}",
-  "templatePath": "runner-template.sh",
-  "testPath": "tester.sh",
-  "inputs": [],
-  "parameters": [
-    {
-      "id": "CONTAINER_IMAGE",
-      "value": {
-        "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
-        "description": "Container Image. Do not edit.",
-        "type": "string",
-        "visible": false,
-        "required": true
+  "containerImage": "docker://psadil/fslanat:latest",
+  "jobType": "BATCH",
+  "maxJobs": -1,
+  "maxJobsPerUser": -1,
+  "strictFileInputs": true,
+  "jobAttributes": {
+    "description": null,
+    "dynamicExecSystem": false,
+    "execSystemConstraints": null,
+    "execSystemId": "secure.frontera",
+    "execSystemExecDir": "${JobWorkingDir}",
+    "execSystemInputDir": "${JobWorkingDir}",
+    "execSystemOutputDir": "${JobWorkingDir}",
+    "execSystemLogicalQueue": "corralextra",
+    "archiveSystemId": "secure.frontera",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveOnAppError": true,
+    "isMpi": false,
+    "mpiCmd": null,
+    "cmdPrefix": null,
+    "parameterSet": {
+      "appArgs": [
+        {
+          "name": "ANATS",
+          "inputMode": "REQUIRED",
+          "arg": null
+        },
+        {
+          "name": "OUTPUT_DIR",
+          "inputMode": "REQUIRED",
+          "arg": null
+        }
+      ],
+      "containerArgs": [
+        {
+          "name": "Container Mounts",
+          "description": "Mount for TAP functions",
+          "inputMode": "FIXED",
+          "arg": "--bind /corral-secure/projects/A2CPS"
+        }
+      ],
+      "schedulerOptions": [
+        {
+          "name": "TACC Scheduler Profile",
+          "description": "Scheduler profile for HPC clusters at TACC",
+          "inputMode": "FIXED",
+          "arg": "--tapis-profile tacc-apptainer"
+        },
+        {
+          "name": "TAP Session Substring",
+          "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+          "inputMode": "FIXED",
+          "arg": "--job-name ${JobName}"
+        },
+        {
+          "name": "TACC Allocation",
+          "description": "The TACC allocation associated with this job execution",
+          "inputMode": "FIXED",
+          "arg": "-A A2CPS"
+        }
+      ],
+      "envVariables": [],
+      "archiveFilter": {
+        "includes": [],
+        "excludes": [],
+        "includeLaunchFiles": false
       }
     },
-    {
-      "id": "BINDDIR",
-      "value": {
-        "default": "/corral-secure/projects/A2CPS",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "details": {
-        "description": "Directory which will be bound inside the singularity container",
-        "showArgument": false
-      }
-    },
-    {
-      "id": "BIDS_DIR",
-      "value": {
-        "default": "--bids-dir",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "semantics": {
-        "ontology": [
-          "https://bids.neuroimaging.io/specification.html"
-        ],
-        "minCardinality": 1,
-        "maxCardinality": -1
-      },
-      "details": {
-        "description": "The root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder).",
-        "showArgument": false
-      }
-    },
-    {
-      "id": "OUTPUT_DIR",
-      "details": {
-        "description": "The output directory name for the outcomes of preprocessing and visual reports",
-        "showArgument": false
-      },
-      "value": {
-        "default": "--output-dir",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "semantics": {
-        "minCardinality": 1,
-        "maxCardinality": -1
-      }
-    },
-    {
-      "id": "N_WORKERS",
-      "details": {
-        "argument": "--n-workers ",
-        "showArgument": true
-      },
-      "value": {
-        "default": 1,
-        "description": "Maximum number of participants that will be processed in parallel",
-        "type": "number",
-        "visible": true,
-        "required": true
-      }
-    }
-  ]
+    "fileInputs": [],
+    "fileInputArrays": [],
+    "nodeCount": 1,
+    "maxMinutes": 120,
+    "subscriptions": [],
+    "tags": []
+  }
 }
