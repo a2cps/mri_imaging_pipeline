@@ -1,6 +1,6 @@
 {
   "id": "psadil-fslanat",
-  "version": "0",
+  "version": "0.1",
   "description": "Run fsl_anat",
   "owner": "${apiUserId}",
   "enabled": true,
@@ -40,6 +40,10 @@
           "name": "OUTPUT_DIR",
           "inputMode": "REQUIRED",
           "arg": null
+        },
+        {
+          "name": "N_WORKERS",
+          "arg": "--n-workers 1"
         }
       ],
       "containerArgs": [
