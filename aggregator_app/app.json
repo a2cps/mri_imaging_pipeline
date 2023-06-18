@@ -1,6 +1,6 @@
 {
     "id": "psadil-aggregator",
-    "version": "0",
+    "version": "0.1",
     "description": "Stage MRI Products for Release",
     "owner": "${apiUserId}",
     "enabled": true,

@@ -1,9 +1,10 @@
 import dataclasses
 import json
 import logging
+import os
 from pathlib import Path
 
-from tapipy import actors, util
+from tapipy import actors, util, errors
 from tapipy.tapis import Tapis
 
 JOB = Path("/opt/job.json")
@@ -25,6 +26,25 @@ class Context(util.AttrDict):
     message_dict: str
 
 
+def actors_get_client() -> Tapis:
+    """Returns a pre-authenticated Tapis client using the abaco environment variables."""
+    # if we have an access token, use that:
+    if token := os.environ.get("_abaco_access_token"):
+        tp = Tapis(
+            base_url=os.environ.get("_abaco_api_server", default="").strip("/"),
+            access_token=token,
+        )  # type: ignore
+    elif server := os.environ.get("_abaco_api_server"):
+        # otherwise, create a client with a fake JWT. this will only work if the actor is supplying its
+        # own token to itself via a config object or the message, etc.
+        tp = Tapis(base_url=server.strip("/"), jwt="123")  # type: ignore
+    else:
+        raise errors.BaseTapyException(
+            "Unable to instantiate a Tapis client: no token found."
+        )
+    return tp
+
+
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
@@ -33,11 +53,10 @@ def main() -> None:
         job = json.load(f)
 
     print(json.dumps(job, indent=4))
+    client = actors_get_client()
 
     try:
-        client: Tapis = actors.get_client()
-        response = client.jobs.submitJob(**job)  # type: ignore
-        print(response)
+        client.jobs.submitJob(**job)  # type: ignore
     except Exception as e:
         logging.error(f"encountered while trying to submit job: {e}")
 
