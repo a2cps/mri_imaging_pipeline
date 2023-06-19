@@ -7,11 +7,11 @@
         "appArgs": [
             {
                 "name": "INROOT",
-                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/release2/products2/mris"
+                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/release/products2/mris"
             },
             {
                 "name": "OUTROOT",
-                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/release2/staged"
+                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/staged"
             }
         ]
     },
