@@ -1,0 +1,29 @@
+{
+    "name": "test_stage",
+    "appId": "psadil-aggregator",
+    "appVersion": "0.1",
+    "archiveSystemDir": "${JobWorkingDir}",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "INROOT",
+                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/release2/products2/mris"
+            },
+            {
+                "name": "OUTROOT",
+                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/release2/staged"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ]
+}
