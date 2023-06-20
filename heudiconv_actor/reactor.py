@@ -63,6 +63,12 @@ def submit_heudiconv(
             nonce="_QAPHANTOM_NONCE",
         )
 
+        fslanat_callback = _make_callback(
+            server=pipeline_config["api_server"],
+            alias=pipeline_config["fslanat_alias"],
+            nonce="_QAPHANTOM_NONCE",
+        )
+
     except Exception as e:
         print(e)
         r.logger.error("Unable to generate Audit callback")
@@ -137,6 +143,20 @@ def submit_heudiconv(
                 "event": "FINISHED",
                 "persistent": False,
                 "url": cat_callback
+                + "&status=${JOB_STATUS}"
+                + "&bids="
+                + str(outdir)
+                + "&filename="
+                + filename
+                + "&site="
+                + site
+                + "&subject_id="
+                + subject_id,
+            },
+            {
+                "event": "FINISHED",
+                "persistent": False,
+                "url": fslanat_callback
                 + "&status=${JOB_STATUS}"
                 + "&bids="
                 + str(outdir)

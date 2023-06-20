@@ -203,13 +203,14 @@ def redcap_query():
             print(e)
     return uploaded, date_dict
 
-def find_outputs(bids_path):
+def find_outputs(bids_path: str):
     dicom_path = bids_path.replace('bids','dicoms')
     bids_validation_path = bids_path.replace('bids','bids_validation')
     fmriprep_path = bids_path.replace('bids','fmriprep')
     mriqc_path = bids_path.replace('bids','mriqc')
     qsiprep_path = bids_path.replace('bids','qsiprep')
     cat12_path = bids_path.replace('bids','cat12')
+    fslanat_path = bids_path.replace('bids','fslanat')
     print(bids_path)
     # for path in [bids_path, dicom_path, bids_validation_path, fmriprep_path, mriqc_path]
     # outputs = {}
@@ -307,8 +308,10 @@ def find_outputs(bids_path):
     except Exception as e:
         print("no cat12", cat12_path)
         cat12 = 0
+    
+    fslanat = 1 if len(glob.glob(f"{fslanat_path}/*.out")) else 0
         
-    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_anat, qsiprep, cat12, acq_time
+    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_anat, qsiprep, cat12, acq_time, fslanat
 
 
 def find_heudiconv_outputs(bids_dir):
@@ -418,7 +421,7 @@ def main():
         try:
             site_id = row['site_id']
             bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time) = find_outputs(bids_path)
+            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat) = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -527,6 +530,7 @@ def main():
             scan_report['dicom'] = dicom
             scan_report['bids'] = bids_present
             scan_report['bids_validation'] = bids_present
+            scan_report['fslanat'] = fslanat
             scan_report['fmriprep_anat'] = fmriprep_anat
             scan_report['fmriprep_cuff'] = fmriprep_cuff
             scan_report['fmriprep_rest'] = fmriprep_rest
@@ -574,6 +578,7 @@ def main():
     'dicom',
     'bids',
     'bids_validation',
+    'fslanat',
     'fmriprep_anat',
     'fmriprep_cuff',
     'fmriprep_rest',
