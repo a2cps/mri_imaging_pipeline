@@ -3,9 +3,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
-from biomarkers.cli import fslanat
-from biomarkers.flows import fslanat as fslanat_flow
-from biomarkers import utils
+from fslanat.cli import fslanat
+from fslanat.flows import fslanat as fslanat_flow
 
 
 def main(
@@ -22,7 +21,7 @@ def main(
         for i, o in zip(anats, output_dir):
             if (
                 tmpi := fslanat_flow._predict_fsl_anat_output(
-                    tmpdir, utils.img_stem(i)
+                    tmpdir, fslanat_flow._img_stem(i)
                 )
             ).exists():
                 dst = o / tmpi.name
