@@ -42,14 +42,14 @@ DESCRIPTION = {
 README = "A2CPS dataset"
 
 ASEG = (
-    Path("/opt/tapis/desc-aseg_desg.tsv")
-    if Path("/opt/tapis/desc-aseg_desg.tsv").exists()
-    else "desc-aseg_desg.tsv"
+    Path("/opt/tapis/desc-aseg_dseg.tsv")
+    if Path("/opt/tapis/desc-aseg_dseg.tsv").exists()
+    else "desc-aseg_dseg.tsv"
 )
 APARCASEG = (
-    Path("/opt/tapis/desc-aparcaseg_desg.tsv")
-    if Path("/opt/tapis/desc-aparcaseg_desg.tsv").exists()
-    else "desc-aparcaseg_desg.tsv"
+    Path("/opt/tapis/desc-aparcaseg_dseg.tsv")
+    if Path("/opt/tapis/desc-aparcaseg_dseg.tsv").exists()
+    else "desc-aparcaseg_dseg.tsv"
 )
 
 
