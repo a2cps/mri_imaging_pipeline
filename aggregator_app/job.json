@@ -1,17 +1,17 @@
 {
     "name": "test_stage",
-    "appId": "psadil-aggregator",
+    "appId": "urrrutia-aggregator",
     "appVersion": "0.1",
     "archiveSystemDir": "${JobWorkingDir}",
     "parameterSet": {
         "appArgs": [
             {
                 "name": "INROOT",
-                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/release2/products2/mris"
+                "arg": "/corral-secure/projects/A2CPS/products/mris"
             },
             {
                 "name": "OUTROOT",
-                "arg": "/corral-secure/projects/A2CPS/shared/psadil/jobs/release2/staged"
+                "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites"
             }
         ]
     },
