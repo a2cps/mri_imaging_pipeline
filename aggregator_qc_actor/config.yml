@@ -6,12 +6,12 @@ logs:
   token: ~
 
 main:
-  appId: urrutia-aggregator_qc-0.0.8
+  appId: urrutia-aggregator_qc-0.0.9
   name: aggregator_qc_job
   archive: false
   archivePath: ''
   maxRunTime: "06:00:00"
   parameters:
     SITES: "UI_uic UC_uchicago NS_northshore UM_umichigan WS_wayne_state SH_spectrum_health"
-    OUTDIR: "/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc-group"
+    OUTDIR: "/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc"
     
