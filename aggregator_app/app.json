@@ -1,5 +1,5 @@
 {
-    "id": "psadil-aggregator",
+    "id": "urrutia-aggregator",
     "version": "0.1",
     "description": "Stage MRI Products for Release",
     "owner": "${apiUserId}",
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://psadil/aggregator:latest",
+    "containerImage": "docker://a2cps/aggregator:0.1",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -24,8 +24,8 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
         "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
-        "archiveOnAppError": true,
+        "archiveSystemDir": "${JobWorkingDir}",
+        "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
