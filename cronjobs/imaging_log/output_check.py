@@ -467,9 +467,9 @@ def main():
             else:
                 applied_pressure = cuff1_pressure
 
-            if row['fmri_magnet_name'] is None:
+            if row.get('fmri_magnet_name') is None:
                 row['fmri_magnet_name'] = 'na'
-            if row['fmri_face_mask'] is None:
+            if row.get('fmri_face_mask') is None:
                 row['fmri_face_mask'] = 'na'
 
 
