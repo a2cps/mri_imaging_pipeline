@@ -14,6 +14,7 @@ import fmriprep_wf
 import freesurfer_wf
 import mriqc_wf
 import qsiprep_wf
+import fslanat_wf
 
 
 SITE_LONG = {
@@ -25,7 +26,7 @@ SITE_LONG = {
     "WS": "WS_wayne_state",
 }
 
-JOBS = ["bids", "fmriprep", "cat12", "mriqc", "qsiprep"]
+JOBS = ["bids", "fmriprep", "cat12", "mriqc", "qsiprep", "fslanat"]
 
 
 def _test_sub(
@@ -49,6 +50,9 @@ def _test_sub(
     )
     not_already_processed_fs = not (
         (outroot / "freesurfer" / f"sub-{sub}_ses-{ses}").exists()
+    )
+    not_already_processed_fslanat = not (
+        (outroot / "fslanat" / f"sub-{sub}_ses-{ses}.anat").exists()
     )
     not_already_processed_cat = not (
         (
@@ -75,6 +79,7 @@ def _test_sub(
     return (
         not_already_processed
         and not_already_processed_fs
+        and not_already_processed_fslanat
         and not_already_processed_cat
         and all_regular_outputs_not_empty
         and all_subdirs_not_empty
@@ -185,6 +190,7 @@ def _main(
                 freesurfer_wf.main(
                     inroot=tmp_site, outdir=outroot / "freesurfer"
                 )
+                fslanat_wf.main(inroot=tmp_site, outdir=outroot / "fslanat")
 
 
 if __name__ == "__main__":
