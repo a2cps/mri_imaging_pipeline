@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:1.4.3-jammy
+FROM mambaorg/micromamba:1.4.6-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/functional_connectivity /tmp/functional_connectivity/
