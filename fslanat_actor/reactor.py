@@ -3,6 +3,7 @@ import dataclasses
 import json
 import logging
 import os
+from typing import Any
 from pathlib import Path
 
 import pandas as pd
@@ -13,9 +14,6 @@ from tapipy import actors, util, errors
 from tapipy.tapis import Tapis
 
 JOB = Path("/opt/job.json")
-ILOG = Path(
-    "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-)
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -40,7 +38,7 @@ class Context(util.AttrDict):
     username: str
     state: str
     raw_message_parse_log: str
-    message_dict: str
+    message_dict: dict[str, Any]
 
 
 def actors_get_client() -> Tapis:
@@ -64,11 +62,12 @@ def actors_get_client() -> Tapis:
     return tp
 
 
-def get_runlist() -> list[tuple[str, str]]:
+def get_runlist(msg: dict) -> list[tuple[str, str]]:
     ilog: pd.DataFrame = (
-        ibis.read_csv(ILOG)
+        ibis.api._memtable_from_dataframe(msg)
         .select("site", "subject_id", "visit", "bids", "fslanat")
         .filter(_.fslanat == 0)  # type: ignore
+        .filter(_.bids == 1)  # type: ignore
         .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
@@ -114,7 +113,7 @@ def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
 
-    runlist = get_runlist()
+    runlist = get_runlist(msg=context.message_dict)
     if not len(runlist):
         logging.warning("Did not find any jobs to submit")
         return
