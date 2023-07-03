@@ -8,8 +8,8 @@ import pandas as pd
 ILOG = Path(
     "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
 )
-MAXJOBS = 100
-ACTOR_ID = "BP6KoXZQJ08NR"
+MAXJOBS = 500
+ACTOR_ID = "8Rmeo8yweGwg6"
 
 user = "urrutia"
 
