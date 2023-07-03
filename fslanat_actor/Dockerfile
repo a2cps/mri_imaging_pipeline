@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.11.4-bullseye
 
 RUN pip install --no-cache-dir tapipy ibis-framework[pandas] ibis-framework[duckdb]
 
