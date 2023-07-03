@@ -1,11 +1,11 @@
 import argparse
+import os
 import shutil
 import tempfile
 from pathlib import Path
 
-from biomarkers.cli import fslanat
-from biomarkers.flows import fslanat as fslanat_flow
-from biomarkers import utils
+from fslanat.cli import fslanat
+from fslanat.flows import fslanat as fslanat_flow
 
 
 def main(
@@ -13,6 +13,13 @@ def main(
     output_dir: list[Path],
     n_workers: int = 1,
 ) -> None:
+    if not (uuid := os.environ.get("_tapisJobUUID")):
+        msg = "Unable to get environment variable _tapisJobUUID"
+        raise AssertionError(msg)
+    if not (oldlog := Path("tapisjob.out")).exists():
+        msg = "Unable to find expected log file: tapisjob.out"
+        raise AssertionError(msg)
+
     with tempfile.TemporaryDirectory() as _tmpdir:
         tmpdir = Path(_tmpdir)
         fslanat._main(
@@ -22,16 +29,15 @@ def main(
         for i, o in zip(anats, output_dir):
             if (
                 tmpi := fslanat_flow._predict_fsl_anat_output(
-                    tmpdir, utils.img_stem(i)
+                    tmpdir, fslanat_flow._img_stem(i)
                 )
             ).exists():
                 dst = o / tmpi.name
                 if not o.exists():
                     o.mkdir(parents=True)
                 shutil.copytree(tmpi, dst)
-                for pattern in ["*log", "*err", "*out"]:
-                    for f in Path("./").glob(pattern):
-                        shutil.copy2(f, o)
+
+                shutil.copy2(oldlog, o / f"{uuid}.out")
 
 
 if __name__ == "__main__":
