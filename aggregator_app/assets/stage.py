@@ -13,8 +13,9 @@ import cat12_wf
 import fmriprep_wf
 import freesurfer_wf
 import mriqc_wf
-import qsiprep_wf
+#import qsiprep_wf
 import fslanat_wf
+
 
 
 SITE_LONG = {
@@ -26,7 +27,7 @@ SITE_LONG = {
     "WS": "WS_wayne_state",
 }
 
-JOBS = ["bids", "fmriprep", "cat12", "mriqc", "qsiprep", "fslanat"]
+JOBS = ["bids", "fmriprep", "cat12", "mriqc", "fslanat"]
 
 
 def _test_sub(
@@ -44,7 +45,6 @@ def _test_sub(
             "fmriprep-anat",
             "fmriprep-cuff",
             "fmriprep-rest",
-            "qsiprep",
             "mriqc",
         ]
     )
@@ -176,7 +176,7 @@ def _main(
             if len(subses_tocopy):
                 bids_wf.main(inroot=tmp_site, outdir=outroot / "bids")
                 cat12_wf.main(inroot=tmp_site, outdir=outroot / "cat12")
-                qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
+                # qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
                 mriqc_wf.main(inroot=tmp_site, outdir=outroot / "mriqc")
                 fmriprep_wf.main(
                     inroot=tmp_site, outdir=outroot / "fmriprep-anat"
