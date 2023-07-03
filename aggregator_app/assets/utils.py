@@ -7,8 +7,18 @@ import nibabel as nb
 import numpy as np
 from nilearn import masking
 
+# TODO: deface fslanat
+
 
 FSOUTPUTS = ("orig.mgz", "orig_nu.mgz", "T1.mgz")
+FSLANATOUTPUTS = (
+    "T1.nii.gz",
+    "T1_fullfov.nii.gz",
+    "T1_orig.niig.z",
+    "T1_biascorr.nii.gz",
+    "T1_to_MNI_lin.nii.gz",
+    "T1_to_MNI_nonlin.nii.gz",
+)
 
 
 def _get_entity(f: Path, pattern: str) -> str:
@@ -59,6 +69,47 @@ def _deface(volume: Path, mask: Path, make_mask: bool = False) -> None:  # type:
     masked: nb.Nifti1Image = masking.unmask(masked_data, mask)  # type: ignore
     volume.unlink()
     nb.save(masked, volume)  # type: ignore
+
+
+def _deface_fslanat(subsesdir: Path) -> None:
+    for anatdir in subsesdir.glob("*anat"):
+        for t1 in FSLANATOUTPUTS:
+            _deface(anatdir / t1, subsesdir / "T1_biascorr_brain_mask.nii.gz")
+        _deface(
+            anatdir / "T1_to_MNI_nonlin.nii.gz",
+            anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz",
+        )
+        _deface(
+            anatdir / "T1_to_MNI_lin.nii.gz",
+            anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz",
+        )
+
+
+def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
+    _deface(
+        subsesdir
+        / "qsiprep"
+        / f"sub-{sub}"
+        / "anat"
+        / f"sub-{sub}_desc-preproc_T1w.nii.gz",
+        subsesdir
+        / "qsiprep"
+        / f"sub-{sub}"
+        / "anat"
+        / f"sub-{sub}_desc-brain_mask.nii.gz",
+    )
+    _deface(
+        subsesdir
+        / "qsiprep"
+        / f"sub-{sub}"
+        / "anat"
+        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz",
+        subsesdir
+        / "qsiprep"
+        / f"sub-{sub}"
+        / "anat"
+        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz",
+    )
 
 
 def _deface_all(subsesdir: Path, tmp_site: Path) -> None:
@@ -140,28 +191,6 @@ def _deface_all(subsesdir: Path, tmp_site: Path) -> None:
             / "brainmask.mgz",
             make_mask=True,
         )
-    subses_qsiprep = tmp_site / "qsiprep" / subsesdir
-    _deface(
-        subses_qsiprep
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_desc-preproc_T1w.nii.gz",
-        subses_qsiprep
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_desc-brain_mask.nii.gz",
-    )
-    _deface(
-        subses_qsiprep
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz",
-        subses_qsiprep
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz",
-    )
+
+    _deface_qsiprep(tmp_site / "qsiprep" / subsesdir, sub=sub)
+    _deface_fslanat(tmp_site / "fslanat" / subsesdir)
