@@ -1,0 +1,3 @@
+[submodule "fslanat_app/assets/fslanat"]
+	path = fslanat_app/assets/fslanat
+	url = git@github.com:a2cps/fslanat.git

@@ -1,8 +1,7 @@
 {
     "name": "fslanat",
     "appId": "psadil-fslanat",
-    "appVersion": "0.1",
-    "archiveSystemDir": "${JobWorkingDir}",
+    "appVersion": "0.2",
     "parameterSet": {
         "appArgs": [
             {
@@ -30,5 +29,5 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 480
+    "maxMinutes": 240
 }
