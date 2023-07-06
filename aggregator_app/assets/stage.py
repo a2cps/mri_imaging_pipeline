@@ -124,9 +124,7 @@ def _prep_staged_dir(outroot: Path) -> None:
 )
 @click.option("--max-subs", type=float, default=float("inf"))
 def _main(
-    inroot: Path,
-    outroot: Path,
-    max_subs: float | int = float("inf"),
+    inroot: Path, outroot: Path, max_subs: float | int = float("inf")
 ) -> None:
     _prep_staged_dir(outroot=outroot)
     i = 0
