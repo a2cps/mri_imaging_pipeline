@@ -75,14 +75,18 @@ def get_runlist(msg: dict) -> list[tuple[str, str]]:
             "fmriprep_cuff",
             "fcn",
         )
+        .mutate(
+            fmriprep_cuff=_.fmriprep_cuff.cast(str),
+            fmriprep_rest=_.fmriprep_rest.cast(str),
+        )
         # exclude rows that were already processed
         .filter(_.fcn == 0)  # type: ignore
         # include rows with both fmriprep jobs ready
         .filter(
             (
-                ((_.fmriprep_cuff == 1) | (_.fmriprep_cuff == ibis.NA))
-                & ((_.fmriprep_rest == 1) | (_.fmriprep_rest == ibis.NA))
-                & ~((_.fmriprep_rest == ibis.NA) & (_.fmriprep_rest == ibis.NA))
+                ((_.fmriprep_cuff == "1") & (_.fmriprep_rest == "1"))
+                | ((_.fmriprep_cuff == "1") & (_.fmriprep_rest == "na"))
+                | ((_.fmriprep_cuff == "na") & (_.fmriprep_rest == "1"))
             )
         )  # type: ignore
         .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
@@ -92,7 +96,7 @@ def get_runlist(msg: dict) -> list[tuple[str, str]]:
             values_to="done",
         )
         # exclude rows where there wasn't an fmriprep job
-        .filter(~(_.done == ibis.NA))
+        .filter(~(_.done == "na"))
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
@@ -129,7 +133,7 @@ def set_outputdir(job: dict, arg: str) -> dict:
 
 def set_name(job: dict) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("name") = {"name": datetime.today().strftime('%Y-%m-%d')}  # type: ignore
+    job2["name"] = f"fcn-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
     return job2
 
 
