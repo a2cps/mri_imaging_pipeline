@@ -1,0 +1,33 @@
+{
+    "name": "fslanat",
+    "appId": "urrutia-fslanat",
+    "appVersion": "0.1",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "ANATS",
+                "arg": "--anats /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1/sub-travel1/ses-NS/anat/sub-travel1_ses-NS_T1w.nii.gz /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2/sub-travel2/ses-NS/anat/sub-travel2_ses-NS_T1w.nii.gz"
+            },
+            {
+                "name": "OUTPUT_DIR",
+                "arg": "--output-dir NS_northsthore/fslanat/travel1 NS_northsthore/fslanat/travel2"
+            },
+            {
+                "name": "N_WORKERS",
+                "arg": "--n-workers 40"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 240
+}

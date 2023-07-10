@@ -43,9 +43,12 @@ python3 make_launcher.py \
 for o in "${outs[@]}"; do
     if [[ -d ${o} ]]; then
         cp -t "${o}" ./*{out,err}
+        rm -r "${o}"/work &
     fi
 done
-rm ./*{out,err} "${LAUNCHER_JOB_FILE}"
+wait
+rm ./*{out,err}
+echo "${LAUNCHER_JOB_FILE}" >> .agave.archive
 
 # have seen a few cases where the .nii.gz files are corrupted. 
 # unclear why or when that happens
