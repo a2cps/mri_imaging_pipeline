@@ -1,0 +1,29 @@
+{
+    "name": "aggregate",
+    "appId": "urrutia-aggregator",
+    "appVersion": "0.2",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "INROOT",
+                "arg": "/corral-secure/projects/A2CPS/products/mris"
+            },
+            {
+                "name": "OUTROOT",
+                "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 480
+}
