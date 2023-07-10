@@ -25,7 +25,7 @@
         "execSystemLogicalQueue": "corralextra",
         "archiveSystemId": "secure.frontera",
         "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
-        "archiveOnAppError": true,
+        "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
