@@ -348,6 +348,14 @@ else
   echo "Skipping check of jsons"
 fi
 
+echo "cleaning *scans.tsv"
+singularity run \
+  --cleanenv \
+  -B "${BIND_DIR}":"${BIND_DIR}" \
+  --env ENV_NAME=v1.0.20220720 \
+  docker://"${CONTAINER_IMAGE}" \
+  bash -c "source /usr/local/bin/_activate_current_env.sh && python edit_scanstsv.py ${OUTDIR}"
+
 # end with check of newly created directory. if the output is not valid, the job will fail
 singularity run \
   -B "${BIND_DIR}":"${BIND_DIR}" \
