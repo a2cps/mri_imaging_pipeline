@@ -6,7 +6,7 @@ logs:
   token: ~
 
 main:
-  appId: urrutia-aggregator_qc-0.0.9
+  appId: urrutia-aggregator_qc-0.1.0
   name: aggregator_qc_job
   archive: false
   archivePath: ''
