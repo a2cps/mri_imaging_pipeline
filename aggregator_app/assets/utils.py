@@ -11,14 +11,6 @@ from nilearn import masking
 
 
 FSOUTPUTS = ("orig.mgz", "orig_nu.mgz", "T1.mgz")
-FSLANATOUTPUTS = (
-    "T1.nii.gz",
-    "T1_fullfov.nii.gz",
-    "T1_orig.niig.z",
-    "T1_biascorr.nii.gz",
-    "T1_to_MNI_lin.nii.gz",
-    "T1_to_MNI_nonlin.nii.gz",
-)
 
 
 def _get_entity(f: Path, pattern: str) -> str:
@@ -71,18 +63,20 @@ def _deface(volume: Path, mask: Path, make_mask: bool = False) -> None:  # type:
     nb.save(masked, volume)  # type: ignore
 
 
-def _deface_fslanat(subsesdir: Path) -> None:
+def _deface_fslanat(subsesdir: Path, fmriprep_mask: Path) -> None:
     for anatdir in subsesdir.glob("*anat"):
-        for t1 in FSLANATOUTPUTS:
-            _deface(anatdir / t1, subsesdir / "T1_biascorr_brain_mask.nii.gz")
-        _deface(
-            anatdir / "T1_to_MNI_nonlin.nii.gz",
-            anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz",
-        )
-        _deface(
-            anatdir / "T1_to_MNI_lin.nii.gz",
-            anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz",
-        )
+        for t1 in ("T1.nii.gz", "T1_biascorr.nii.gz"):
+            _deface(anatdir / t1, anatdir / "T1_biascorr_brain_mask.nii.gz")
+        for mni in ("T1_to_MNI_nonlin.nii.gz", "T1_to_MNI_lin.nii.gz"):
+            _deface(
+                anatdir / mni,
+                anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz",
+            )
+        for orig in ("T1_fullfov.nii.gz", "T1_orig.nii.gz"):
+            _deface(
+                anatdir / orig,
+                fmriprep_mask,
+            )
 
 
 def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
@@ -112,85 +106,96 @@ def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
     )
 
 
-def _deface_all(subsesdir: Path, tmp_site: Path) -> None:
+def _deface_all(subsesdir: Path, tmp_site: Path) -> bool:
     sub = _get_sub(subsesdir)
     ses = _get_ses(subsesdir)
     subses_fmriprep = tmp_site / "fmriprep" / subsesdir
-    fmriprep_mask = (
-        subses_fmriprep
-        / "anat"
-        / "fmriprep"
-        / f"sub-{sub}"
-        / f"ses-{ses}"
-        / "anat"
-        / f"sub-{sub}_ses-{ses}_desc-brain_mask.nii.gz"
-    )
-    _deface(
-        tmp_site
-        / "bids"
-        / subsesdir
-        / f"sub-{sub}"
-        / f"ses-{ses}"
-        / "anat"
-        / f"sub-{sub}_ses-{ses}_T1w.nii.gz",
-        fmriprep_mask,
-    )
-    for subjob in ["anat", "cuff", "rest"]:
-        # output might not exist
-        for output in (
-            subses_fmriprep / subjob / "fmriprep" / f"sub-{sub}"
-        ).glob("ses*"):
-            _deface(
-                output
-                / "anat"
-                / f"sub-{sub}_ses-{ses}_desc-preproc_T1w.nii.gz",
-                fmriprep_mask,
-            )
+    ok = True
+    try:
+        fmriprep_mask = (
+            subses_fmriprep
+            / "anat"
+            / "fmriprep"
+            / f"sub-{sub}"
+            / f"ses-{ses}"
+            / "anat"
+            / f"sub-{sub}_ses-{ses}_desc-brain_mask.nii.gz"
+        )
+        _deface(
+            tmp_site
+            / "bids"
+            / subsesdir
+            / f"sub-{sub}"
+            / f"ses-{ses}"
+            / "anat"
+            / f"sub-{sub}_ses-{ses}_T1w.nii.gz",
+            fmriprep_mask,
+        )
+        for subjob in ["anat", "cuff", "rest"]:
+            # output might not exist
+            for output in (
+                subses_fmriprep / subjob / "fmriprep" / f"sub-{sub}"
+            ).glob("ses*"):
+                _deface(
+                    output
+                    / "anat"
+                    / f"sub-{sub}_ses-{ses}_desc-preproc_T1w.nii.gz",
+                    fmriprep_mask,
+                )
 
-            _deface(
-                output
-                / "anat"
-                / f"sub-{sub}_ses-{ses}_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz",
-                output
-                / "anat"
-                / f"sub-{sub}_ses-{ses}_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz",
-            )
-    # now freesurfer
-    _deface(
-        subses_fmriprep
-        / "anat"
-        / "freesurfer"
-        / f"sub-{sub}"
-        / "mri"
-        / "orig"
-        / "001.mgz",
-        fmriprep_mask,
-    )
-    _deface(
-        subses_fmriprep
-        / "anat"
-        / "freesurfer"
-        / f"sub-{sub}"
-        / "mri"
-        / "rawavg.mgz",
-        fmriprep_mask,
-    )
-    for mgz in FSOUTPUTS:
+                _deface(
+                    output
+                    / "anat"
+                    / f"sub-{sub}_ses-{ses}_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz",
+                    output
+                    / "anat"
+                    / f"sub-{sub}_ses-{ses}_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz",
+                )
+        # now freesurfer
         _deface(
             subses_fmriprep
             / "anat"
             / "freesurfer"
             / f"sub-{sub}"
             / "mri"
-            / mgz,
+            / "orig"
+            / "001.mgz",
+            fmriprep_mask,
+        )
+        _deface(
             subses_fmriprep
             / "anat"
             / "freesurfer"
             / f"sub-{sub}"
             / "mri"
-            / "brainmask.mgz",
-            make_mask=True,
+            / "rawavg.mgz",
+            fmriprep_mask,
         )
+        for mgz in FSOUTPUTS:
+            _deface(
+                subses_fmriprep
+                / "anat"
+                / "freesurfer"
+                / f"sub-{sub}"
+                / "mri"
+                / mgz,
+                subses_fmriprep
+                / "anat"
+                / "freesurfer"
+                / f"sub-{sub}"
+                / "mri"
+                / "brainmask.mgz",
+                make_mask=True,
+            )
 
-    _deface_qsiprep(tmp_site / "qsiprep" / subsesdir, sub=sub)
-    _deface_fslanat(tmp_site / "fslanat" / subsesdir)
+        # _deface_qsiprep(tmp_site / "qsiprep" / subsesdir, sub=sub)
+        _deface_fslanat(
+            tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask
+        )
+    except Exception as e:
+        logging.error(
+            f"Encountered {e} while defacing {subsesdir} but attempting to continue."
+        )
+        ok = False
+
+    return ok
