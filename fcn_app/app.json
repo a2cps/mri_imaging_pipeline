@@ -1,6 +1,6 @@
 {
-    "id": "psadil-functional-connectivity",
-    "version": "0",
+    "id": "functional-connectivity",
+    "version": "0.1",
     "description": "Run Functional Connectivity",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://psadil/fcn_app:latest",
+    "containerImage": "docker://a2cps/fcn_app:0.1",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
