@@ -99,7 +99,9 @@ def build_bids_name(d: pd.DataFrame, suffix: str) -> pd.DataFrame:
             for x in d.itertuples()
         ]
     elif suffix in ["T1w", "dwi"]:
-        d["bids_name"] = [f"sub-{x.sub}_ses-{x.ses}_{suffix}" for x in d.itertuples()]
+        d["bids_name"] = [
+            f"sub-{x.sub}_ses-{x.ses}_{suffix}" for x in d.itertuples()
+        ]
 
     return d
 
@@ -132,11 +134,15 @@ def get_outliers(
     )
     dind = d[["bids_name"]].copy()
     dind["sub"] = [int(re.findall("\d{5}", x)[0]) for x in dind["bids_name"]]
-    dind["ses"] = [re.findall("ses-([a-zA-Z0-9]+)", x)[0] for x in dind["bids_name"]]
+    dind["ses"] = [
+        re.findall("ses-([a-zA-Z0-9]+)", x)[0] for x in dind["bids_name"]
+    ]
 
     if "task" in groups:
         indices = ["site", "sub", "task", "ses", "bids_name"]
-        dind["task"] = [re.findall("task-(\w+)_", x)[0] for x in dind["bids_name"]]
+        dind["task"] = [
+            re.findall("task-(\w+)_", x)[0] for x in dind["bids_name"]
+        ]
     else:
         indices = ["site", "sub", "ses", "bids_name"]
 
@@ -164,7 +170,9 @@ def get_outliers(
     return outliers
 
 
-def gather_dwi(root: Path = Path("/corral-secure/projects/A2CPS/products/mris")):
+def gather_dwi(
+    root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
+):
     d = (
         pd.concat(
             [
@@ -199,7 +207,9 @@ def extract_iqr(xml: Path) -> float:
 
 def extract_defects(xml: Path) -> float:
     f = ET.parse(xml)
-    n = float(f.getroot().find("qualitymeasures").find("SurfaceEulerNumber").text)
+    n = float(
+        f.getroot().find("qualitymeasures").find("SurfaceEulerNumber").text
+    )
     return 2 - 2 * n
 
 
@@ -227,8 +237,12 @@ def build_cat_df(xml: Path) -> pd.DataFrame:
     return d
 
 
-def gather_cat(root: Path = Path("/corral-secure/projects/A2CPS/products/mris")):
-    return pd.concat([build_cat_df(x) for x in root.glob("*/cat12/*/report/*xml")])
+def gather_cat(
+    root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
+):
+    return pd.concat(
+        [build_cat_df(x) for x in root.glob("*/cat12/*/report/*xml")]
+    )
 
 
 def gather_motion(
@@ -257,10 +271,15 @@ def gather_motion(
                 confounds.append(
                     pd.DataFrame(
                         {
-                            "bids_name": bids_name_raw[0:-1] + "0" + bids_name_raw[-1] + "_bold",
+                            "bids_name": bids_name_raw[0:-1]
+                            + "0"
+                            + bids_name_raw[-1]
+                            + "_bold",
                             "fd_mean": rmsd.mean(),
                             "fd_max": rmsd.max(),
-                            "fd_perc": np.mean(rmsd.to_numpy() > TASK_THRESH[task]),
+                            "fd_perc": np.mean(
+                                rmsd.to_numpy() > TASK_THRESH[task]
+                            ),
                             "n_trs": len(rmsd),
                         }
                     )
@@ -269,7 +288,7 @@ def gather_motion(
     return pd.concat(confounds, ignore_index=True)
 
 
-def auto_rate_bold_scan(row) -> str:
+def rate_motion(row) -> str:
     if (row.fd_mean > 0.55) or (row.n_trs < 450):
         rating = "red"
     elif (row.fd_mean > 0.25) or (row.fd_perc > 0.2) or (row.fd_max > 5):
@@ -280,15 +299,41 @@ def auto_rate_bold_scan(row) -> str:
     return rating
 
 
-def rate_motion(d: pd.DataFrame) -> pd.DataFrame:
-    bold_iqm = gather_motion()
-    bold_iqm["rating"] = [auto_rate_bold_scan(x) for x in bold_iqm.itertuples()]
-    rated = d.merge(bold_iqm[["bids_name", "rating"]], on="bids_name", how="left").drop(
-        ["bids_name"], axis=1
+def rate_rest2_wo_cuff(d: pd.DataFrame) -> pd.DataFrame:
+    tmp = (
+        d[["sub", "ses", "scan"]]
+        .assign(value=1)
+        .pivot(values="value", index=["sub", "ses"], columns=["scan"])
+        .reset_index()
+        .query("CUFF1.isna() and CUFF2.isna() and not REST2.isna()")
+        .assign(rating="red")
+        .assign(scan="REST2")
     )
+    out = d.merge(
+        tmp[["sub", "ses", "scan", "rating"]],
+        on=["sub", "ses", "scan"],
+        how="outer",
+    ).fillna({"rating_y":""})
+    x = []
+    for r in out.itertuples():
+        if r.rating_y == "":
+            x.append(r.rating_x)
+        else:
+            x.append(r.rating_y)
+    out["rating"] = x
+    return out[d.columns]
+
+
+def auto_rate_bold(d: pd.DataFrame) -> pd.DataFrame:
+    bold_iqm = gather_motion()
+    bold_iqm["rating"] = [rate_motion(x) for x in bold_iqm.itertuples()]
+    rated = d.merge(
+        bold_iqm[["bids_name", "rating"]], on="bids_name", how="left"
+    ).drop(["bids_name"], axis=1)
     rated["source"] = "auto"
     # fmriprep processing often lags. default assumes scan is okay
     rated["rating"] = rated["rating"].fillna("green")
+    rated = rate_rest2_wo_cuff(rated)
     return rated
 
 
@@ -350,27 +395,35 @@ def rate_dwi(
         re.findall("|".join(DWI_LENGTHS.keys()), str(x))[0] for x in bvals["f"]
     ]
     bvals = bvals.merge(
-        pd.DataFrame.from_dict(DWI_LENGTHS, orient="index", columns=["expected"])
+        pd.DataFrame.from_dict(
+            DWI_LENGTHS, orient="index", columns=["expected"]
+        )
         .reset_index()
         .rename(columns={"index": "site"})
     )
     bvals["rating"] = bvals.apply(
-        lambda row: "green" if row["expected"] == row["observed"] else "red", axis=1
+        lambda row: "green" if row["expected"] == row["observed"] else "red",
+        axis=1,
     )
     bvals["sublong"] = bvals.apply(
         lambda x: re.findall("[A-Z]{2}\d{5}V[13]", str(x["f"]))[0],
         axis=1,
     )
-    d["sublong"] = d.apply(lambda row: f'{row["site"]}{row["sub"]}{row["ses"]}', axis=1)
+    d["sublong"] = d.apply(
+        lambda row: f'{row["site"]}{row["sub"]}{row["ses"]}', axis=1
+    )
     d["source"] = "auto"
-    return d.merge(bvals[["rating", "sublong"]], on="sublong").drop(["sublong"], axis=1)
+    return d.merge(bvals[["rating", "sublong"]], on="sublong").drop(
+        ["sublong"], axis=1
+    )
 
 
 def write_ratings_unique(
     d: pd.DataFrame,
-    outdir: Path = Path("/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"),
+    outdir: Path = Path(
+        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
+    ),
 ) -> pd.DataFrame:
-
     # manual ratings always overwrite auto + tech scans
     d["source_code"] = [source_to_code(x) for x in d["source"].values]
 
@@ -385,9 +438,15 @@ def write_ratings_unique(
 
     single_rating = (
         d.groupby(["site", "sub", "ses", "scan"], as_index=False)
-        .apply(lambda x: x[x["source_code"] == x["source_code"].max(skipna=False)])
+        .apply(
+            lambda x: x[x["source_code"] == x["source_code"].max(skipna=False)]
+        )
         .groupby(["site", "sub", "ses", "scan"], as_index=False)
-        .apply(lambda x: x[x["rating_grade"] == x["rating_grade"].min(skipna=False)])
+        .apply(
+            lambda x: x[
+                x["rating_grade"] == x["rating_grade"].min(skipna=False)
+            ]
+        )
         .groupby(["site", "sub", "ses", "scan"], as_index=False)
         .apply(lambda x: x[x["date"] == x["date"].max(skipna=False)])
         .drop(["source_code", "rating_grade"], axis=1)
@@ -435,11 +494,13 @@ def update_qclog(
         .drop(["value"], axis=1)
     )
     log["scan"] = [
-        LOG_KEYS[re.findall("|".join(LOG_KEYS.keys()), x)[0]] for x in log["scan"]
+        LOG_KEYS[re.findall("|".join(LOG_KEYS.keys()), x)[0]]
+        for x in log["scan"]
     ]
     log["rating"].fillna(0, inplace=True)
     log["rating"] = log.apply(
-        lambda row: str(int(row["rating"])) if row["scan"] == "T1w" else "0", axis=1
+        lambda row: str(int(row["rating"])) if row["scan"] == "T1w" else "0",
+        axis=1,
     )
     log["source"] = log.apply(
         lambda row: "technologist" if row["scan"] == "T1w" else "", axis=1
@@ -449,10 +510,10 @@ def update_qclog(
     log_dwi = rate_dwi(
         log.query("scan in ['DWI']").copy().drop(["rating", "source"], axis=1)
     )
-    log_bold = rate_motion(
-        d=build_bids_name(log.query("not scan in ['DWI','T1w']").copy(), "bold").drop(
-            ["rating", "source", "task", "run"], axis=1
-        )
+    log_bold = auto_rate_bold(
+        d=build_bids_name(
+            log.query("not scan in ['DWI','T1w']").copy(), "bold"
+        ).drop(["rating", "source", "task", "run"], axis=1)
     )
     log_short = log_t1w[["site", "sub"]].drop_duplicates()
 
@@ -468,7 +529,10 @@ def update_qclog(
             sub=[int(re.findall("\d{5}", x)[0]) for x in d["subject"]],
             ses=[re.findall("(?<=ses-)[Vv][13]", x)[0] for x in d["subject"]],
             rating=[RATING[str(x)] for x in d["rating"]],
-            scan=[SCAN[re.findall("|".join(SCAN.keys()), x)[0]] for x in d["subject"]],
+            scan=[
+                SCAN[re.findall("|".join(SCAN.keys()), x)[0]]
+                for x in d["subject"]
+            ],
         )
         .drop(["subject", "artifacts"], axis=1)
         .merge(log_short)
@@ -487,7 +551,10 @@ def update_qclog(
         with tempfile.NamedTemporaryFile(suffix=".xlsx") as f:
             to_upload.to_excel(f.name, index=False, engine="openpyxl")
             confluence.attach_file(
-                filename=f.name, page_id="29065229", name="qc_log.xlsx", title="QC Log"
+                filename=f.name,
+                page_id="29065229",
+                name="qc_log.xlsx",
+                title="QC Log",
             )
     else:
         print(to_upload)
@@ -502,11 +569,12 @@ def main(
     imaging_log: Path = Path(
         "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
-    outdir: Path = Path("/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"),
+    outdir: Path = Path(
+        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
+    ),
     token: Optional[str] = None,
     pem: Optional[Path] = None,
 ) -> None:
-
     qclog = update_qclog(
         imaging_log=imaging_log,
         json_dir=json_dir,
@@ -521,7 +589,8 @@ def main(
 
     qclog_func = (
         build_bids_name(
-            qclog.query("scan in ['CUFF1', 'CUFF2', 'REST1', 'REST2']").copy(), "bold"
+            qclog.query("scan in ['CUFF1', 'CUFF2', 'REST1', 'REST2']").copy(),
+            "bold",
         )
         .drop(["run", "scan"], axis=1)
         .set_index(["site", "sub", "task", "ses", "bids_name"])
@@ -583,7 +652,6 @@ def main(
 
 
 if __name__ == "__main__":
-
     """
     python check_qc.py group_T1w.tsv group_bold.tsv --token "$(<.token)"
     """
@@ -622,7 +690,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--outdir",
         help="Location to deposit qc-log-latest.csv, which has one rating per scan",
-        default=Path("/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"),
+        default=Path(
+            "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
+        ),
         type=Path,
     )
 
