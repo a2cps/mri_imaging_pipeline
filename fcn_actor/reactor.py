@@ -137,6 +137,13 @@ def set_name(job: dict) -> dict:
     return job2
 
 
+def set_maxminutes(job: dict, maxminutes: int | None = None) -> dict:
+    job2 = copy.deepcopy(job)
+    if maxminutes:
+        job2["maxMinutes"] = maxminutes
+    return job2
+
+
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
@@ -151,6 +158,7 @@ def main() -> None:
 
     job = set_fmriprep(job, "--fmriprep-dir " + " ".join(x[0] for x in runlist))
     job = set_outputdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
+    job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
     job = set_name(job)
 
     print(json.dumps(job, indent=4))

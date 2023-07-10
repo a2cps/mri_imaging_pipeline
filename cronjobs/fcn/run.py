@@ -9,6 +9,7 @@ ILOG = Path(
     "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
 )
 ACTOR_ID = ""
+MAXMINUTES = 360
 
 user = "urrutia"
 
@@ -30,9 +31,10 @@ msg = pd.read_csv(
         "fmriprep_cuff",
         "fcn",
     ],
-)
+).to_dict(orient="list")
+msg["maxMinutes"] = MAXMINUTES
 
 response = t.actors.send_json_message(  # type: ignore
     actor_id=ACTOR_ID,
-    message=msg.to_dict(orient="list"),
+    message=msg,
 )
