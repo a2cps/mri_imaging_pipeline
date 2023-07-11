@@ -18,8 +18,6 @@ from ibis.expr.types.relations import Table
 from tapipy import actors, util, errors
 from tapipy.tapis import Tapis
 
-ibis.set_backend("pandas")
-
 # within docker container
 JOB = Path("/opt/job.json")
 
@@ -111,7 +109,7 @@ def get_runlist(
         )  # type: ignore
         .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
         .pivot_longer(
-            cols=s.c("fmriprep_cuff", "fmriprep_rest"),
+            s.c("fmriprep_cuff", "fmriprep_rest"),
             names_to="job",
             values_to="done",
         )
@@ -135,7 +133,7 @@ def get_runlist(
     )
     runlist = [
         (x, y)
-        for x, y in zip(rundef.ANATS.to_list(), rundef.OUTPUT_DIR.to_list())
+        for x, y in zip(rundef.FMRIPREP_DIR.to_list(), rundef.OUTPUT_DIR.to_list())
     ]
     return runlist[:maxjobs]
 
