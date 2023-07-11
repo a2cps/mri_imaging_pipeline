@@ -16,8 +16,6 @@ from ibis.expr.types.relations import Table
 from tapipy import actors, util, errors
 from tapipy.tapis import Tapis
 
-ibis.set_backend("pandas")
-
 # within docker container
 JOB = Path("/opt/job.json")
 # on TACC
