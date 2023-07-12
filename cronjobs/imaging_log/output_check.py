@@ -544,15 +544,28 @@ def main():
             scan_report['cat12'] = cat12
             scan_report['acquisition_week'] = acq_time
 
-            #conditionals to remove rest/cuff if not indicated
-            if scan_report['1st Resting State Indicated'] == '0':
+            # remove preprocessing if scans not indicated
+            if scan_report["T1 Indicated"] == "0":
+                scan_report["mriqc_anat"] = "na"
+                scan_report["mriqc_cuff"] = "na"
+                scan_report["mriqc_rest"] = "na"
+                scan_report["cat12"] = "na"
+                scan_report["fslanat"] = "na"
+                scan_report["fmriprep_anat"] = "na"
+                scan_report["fmriprep_rest"] = "na"
+                scan_report["fmriprep_cuff"] = "na"
+                scan_report["qsiprep"] = "na"
+                scan_report["fcn"] = "na"
+            if scan_report['1st Resting State Indicated'] == '0' and scan_report['2nd Resting State Indicated'] == '0':
                 scan_report['fmriprep_rest'] = 'na'
                 scan_report['mriqc_rest'] = 'na'
-            if scan_report['fMRI Individualized Pressure Indicated'] == '0':
+            if scan_report['fMRI Individualized Pressure Indicated'] == '0' and scan_report['fMRI Standard Pressure Indicated'] == '0':
                 scan_report['fmriprep_cuff'] = 'na'
                 scan_report['mriqc_cuff'] = 'na'
+            if scan_report["fmriprep_rest"] == "na" and scan_report["fmriprep_cuff"] == "na":
+                scan_report['fcn'] = 'na'
             if scan_report['DWI Indicated'] == '0':
-                scan_report['qsiprep'] = 'na'
+                scan_report['qsiprep'] = 'na'            
 
 
             list_of_dict.append(scan_report)
