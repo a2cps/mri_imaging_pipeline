@@ -11,7 +11,7 @@
             },
             {
                 "name": "OUTPUT_DIR",
-                "arg": "--output-dir NS_northsthore/fcn/travel1 NS_northsthore/fcn/travel1"
+                "arg": "--output-dir NS_northsthore/signatures/travel1 NS_northsthore/signatures/travel1"
             },
             {
                 "name": "N_WORKERS",
