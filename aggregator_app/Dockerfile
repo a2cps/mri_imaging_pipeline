@@ -11,4 +11,7 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets /opt/tapis
 
+# ensure python print statements sent to log when executed
+ENV PYTHONUNBUFFERED=1
+
 ENTRYPOINT [ "/usr/local/bin/_entrypoint.sh", "python", "/opt/tapis/stage.py" ]

@@ -13,9 +13,9 @@ import cat12_wf
 import fmriprep_wf
 import freesurfer_wf
 import mriqc_wf
-#import qsiprep_wf
-import fslanat_wf
 
+# import qsiprep_wf
+import fslanat_wf
 
 
 SITE_LONG = {
@@ -134,7 +134,9 @@ def _main(
         tmpdir = Path(tmpd)
         # Recursively create symlinks in the target directory
         for site_code, site_long in SITE_LONG.items():
+            print(f"Working on participants from {site_long}")
             subses_tocopy: set[str] = set()
+            subses_toremove: set[str] = set()
             for job in JOBS:
                 in_job_dir = inroot / site_long / job
 
@@ -155,6 +157,7 @@ def _main(
             tmp_site = tmpdir / site_long
             for subsesd in subses_tocopy:
                 subsesdir = Path(subsesd)
+                print(f"Making initial symlinks for {subsesd}")
                 for job in JOBS:
                     out_job_dir = tmp_site / job
                     outsubses = out_job_dir / subsesdir
@@ -163,17 +166,27 @@ def _main(
                         outsubses,
                         copy_function=utils._symlink_if_needed,
                         ignore=shutil.ignore_patterns(
-                            "work", "*_wf", "sourcedata"
+                            "work", "*_wf", "sourcedata", "*007.out"
                         ),
                     )
 
                 # mask all images
-                utils._deface_all(subsesdir=subsesdir, tmp_site=tmp_site)
+                print(f"Defacing anatomicals for {subsesd}")
+                if not utils._deface_all(
+                    subsesdir=subsesdir, tmp_site=tmp_site
+                ):
+                    for d in tmp_site.glob(f"*/{subsesdir}"):
+                        shutil.rmtree(d)
+                    subses_toremove.add(subsesd)
+
+            for s in subses_toremove:
+                subses_tocopy.remove(s)
 
             # now aggregate all new participants
             # testing for len(subses_tocopy) to handle cases where no participants
             # were copied into the ouptut directory (e.g., during testing)
             if len(subses_tocopy):
+                print("Storing files in final location")
                 bids_wf.main(inroot=tmp_site, outdir=outroot / "bids")
                 cat12_wf.main(inroot=tmp_site, outdir=outroot / "cat12")
                 # qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
