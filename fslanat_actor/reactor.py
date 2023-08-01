@@ -1,5 +1,7 @@
 import copy
 import dataclasses
+import datetime
+import io
 import json
 import logging
 import os
@@ -9,11 +11,18 @@ from pathlib import Path
 import pandas as pd
 import ibis
 from ibis import _
+from ibis.expr.types.relations import Table
 
 from tapipy import actors, util, errors
 from tapipy.tapis import Tapis
 
+# within docker container
 JOB = Path("/opt/job.json")
+# on TACC
+ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+
+# can be overriden by incoming message
+_MAXJOBS = 80
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -62,10 +71,18 @@ def actors_get_client() -> Tapis:
     return tp
 
 
-def get_runlist(msg: dict) -> list[tuple[str, str]]:
-    ilog: pd.DataFrame = (
-        ibis.api._memtable_from_dataframe(msg)
-        .select("site", "subject_id", "visit", "bids", "fslanat")
+def get_ilog(client: Tapis) -> Table:
+    ilog: bytes = client.files.getContents(  # type: ignore
+        systemId="secure.corral", path=str(ILOG)
+    )
+    return ibis.memtable(pd.read_csv(io.BytesIO(ilog)))
+
+
+def get_runlist(
+    ilog: Table, maxjobs: int | None = _MAXJOBS
+) -> list[tuple[str, str]]:
+    rundef: pd.DataFrame = (
+        ilog.select("site", "subject_id", "visit", "bids", "fslanat")
         .filter(_.fslanat == 0)  # type: ignore
         .filter(_.bids == 1)  # type: ignore
         .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
@@ -92,9 +109,11 @@ def get_runlist(msg: dict) -> list[tuple[str, str]]:
         )
         .execute()
     )
-    return [
-        (x, y) for x, y in zip(ilog.ANATS.to_list(), ilog.OUTPUT_DIR.to_list())
+    runlist = [
+        (x, y)
+        for x, y in zip(rundef.ANATS.to_list(), rundef.OUTPUT_DIR.to_list())
     ]
+    return runlist[:maxjobs]
 
 
 def set_anat(job: dict, arg: str) -> dict:
@@ -109,11 +128,29 @@ def set_outputdir(job: dict, arg: str) -> dict:
     return job2
 
 
+def set_maxminutes(job: dict, maxminutes: int | None = None) -> dict:
+    job2 = copy.deepcopy(job)
+    if maxminutes:
+        job2["maxMinutes"] = maxminutes
+    return job2
+
+
+def set_name(job: dict) -> dict:
+    job2 = copy.deepcopy(job)
+    job2["name"] = f"fslanat-{datetime.datetime.today().strftime('%Y-%m-%d')}"
+    return job2
+
+
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
+    client = actors_get_client()
 
-    runlist = get_runlist(msg=context.message_dict)
+    ilog = get_ilog(client=client)
+
+    runlist = get_runlist(
+        ilog=ilog, maxjobs=context.message_dict.get("maxjobs")
+    )
     if not len(runlist):
         logging.warning("Did not find any jobs to submit")
         return
@@ -123,10 +160,10 @@ def main() -> None:
 
     job = set_anat(job, "--anats " + " ".join(x[0] for x in runlist))
     job = set_outputdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
+    job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
+    job = set_name(job)
 
     print(json.dumps(job, indent=4))
-
-    client = actors_get_client()
 
     try:
         client.jobs.submitJob(**job)  # type: ignore
