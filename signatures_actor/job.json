@@ -11,11 +11,11 @@
             },
             {
                 "name": "OUTPUT_DIR",
-                "arg": "--output-dir NS_northsthore/signatures/travel1 NS_northsthore/signatures/travel1"
+                "arg": "--output-dir NS_northsthore/fcn/travel1 NS_northsthore/fcn/travel1"
             },
             {
                 "name": "N_WORKERS",
-                "arg": "--n-workers 6"
+                "arg": "--n-workers 8"
             }
         ]
     },
@@ -30,5 +30,5 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 2440
+    "maxMinutes": 480
 }
