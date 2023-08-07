@@ -98,7 +98,7 @@ def get_runlist(
             fmriprep_rest=_.fmriprep_rest.cast(str),  # type: ignore
         )
         # exclude rows that were already processed
-        .filter(_.fcn == 0)  # type: ignore
+        .filter(_.fcn == "0")  # type: ignore
         # include rows with both fmriprep jobs ready
         .filter(
             (
