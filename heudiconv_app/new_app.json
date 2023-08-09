@@ -78,7 +78,7 @@
                 },
                 {
                     "key": "LOCATOR",
-                    "value": "--locator =''"
+                    "value": "--locator=''"
                 },
                 {
                     "key": "HEURISTIC",

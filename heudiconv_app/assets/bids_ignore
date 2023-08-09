@@ -3,3 +3,5 @@
 __pycache__*
 sub-*/ses-*/fmap/*.bval
 sub-*/ses-*/fmap/*.bvec
+tapisjob.sh
+tapisjob.out

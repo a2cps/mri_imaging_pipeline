@@ -244,7 +244,7 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
             raise AssertionError("No scan jsons found")
 
     reference = pd.read_csv(
-        "acq-params.tsv",
+        "/tapis/assets/acq-params.tsv",
         low_memory=False,
         delimiter="\t",
         converters={"ImageOrientationPatientDICOM": pd.eval, "ImageType": pd.eval},

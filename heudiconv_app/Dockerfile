@@ -38,6 +38,8 @@ RUN  micromamba run -n v1.0.20211006 git clone https://github.com/rordenlab/dcm2
     && rm -rf /tmp/dcm2niix \
     && ln -s /opt/bids-validator/bin/bids-validator /usr/local/bin/bids-validator
 
+RUN  apt update && apt install zip unzip -y
+
 USER $MAMBA_USER
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets /tapis/assets

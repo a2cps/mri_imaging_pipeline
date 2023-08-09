@@ -2,6 +2,7 @@
     "name": "heuditest",
     "appId": "heudiconv",
     "appVersion": "3.0.0",
+    "maxMinutes": 1440,
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/development/mris/UI_uic/bids/",
     "parameterSet": {
        "envVariables": [

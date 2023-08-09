@@ -6,8 +6,8 @@ import shutil
 import typing
 
 
-CORRECT_BVAL = Path("correct_bval_GE")
-CORRECT_BVEC = Path("correct_bvec_GE")
+CORRECT_BVAL = Path("/tapis/assets/correct_bval_GE")
+CORRECT_BVEC = Path("/tapis/assets/correct_bvec_GE")
 
 
 def replace_niigz(orig: Path, suffix: str) -> Path:
