@@ -6,4 +6,4 @@
 	url = https://github.com/a2cps/fslanat.git
 [submodule "signatures_app/assets/mri_signatures"]
 	path = signatures_app/assets/mri_signatures
-	url = https://github.com/a2cps/mri_signatures.git
+	url = https://github.com/a2cps/signatures.git

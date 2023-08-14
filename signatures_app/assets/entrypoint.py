@@ -5,6 +5,9 @@ from pathlib import Path
 
 from signatures.cli import signatures
 
+# from signatures.flows.signature import signature_flow
+# from prefect.task_runners import SequentialTaskRunner
+
 
 def main(
     fmriprep_dir: list[Path], output_dir: list[Path], n_workers: int = 1
@@ -19,6 +22,7 @@ def main(
     fmriprep_subdirs = []
     for d in fmriprep_dir:
         fmriprep_subdirs += [x for x in d.glob("sub*") if Path(x).is_dir()]
+
     signatures._main(
         fmriprep_subdirs=fmriprep_subdirs,
         output_dirs=output_dir,

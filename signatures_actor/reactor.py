@@ -25,7 +25,7 @@ JOB = Path("/opt/job.json")
 ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
 
 # can be overriden by incoming message
-_MAXJOBS = 80
+_MAXJOBS = 200
 
 SITE_LONG = {
     "NS": "NS_northshore",
