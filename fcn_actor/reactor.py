@@ -133,7 +133,9 @@ def get_runlist(
     )
     runlist = [
         (x, y)
-        for x, y in zip(rundef.FMRIPREP_DIR.to_list(), rundef.OUTPUT_DIR.to_list())
+        for x, y in zip(
+            rundef.FMRIPREP_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
+        )
     ]
     return runlist[:maxjobs]
 

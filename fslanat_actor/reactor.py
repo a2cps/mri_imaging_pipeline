@@ -75,7 +75,13 @@ def get_ilog(client: Tapis) -> Table:
     ilog: bytes = client.files.getContents(  # type: ignore
         systemId="secure.corral", path=str(ILOG)
     )
-    return ibis.memtable(pd.read_csv(io.BytesIO(ilog)))
+    return ibis.memtable(
+        pd.read_csv(
+            io.BytesIO(ilog),
+            na_values="na",
+            dtype={"subject_id": str, "fslanat": pd.Int64Dtype()},
+        )
+    )
 
 
 def get_runlist(
@@ -85,7 +91,6 @@ def get_runlist(
         ilog.select("site", "subject_id", "visit", "bids", "fslanat")
         .filter(_.fslanat == 0)  # type: ignore
         .filter(_.bids == 1)  # type: ignore
-        .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
