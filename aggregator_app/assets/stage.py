@@ -78,11 +78,11 @@ def _test_sub(
     )
     return (
         not_already_processed
-        and not_already_processed_fs
-        and not_already_processed_fslanat
-        and not_already_processed_cat
-        and all_regular_outputs_not_empty
-        and all_subdirs_not_empty
+        or not_already_processed_fs
+        or not_already_processed_fslanat
+        or not_already_processed_cat
+        or all_regular_outputs_not_empty
+        or all_subdirs_not_empty
     )
 
 
