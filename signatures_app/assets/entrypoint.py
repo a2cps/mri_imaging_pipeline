@@ -1,6 +1,7 @@
 import argparse
 import os
 import shutil
+import logging
 from pathlib import Path
 
 from signatures.cli import signatures
@@ -19,13 +20,23 @@ def main(
         msg = "Unable to find expected log file: tapisjob.out"
         raise AssertionError(msg)
 
+    # fmriprep dirs may point to broken symlinks, or folders might not exist
+    # so, need to ensure that we get one output dir for each input dir
     fmriprep_subdirs = []
-    for d in fmriprep_dir:
-        fmriprep_subdirs += [x for x in d.glob("sub*") if Path(x).is_dir()]
+    output_dir_final = []
+    for ind, outd in zip(fmriprep_dir, output_dir, strict=True):
+        logging.info(f"Looking for sub dirs in {ind}")
+        for d in ind.glob("sub*"):
+            if d.is_dir():
+                logging.info(f"Found! Will process files in {d}")
+                fmriprep_subdirs.append(d)
+                output_dir_final.append(outd)
+            else:
+                logging.warning(f"No valid sub directories found within {ind}")
 
     signatures._main(
         fmriprep_subdirs=fmriprep_subdirs,
-        output_dirs=output_dir,
+        output_dirs=output_dir_final,
         n_workers=n_workers,
     )
 
