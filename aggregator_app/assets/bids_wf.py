@@ -1,5 +1,4 @@
 import json
-import shutil
 from pathlib import Path
 
 import utils
@@ -21,12 +20,7 @@ def main(outdir: Path, inroot: Path) -> None:
     # copy files over
     for bids in inroot.glob("bids/*"):
         for src_id in bids.glob("sub-*"):
-            shutil.copytree(
-                src_id,
-                outdir / src_id.name,
-                dirs_exist_ok=True,
-                copy_function=utils._copy_if_needed,
-            )
+            utils.mergetree_overwrite(src_id, outdir / src_id.name)
 
     # create top-level files
     readme = outdir / "README"

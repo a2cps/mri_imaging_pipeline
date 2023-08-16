@@ -14,7 +14,6 @@ import fmriprep_wf
 import freesurfer_wf
 import mriqc_wf
 
-# import qsiprep_wf
 import fslanat_wf
 
 
@@ -123,6 +122,7 @@ def _prep_staged_dir(outroot: Path) -> None:
 def _main(
     inroot: Path, outroot: Path, max_subs: float | int = float("inf")
 ) -> None:
+    logging.warning("tidying output directory")
     _prep_staged_dir(outroot=outroot)
     i = 0
     # only work with subs/sessions that have all jobs done (need fmriprep-anat for masking)

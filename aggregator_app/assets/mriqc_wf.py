@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 
 from mriqc.reports.group import gen_html
@@ -12,17 +11,12 @@ def main(outdir: Path, inroot: Path) -> None:
         outdir.mkdir(parents=True)
 
     for job in ["anat", "cuff", "rest"]:
-        # this grabs both sub-##### directories and sub*html files
+        # this glob grabs both sub-##### directories and sub*html files
         for src in inroot.glob(f"mriqc/*/{job}/sub*"):
             if src.is_file():
-                utils._copy_if_needed(src, outdir / src.name)
+                utils._copy_overwrite(src, outdir / src.name)
             else:
-                shutil.copytree(
-                    src,
-                    outdir / src.name,
-                    dirs_exist_ok=True,
-                    copy_function=utils._copy_if_needed,
-                )
+                utils.mergetree_overwrite(src, outdir / src.name)
 
     # https://github.com/nipreps/mriqc/blob/a2c320cce2ffff5a0e32d71213db7df834b5026a/mriqc/cli/run.py#L196-L236
     for modality in ["T1w", "bold"]:

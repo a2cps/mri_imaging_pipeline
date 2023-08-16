@@ -28,17 +28,36 @@ def _get_ses(f: Path) -> str:
     return _get_entity(f=f, pattern=r"V[13]")
 
 
-def _copy_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
-    if Path(dst).exists():
-        logging.info(
-            f"File {src} would overwrite {dst}. Leaving files unchanged."
-        )
-    elif (src2 := Path(src)).is_symlink():
-        Path(dst).symlink_to(Path(src2).resolve())
-    else:
-        # otherwise, copy the file
-        shutil.copy2(src, dst)
-    return dst
+def _copy_overwrite(src: str | Path, dst: str | Path) -> str:
+    if (_dst := Path(dst)).exists():
+        logging.warning(f"Overwritting old outputs at {_dst}")
+        _dst.unlink()
+
+    out = shutil.copy2(src, dst, follow_symlinks=False)
+    return out
+
+
+def mergetree_overwrite(src: Path, dst: Path) -> None:
+    """Merge src directory tree with dst directory tree, overwritting files in dst
+
+    Args:
+        src: Source from which files will be copied
+        dst: Location files will be copied to
+
+    Details:
+        copytree will fail if destination contains files that are symlinks;
+        the copy_function is only used to copy regular files, and for symlinks
+        os.symlink(src, dst) is used, which fails when dst exists.
+        This is not configurable with copytree, and so here copytree
+        is called only after dst is removed
+        this is done within the copy function (rather than removing the
+        entire dst tree) because we may be merging src with files in dst
+        that should be kept
+    """
+
+    shutil.copytree(
+        src=src, dst=dst, dirs_exist_ok=True, copy_function=_copy_overwrite
+    )
 
 
 def _symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
