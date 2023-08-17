@@ -5,7 +5,7 @@ import io
 import json
 import logging
 import os
-from typing import Any
+from typing import Any, Sequence
 from pathlib import Path
 
 import pandas as pd
@@ -31,6 +31,26 @@ SITE_LONG = {
     "UM": "UM_umichigan",
     "SH": "SH_spectrum_health",
     "WS": "WS_wayne_state",
+}
+
+# participants that cannot go through fslanat without
+# having images cropped manually
+PRECROP_SUBS = {
+    "UC10066V1",
+    "UC10119V1",
+    "UC10147V1",
+    "UC10153V1",
+    "UC10335V1",
+    "UC10363V1",
+    "UC10372V1",
+    "UI10390V1",
+    "UC10411V1",
+    "UC10416V1",
+    "UI10459V1",
+    "UC10483V1",
+    "UC10513V1",
+    "UC10610V1",
+    "UC10643V1",
 }
 
 
@@ -146,6 +166,27 @@ def set_name(job: dict) -> dict:
     return job2
 
 
+def set_precrop(job: dict, anats: Sequence[str]) -> dict:
+    """Determine whether participants will undergo manual robustfov
+
+    Args:
+        job: _description_
+        anats: _description_
+
+    Returns:
+        dict: _description_
+    """
+    precrop = [anat in PRECROP_SUBS for anat in anats]
+    job2 = copy.deepcopy(job)
+    job2.get("parameterSet").get("appArgs").append(
+        {
+            "name": "OUTPUT_DIR",
+            "arg": "--output-dir " + " ".join(str(x) for x in precrop),
+        }
+    )
+    return job2
+
+
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
@@ -167,6 +208,7 @@ def main() -> None:
     job = set_outputdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
     job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
     job = set_name(job)
+    job = set_precrop(job, [x[0] for x in runlist])
 
     print(json.dumps(job, indent=4))
 
