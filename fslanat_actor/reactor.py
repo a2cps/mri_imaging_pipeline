@@ -166,7 +166,7 @@ def set_name(job: dict) -> dict:
     return job2
 
 
-def set_precrop(job: dict, anats: Sequence[str]) -> dict:
+def set_precrop(job: dict, outputdirs: Sequence[str]) -> dict:
     """Determine whether participants will undergo manual robustfov
 
     Args:
@@ -176,12 +176,12 @@ def set_precrop(job: dict, anats: Sequence[str]) -> dict:
     Returns:
         dict: _description_
     """
-    precrop = [anat in PRECROP_SUBS for anat in anats]
+    precrop = [outputdir in PRECROP_SUBS for outputdir in outputdirs]
     job2 = copy.deepcopy(job)
     job2.get("parameterSet").get("appArgs").append(
         {
-            "name": "OUTPUT_DIR",
-            "arg": "--output-dir " + " ".join(str(x) for x in precrop),
+            "name": "PRECROP",
+            "arg": "--precrop " + " ".join(str(x) for x in precrop),
         }
     )
     return job2
@@ -208,7 +208,7 @@ def main() -> None:
     job = set_outputdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
     job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
     job = set_name(job)
-    job = set_precrop(job, [x[0] for x in runlist])
+    job = set_precrop(job, [Path(x[1]).name for x in runlist])
 
     print(json.dumps(job, indent=4))
 
