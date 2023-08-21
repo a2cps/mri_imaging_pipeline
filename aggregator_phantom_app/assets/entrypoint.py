@@ -1,7 +1,8 @@
 import argparse
-import pathlib
-import shutil
+from pathlib import Path
 import json
+import os
+import logging
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -23,53 +24,73 @@ DESCRIPTION = {"BIDSVersion": "1.9.3", "Name": "A2CPS Phantom Dataset"}
 README = "phantom dataset"
 
 
+def _prep_staged_dir(outroot: Path) -> None:
+    # delete broken symlinks (e.g., files created by previous run of heudiconv that no
+    # longer exist)
+    for target in os.walk(outroot):
+        tar_dir = Path(target[0])
+        for f in target[2]:
+            if not (broken := tar_dir / f).exists():
+                logging.warning(f"deleting broken symlink: {broken}")
+                broken.unlink()
+
+    # delete empty directories
+    for target in os.walk(outroot, topdown=False):
+        if (len(target[1] + target[2]) == 0) and (
+            (to_del := Path(target[0])).name
+            not in [
+                "tmp",
+                "bak",
+                "trash",
+            ]  # these folders from FreeSurfer are generally empty (and should be kept)
+        ):
+            logging.warning(f"deleting empty directory: {to_del}")
+            os.removedirs(to_del)
+
+
 def main(
-    outdir: pathlib.Path,
-    inroot: pathlib.Path = pathlib.Path(
-        "/corral-secure/projects/A2CPS/products/mris"
-    ),
+    outdir: Path,
+    inroot: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
 ) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True, exist_ok=True)
+    else:
+        _prep_staged_dir(outroot=outdir)
 
     for site in SITE_LONG.values():
         for bids in inroot.glob(f"{site}/bids/*QC*"):
             for phantom_id in bids.glob("sub-*"):
+                target_sub_dir = outdir / phantom_id.name
                 for ses in phantom_id.glob("ses*"):
-                    target = outdir / phantom_id.name / ses.name
-                    if (
-                        not target.exists()
-                        or ses.stat().st_mtime > target.stat().st_mtime
-                    ):
-                        print(
-                            f"copying {phantom_id.absolute()} -> {target.absolute()}"
+                    target = target_sub_dir / ses.name
+                    if not target.exists():
+                        logging.warning(
+                            f"linking {phantom_id.absolute()} -> {target.absolute()}"
                         )
-                        shutil.copytree(
-                            ses.absolute(),
-                            target.absolute(),
-                            dirs_exist_ok=True,
+                        target.absolute().symlink_to(
+                            ses.absolute(), target_is_directory=True
                         )
                     else:
-                        print(f"skipping {phantom_id.absolute()}")
+                        logging.warning(
+                            f"skipping {target.absolute()} (already exists)"
+                        )
 
-    readme = outdir / "README"
-    readme.touch()
-    readme.write_text(README)
+    (outdir / "README").write_text(README)
 
-    description = outdir / "dataset_description.json"
-    description.write_text(json.dumps(DESCRIPTION, indent=2))
+    (outdir / "dataset_description.json").write_text(
+        json.dumps(DESCRIPTION, indent=2)
+    )
 
-    bids_ignore = outdir / ".bidsignore"
-    bids_ignore.write_text(BIDS_IGNORE)
+    (outdir / ".bidsignore").write_text(BIDS_IGNORE)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("outdir", type=pathlib.Path)
+    parser.add_argument("outdir", type=Path)
     parser.add_argument(
         "--inroot",
-        type=pathlib.Path,
-        default=pathlib.Path("/corral-secure/projects/A2CPS/products/mris"),
+        type=Path,
+        default=Path("/corral-secure/projects/A2CPS/products/mris"),
     )
 
     args = parser.parse_args()
