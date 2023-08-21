@@ -1,0 +1,25 @@
+{
+    "name": "aggregator_qc_job",
+    "appId": "aggregator_qc_app",
+    "appVersion": "3.0",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "OUTDIR",
+                "arg": "--outdir ."
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 60
+}

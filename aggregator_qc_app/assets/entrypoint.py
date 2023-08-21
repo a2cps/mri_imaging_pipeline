@@ -23,6 +23,8 @@ SCAN = {
 
 TASK_THRESH = {"rest": 0.3, "cuff": 0.9}
 
+PEM = Path("/opt/confluence-a2cps-org-chain.pem")
+
 
 def _zscore(scores: np.array) -> np.array:
     return (scores - scores.mean()) / scores.std()
@@ -313,7 +315,7 @@ def rate_rest2_wo_cuff(d: pd.DataFrame) -> pd.DataFrame:
         tmp[["sub", "ses", "scan", "rating"]],
         on=["sub", "ses", "scan"],
         how="outer",
-    ).fillna({"rating_y":""})
+    ).fillna({"rating_y": ""})
     x = []
     for r in out.itertuples():
         if r.rating_y == "":
@@ -337,10 +339,10 @@ def auto_rate_bold(d: pd.DataFrame) -> pd.DataFrame:
     return rated
 
 
-def start_session(token: str, pem: Path) -> requests.Session:
+def start_session(token: str) -> requests.Session:
     s = requests.Session()
     s.headers.update({"Authorization": f"Bearer {token}"})
-    s.verify = str(pem)
+    s.verify = str(PEM)
     return s
 
 
@@ -465,7 +467,6 @@ def update_qclog(
     json_dir: Path,
     outdir: Path,
     token: Optional[str] = None,
-    pem: Optional[Path] = None,
 ) -> pd.DataFrame:
     RATING = {"4": "green", "3": "green", "2": "yellow", "1": "red", "0": ""}
     LOG_KEYS = {
@@ -546,7 +547,7 @@ def update_qclog(
         confluence = Confluence(
             url="https://confluence.a2cps.org",
             cloud=True,
-            session=start_session(token, pem),
+            session=start_session(token),
         )
         with tempfile.NamedTemporaryFile(suffix=".xlsx") as f:
             to_upload.to_excel(f.name, index=False, engine="openpyxl")
@@ -573,13 +574,11 @@ def main(
         "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
     ),
     token: Optional[str] = None,
-    pem: Optional[Path] = None,
 ) -> None:
     qclog = update_qclog(
         imaging_log=imaging_log,
         json_dir=json_dir,
         token=token,
-        pem=pem,
         outdir=outdir,
     )
 
@@ -642,7 +641,7 @@ def main(
             Confluence(
                 url="https://confluence.a2cps.org",
                 cloud=True,
-                session=start_session(token, pem),
+                session=start_session(token),
             ),
         )
     else:
@@ -660,14 +659,14 @@ if __name__ == "__main__":
         description="check mriqc-group output for outliers"
     )
     parser.add_argument(
-        "t1w_fname",
-        default="group_T1w.tsv",
+        "--t1w_fname",
+        default="/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_T1w.tsv",
         help="group level tsv for T1w images",
         type=Path,
     )
     parser.add_argument(
-        "bold_fname",
-        default="group_bold.tsv",
+        "--bold_fname",
+        default="/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_bold.tsv",
         help="group level tsv for bold images",
         type=Path,
     )
@@ -685,9 +684,6 @@ if __name__ == "__main__":
     )
     parser.add_argument("--token", type=str)
     parser.add_argument(
-        "--pem", default=Path("confluence-a2cps-org-chain.pem"), type=Path
-    )
-    parser.add_argument(
         "--outdir",
         help="Location to deposit qc-log-latest.csv, which has one rating per scan",
         default=Path(
@@ -702,7 +698,6 @@ if __name__ == "__main__":
         args.bold_fname,
         json_dir=args.json_dir,
         token=args.token,
-        pem=args.pem,
         imaging_log=args.imaging_log,
         outdir=args.outdir,
     )
