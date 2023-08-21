@@ -19,7 +19,8 @@ from tapipy.tapis import Tapis
 # within docker container
 JOB = Path("/opt/job.json")
 # on TACC
-ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+#ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+ILOG = " /corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
 _MAXJOBS = 80
