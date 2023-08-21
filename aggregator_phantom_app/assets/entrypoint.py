@@ -36,16 +36,9 @@ def _prep_staged_dir(outroot: Path) -> None:
 
     # delete empty directories
     for target in os.walk(outroot, topdown=False):
-        if (len(target[1] + target[2]) == 0) and (
-            (to_del := Path(target[0])).name
-            not in [
-                "tmp",
-                "bak",
-                "trash",
-            ]  # these folders from FreeSurfer are generally empty (and should be kept)
-        ):
-            logging.warning(f"deleting empty directory: {to_del}")
-            os.removedirs(to_del)
+        if len(target[1] + target[2]) == 0:
+            logging.warning(f"deleting empty directory: {target[0]}")
+            Path(target[0]).rmdir()
 
 
 def main(
