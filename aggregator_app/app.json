@@ -1,6 +1,6 @@
 {
     "id": "urrutia-aggregator",
-    "version": "0.2",
+    "version": "0.3",
     "description": "Stage MRI Products for Release",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/aggregator:0.2",
+    "containerImage": "docker://a2cps/aggregator:0.3",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,

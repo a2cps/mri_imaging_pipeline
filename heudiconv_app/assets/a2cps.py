@@ -18,7 +18,10 @@ protocols2fix.update(
             (r"(.*)([_\s]+)$", r"\1"),  # strip any trailing characters
             ("AAHead_Scout_.*", "anat-scout"),
             ("^dti_.*", "dwi"),
-            ("^space_top_distortion_corr.*_([ap]+)_([12])", r"fmap-epi_dir-\1_run-\2"),
+            (
+                "^space_top_distortion_corr.*_([ap]+)_([12])",
+                r"fmap-epi_dir-\1_run-\2",
+            ),
             # I do not think there is a point in keeping any
             # of _ap _32ch _mb8 in the output filename, although
             # could be brought into _acq- if very much desired OR
@@ -138,7 +141,9 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     elif dcmdata.__contains__("ImageType") and "MPR" in dcmdata.ImageType:
         exclude = True
     # SH sends derived dwi phantom scans. the following excludes those
-    elif any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]):
+    elif any(
+        suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]
+    ):
         exclude = True
 
     # after the SH upgrade, (i.e., software "syngo MR XA30"), SH sends the raw anatomical as
@@ -147,6 +152,15 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         dcmdata.get("DeviceSerialNumber") == "66022"
         and dcmdata.SoftwareVersions == "syngo MR XA30"
         and (dcmdata.SeriesDescription == "T1_MPRAGE")
+        # During or around collection of SH20149V3, the SH scanner crashed, causing most
+        # files in this session to be deleted. There is a T1w, but it is not the raw
+        # image, that we typically want. This keeps that derived image, since it is the
+        # only one available
+        # https://a2cps-pain.slack.com/archives/C02JP3G763X/p1689344497466429
+        and not (
+            dcmdata.SeriesInstanceUID
+            == "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028"
+        )
     ):
         exclude = True
 

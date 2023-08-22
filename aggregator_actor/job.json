@@ -1,7 +1,7 @@
 {
     "name": "aggregate",
     "appId": "urrutia-aggregator",
-    "appVersion": "0.2",
+    "appVersion": "0.3",
     "parameterSet": {
         "appArgs": [
             {

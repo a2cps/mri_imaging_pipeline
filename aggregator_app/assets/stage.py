@@ -14,7 +14,6 @@ import fmriprep_wf
 import freesurfer_wf
 import mriqc_wf
 
-# import qsiprep_wf
 import fslanat_wf
 
 
@@ -30,15 +29,10 @@ SITE_LONG = {
 JOBS = ["bids", "fmriprep", "cat12", "mriqc", "fslanat"]
 
 
-def _test_sub(
-    subsesdir: Path,
-    outroot: Path,
-    inroot: Path,
-    site_long: str,
-) -> bool:
+def _check_if_already_aggregated(subsesdir: Path, outroot: Path) -> bool:
     sub = utils._get_sub(subsesdir)
     ses = utils._get_ses(subsesdir)
-    not_already_processed = not all(
+    already_aggregated_simple = all(
         (outroot / j / f"sub-{sub}" / f"ses-{ses}").exists()
         for j in [
             "bids",
@@ -48,27 +42,35 @@ def _test_sub(
             "mriqc",
         ]
     )
-    not_already_processed_fs = not (
-        (outroot / "freesurfer" / f"sub-{sub}_ses-{ses}").exists()
-    )
-    not_already_processed_fslanat = not (
-        (outroot / "fslanat" / f"sub-{sub}_ses-{ses}.anat").exists()
-    )
-    not_already_processed_cat = not (
-        (
-            outroot
-            / "cat12"
-            / "report"
-            / f"catreport_sub-{sub}_ses-{ses}_T1w.pdf"
-        ).exists()
+    already_aggregated_fs = (
+        outroot / "freesurfer" / f"sub-{sub}_ses-{ses}"
+    ).exists()
+    already_aggregated_fslanat = (
+        outroot / "fslanat" / f"sub-{sub}_ses-{ses}.anat"
+    ).exists()
+    already_aggregated_cat = (
+        outroot / "cat12" / "report" / f"catreport_sub-{sub}_ses-{ses}_T1w.pdf"
+    ).exists()
+
+    return (
+        already_aggregated_simple
+        and already_aggregated_fs
+        and already_aggregated_fslanat
+        and already_aggregated_cat
     )
 
-    all_regular_outputs_not_empty = all(
+
+def _check_if_inputs_ready(
+    subsesdir: Path,
+    inroot: Path,
+    site_long: str,
+) -> bool:
+    simple_outputs_contain_files = all(
         (jobdir := (inroot / site_long / j / subsesdir.name)).exists()
         and len(list(jobdir.iterdir()))
         for j in JOBS
     )
-    all_subdirs_not_empty = all(
+    subdirs_contain_files = all(
         (
             modalitydir := (inroot / site_long / j / subsesdir.name / modality)
         ).exists()
@@ -76,18 +78,12 @@ def _test_sub(
         for j in ["mriqc", "fmriprep"]
         for modality in ["anat", "rest", "cuff"]
     )
-    return (
-        not_already_processed
-        and not_already_processed_fs
-        and not_already_processed_fslanat
-        and not_already_processed_cat
-        and all_regular_outputs_not_empty
-        and all_subdirs_not_empty
-    )
+    return simple_outputs_contain_files and subdirs_contain_files
 
 
 def _prep_staged_dir(outroot: Path) -> None:
-    # delete broken symlinks (e.g., files created by previous run of heudiconv that no longer exist)
+    # delete broken symlinks (e.g., files created by previous run of heudiconv that no
+    # longer exist)
     for target in os.walk(outroot):
         tar_dir = Path(target[0])
         for f in target[2]:
@@ -126,6 +122,7 @@ def _prep_staged_dir(outroot: Path) -> None:
 def _main(
     inroot: Path, outroot: Path, max_subs: float | int = float("inf")
 ) -> None:
+    logging.warning("tidying output directory")
     _prep_staged_dir(outroot=outroot)
     i = 0
     # only work with subs/sessions that have all jobs done (need fmriprep-anat for masking)
@@ -137,22 +134,24 @@ def _main(
             print(f"Working on participants from {site_long}")
             subses_tocopy: set[str] = set()
             subses_toremove: set[str] = set()
-            for job in JOBS:
-                in_job_dir = inroot / site_long / job
 
-                # grab only sub/ses that do not already exist in output
-                # and that have complete jobs
-                for subsesdir in in_job_dir.glob(f"{site_code}*V[13]"):
-                    if i >= max_subs:
-                        continue
-                    if _test_sub(
-                        subsesdir=subsesdir,
-                        outroot=outroot,
-                        inroot=inroot,
-                        site_long=site_long,
-                    ):
-                        subses_tocopy.add(subsesdir.name)
-                        i += 1
+            # base check on availability of bids
+            in_job_dir = inroot / site_long / "bids"
+
+            # grab only sub/ses that do not already exist in output
+            # and that have complete jobs
+            for subsesdir in in_job_dir.glob(f"{site_code}*V[13]"):
+                if i >= max_subs:
+                    break
+                if _check_if_inputs_ready(
+                    subsesdir=subsesdir,
+                    inroot=inroot,
+                    site_long=site_long,
+                ) and not _check_if_already_aggregated(
+                    subsesdir=subsesdir, outroot=outroot
+                ):
+                    subses_tocopy.add(subsesdir.name)
+                    i += 1
 
             tmp_site = tmpdir / site_long
             for subsesd in subses_tocopy:
@@ -166,7 +165,7 @@ def _main(
                         outsubses,
                         copy_function=utils._symlink_if_needed,
                         ignore=shutil.ignore_patterns(
-                            "work", "*_wf", "sourcedata", "*007.out"
+                            "work", "*_wf", "sourcedata", "*007.out", "*007.err"
                         ),
                     )
 
