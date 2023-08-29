@@ -40,6 +40,11 @@
                     "name": "OUTROOT",
                     "inputMode": "REQUIRED",
                     "arg": null
+                },
+                {
+                    "name": "MAXSUBS",
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "arg": null
                 }
             ],
             "containerArgs": [

@@ -125,7 +125,7 @@ def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
     )
 
 
-def _deface_all(subsesdir: Path, tmp_site: Path) -> bool:
+def _deface_all_derivatives(subsesdir: Path, tmp_site: Path) -> bool:
     sub = _get_sub(subsesdir)
     ses = _get_ses(subsesdir)
     subses_fmriprep = tmp_site / "fmriprep" / subsesdir
@@ -139,16 +139,6 @@ def _deface_all(subsesdir: Path, tmp_site: Path) -> bool:
             / f"ses-{ses}"
             / "anat"
             / f"sub-{sub}_ses-{ses}_desc-brain_mask.nii.gz"
-        )
-        _deface(
-            tmp_site
-            / "bids"
-            / subsesdir
-            / f"sub-{sub}"
-            / f"ses-{ses}"
-            / "anat"
-            / f"sub-{sub}_ses-{ses}_T1w.nii.gz",
-            fmriprep_mask,
         )
         for subjob in ["anat", "cuff", "rest"]:
             # output might not exist
@@ -207,7 +197,6 @@ def _deface_all(subsesdir: Path, tmp_site: Path) -> bool:
                 make_mask=True,
             )
 
-        # _deface_qsiprep(tmp_site / "qsiprep" / subsesdir, sub=sub)
         _deface_fslanat(
             tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask
         )

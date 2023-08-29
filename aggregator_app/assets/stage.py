@@ -4,8 +4,11 @@ import shutil
 import tempfile
 from pathlib import Path
 
+import pandas as pd
 
 import click
+
+from mriqc.interfaces import synthstrip
 
 import utils
 import bids_wf
@@ -16,6 +19,7 @@ import mriqc_wf
 
 import fslanat_wf
 
+SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -26,7 +30,11 @@ SITE_LONG = {
     "WS": "WS_wayne_state",
 }
 
-JOBS = ["bids", "fmriprep", "cat12", "mriqc", "fslanat"]
+JOBS_DERIVATIVES = ["fmriprep", "cat12", "mriqc", "fslanat", "fcn"]
+
+ILOG = Path(
+    "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+)
 
 
 def _check_if_already_aggregated(subsesdir: Path, outroot: Path) -> bool:
@@ -34,13 +42,7 @@ def _check_if_already_aggregated(subsesdir: Path, outroot: Path) -> bool:
     ses = utils._get_ses(subsesdir)
     already_aggregated_simple = all(
         (outroot / j / f"sub-{sub}" / f"ses-{ses}").exists()
-        for j in [
-            "bids",
-            "fmriprep-anat",
-            "fmriprep-cuff",
-            "fmriprep-rest",
-            "mriqc",
-        ]
+        for j in ["fmriprep-anat", "fmriprep-cuff", "fmriprep-rest", "mriqc"]
     )
     already_aggregated_fs = (
         outroot / "freesurfer" / f"sub-{sub}_ses-{ses}"
@@ -61,14 +63,12 @@ def _check_if_already_aggregated(subsesdir: Path, outroot: Path) -> bool:
 
 
 def _check_if_inputs_ready(
-    subsesdir: Path,
-    inroot: Path,
-    site_long: str,
+    subsesdir: Path, inroot: Path, site_long: str
 ) -> bool:
     simple_outputs_contain_files = all(
         (jobdir := (inroot / site_long / j / subsesdir.name)).exists()
         and len(list(jobdir.iterdir()))
-        for j in JOBS
+        for j in JOBS_DERIVATIVES
     )
     subdirs_contain_files = all(
         (
@@ -76,7 +76,7 @@ def _check_if_inputs_ready(
         ).exists()
         and len(list(modalitydir.iterdir()))
         for j in ["mriqc", "fmriprep"]
-        for modality in ["anat", "rest", "cuff"]
+        for modality in ["anat"]
     )
     return simple_outputs_contain_files and subdirs_contain_files
 
@@ -105,6 +105,38 @@ def _prep_staged_dir(outroot: Path) -> None:
             os.removedirs(to_del)
 
 
+def _get_bids_tocopy(outroot: Path, site_code: str) -> set[str]:
+    bids_avail: pd.DataFrame = pd.read_csv(ILOG).query(
+        "bids == 1 and site == @site_code"
+    )[["site", "subject_id", "visit"]]
+    exists: list[bool] = []
+    for row in bids_avail.itertuples():
+        exists.append(
+            (
+                outroot / "bids" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
+            ).exists()
+        )
+    bids_avail["exists"] = exists
+    out = bids_avail.query("not exists")
+    return set(
+        f"{row.site}{row.subject_id}{row.visit}" for row in out.itertuples()
+    )
+
+
+def _synthstrip(src: Path) -> Path:
+    with tempfile.NamedTemporaryFile(suffix=".nii.gz") as mask:
+        with tempfile.NamedTemporaryFile(suffix=".nii.gz") as brain:
+            strip = synthstrip.SynthStrip()
+            strip.inputs.in_file = src
+            strip.inputs.out_file = brain.name
+            strip.inputs.out_mask = mask.name
+            strip.inputs.model = SYNTHSTRIP_MODEL
+            strip.run()
+            src.unlink()
+            shutil.copy2(brain.name, src)
+    return src
+
+
 @click.command()
 @click.argument(
     "inroot",
@@ -124,14 +156,42 @@ def _main(
 ) -> None:
     logging.warning("tidying output directory")
     _prep_staged_dir(outroot=outroot)
-    i = 0
-    # only work with subs/sessions that have all jobs done (need fmriprep-anat for masking)
-    # and only make copies of subs/sessions that do not already exist in outroot
     with tempfile.TemporaryDirectory() as tmpd:
         tmpdir = Path(tmpd)
-        # Recursively create symlinks in the target directory
         for site_code, site_long in SITE_LONG.items():
             print(f"Working on participants from {site_long}")
+
+            # first, get all new raw (bids) data
+            tmp_site = tmpdir / site_long
+            bidstocopy = _get_bids_tocopy(outroot=outroot, site_code=site_code)
+            i = 0
+            for subsesd in bidstocopy:
+                if i >= max_subs:
+                    continue
+                print(f"Making bids symlinks for {subsesd}")
+                out_job_dir = tmp_site / "bids"
+                shutil.copytree(
+                    inroot / site_long / "bids" / subsesd,
+                    out_job_dir / subsesd,
+                    copy_function=utils._symlink_if_needed,
+                    ignore=shutil.ignore_patterns(
+                        "work",
+                        "*_wf",
+                        "sourcedata",
+                        "*007.out",
+                        "*007.err",
+                        "__pycache__",
+                    ),
+                )
+                print(f"Defacing anatomicals for {subsesd}")
+                for t1w in (out_job_dir / subsesd).rglob("*T1w.nii.gz"):
+                    _synthstrip(t1w)
+                i += 1
+            if i > 0:
+                print("Copying bids files to destination")
+                bids_wf.main(inroot=tmp_site, outdir=outroot / "bids")
+
+            # then, get all available derivatives
             subses_tocopy: set[str] = set()
             subses_toremove: set[str] = set()
 
@@ -140,24 +200,22 @@ def _main(
 
             # grab only sub/ses that do not already exist in output
             # and that have complete jobs
+            i = 0
             for subsesdir in in_job_dir.glob(f"{site_code}*V[13]"):
                 if i >= max_subs:
                     break
                 if _check_if_inputs_ready(
-                    subsesdir=subsesdir,
-                    inroot=inroot,
-                    site_long=site_long,
+                    subsesdir=subsesdir, inroot=inroot, site_long=site_long
                 ) and not _check_if_already_aggregated(
                     subsesdir=subsesdir, outroot=outroot
                 ):
                     subses_tocopy.add(subsesdir.name)
                     i += 1
 
-            tmp_site = tmpdir / site_long
             for subsesd in subses_tocopy:
                 subsesdir = Path(subsesd)
-                print(f"Making initial symlinks for {subsesd}")
-                for job in JOBS:
+                print(f"Making initial symlinks for {subsesd} derivatives")
+                for job in JOBS_DERIVATIVES:
                     out_job_dir = tmp_site / job
                     outsubses = out_job_dir / subsesdir
                     shutil.copytree(
@@ -165,13 +223,17 @@ def _main(
                         outsubses,
                         copy_function=utils._symlink_if_needed,
                         ignore=shutil.ignore_patterns(
-                            "work", "*_wf", "sourcedata", "*007.out", "*007.err"
+                            "work",
+                            "*_wf",
+                            "sourcedata",
+                            "*007.out",
+                            "*007.err",
+                            "__pycache__",
                         ),
                     )
 
                 # mask all images
-                print(f"Defacing anatomicals for {subsesd}")
-                if not utils._deface_all(
+                if not utils._deface_all_derivatives(
                     subsesdir=subsesdir, tmp_site=tmp_site
                 ):
                     for d in tmp_site.glob(f"*/{subsesdir}"):
@@ -185,8 +247,7 @@ def _main(
             # testing for len(subses_tocopy) to handle cases where no participants
             # were copied into the ouptut directory (e.g., during testing)
             if len(subses_tocopy):
-                print("Storing files in final location")
-                bids_wf.main(inroot=tmp_site, outdir=outroot / "bids")
+                print("Storing derivatives in final location")
                 cat12_wf.main(inroot=tmp_site, outdir=outroot / "cat12")
                 # qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
                 mriqc_wf.main(inroot=tmp_site, outdir=outroot / "mriqc")
