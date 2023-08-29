@@ -30,20 +30,10 @@ PEM = Path("/opt/confluence-a2cps-org-chain.pem")
 DEFAULT_CACHED_CLIENT = Path.home() / ".tapis3" / "client.json"
 
 
-@dataclass
-class CachedClient:
-    base_url: str
-    tenant_id: str
-    access_token: str
-    refresh_token: str
-    client_id: str
-    client_key: str
-
-    @classmethod
-    def from_json_file(cls, src: Path) -> "CachedClient":
-        with open(src, "r") as f:
-            data = json.load(f)
-        return cls(**data)
+def load_cached_client(src: Path) -> dict:
+    with open(src, "r") as f:
+        data = json.load(f)
+    return data  
 
 
 def check_client(cached_client: Path) -> None:
@@ -60,14 +50,14 @@ def get_client(
 ) -> Tapis:
     check_client(cached_client)
 
-    client = CachedClient.from_json_file(cached_client)
+    client = load_cached_client(cached_client)
     t = Tapis(
-        base_url=client.base_url,
-        tenant_id=client.tenant_id,
-        access_token=client.access_token,
-        refresh_token=client.refresh_token,
-        client_id=client.client_id,
-        client_key=client.client_key,
+        base_url=client.get("base_url"),
+        tenant_id=client.get("tenant_id"),
+        access_token=client.get("access_token"),
+        refresh_token=client.get("refresh_token"),
+        client_id=client.get("client_id"),
+        client_key=client.get("client_key"),
         verify=True,
     )  # type: ignore
     return t
