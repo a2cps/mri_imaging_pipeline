@@ -58,7 +58,7 @@
                 {
                     "name": "IMAGING_LOG",
                     "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
+                    "arg": "--imaging_log /corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
                 }
             ],
             "containerArgs": [
