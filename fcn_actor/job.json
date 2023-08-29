@@ -1,6 +1,6 @@
 {
     "name": "test_fcn",
-    "appId": "fcn_app",
+    "appId": "functional-connectivity",
     "appVersion": "0.1",
     "archiveSystemDir": "${JobWorkingDir}",
     "parameterSet": {
