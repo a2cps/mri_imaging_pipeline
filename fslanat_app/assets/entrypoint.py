@@ -13,6 +13,7 @@ def main(
     anats: typing.Sequence[Path],
     output_dir: typing.Sequence[Path],
     precrops: typing.Sequence[bool],
+    strongbias: typing.Sequence[bool],
     n_workers: int = 1,
 ) -> None:
     if not (uuid := os.environ.get("_tapisJobUUID")):
@@ -30,6 +31,7 @@ def main(
             output_dir=tmpdir,
             n_workers=n_workers,
             precrops=precrops,
+            strongbias=strongbias,
         )
 
         for i, o in zip(anats, output_dir):
@@ -51,6 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--anats", nargs="+", type=Path, required=True)
     parser.add_argument("--output-dir", nargs="+", type=Path, required=True)
     parser.add_argument("--precrop", nargs="*", choices=("True", "False"))
+    parser.add_argument("--strongbias", nargs="*", choices=("True", "False"))
     parser.add_argument("--n-workers", type=int, default=1)
 
     args = parser.parse_args()
@@ -64,9 +67,21 @@ if __name__ == "__main__":
         _precrops = [precrop == "True" for precrop in args.precrop]
     else:
         _precrops = [False] * len(args.anats)
+    if args.strongbias:
+        if not len(args.anats) == len(args.strongbias):
+            msg = f"""
+            --strongbias must have the same lengths as --anats.
+            Found {len(args.anats)=} and {len(args.precrops)=}
+            """
+            raise AssertionError(msg)
+        _strongbias = [strongbias == "True" for strongbias in args.strongbias]
+    else:
+        _strongbias = [False] * len(args.anats)
+
     main(
         anats=args.anats,
         output_dir=args.output_dir,
         n_workers=args.n_workers,
         precrops=_precrops,
+        strongbias=_strongbias,
     )
