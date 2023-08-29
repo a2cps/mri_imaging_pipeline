@@ -1,12 +1,20 @@
 {
-    "name": "aggregator_qc_job",
+    "name": "aggregate_qc",
     "appId": "aggregator_qc_app",
     "appVersion": "3.0",
     "parameterSet": {
         "appArgs": [
             {
                 "name": "OUTDIR",
-                "arg": "--outdir ."
+                "arg": "--outdir /corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
+            },
+            {
+                "name": "CACHED_CLIENT",
+                "arg": "--cached-client $HOME/.tapis3/client.json"
+            },
+            {
+                "name": "SECRET_NAME",
+                "arg": "--secret-name urrutia-confluence-token"
             }
         ]
     },
