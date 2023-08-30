@@ -5,10 +5,6 @@
     "parameterSet": {
         "appArgs": [
             {
-                "name": "OUTDIR",
-                "arg": "--outdir /corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
-            },
-            {
                 "name": "CACHED_CLIENT",
                 "arg": "--cached-client $HOME/.tapis3/client.json"
             },
