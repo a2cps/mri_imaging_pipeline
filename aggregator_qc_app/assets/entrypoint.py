@@ -1,16 +1,19 @@
-import re
 import argparse
-import requests
-from pathlib import Path
-from datetime import date
-from typing import Optional
+import json
+import os
+import re
 import tempfile
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+from typing import Optional
 
-import pandas as pd
 import numpy as np
-
+import pandas as pd
+import requests
 from atlassian import Confluence
+from tapipy.tapis import Tapis, TapisResult
 
 SCAN = {
     "rest_run-01_bold": "REST1",
@@ -24,9 +27,65 @@ SCAN = {
 TASK_THRESH = {"rest": 0.3, "cuff": 0.9}
 
 PEM = Path("/opt/confluence-a2cps-org-chain.pem")
+DEFAULT_CACHED_CLIENT = Path.home() / ".tapis3" / "client.json"
 
 
-def _zscore(scores: np.array) -> np.array:
+def load_cached_client(src: Path) -> dict:
+    with open(src, "r") as f:
+        data = json.load(f)
+    return data  
+
+
+def check_client(cached_client: Path) -> None:
+    if not cached_client.exists():
+        msg = f"""
+        Uploading requires a cached client, but one was not found. 
+        Searched at {cached_client}.
+        """
+        raise AssertionError(msg)
+
+
+def get_client(
+    cached_client: Path = DEFAULT_CACHED_CLIENT,
+) -> Tapis:
+    check_client(cached_client)
+
+    client = load_cached_client(cached_client)
+    t = Tapis(
+        base_url=client.get("base_url"),
+        tenant_id=client.get("tenant_id"),
+        access_token=client.get("access_token"),
+        refresh_token=client.get("refresh_token"),
+        client_id=client.get("client_id"),
+        client_key=client.get("client_key"),
+        verify=True,
+    )  # type: ignore
+    return t
+
+
+def get_confluence_token(
+    secret_name: str, cached_client: Path | None = None
+) -> str:
+    if cached_client is None:
+        client = get_client()
+    else:
+        client = get_client(cached_client=cached_client)
+
+    token: TapisResult = client.sk.readSecret(  # type: ignore
+        secretType="user",
+        secretName=secret_name,
+        tenant=os.environ.get("_tapisTenant"),
+        user=os.environ.get("_tapisEffectiveUserId"),
+    )
+    pat: str | None = token.get("secretMap").get("token")  # type: ignore
+    if pat is None:
+        msg = "unable to find key 'token' in secretMap"
+        raise AssertionError(msg)
+
+    return pat
+
+
+def _zscore(scores: np.ndarray) -> np.ndarray:
     return (scores - scores.mean()) / scores.std()
 
 
@@ -66,11 +125,11 @@ def build_notification(outliers: pd.DataFrame, notification) -> str:
         for idx, row in small.sort_index().iterrows():
             if row.source in ["technologist", "auto"]:
                 notification.append(
-                    f'<p><strong>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</strong></p>'
+                    f'<p><strong>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</strong></p>'  # type: ignore
                 )
             else:
                 notification.append(
-                    f'<p>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</p>'
+                    f'<p>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</p>'  # type: ignore
                 )
 
     return "\n".join(notification)
@@ -203,14 +262,14 @@ def gather_dwi(
 
 def extract_iqr(xml: Path) -> float:
     f = ET.parse(xml)
-    iqr = float(f.getroot().find("qualityratings/IQR").text)
+    iqr = float(f.getroot().find("qualityratings/IQR").text)  # type: ignore
     return 105 - 10 * iqr
 
 
 def extract_defects(xml: Path) -> float:
     f = ET.parse(xml)
     n = float(
-        f.getroot().find("qualitymeasures").find("SurfaceEulerNumber").text
+        f.getroot().find("qualitymeasures").find("SurfaceEulerNumber").text  # type: ignore
     )
     return 2 - 2 * n
 
@@ -269,7 +328,9 @@ def gather_motion(
                 # current version of fmriprep strips leading 0, so for matching later need to add it back
                 bids_name_raw = re.search(
                     r"sub-\w+_ses-\w+_task-\w+_run-\d+", str(tsv)
-                ).group(0)
+                ).group(  # type: ignore
+                    0
+                )
                 confounds.append(
                     pd.DataFrame(
                         {
@@ -280,7 +341,7 @@ def gather_motion(
                             "fd_mean": rmsd.mean(),
                             "fd_max": rmsd.max(),
                             "fd_perc": np.mean(
-                                rmsd.to_numpy() > TASK_THRESH[task]
+                                rmsd.to_numpy() > TASK_THRESH[task]  # type: ignore
                             ),
                             "n_trs": len(rmsd),
                         }
@@ -339,7 +400,12 @@ def auto_rate_bold(d: pd.DataFrame) -> pd.DataFrame:
     return rated
 
 
-def start_session(token: str) -> requests.Session:
+def start_session(
+    secret_name: str, cached_client: Path | None = None
+) -> requests.Session:
+    token = get_confluence_token(
+        secret_name=secret_name, cached_client=cached_client
+    )
     s = requests.Session()
     s.headers.update({"Authorization": f"Bearer {token}"})
     s.verify = str(PEM)
@@ -420,12 +486,7 @@ def rate_dwi(
     )
 
 
-def write_ratings_unique(
-    d: pd.DataFrame,
-    outdir: Path = Path(
-        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
-    ),
-) -> pd.DataFrame:
+def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
     # manual ratings always overwrite auto + tech scans
     d["source_code"] = [source_to_code(x) for x in d["source"].values]
 
@@ -453,20 +514,20 @@ def write_ratings_unique(
         .apply(lambda x: x[x["date"] == x["date"].max(skipna=False)])
         .drop(["source_code", "rating_grade"], axis=1)
     )
-    single_rating.loc[
+    single_rating.loc[  # type: ignore
         single_rating["date"] == pd.to_datetime("2000-01-01"), "date"
     ] = pd.to_datetime("")
     single_rating["date"] = single_rating["date"].copy().dt.date
-    single_rating.to_csv(outdir / "qc-log-latest.csv", index=False)
+    single_rating.to_csv("qc-log-latest.csv", index=False)
 
-    return single_rating
+    return single_rating  # type: ignore
 
 
 def update_qclog(
     imaging_log: Path,
     json_dir: Path,
-    outdir: Path,
-    token: Optional[str] = None,
+    secret_name: str | None = None,
+    cached_client: Path | None = None,
 ) -> pd.DataFrame:
     RATING = {"4": "green", "3": "green", "2": "yellow", "1": "red", "0": ""}
     LOG_KEYS = {
@@ -543,11 +604,13 @@ def update_qclog(
     names = ["site", "sub", "ses", "scan", "rating", "source", "date", "notes"]
     to_upload = d2[names].sort_values(names)
 
-    if token is not None:
+    if secret_name is not None:
         confluence = Confluence(
             url="https://confluence.a2cps.org",
             cloud=True,
-            session=start_session(token),
+            session=start_session(
+                secret_name=secret_name, cached_client=cached_client
+            ),
         )
         with tempfile.NamedTemporaryFile(suffix=".xlsx") as f:
             to_upload.to_excel(f.name, index=False, engine="openpyxl")
@@ -560,7 +623,7 @@ def update_qclog(
     else:
         print(to_upload)
 
-    return write_ratings_unique(to_upload.copy(), outdir=outdir)
+    return write_ratings_unique(to_upload.copy())
 
 
 def main(
@@ -570,16 +633,14 @@ def main(
     imaging_log: Path = Path(
         "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
-    outdir: Path = Path(
-        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
-    ),
-    token: Optional[str] = None,
+    secret_name: str | None = None,
+    cached_client: Path | None = None,
 ) -> None:
     qclog = update_qclog(
         imaging_log=imaging_log,
         json_dir=json_dir,
-        token=token,
-        outdir=outdir,
+        secret_name=secret_name,
+        cached_client=cached_client,
     )
 
     qclog_anat = build_bids_name(
@@ -635,13 +696,13 @@ def main(
         ]
     )
 
-    if token is not None:
+    if secret_name is not None:
         post_notification(
             notification,
             Confluence(
                 url="https://confluence.a2cps.org",
                 cloud=True,
-                session=start_session(token),
+                session=start_session(secret_name, cached_client=cached_client),
             ),
         )
     else:
@@ -682,22 +743,21 @@ if __name__ == "__main__":
         help="log of received scans",
         type=Path,
     )
-    parser.add_argument("--token", type=str)
+    parser.add_argument("--secret-name", type=str)
     parser.add_argument(
-        "--outdir",
-        help="Location to deposit qc-log-latest.csv, which has one rating per scan",
-        default=Path(
-            "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
-        ),
-        type=Path,
+        "--cached-client", type=Path, default=DEFAULT_CACHED_CLIENT
     )
 
     args = parser.parse_args()
+
+    if args.secret_name:
+        check_client(args.cached_client)
+
     main(
         args.t1w_fname,
         args.bold_fname,
         json_dir=args.json_dir,
-        token=args.token,
+        secret_name=args.secret_name,
+        cached_client=args.cached_client,
         imaging_log=args.imaging_log,
-        outdir=args.outdir,
     )

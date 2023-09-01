@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/aggregator_qc_app:latest",
+    "containerImage": "docker://a2cps/aggregator_qc_app:3.0",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -24,7 +24,7 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
         "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",
         "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
@@ -42,14 +42,13 @@
                     "arg": "--bold_fname /corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_bold.tsv"
                 },
                 {
-                    "name": "OUTDIR",
-                    "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--outdir /corral-secure/projects/A2CPS/shared/urrutia/imaging_report"
+                    "name": "SECRET_NAME",
+                    "inputMode": "INCLUDE_ON_DEMAND"
                 },
                 {
-                    "name": "TOKEN",
-                    "inputMode": "INCLUDE_ON_DEMAND",
-                    "arg": "--token $TOKEN"
+                    "name": "CACHED_CLIENT",
+                    "inputMode": "INCLUDE_BY_DEFAULT",
+                    "arg": "--cached-client $HOME/.tapis3/client.json"
                 },
                 {
                     "name": "JSON_DIR",
@@ -59,7 +58,7 @@
                 {
                     "name": "IMAGING_LOG",
                     "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
+                    "arg": "--imaging_log /corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
                 }
             ],
             "containerArgs": [
@@ -93,7 +92,9 @@
             "envVariables": [],
             "archiveFilter": {
                 "includes": [],
-                "excludes": [],
+                "excludes": [
+                    "*out"
+                ],
                 "includeLaunchFiles": false
             }
         },
