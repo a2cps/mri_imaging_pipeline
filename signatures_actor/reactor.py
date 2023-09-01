@@ -22,10 +22,11 @@ from tapipy.tapis import Tapis
 JOB = Path("/opt/job.json")
 
 # on TACC
-ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
-_MAXJOBS = 200
+_MAXJOBS = 20
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -98,7 +99,7 @@ def get_runlist(
             fmriprep_rest=_.fmriprep_rest.cast(str),  # type: ignore
         )
         # exclude rows that were already processed
-        # .filter(_.signatures == 0)  # type: ignore
+        # .filter(_.signatures == "0")  # type: ignore
         # include rows with both fmriprep jobs ready
         .filter(
             (
@@ -174,7 +175,7 @@ def main() -> None:
     ilog = get_ilog(client=client)
 
     runlist = get_runlist(
-        ilog=ilog, maxjobs=context.message_dict.get("maxjobs")
+        ilog=ilog, maxjobs=context.message_dict.get("maxjobs", _MAXJOBS)
     )
     if not len(runlist):
         logging.warning("Did not find any jobs to submit")

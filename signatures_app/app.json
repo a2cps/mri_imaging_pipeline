@@ -1,6 +1,6 @@
 {
     "id": "psadil-signatures",
-    "version": "0",
+    "version": "0.1",
     "description": "Multivariate Pattern Signatures",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -24,7 +24,7 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
         "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+        "archiveSystemDir": "${JobWorkingDir}",
         "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
