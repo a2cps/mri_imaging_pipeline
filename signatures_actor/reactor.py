@@ -92,14 +92,14 @@ def get_runlist(
             "visit",
             "fmriprep_rest",
             "fmriprep_cuff",
-            # "signatures",
+            "signatures",
         )
         .mutate(
             fmriprep_cuff=_.fmriprep_cuff.cast(str),  # type: ignore
             fmriprep_rest=_.fmriprep_rest.cast(str),  # type: ignore
         )
         # exclude rows that were already processed
-        # .filter(_.signatures == "0")  # type: ignore
+        .filter(_.signatures == "0")  # type: ignore
         # include rows with both fmriprep jobs ready
         .filter(
             (
