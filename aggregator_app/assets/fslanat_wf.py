@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -29,12 +28,7 @@ def main(outdir: Path, inroot: Path) -> None:
         outdir.mkdir(parents=True)
 
     for src in inroot.glob("fslanat/*"):
-        shutil.copytree(
-            src,
-            outdir,
-            dirs_exist_ok=True,
-            copy_function=utils._copy_if_needed,
-        )
+        utils.mergetree_overwrite(src, outdir)
 
     _get_all_volumes(outdir).to_csv(
         outdir / "fslanat.tsv", sep="\t", index=False

@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 
 import utils
@@ -237,10 +236,8 @@ def main(outdir: Path, inroot: Path) -> None:
 
     for src in inroot.glob("fmriprep/*/anat/freesurfer/sub*"):
         # folders renamed so that sessions do not collide
-        shutil.copytree(
-            src,
-            outdir / f"sub-{utils._get_sub(src)}_ses-{utils._get_ses(src)}",
-            copy_function=utils._copy_if_needed,
+        utils.mergetree_overwrite(
+            src, outdir / f"sub-{utils._get_sub(src)}_ses-{utils._get_ses(src)}"
         )
 
     parse_all_aparc(outdir).to_csv(outdir / "aparc.tsv", index=False, sep="\t")

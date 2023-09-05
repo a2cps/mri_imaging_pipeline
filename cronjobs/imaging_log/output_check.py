@@ -212,6 +212,7 @@ def find_outputs(bids_path: str):
     cat12_path = bids_path.replace('bids','cat12')
     fslanat_path = bids_path.replace('bids','fslanat')
     fcn_path = bids_path.replace('bids','fcn')
+    signatures_path = bids_path.replace('bids','signatures')
     print(bids_path)
     # for path in [bids_path, dicom_path, bids_validation_path, fmriprep_path, mriqc_path]
     # outputs = {}
@@ -312,8 +313,9 @@ def find_outputs(bids_path: str):
     
     fslanat = 1 if len(glob.glob(f"{fslanat_path}/*.out")) else 0
     fcn = 1 if len(glob.glob(f"{fcn_path}/*.out")) else 0
+    signatures = 1 if len(glob.glob(f"{signatures_path}/*.out")) else 0
         
-    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_anat, qsiprep, cat12, acq_time, fslanat, fcn
+    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures
 
 
 def find_heudiconv_outputs(bids_dir):
@@ -423,7 +425,7 @@ def main():
         try:
             site_id = row['site_id']
             bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn) = find_outputs(bids_path)
+            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures) = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -534,6 +536,7 @@ def main():
             scan_report['bids_validation'] = bids_present
             scan_report['fslanat'] = fslanat
             scan_report['fcn'] = fcn
+            scan_report['signatures'] = signatures
             scan_report['fmriprep_anat'] = fmriprep_anat
             scan_report['fmriprep_cuff'] = fmriprep_cuff
             scan_report['fmriprep_rest'] = fmriprep_rest
@@ -556,6 +559,7 @@ def main():
                 scan_report["fmriprep_cuff"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["fcn"] = "na"
+                scan_report["signatures"] = "na"
             if scan_report['1st Resting State Indicated'] == '0' and scan_report['2nd Resting State Indicated'] == '0':
                 scan_report['fmriprep_rest'] = 'na'
                 scan_report['mriqc_rest'] = 'na'
@@ -564,6 +568,7 @@ def main():
                 scan_report['mriqc_cuff'] = 'na'
             if scan_report["fmriprep_rest"] == "na" and scan_report["fmriprep_cuff"] == "na":
                 scan_report['fcn'] = 'na'
+                scan_report['signatures'] = 'na'
             if scan_report['DWI Indicated'] == '0':
                 scan_report['qsiprep'] = 'na'            
 
@@ -595,7 +600,6 @@ def main():
     'bids',
     'bids_validation',
     'fslanat',
-    'fcn',
     'fmriprep_anat',
     'fmriprep_cuff',
     'fmriprep_rest',
@@ -604,6 +608,8 @@ def main():
     'mriqc_rest',
     'qsiprep',
     'cat12',
+    'fcn',
+    'signatures',
     'acquisition_week',
     "Surgical site pain rest",
     "Body pain rest",

@@ -1,6 +1,5 @@
 import json
 import re
-import shutil
 from pathlib import Path
 
 import utils
@@ -44,12 +43,12 @@ README = "A2CPS dataset"
 ASEG = (
     Path("/opt/tapis/desc-aseg_dseg.tsv")
     if Path("/opt/tapis/desc-aseg_dseg.tsv").exists()
-    else "desc-aseg_dseg.tsv"
+    else Path("desc-aseg_dseg.tsv")
 )
 APARCASEG = (
     Path("/opt/tapis/desc-aparcaseg_dseg.tsv")
     if Path("/opt/tapis/desc-aparcaseg_dseg.tsv").exists()
-    else "desc-aparcaseg_dseg.tsv"
+    else Path("desc-aparcaseg_dseg.tsv")
 )
 
 
@@ -68,14 +67,9 @@ def main(outdir: Path, inroot: Path) -> None:
         if src.is_file():
             sub = utils._get_sub(src)
             ses = utils._get_ses(src)
-            utils._copy_if_needed(src, outdir / f"sub-{sub}_ses-{ses}.html")
+            utils._copy_overwrite(src, outdir / f"sub-{sub}_ses-{ses}.html")
         else:
-            shutil.copytree(
-                src,
-                outdir / src.name,
-                dirs_exist_ok=True,
-                copy_function=utils._copy_if_needed,
-            )
+            utils.mergetree_overwrite(src, outdir / src.name)
 
     # create top-level files
     readme = outdir / "README"
@@ -88,5 +82,5 @@ def main(outdir: Path, inroot: Path) -> None:
     bids_ignore = outdir / ".bidsignore"
     bids_ignore.write_text(BIDS_IGNORE)
 
-    shutil.copy2(ASEG, outdir)
-    shutil.copy2(APARCASEG, outdir)
+    utils._copy_overwrite(ASEG, outdir / ASEG.name)
+    utils._copy_overwrite(APARCASEG, outdir / APARCASEG.name)
