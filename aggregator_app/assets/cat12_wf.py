@@ -3,7 +3,7 @@ from pathlib import Path
 import utils
 
 
-def main(outdir: Path, inroot: Path) -> None:
+def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True)
 

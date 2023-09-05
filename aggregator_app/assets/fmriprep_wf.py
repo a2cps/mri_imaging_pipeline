@@ -52,7 +52,7 @@ APARCASEG = (
 )
 
 
-def main(outdir: Path, inroot: Path) -> None:
+def copy(outdir: Path, inroot: Path) -> None:
     # copy files over
 
     _job = re.findall(r"(?<=fmriprep-)(anat|cuff|rest)", str(outdir))
@@ -71,6 +71,8 @@ def main(outdir: Path, inroot: Path) -> None:
         else:
             utils.mergetree_overwrite(src, outdir / src.name)
 
+
+def make_toplevel(outdir: Path) -> None:
     # create top-level files
     readme = outdir / "README"
     readme.touch()

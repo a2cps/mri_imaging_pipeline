@@ -4,20 +4,16 @@ import shutil
 import tempfile
 from pathlib import Path
 
-import pandas as pd
-
-import click
-
-from mriqc.interfaces import synthstrip
-
-import utils
 import bids_wf
 import cat12_wf
+import click
 import fmriprep_wf
 import freesurfer_wf
-import mriqc_wf
-
 import fslanat_wf
+import mriqc_wf
+import pandas as pd
+import utils
+from mriqc.interfaces import synthstrip
 
 SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
 
@@ -30,10 +26,19 @@ SITE_LONG = {
     "WS": "WS_wayne_state",
 }
 
-JOBS_DERIVATIVES = ["fmriprep", "cat12", "mriqc", "fslanat", "fcn"]
+JOBS_DERIVATIVES = ["fmriprep", "cat12", "mriqc", "fslanat"]
 
 ILOG = Path(
     "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+)
+
+IGNORE_PATTERNS = shutil.ignore_patterns(
+    "work",
+    "*_wf",
+    "sourcedata",
+    "*007.out",
+    "*007.err",
+    "__pycache__",
 )
 
 
@@ -62,34 +67,50 @@ def _check_if_already_aggregated(subsesdir: Path, outroot: Path) -> bool:
     )
 
 
-def _check_if_inputs_ready(
-    subsesdir: Path, inroot: Path, site_long: str
-) -> bool:
-    simple_outputs_contain_files = all(
-        (jobdir := (inroot / site_long / j / subsesdir.name)).exists()
-        and len(list(jobdir.iterdir()))
-        for j in JOBS_DERIVATIVES
+def _get_deriv_tocopy(outroot: Path, site_code: str) -> set[str]:
+    ready: pd.DataFrame = (
+        pd.read_csv(ILOG)
+        .query("site == @site_code")
+        .query(
+            """fslanat in ['1', 'na'] and \
+            fmriprep_anat in ['1', 'na'] and \
+            fmriprep_rest in ['1', 'na'] and \
+            fmriprep_cuff in ['1', 'na'] and \
+            mriqc_anat in ['1', 'na'] and \
+            mriqc_rest in ['1', 'na'] and \
+            mriqc_cuff in ['1', 'na'] and \
+            cat12 in ['1', 'na']"""
+        )[["site", "subject_id", "visit"]]
     )
-    subdirs_contain_files = all(
-        (
-            modalitydir := (inroot / site_long / j / subsesdir.name / modality)
-        ).exists()
-        and len(list(modalitydir.iterdir()))
-        for j in ["mriqc", "fmriprep"]
-        for modality in ["anat"]
+    ready["already_aggregated"] = [
+        _check_if_already_aggregated(
+            f"{row.site}{row.subject_id}{row.visit}", outroot=outroot  # type: ignore
+        )
+        for row in ready.itertuples()
+    ]
+    out = ready.query("not already_aggregated")
+    return set(
+        f"{row.site}{row.subject_id}{row.visit}" for row in out.itertuples()
     )
-    return simple_outputs_contain_files and subdirs_contain_files
 
 
 def _prep_staged_dir(outroot: Path) -> None:
-    # delete broken symlinks (e.g., files created by previous run of heudiconv that no
-    # longer exist)
+    # delete broken symlinks (e.g., files created by previous run of heudiconv
+    # that no longer exist)
     for target in os.walk(outroot):
         tar_dir = Path(target[0])
         for f in target[2]:
             if not (broken := tar_dir / f).exists():
                 logging.warning(f"deleting broken symlink: {broken}")
                 broken.unlink()
+        # if the only remaining file is a nii.gz that is a real file, it
+        # is a holdover and should also be deleted
+        if (
+            len(target[2]) == 1
+            and target[2][0].endswith(".nii.gz")
+            and not (todelete := Path(target[2][0])).is_symlink()
+        ):
+            todelete.unlink()
 
     # delete empty directories
     for target in os.walk(outroot, topdown=False):
@@ -99,7 +120,7 @@ def _prep_staged_dir(outroot: Path) -> None:
                 "tmp",
                 "bak",
                 "trash",
-            ]  # these folders from FreeSurfer are generally empty (and should be kept)
+            ]  # from FreeSurfer, generally empty (and should be kept)
         ):
             logging.warning(f"deleting empty directory: {to_del}")
             os.removedirs(to_del)
@@ -164,79 +185,50 @@ def _main(
             # first, get all new raw (bids) data
             tmp_site = tmpdir / site_long
             bidstocopy = _get_bids_tocopy(outroot=outroot, site_code=site_code)
-            i = 0
-            for subsesd in bidstocopy:
+            for i, subsesd in enumerate(bidstocopy):
                 if i >= max_subs:
-                    continue
+                    break
                 print(f"Making bids symlinks for {subsesd}")
                 out_job_dir = tmp_site / "bids"
                 shutil.copytree(
                     inroot / site_long / "bids" / subsesd,
                     out_job_dir / subsesd,
                     copy_function=utils._symlink_if_needed,
-                    ignore=shutil.ignore_patterns(
-                        "work",
-                        "*_wf",
-                        "sourcedata",
-                        "*007.out",
-                        "*007.err",
-                        "__pycache__",
-                    ),
+                    ignore=IGNORE_PATTERNS,
                 )
                 print(f"Defacing anatomicals for {subsesd}")
                 for t1w in (out_job_dir / subsesd).rglob("*T1w.nii.gz"):
                     _synthstrip(t1w)
-                i += 1
-            if i > 0:
+
+            if len(bidstocopy):
                 print("Copying bids files to destination")
                 bids_wf.main(inroot=tmp_site, outdir=outroot / "bids")
 
-            # then, get all available derivatives
-            subses_tocopy: set[str] = set()
-            subses_toremove: set[str] = set()
-
-            # base check on availability of bids
-            in_job_dir = inroot / site_long / "bids"
-
             # grab only sub/ses that do not already exist in output
             # and that have complete jobs
-            i = 0
-            for subsesdir in in_job_dir.glob(f"{site_code}*V[13]"):
+            subses_tocopy = _get_deriv_tocopy(
+                outroot=outroot, site_code=site_code
+            )
+
+            # then, get all available derivatives
+            subses_toremove: set[str] = set()
+            for i, subsesd in enumerate(subses_tocopy):
                 if i >= max_subs:
                     break
-                if _check_if_inputs_ready(
-                    subsesdir=subsesdir, inroot=inroot, site_long=site_long
-                ) and not _check_if_already_aggregated(
-                    subsesdir=subsesdir, outroot=outroot
-                ):
-                    subses_tocopy.add(subsesdir.name)
-                    i += 1
-
-            for subsesd in subses_tocopy:
-                subsesdir = Path(subsesd)
                 print(f"Making initial symlinks for {subsesd} derivatives")
                 for job in JOBS_DERIVATIVES:
-                    out_job_dir = tmp_site / job
-                    outsubses = out_job_dir / subsesdir
                     shutil.copytree(
-                        inroot / site_long / job / subsesdir,
-                        outsubses,
+                        inroot / site_long / job / subsesd,
+                        tmp_site / job / subsesd,
                         copy_function=utils._symlink_if_needed,
-                        ignore=shutil.ignore_patterns(
-                            "work",
-                            "*_wf",
-                            "sourcedata",
-                            "*007.out",
-                            "*007.err",
-                            "__pycache__",
-                        ),
+                        ignore=IGNORE_PATTERNS,
                     )
 
                 # mask all images
                 if not utils._deface_all_derivatives(
-                    subsesdir=subsesdir, tmp_site=tmp_site
+                    subsesdir=Path(subsesd), tmp_site=tmp_site
                 ):
-                    for d in tmp_site.glob(f"*/{subsesdir}"):
+                    for d in tmp_site.glob(f"*/{subsesd}"):
                         shutil.rmtree(d)
                     subses_toremove.add(subsesd)
 
@@ -248,22 +240,30 @@ def _main(
             # were copied into the ouptut directory (e.g., during testing)
             if len(subses_tocopy):
                 print("Storing derivatives in final location")
-                cat12_wf.main(inroot=tmp_site, outdir=outroot / "cat12")
+                cat12_wf.copy(inroot=tmp_site, outdir=outroot / "cat12")
                 # qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
-                mriqc_wf.main(inroot=tmp_site, outdir=outroot / "mriqc")
-                fmriprep_wf.main(
+                mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
+                fmriprep_wf.copy(
                     inroot=tmp_site, outdir=outroot / "fmriprep-anat"
                 )
-                fmriprep_wf.main(
+                fmriprep_wf.copy(
                     inroot=tmp_site, outdir=outroot / "fmriprep-cuff"
                 )
-                fmriprep_wf.main(
+                fmriprep_wf.copy(
                     inroot=tmp_site, outdir=outroot / "fmriprep-rest"
                 )
-                freesurfer_wf.main(
+                freesurfer_wf.copy(
                     inroot=tmp_site, outdir=outroot / "freesurfer"
                 )
-                fslanat_wf.main(inroot=tmp_site, outdir=outroot / "fslanat")
+                fslanat_wf.copy(inroot=tmp_site, outdir=outroot / "fslanat")
+
+        # finally, handle all toplevel file material
+        mriqc_wf.make_toplevel(outdir=outroot / "mriqc")
+        fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-anat")
+        fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-cuff")
+        fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-rest")
+        freesurfer_wf.make_toplevel(outdir=outroot / "freesurfer")
+        fslanat_wf.make_toplevel(outdir=outroot / "fslanat")
 
 
 if __name__ == "__main__":
