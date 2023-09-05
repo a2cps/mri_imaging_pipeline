@@ -1,10 +1,13 @@
 import argparse
 import os
-import logging
 import shutil
+import logging
 from pathlib import Path
 
-from functional_connectivity.cli import functional_connectivity
+from signatures.cli import signatures
+
+# from signatures.flows.signature import signature_flow
+# from prefect.task_runners import SequentialTaskRunner
 
 
 def main(
@@ -31,7 +34,7 @@ def main(
             else:
                 logging.warning(f"No valid sub directories found within {ind}")
 
-    functional_connectivity._main(
+    signatures._main(
         fmriprep_subdirs=fmriprep_subdirs,
         output_dirs=output_dir_final,
         n_workers=n_workers,

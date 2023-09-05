@@ -1,6 +1,6 @@
 {
-    "name": "test_fcn",
-    "appId": "functional-connectivity",
+    "name": "test_signatures",
+    "appId": "urrutia-signatures",
     "appVersion": "0.1",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "parameterSet": {
@@ -15,7 +15,7 @@
             },
             {
                 "name": "N_WORKERS",
-                "arg": "--n-workers 8"
+                "arg": "--n-workers 5"
             }
         ]
     },

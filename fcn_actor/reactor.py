@@ -1,6 +1,7 @@
 import copy
 import dataclasses
 from datetime import datetime
+import io
 import json
 import logging
 import os
@@ -11,11 +12,21 @@ import pandas as pd
 import ibis
 from ibis import _
 import ibis.selectors as s
+from ibis.expr.types.relations import Table
+
 
 from tapipy import actors, util, errors
 from tapipy.tapis import Tapis
 
+# within docker container
 JOB = Path("/opt/job.json")
+
+# on TACC
+#ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+
+# can be overriden by incoming message
+_MAXJOBS = 20
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -64,10 +75,18 @@ def actors_get_client() -> Tapis:
     return tp
 
 
-def get_runlist(msg: dict) -> list[tuple[str, str]]:
-    ilog: pd.DataFrame = (
-        ibis.api._memtable_from_dataframe(msg)
-        .select(
+def get_ilog(client: Tapis) -> Table:
+    ilog: bytes = client.files.getContents(  # type: ignore
+        systemId="secure.corral", path=str(ILOG)
+    )
+    return ibis.memtable(pd.read_csv(io.BytesIO(ilog)))
+
+
+def get_runlist(
+    ilog: Table, maxjobs: int | None = _MAXJOBS
+) -> list[tuple[str, str]]:
+    rundef: pd.DataFrame = (
+        ilog.select(
             "site",
             "subject_id",
             "visit",
@@ -76,27 +95,27 @@ def get_runlist(msg: dict) -> list[tuple[str, str]]:
             "fcn",
         )
         .mutate(
-            fmriprep_cuff=_.fmriprep_cuff.cast(str),
-            fmriprep_rest=_.fmriprep_rest.cast(str),
+            fmriprep_cuff=_.fmriprep_cuff.cast(str),  # type: ignore
+            fmriprep_rest=_.fmriprep_rest.cast(str),  # type: ignore
         )
         # exclude rows that were already processed
-        .filter(_.fcn == 0)  # type: ignore
+        .filter(_.fcn == "0")  # type: ignore
         # include rows with both fmriprep jobs ready
         .filter(
             (
                 ((_.fmriprep_cuff == "1") & (_.fmriprep_rest == "1"))
                 | ((_.fmriprep_cuff == "1") & (_.fmriprep_rest == "na"))
                 | ((_.fmriprep_cuff == "na") & (_.fmriprep_rest == "1"))
-            )
+            )  # type: ignore
         )  # type: ignore
         .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
         .pivot_longer(
-            cols=s.c("fmriprep_cuff", "fmriprep_rest"),
+            s.c("fmriprep_cuff", "fmriprep_rest"),
             names_to="job",
             values_to="done",
         )
         # exclude rows where there wasn't an fmriprep job
-        .filter(~(_.done == "na"))
+        .filter(~(_.done == "na"))  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
@@ -113,10 +132,13 @@ def get_runlist(msg: dict) -> list[tuple[str, str]]:
         )
         .execute()
     )
-    return [
+    runlist = [
         (x, y)
-        for x, y in zip(ilog.FMRIPREP_DIR.to_list(), ilog.OUTPUT_DIR.to_list())
+        for x, y in zip(
+            rundef.FMRIPREP_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
+        )
     ]
+    return runlist[:maxjobs]
 
 
 def set_fmriprep(job: dict, arg: str) -> dict:
@@ -148,7 +170,13 @@ def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
 
-    runlist = get_runlist(context.message_dict)
+    client = actors_get_client()
+
+    ilog = get_ilog(client=client)
+
+    runlist = get_runlist(
+        ilog=ilog, maxjobs=context.message_dict.get("maxjobs", _MAXJOBS)
+    )
     if not len(runlist):
         logging.warning("Did not find any jobs to submit")
         return
@@ -162,8 +190,6 @@ def main() -> None:
     job = set_name(job)
 
     print(json.dumps(job, indent=4))
-
-    client = actors_get_client()
 
     try:
         client.jobs.submitJob(**job)  # type: ignore

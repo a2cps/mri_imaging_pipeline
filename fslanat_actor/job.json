@@ -1,7 +1,7 @@
 {
     "name": "fslanat",
     "appId": "urrutia-fslanat",
-    "appVersion": "0.1",
+    "appVersion": "0.3",
     "parameterSet": {
         "appArgs": [
             {

@@ -1,29 +1,32 @@
 import copy
 import dataclasses
-import datetime
+from datetime import datetime
 import io
 import json
 import logging
 import os
-from typing import Any, Sequence
+from typing import Any
 from pathlib import Path
 
 import pandas as pd
 import ibis
 from ibis import _
+import ibis.selectors as s
 from ibis.expr.types.relations import Table
+
 
 from tapipy import actors, util, errors
 from tapipy.tapis import Tapis
 
 # within docker container
 JOB = Path("/opt/job.json")
+
 # on TACC
-#ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
 ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
-_MAXJOBS = 80
+_MAXJOBS = 20
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -32,26 +35,6 @@ SITE_LONG = {
     "UM": "UM_umichigan",
     "SH": "SH_spectrum_health",
     "WS": "WS_wayne_state",
-}
-
-# participants that cannot go through fslanat without
-# having images cropped manually
-PRECROP_SUBS = {
-    "UC10066V1",
-    "UC10119V1",
-    "UC10147V1",
-    "UC10153V1",
-    "UC10335V1",
-    "UC10363V1",
-    "UC10372V1",
-    "UI10390V1",
-    "UC10411V1",
-    "UC10416V1",
-    "UI10459V1",
-    "UC10483V1",
-    "UC10513V1",
-    "UC10610V1",
-    "UC10643V1",
 }
 
 
@@ -96,61 +79,83 @@ def get_ilog(client: Tapis) -> Table:
     ilog: bytes = client.files.getContents(  # type: ignore
         systemId="secure.corral", path=str(ILOG)
     )
-    return ibis.memtable(
-        pd.read_csv(
-            io.BytesIO(ilog),
-            na_values="na",
-            dtype={"subject_id": str, "fslanat": pd.Int64Dtype()},
-        )
-    )
+    return ibis.memtable(pd.read_csv(io.BytesIO(ilog)))
 
 
 def get_runlist(
     ilog: Table, maxjobs: int | None = _MAXJOBS
 ) -> list[tuple[str, str]]:
     rundef: pd.DataFrame = (
-        ilog.select("site", "subject_id", "visit", "bids", "fslanat")
-        .filter(_.fslanat == 0)  # type: ignore
-        .filter(_.bids == 1)  # type: ignore
+        ilog.select(
+            "site",
+            "subject_id",
+            "visit",
+            "fmriprep_rest",
+            "fmriprep_cuff",
+            "signatures",
+        )
+        .mutate(
+            fmriprep_cuff=_.fmriprep_cuff.cast(str),  # type: ignore
+            fmriprep_rest=_.fmriprep_rest.cast(str),  # type: ignore
+        )
+        # exclude rows that were already processed
+        .filter(_.signatures == "0")  # type: ignore
+        # include rows with both fmriprep jobs ready
+        .filter(
+            (
+                ((_.fmriprep_cuff == "1") & (_.fmriprep_rest == "1"))
+                | ((_.fmriprep_cuff == "1") & (_.fmriprep_rest == "na"))
+                | ((_.fmriprep_cuff == "na") & (_.fmriprep_rest == "1"))
+            )  # type: ignore
+        )  # type: ignore
+        .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
+        .pivot_longer(
+            s.c("fmriprep_cuff", "fmriprep_rest"),
+            names_to="job",
+            values_to="done",
+        )
+        # exclude rows where there wasn't an fmriprep job
+        .filter(~(_.done == "na"))  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
+            subjob=_.job.cases((("fmriprep_rest", "/rest"), ("fmriprep_cuff", "/cuff"))),  # type: ignore
         )
-        .mutate(OUTPUT_DIR=_.sitelong + "/fslanat/" + _.sublong)  # type: ignore
+        .mutate(OUTPUT_DIR=_.sitelong + "/signatures/" + _.sublong)  # type: ignore
         .mutate(
-            ANATS=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
+            FMRIPREP_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
             + x.sitelong
-            + "/bids/"
+            + "/fmriprep/"
             + x.sublong
-            + "/sub-"
-            + x.subject_id
-            + "/ses-"
-            + x.visit
-            + "/anat"
-            + "/sub-"
-            + x.subject_id
-            + "_ses-"
-            + x.visit
-            + "_T1w.nii.gz"  # type: ignore
+            + x.subjob
+            + "/fmriprep"  # type: ignore
         )
         .execute()
     )
     runlist = [
         (x, y)
-        for x, y in zip(rundef.ANATS.to_list(), rundef.OUTPUT_DIR.to_list())
+        for x, y in zip(
+            rundef.FMRIPREP_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
+        )
     ]
     return runlist[:maxjobs]
 
 
-def set_anat(job: dict, arg: str) -> dict:
+def set_fmriprep(job: dict, arg: str) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[0] = {"name": "ANATS", "arg": arg}  # type: ignore
+    job2.get("parameterSet").get("appArgs")[0] = {"name": "FMRIPREP_DIR", "arg": arg}  # type: ignore
     return job2
 
 
 def set_outputdir(job: dict, arg: str) -> dict:
     job2 = copy.deepcopy(job)
     job2.get("parameterSet").get("appArgs")[1] = {"name": "OUTPUT_DIR", "arg": arg}  # type: ignore
+    return job2
+
+
+def set_name(job: dict) -> dict:
+    job2 = copy.deepcopy(job)
+    job2["name"] = f"signatures-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
     return job2
 
 
@@ -161,42 +166,16 @@ def set_maxminutes(job: dict, maxminutes: int | None = None) -> dict:
     return job2
 
 
-def set_name(job: dict) -> dict:
-    job2 = copy.deepcopy(job)
-    job2["name"] = f"fslanat-{datetime.datetime.today().strftime('%Y-%m-%d')}"
-    return job2
-
-
-def set_precrop(job: dict, outputdirs: Sequence[str]) -> dict:
-    """Determine whether participants will undergo manual robustfov
-
-    Args:
-        job: _description_
-        anats: _description_
-
-    Returns:
-        dict: _description_
-    """
-    precrop = [outputdir in PRECROP_SUBS for outputdir in outputdirs]
-    job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs").append(
-        {
-            "name": "PRECROP",
-            "arg": "--precrop " + " ".join(str(x) for x in precrop),
-        }
-    )
-    return job2
-
-
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
+
     client = actors_get_client()
 
     ilog = get_ilog(client=client)
 
     runlist = get_runlist(
-        ilog=ilog, maxjobs=context.message_dict.get("maxjobs")
+        ilog=ilog, maxjobs=context.message_dict.get("maxjobs", _MAXJOBS)
     )
     if not len(runlist):
         logging.warning("Did not find any jobs to submit")
@@ -205,11 +184,10 @@ def main() -> None:
     with open(JOB, "r") as f:
         job = json.load(f)
 
-    job = set_anat(job, "--anats " + " ".join(x[0] for x in runlist))
+    job = set_fmriprep(job, "--fmriprep-dir " + " ".join(x[0] for x in runlist))
     job = set_outputdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
     job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
     job = set_name(job)
-    job = set_precrop(job, [Path(x[1]).name for x in runlist])
 
     print(json.dumps(job, indent=4))
 
