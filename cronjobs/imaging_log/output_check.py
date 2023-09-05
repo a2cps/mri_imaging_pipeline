@@ -315,7 +315,7 @@ def find_outputs(bids_path: str):
     fcn = 1 if len(glob.glob(f"{fcn_path}/*.out")) else 0
     signatures = 1 if len(glob.glob(f"{signatures_path}/*.out")) else 0
         
-    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_anat, qsiprep, cat12, acq_time, fslanat, fcn, signatures
+    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures
 
 
 def find_heudiconv_outputs(bids_dir):
