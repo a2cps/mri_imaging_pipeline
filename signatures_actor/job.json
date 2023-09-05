@@ -1,8 +1,8 @@
 {
     "name": "test_signatures",
-    "appId": "psadil-signatures",
-    "appVersion": "0",
-    "archiveSystemDir": "${JobWorkingDir}",
+    "appId": "urrutia-signatures",
+    "appVersion": "0.1",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "parameterSet": {
         "appArgs": [
             {
