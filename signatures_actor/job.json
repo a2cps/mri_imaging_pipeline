@@ -1,0 +1,34 @@
+{
+    "name": "test_signatures",
+    "appId": "psadil-signatures",
+    "appVersion": "0",
+    "archiveSystemDir": "${JobWorkingDir}",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "FMRIPREP_DIR",
+                "arg": "--fmriprep-dir /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/fmriprep/NStravel1/rest/fmriprep /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/fmriprep/NStravel1/cuff/fmriprep"
+            },
+            {
+                "name": "OUTPUT_DIR",
+                "arg": "--output-dir NS_northsthore/fcn/travel1 NS_northsthore/fcn/travel1"
+            },
+            {
+                "name": "N_WORKERS",
+                "arg": "--n-workers 5"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 1440
+}
