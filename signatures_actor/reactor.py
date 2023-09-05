@@ -22,7 +22,7 @@ from tapipy.tapis import Tapis
 JOB = Path("/opt/job.json")
 
 # on TACC
-#ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
+# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
 ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
@@ -92,14 +92,14 @@ def get_runlist(
             "visit",
             "fmriprep_rest",
             "fmriprep_cuff",
-            "fcn",
+            "signatures",
         )
         .mutate(
             fmriprep_cuff=_.fmriprep_cuff.cast(str),  # type: ignore
             fmriprep_rest=_.fmriprep_rest.cast(str),  # type: ignore
         )
         # exclude rows that were already processed
-        .filter(_.fcn == "0")  # type: ignore
+        .filter(_.signatures == "0")  # type: ignore
         # include rows with both fmriprep jobs ready
         .filter(
             (
@@ -121,7 +121,7 @@ def get_runlist(
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
             subjob=_.job.cases((("fmriprep_rest", "/rest"), ("fmriprep_cuff", "/cuff"))),  # type: ignore
         )
-        .mutate(OUTPUT_DIR=_.sitelong + "/fcn/" + _.sublong)  # type: ignore
+        .mutate(OUTPUT_DIR=_.sitelong + "/signatures/" + _.sublong)  # type: ignore
         .mutate(
             FMRIPREP_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
             + x.sitelong
@@ -155,7 +155,7 @@ def set_outputdir(job: dict, arg: str) -> dict:
 
 def set_name(job: dict) -> dict:
     job2 = copy.deepcopy(job)
-    job2["name"] = f"fcn-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
+    job2["name"] = f"signatures-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
     return job2
 
 
