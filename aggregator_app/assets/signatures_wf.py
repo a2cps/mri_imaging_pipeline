@@ -15,7 +15,6 @@ def copy(outdir: Path, inroot: Path) -> None:
             "signature-labels",
             "signature-cleaned",
             "signature-confounds",
-            "signature-labels",
             "signature-rawdata",
         ]:
             utils.mergetree_overwrite(src / out, outdir / out)
