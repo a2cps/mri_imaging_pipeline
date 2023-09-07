@@ -1,0 +1,38 @@
+{
+    "name": "test_snapshot",
+    "appId": "psadil-snapshot_app",
+    "appVersion": "0.1",
+    "archiveSystemDir": "${JobWorkingDir}",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "INROOT",
+                "arg": "--inroot /corral-secure/projects/A2CPS/shared/psadil/jobs/241ff08b-0a6e-4e7c-9f4f-46757c74878f-007/all_sites"
+            },
+            {
+                "name": "OUTROOT",
+                "arg": "--outroot $PWD/store"
+            },
+            {
+                "name": "RIADIR",
+                "arg": "--riadir $PWD/ria"
+            },
+            {
+                "name": "N_WORKERS",
+                "arg": "--n-workers 48"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 1440
+}
