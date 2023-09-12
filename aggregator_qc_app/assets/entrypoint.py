@@ -33,7 +33,7 @@ DEFAULT_CACHED_CLIENT = Path.home() / ".tapis3" / "client.json"
 def load_cached_client(src: Path) -> dict:
     with open(src, "r") as f:
         data = json.load(f)
-    return data  
+    return data
 
 
 def check_client(cached_client: Path) -> None:
@@ -170,7 +170,7 @@ def build_bids_name(d: pd.DataFrame, suffix: str) -> pd.DataFrame:
 def get_outliers(
     d: pd.DataFrame,
     groups,
-    url_root: str = "https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris",
+    url_root: str = "https://a2cps.org/workbench/data/tapis/community/secure.corral/corral-secure/projects/A2CPS/products/mris",
     imaging_log: Path = Path(
         "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
@@ -702,7 +702,9 @@ def main(
             Confluence(
                 url="https://confluence.a2cps.org",
                 cloud=True,
-                session=start_session(secret_name, cached_client=cached_client),
+                session=start_session(
+                    secret_name, cached_client=cached_client
+                ),
             ),
         )
     else:
