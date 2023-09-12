@@ -72,8 +72,8 @@ def main() -> None:
 
     with open(JOB, "r") as f:
         job = json.load(f)
-
-    job = set_outputdir(job, context.message_dict.get("OUTDIR"))
+    outdir = context.message_dict.get("OUTDIR", '/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids')
+    job = set_outputdir(job, outdir)
     print(json.dumps(job, indent=4))
 
     try:
