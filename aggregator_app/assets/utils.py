@@ -85,17 +85,14 @@ def _deface(volume: Path, mask: Path, make_mask: bool = False) -> None:  # type:
 def _deface_fslanat(subsesdir: Path, fmriprep_mask: Path) -> None:
     for anatdir in subsesdir.glob("*anat"):
         for t1 in ("T1.nii.gz", "T1_biascorr.nii.gz"):
-            _deface(anatdir / t1, anatdir / "T1_biascorr_brain_mask.nii.gz")
+            if (f := anatdir / t1).exists():
+                _deface(f, anatdir / "T1_biascorr_brain_mask.nii.gz")
         for mni in ("T1_to_MNI_nonlin.nii.gz", "T1_to_MNI_lin.nii.gz"):
-            _deface(
-                anatdir / mni,
-                anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz",
-            )
+            if (f := anatdir / mni).exists():
+                _deface(f, anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz")
         for orig in ("T1_fullfov.nii.gz", "T1_orig.nii.gz"):
-            _deface(
-                anatdir / orig,
-                fmriprep_mask,
-            )
+            if (f := anatdir / orig).exists():
+                _deface(f, fmriprep_mask)
 
 
 def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
@@ -125,11 +122,49 @@ def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
     )
 
 
-def _deface_all(subsesdir: Path, tmp_site: Path) -> bool:
+def _deface_freesurfer(subdir: Path, fmriprep_mask: Path) -> None:
+    for orig in (subdir / "mri" / "orig").glob("*mgz"):
+        _deface(orig, fmriprep_mask)
+
+    if (rawavg := subdir / "mri" / "rawavg.mgz").exists():
+        _deface(rawavg, fmriprep_mask)
+
+    for mgz in FSOUTPUTS:
+        if (f := subdir / "mri" / mgz).exists():
+            _deface(f, subdir / "mri" / "brainmask.mgz", make_mask=True)
+
+
+def _deface_fmriprep(
+    subsesdir: Path, fmriprep_mask: Path, sub: str, ses: str
+) -> None:
+    for subjob in ["anat", "cuff", "rest"]:
+        for output in (subsesdir / subjob / "fmriprep" / f"sub-{sub}").glob(
+            "ses*"
+        ):
+            _deface(
+                output
+                / "anat"
+                / f"sub-{sub}_ses-{ses}_desc-preproc_T1w.nii.gz",
+                fmriprep_mask,
+            )
+            for space in ["MNI152NLin2009cAsym"]:
+                _deface(
+                    output
+                    / "anat"
+                    / f"sub-{sub}_ses-{ses}_space-{space}_desc-preproc_T1w.nii.gz",
+                    output
+                    / "anat"
+                    / f"sub-{sub}_ses-{ses}_space-{space}_desc-brain_mask.nii.gz",
+                )
+
+
+def _deface_all_derivatives(subsesdir: Path, tmp_site: Path) -> bool:
     sub = _get_sub(subsesdir)
     ses = _get_ses(subsesdir)
     subses_fmriprep = tmp_site / "fmriprep" / subsesdir
     ok = True
+
+    # NOTE: cannot assume that all standard files exist for all participants
     try:
         fmriprep_mask = (
             subses_fmriprep
@@ -140,74 +175,18 @@ def _deface_all(subsesdir: Path, tmp_site: Path) -> bool:
             / "anat"
             / f"sub-{sub}_ses-{ses}_desc-brain_mask.nii.gz"
         )
-        _deface(
-            tmp_site
-            / "bids"
-            / subsesdir
-            / f"sub-{sub}"
-            / f"ses-{ses}"
-            / "anat"
-            / f"sub-{sub}_ses-{ses}_T1w.nii.gz",
-            fmriprep_mask,
+        _deface_fmriprep(
+            subsesdir=subses_fmriprep,
+            fmriprep_mask=fmriprep_mask,
+            sub=sub,
+            ses=ses,
         )
-        for subjob in ["anat", "cuff", "rest"]:
-            # output might not exist
-            for output in (
-                subses_fmriprep / subjob / "fmriprep" / f"sub-{sub}"
-            ).glob("ses*"):
-                _deface(
-                    output
-                    / "anat"
-                    / f"sub-{sub}_ses-{ses}_desc-preproc_T1w.nii.gz",
-                    fmriprep_mask,
-                )
 
-                _deface(
-                    output
-                    / "anat"
-                    / f"sub-{sub}_ses-{ses}_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz",
-                    output
-                    / "anat"
-                    / f"sub-{sub}_ses-{ses}_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz",
-                )
-        # now freesurfer
-        _deface(
-            subses_fmriprep
-            / "anat"
-            / "freesurfer"
-            / f"sub-{sub}"
-            / "mri"
-            / "orig"
-            / "001.mgz",
-            fmriprep_mask,
+        _deface_freesurfer(
+            subdir=subses_fmriprep / "anat" / "freesurfer" / f"sub-{sub}",
+            fmriprep_mask=fmriprep_mask,
         )
-        _deface(
-            subses_fmriprep
-            / "anat"
-            / "freesurfer"
-            / f"sub-{sub}"
-            / "mri"
-            / "rawavg.mgz",
-            fmriprep_mask,
-        )
-        for mgz in FSOUTPUTS:
-            _deface(
-                subses_fmriprep
-                / "anat"
-                / "freesurfer"
-                / f"sub-{sub}"
-                / "mri"
-                / mgz,
-                subses_fmriprep
-                / "anat"
-                / "freesurfer"
-                / f"sub-{sub}"
-                / "mri"
-                / "brainmask.mgz",
-                make_mask=True,
-            )
 
-        # _deface_qsiprep(tmp_site / "qsiprep" / subsesdir, sub=sub)
         _deface_fslanat(
             tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask
         )

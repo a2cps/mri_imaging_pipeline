@@ -40,6 +40,17 @@
                     "name": "OUTROOT",
                     "inputMode": "REQUIRED",
                     "arg": null
+                },
+                {
+                    "name": "MAXSUBS",
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "arg": null
+                },
+                {
+                    "name": "NTHREADS",
+                    "description": "Number of threads used during synthstrip",
+                    "inputMode": "INCLUDE_BY_DEFAULT",
+                    "arg": "--n-threads 16"
                 }
             ],
             "containerArgs": [
