@@ -1,0 +1,29 @@
+{
+    "name": "aggregator_phantom_job",
+    "appId": "urrutia-aggregator_phantom_app",
+    "appVersion": "3.0",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "INROOT",
+                "arg": "--inroot /corral-secure/projects/A2CPS/products/mris"
+            },
+            {
+                "name": "OUTDIR",
+                "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 100
+}

@@ -1,65 +1,86 @@
 {
-  "checkpointable": false,
-  "name": "{{ agave.username }}-{{ app.name }}",
-  "executionSystem": "{{ app.hpc_system }}",
-  "executionType": "HPC",
-  "defaultQueue": "{{ app.queue }}",  
-  "deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
-  "deploymentSystem": "{{ app.storage_system }}",
-  "helpURI": "",
-  "label": "{{ app.label }}",
-  "shortDescription": "{{ app.description }}",
-  "longDescription": "",
-  "modules": [
-    "unload xalt",
-    "load tacc-singularity"
-  ],  
-  "ontology": [],
-  "parallelism": "SERIAL",
-  "tags": [],
-  "templatePath": "runner.sh",
-  "testPath": "tester.sh",
-  "version": "{{ app.version }}",
-  "defaultMaxRunTime": "00:30:00",
-  "inputs": [ ],
-  "parameters": [
-    {
-      "id": "CONTAINER_IMAGE",
-      "value": {
-        "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
-        "type": "string",
-        "visible": false,
-        "required": true,
-        "order": 1000
-      }
-    },
-    {
-      "id": "BIND_DIR",
-      "value": {
-        "default": "/corral-secure/projects/A2CPS",
-        "type": "string",
-        "required": true,
-        "order": 1000
-      }
-    },
-    {
-      "id": "INROOT",
-      "value": {
-        "default": "/corral-secure/projects/A2CPS/products/mris",
-        "type": "string",
-        "required": true,
-        "order": 1000
-      }
-    },
-    {
-      "id": "OUTDIR",
-      "value": {
-        "default": "/corral-secure/projects/A2CPS/resources/imaging/phantom/bids",
-        "type": "string",
-        "required": true,
-        "order": 1000
-      }
-    }
+  "id": "urrutia-aggregator_phantom_app",
+  "version": "3.0",
+  "description": "Run aggregator_phantom_app",
+  "owner": "${apiUserId}",
+  "enabled": true,
+  "runtime": "SINGULARITY",
+  "runtimeVersion": null,
+  "runtimeOptions": [
+    "SINGULARITY_RUN"
   ],
-  "outputs": []
+  "containerImage": "docker://a2cps/aggregator_phantom_app:latest",
+  "jobType": "BATCH",
+  "maxJobs": -1,
+  "maxJobsPerUser": -1,
+  "strictFileInputs": true,
+  "jobAttributes": {
+    "description": null,
+    "dynamicExecSystem": false,
+    "execSystemConstraints": null,
+    "execSystemId": "secure.frontera",
+    "execSystemExecDir": "${JobWorkingDir}",
+    "execSystemInputDir": "${JobWorkingDir}",
+    "execSystemOutputDir": "${JobWorkingDir}",
+    "execSystemLogicalQueue": "corralextra",
+    "archiveSystemId": "secure.frontera",
+    "archiveSystemDir": "${JobWorkingDir}",
+    "archiveOnAppError": false,
+    "isMpi": false,
+    "mpiCmd": null,
+    "cmdPrefix": null,
+    "parameterSet": {
+      "appArgs": [
+        {
+          "name": "INROOT",
+          "arg": "--inroot /corral-secure/projects/A2CPS/products/mris"
+        },
+        {
+          "name": "OUTDIR",
+          "inputMode": "REQUIRED",
+          "arg": null
+        }
+      ],
+      "containerArgs": [
+        {
+          "name": "Container Mounts",
+          "description": "Mount for TAP functions",
+          "inputMode": "FIXED",
+          "arg": "--bind /corral-secure/projects/A2CPS"
+        }
+      ],
+      "schedulerOptions": [
+        {
+          "name": "TACC Scheduler Profile",
+          "description": "Scheduler profile for HPC clusters at TACC",
+          "inputMode": "FIXED",
+          "arg": "--tapis-profile tacc-apptainer"
+        },
+        {
+          "name": "TAP Session Substring",
+          "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+          "inputMode": "FIXED",
+          "arg": "--job-name ${JobName}"
+        },
+        {
+          "name": "TACC Allocation",
+          "description": "The TACC allocation associated with this job execution",
+          "inputMode": "FIXED",
+          "arg": "-A A2CPS"
+        }
+      ],
+      "envVariables": [],
+      "archiveFilter": {
+        "includes": [],
+        "excludes": [],
+        "includeLaunchFiles": false
+      }
+    },
+    "fileInputs": [],
+    "fileInputArrays": [],
+    "nodeCount": 1,
+    "maxMinutes": 120,
+    "subscriptions": [],
+    "tags": []
+  }
 }
