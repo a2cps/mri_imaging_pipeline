@@ -61,7 +61,7 @@ def actors_get_client() -> Tapis:
 
 def set_outputdir(job: dict, arg: str) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[0] = {"name": "OUTDIR", "arg": arg}  # type: ignore
+    job2.get("parameterSet").get("appArgs")[1] = {"name": "OUTDIR", "arg": arg}  # type: ignore
     return job2
 
 
