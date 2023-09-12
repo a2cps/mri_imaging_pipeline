@@ -23,13 +23,13 @@ def _get_all_volumes(root: Path) -> pd.DataFrame:
     return pd.concat(volumes, ignore_index=True)
 
 
-def main(outdir: Path, inroot: Path) -> None:
+def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
     for src in inroot.glob("fslanat/*"):
         utils.mergetree_overwrite(src, outdir)
 
-    _get_all_volumes(outdir).to_csv(
-        outdir / "fslanat.tsv", sep="\t", index=False
-    )
+
+def make_toplevel(outdir: Path) -> None:
+    _get_all_volumes(outdir).to_csv(outdir / "fslanat.tsv", sep="\t", index=False)

@@ -230,7 +230,7 @@ def parse_all_aseg(root: Path) -> pd.DataFrame:
     return pd.concat(aseg, ignore_index=True)
 
 
-def main(outdir: Path, inroot: Path) -> None:
+def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
@@ -240,6 +240,8 @@ def main(outdir: Path, inroot: Path) -> None:
             src, outdir / f"sub-{utils._get_sub(src)}_ses-{utils._get_ses(src)}"
         )
 
+
+def make_toplevel(outdir: Path) -> None:
     parse_all_aparc(outdir).to_csv(outdir / "aparc.tsv", index=False, sep="\t")
     parse_all_aseg(outdir).to_csv(outdir / "aseg.tsv", index=False, sep="\t")
     parse_all_headers(outdir).to_csv(
