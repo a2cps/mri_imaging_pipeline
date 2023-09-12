@@ -6,7 +6,7 @@ from mriqc.utils.misc import generate_tsv
 import utils
 
 
-def main(outdir: Path, inroot: Path) -> None:
+def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
@@ -18,6 +18,8 @@ def main(outdir: Path, inroot: Path) -> None:
             else:
                 utils.mergetree_overwrite(src, outdir / src.name)
 
+
+def make_toplevel(outdir: Path) -> None:
     # https://github.com/nipreps/mriqc/blob/a2c320cce2ffff5a0e32d71213db7df834b5026a/mriqc/cli/run.py#L196-L236
     for modality in ["T1w", "bold"]:
         _, out_tsv = generate_tsv(outdir, modality)

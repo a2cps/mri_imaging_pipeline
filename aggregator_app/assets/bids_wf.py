@@ -13,7 +13,7 @@ DESCRIPTION = {"BIDSVersion": "1.8.0", "Name": "A2CPS"}
 README = "A2CPS dataset"
 
 
-def main(outdir: Path, inroot: Path) -> None:
+def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
@@ -22,6 +22,8 @@ def main(outdir: Path, inroot: Path) -> None:
         for src_id in bids.glob("sub-*"):
             utils.mergetree_overwrite(src_id, outdir / src_id.name)
 
+
+def make_toplevel(outdir: Path) -> None:
     # create top-level files
     readme = outdir / "README"
     readme.touch()
