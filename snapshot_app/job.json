@@ -34,5 +34,5 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 1440
+    "maxMinutes": 2880
 }
