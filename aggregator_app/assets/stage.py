@@ -51,7 +51,17 @@ def _make_sublong(site: str, subject_id: str, visit: str) -> str:
     return f"{site}{subject_id}{visit}"
 
 
-def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
+def is_directory_ready(path: Path) -> bool:
+    return (
+        path.exists()
+        and (len(list(path.glob("*"))) > 0)
+        and (any(i.is_dir() for i in path.glob("*")))
+    )
+
+
+def _get_deriv_tocopy(
+    outroot: Path, inroot: Path, site_code: str
+) -> dict[str, list[str]]:
     ready: pd.DataFrame = (
         pd.read_csv(ILOG)
         .query("site == @site_code")
@@ -74,10 +84,14 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
     # this is rare, but see NS10205V1 (for which there is nothing)
     derivatives: dict[str, list[str]] = dict()
     for row in ready.itertuples():
-        key = _make_sublong(row.site, row.subject_id, row.visit)
+        sublong = _make_sublong(row.site, row.subject_id, row.visit)
         jobs = set()
         already_aggregated = True
-        if row.fmriprep_anat == "1":
+        # cannot rely on imaging log only, because imaging log will say that a job is
+        # done even when there are no outputs
+        if row.fmriprep_anat == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "anat"
+        ):
             already_aggregated &= (
                 outroot
                 / "fmriprep-anat"
@@ -85,7 +99,9 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("fmriprep")
-        if row.fmriprep_rest == "1":
+        if row.fmriprep_rest == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "rest"
+        ):
             already_aggregated &= (
                 outroot
                 / "fmriprep-rest"
@@ -93,7 +109,9 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("fmriprep")
-        if row.fmriprep_cuff == "1":
+        if row.fmriprep_cuff == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "cuff"
+        ):
             already_aggregated &= (
                 outroot
                 / "fmriprep-cuff"
@@ -101,7 +119,9 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("fmriprep")
-        if row.cat12 == "1":
+        if row.cat12 == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "cat12" / sublong
+        ):
             already_aggregated &= (
                 outroot
                 / "cat12"
@@ -110,9 +130,24 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
             ).exists()
             jobs.add("cat12")
         if (
-            row.mriqc_anat == "1"
-            or row.mriqc_rest == "1"
-            or row.mriqc_cuff == "1"
+            (
+                row.mriqc_anat == "1"
+                and is_directory_ready(
+                    inroot / SITE_LONG[site_code] / "mriqc" / sublong / "anat"
+                )
+            )
+            or (
+                row.mriqc_rest == "1"
+                and is_directory_ready(
+                    inroot / SITE_LONG[site_code] / "mriqc" / sublong / "rest"
+                )
+            )
+            or (
+                row.mriqc_cuff == "1"
+                and is_directory_ready(
+                    inroot / SITE_LONG[site_code] / "mriqc" / sublong / "cuff"
+                )
+            )
         ):
             already_aggregated &= (
                 outroot
@@ -121,14 +156,18 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("mriqc")
-        if row.fslanat == "1":
+        if row.fslanat == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "fslanat" / sublong
+        ):
             already_aggregated &= (
                 outroot
                 / "fslanat"
                 / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
             ).exists()
             jobs.add("fslanat")
-        if row.fcn == "1":
+        if row.fcn == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "fcn" / sublong
+        ):
             already_aggregated &= (
                 outroot
                 / "fcn"
@@ -137,7 +176,9 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
                 / f"ses={row.visit}"
             ).exists()
             jobs.add("fcn")
-        if row.signatures == "1":
+        if row.signatures == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "signatures" / sublong
+        ):
             already_aggregated &= all(
                 (
                     outroot
@@ -155,7 +196,7 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
             )
             jobs.add("signatures")
         if not already_aggregated:
-            derivatives.update({key: list(jobs)})
+            derivatives.update({sublong: list(jobs)})
 
     return derivatives
 
@@ -283,7 +324,7 @@ def _main(
 
             # grab only sub/ses that do not already exist in output
             subses_tocopy = _get_deriv_tocopy(
-                outroot=outroot, site_code=site_code
+                outroot=outroot, inroot=inroot, site_code=site_code
             )
 
             # then, get all available derivatives
