@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import shutil
 import tempfile
@@ -38,12 +39,13 @@ def main(
                     tmpdir, fslanat_flow._img_stem(i)
                 )
             ).exists():
-                dst = o / tmpi.name
-                if not o.exists():
-                    o.mkdir(parents=True)
-                shutil.copytree(tmpi, dst)
-
-                shutil.copy2(oldlog, o / f"{uuid}.out")
+                if o.exists():
+                    shutil.copytree(tmpi, o / tmpi.name)
+                    shutil.copy2(oldlog, o / f"{uuid}.out")
+                else:
+                    logging.warning(
+                        f"Expected {o} but that path does not exist"
+                    )
 
 
 if __name__ == "__main__":

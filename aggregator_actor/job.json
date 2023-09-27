@@ -1,7 +1,7 @@
 {
     "name": "aggregate",
     "appId": "urrutia-aggregator",
-    "appVersion": "0.3",
+    "appVersion": "0.5",
     "parameterSet": {
         "appArgs": [
             {
@@ -11,10 +11,6 @@
             {
                 "name": "OUTROOT",
                 "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites"
-            },
-            {
-                "name": "MAXSUBS",
-                "arg": "--max-subs 5"
             }
         ]
     },

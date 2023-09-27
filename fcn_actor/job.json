@@ -1,7 +1,7 @@
 {
     "name": "test_fcn",
     "appId": "functional-connectivity",
-    "appVersion": "0.1",
+    "appVersion": "0.2",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "parameterSet": {
         "appArgs": [

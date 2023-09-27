@@ -1,6 +1,6 @@
 {
     "id": "urrutia-signatures",
-    "version": "0.1",
+    "version": "0.2",
     "description": "Multivariate Pattern Signatures",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/signatures_app:3.0",
+    "containerImage": "docker://a2cps/signatures_app:3.1",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
