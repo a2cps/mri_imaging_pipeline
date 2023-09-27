@@ -1,7 +1,7 @@
 import argparse
+import logging
 import os
 import shutil
-import logging
 from pathlib import Path
 
 from signatures.cli import signatures
@@ -41,9 +41,10 @@ def main(
     )
 
     for o in output_dir:
-        if not o.exists():
-            o.mkdir(parents=True)
-        shutil.copy2(oldlog, o / f"{uuid}.out")
+        if o.exists():
+            shutil.copy2(oldlog, o / f"{uuid}.out")
+        else:
+            logging.warning(f"Expected {o} but that path does not exist")
 
 
 if __name__ == "__main__":
