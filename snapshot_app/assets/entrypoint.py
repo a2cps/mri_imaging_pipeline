@@ -23,7 +23,7 @@ def main(
     logging.info("initializing datalad")
     init_datalad_wf.main(inroot=outroot, n_jobs=n_workers)
 
-    ria = f"ria+file://{riadir}"
+    ria = f"ria+file://{riadir.resolve()}"
     logging.info(f"configuring ria at {ria=}")
     add_ria_wf.main(releasedir=outroot, ria=ria)
 
