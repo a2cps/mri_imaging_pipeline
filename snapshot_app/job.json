@@ -1,0 +1,38 @@
+{
+    "name": "snapshot-1.0",
+    "appId": "urrutia-snapshot_app",
+    "appVersion": "1.0",
+    "archiveSystemDir": "${JobWorkingDir}",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "INROOT",
+                "arg": "--inroot /corral-secure/projects/A2CPS/products/mris/all_sites"
+            },
+            {
+                "name": "OUTROOT",
+                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri"
+            },
+            {
+                "name": "RIADIR",
+                "arg": "--riadir /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri-ria"
+            },
+            {
+                "name": "N_WORKERS",
+                "arg": "--n-workers 30"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 2880
+}
