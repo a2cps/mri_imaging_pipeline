@@ -1,25 +1,25 @@
 {
-    "name": "test_snapshot",
-    "appId": "psadil-snapshot_app",
-    "appVersion": "0.1",
+    "name": "snapshot-1.0",
+    "appId": "urrutia-snapshot_app",
+    "appVersion": "1.0",
     "archiveSystemDir": "${JobWorkingDir}",
     "parameterSet": {
         "appArgs": [
             {
                 "name": "INROOT",
-                "arg": "--inroot /corral-secure/projects/A2CPS/shared/psadil/jobs/8d04d3cf-f3b4-467d-95db-180be35f9c7e-007/all_sites"
+                "arg": "--inroot /corral-secure/projects/A2CPS/products/mris/all_sites"
             },
             {
                 "name": "OUTROOT",
-                "arg": "--outroot $PWD/store"
+                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri"
             },
             {
                 "name": "RIADIR",
-                "arg": "--riadir $PWD/ria"
+                "arg": "--riadir /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri-ria"
             },
             {
                 "name": "N_WORKERS",
-                "arg": "--n-workers 48"
+                "arg": "--n-workers 30"
             }
         ]
     },
