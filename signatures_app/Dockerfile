@@ -24,6 +24,7 @@ ENV PREFECT_API_DATABASE_TIMEOUT=1200
 ENV PREFECT_API_REQUEST_TIMEOUT=2400
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py /opt/entrypoint.py
+COPY --chown=$MAMBA_USER:$MAMBA_USER assets/2013_Wager_NEJM_NPS/*gz /opt/conda/lib/python3.11/site-packages/signatures/data/2013_Wager_NEJM_NPS
 
 ENTRYPOINT [ "/usr/local/bin/_entrypoint.sh", "python", "/opt/entrypoint.py"]
 CMD [ "--help" ]
