@@ -24,7 +24,7 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
         "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "${JobWorkingDir}",
+        "archiveSystemDir": "./",
         "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
@@ -49,6 +49,18 @@
                 {
                     "name": "N_WORKERS",
                     "arg": "--n-workers 1"
+                },
+                {
+                    "name": "COPY",
+                    "inputMode": "INCLUDE_ON_DEMAND"
+                },
+                {
+                    "name": "INIT_DATALAD",
+                    "inputMode": "INCLUDE_ON_DEMAND"
+                },
+                {
+                    "name": "ARCHIVE",
+                    "inputMode": "INCLUDE_ON_DEMAND"
                 }
             ],
             "containerArgs": [

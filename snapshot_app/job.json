@@ -2,7 +2,7 @@
     "name": "snapshot-1.0",
     "appId": "urrutia-snapshot_app",
     "appVersion": "1.0",
-    "archiveSystemDir": "${JobWorkingDir}",
+    "archiveSystemDir": "./",
     "parameterSet": {
         "appArgs": [
             {
@@ -15,11 +15,23 @@
             },
             {
                 "name": "RIADIR",
-                "arg": "--riadir /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri-ria"
+                "arg": "--riadir /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri/ria"
             },
             {
                 "name": "N_WORKERS",
                 "arg": "--n-workers 30"
+            },
+            {
+                "name": "COPY",
+                "arg": "--copy"
+            },
+            {
+                "name": "INIT_DATALAD",
+                "arg": "--init-datalad"
+            },
+            {
+                "name": "ARCHIVE",
+                "arg": "--archive"
             }
         ]
     },
