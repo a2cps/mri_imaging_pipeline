@@ -1,13 +1,19 @@
+import copy
 import dataclasses
 import json
 import logging
 import os
 from pathlib import Path
 
-from tapipy import actors, util, errors
-from tapipy.tapis import Tapis
+from tapipy import actors, errors, util
+from tapipy.tapis import Tapis, TapisResult
 
 JOB = Path("/opt/job.json")
+
+
+# TODO
+FAILUREBOT_ADDRESS_SECRET_NAME = ""
+FAILUREBOT_ADDRESS_SECRET_KEY = ""
 
 
 @dataclasses.dataclass
@@ -31,7 +37,9 @@ def actors_get_client() -> Tapis:
     # if we have an access token, use that:
     if token := os.environ.get("_abaco_access_token"):
         tp = Tapis(
-            base_url=os.environ.get("_abaco_api_server", default="").strip("/"),
+            base_url=os.environ.get("_abaco_api_server", default="").strip(
+                "/"
+            ),
             access_token=token,
         )  # type: ignore
     elif server := os.environ.get("_abaco_api_server"):
@@ -45,6 +53,29 @@ def actors_get_client() -> Tapis:
     return tp
 
 
+def get_failurebot_url(client) -> str:
+    token: TapisResult = client.sk.readSecret(  # type: ignore
+        secretType="user",
+        secretName=FAILUREBOT_ADDRESS_SECRET_NAME,
+        tenant=os.environ.get("_tapisTenant"),
+        user=os.environ.get("_tapisEffectiveUserId"),
+    )
+    url: str | None = token.get("secretMap").get(FAILUREBOT_ADDRESS_SECRET_KEY)  # type: ignore
+    if url is None:
+        msg = f"unable to find {FAILUREBOT_ADDRESS_SECRET_KEY} in secretMap"
+        raise AssertionError(msg)
+
+    return url
+
+
+def set_subscription_url(job: dict, arg: str) -> dict:
+    job2 = copy.deepcopy(job)
+    job2.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
+        {"deliveryAddress": arg}
+    )
+    return job2
+
+
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
@@ -54,6 +85,8 @@ def main() -> None:
 
     print(json.dumps(job, indent=4))
     client = actors_get_client()
+    failurebot_url = get_failurebot_url(client=client)
+    job = set_subscription_url(job, arg=failurebot_url)
 
     try:
         client.jobs.submitJob(**job)  # type: ignore
