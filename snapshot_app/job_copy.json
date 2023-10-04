@@ -24,14 +24,6 @@
             {
                 "name": "COPY",
                 "arg": "--copy"
-            },
-            {
-                "name": "INIT_DATALAD",
-                "arg": "--init-datalad"
-            },
-            {
-                "name": "ARCHIVE",
-                "arg": "--archive"
             }
         ]
     },
