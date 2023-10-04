@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import logging
 from pathlib import Path
 
@@ -25,7 +26,11 @@ def main(
 ) -> None:
     if copy:
         logging.info("making initial copy")
-        copy_v1_to_dst_wf.main(inroot=inroot, outroot=outroot)
+        asyncio.run(
+            copy_v1_to_dst_wf.main(
+                inroot=inroot, outroot=outroot, max_workers=n_workers
+            )
+        )
 
     if init_datalad:
         logging.info("initializing datalad")
