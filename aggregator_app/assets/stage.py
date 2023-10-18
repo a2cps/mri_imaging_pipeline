@@ -269,7 +269,7 @@ def _synthstrip(src: Path, n_threads: int = 1) -> Path:
         )
         src.unlink()
         shutil.copy2(brain.name, src)
-        os.chmod(src, 0o6440)
+        os.chmod(src, 0o640)
     return src
 
 
