@@ -2,7 +2,6 @@
     "name": "snapshot-2.0",
     "appId": "urrutia-snapshot_app",
     "appVersion": "2.0",
-    "archiveSystemDir": "./",
     "parameterSet": {
         "appArgs": [
             {
