@@ -7,9 +7,8 @@ from pydantic import BaseModel, Json
 from tapipy import actors, errors, util
 from tapipy.tapis import Tapis, TapisResult
 
-# TODO
-SLACKBOT_ADDRESS_SECRET_NAME = ""
-SLACKBOT_ADDRESS_SECRET_KEY = ""
+SLACKBOT_ADDRESS_SECRET_NAME = "SLACKBOT_ADDRESS_SECRET_NAME"
+SLACKBOT_ADDRESS_SECRET_KEY = "SLACKBOT_ADDRESS_SECRET_KEY"
 
 
 class DeliveryTarget(BaseModel):
