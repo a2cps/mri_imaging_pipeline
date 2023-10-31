@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:1.4.7-jammy
+FROM mambaorg/micromamba:1.5.1-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/mri_signatures /tmp/mri_signatures/
@@ -10,11 +10,6 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
     && micromamba run -n base pip install --no-deps /tmp/mri_signatures/ \
     && rm -rf /tmp/mri_signatures /tmp/env.yml \
     && micromamba clean --yes --all
-
-# Unless otherwise specified each process should only use one thread - nipype
-# will handle parallelization
-ENV MKL_NUM_THREADS=1 
-ENV OMP_NUM_THREADS=1
 
 ENV PREFECT_HOME=/tmp/prefect
 ENV PREFECT_LOCAL_STORAGE_PATH="${PREFECT_HOME}/storage"
