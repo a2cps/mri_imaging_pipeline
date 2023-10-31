@@ -16,9 +16,8 @@ from ibis.expr.types.relations import Table
 from tapipy import actors, errors, util
 from tapipy.tapis import Tapis, TapisResult
 
-# TODO
-FAILUREBOT_ADDRESS_SECRET_NAME = ""
-FAILUREBOT_ADDRESS_SECRET_KEY = ""
+FAILUREBOT_ADDRESS_SECRET_NAME = "FAILUREBOT_ADDRESS_SECRET_NAME"
+FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
 
 
 # within docker container
@@ -175,8 +174,8 @@ def get_failurebot_url(client) -> str:
     token: TapisResult = client.sk.readSecret(  # type: ignore
         secretType="user",
         secretName=FAILUREBOT_ADDRESS_SECRET_NAME,
-        tenant=os.environ.get("_tapisTenant"),
-        user=os.environ.get("_tapisEffectiveUserId"),
+        tenant=os.environ.get("_abaco_api_server").split('.')[0].split("/")[-1],
+        user=client.actors.get_actor(actor_id=os.environ.get("_abaco_actor_id")).owner,
     )
     url: str | None = token.get("secretMap").get(FAILUREBOT_ADDRESS_SECRET_KEY)  # type: ignore
     if url is None:
