@@ -1,7 +1,32 @@
 #!/bin/bash
+#SBATCH -J heudiconv-ru-test
+#SBATCH -o heudiconv-ru-test.out
+#SBATCH -e heudiconv-ru-test.err
+#SBATCH -t 19:58:00
+#SBATCH -p corralextra
+#SBATCH -N 1 -n 1
+#SBATCH -A A2CPS
 
-# Import Agave runtime extensions
-. _lib/extend-runtime.sh
+module load tacc-singularity
+module unload xalt
+
+FILES=/work2/08266/psadil/data/mris/RU_rush/dicoms/RU_Test.zip
+BIND_DIR=/corral-secure/projects/A2CPS
+CONTAINER_IMAGE=psadil/heudiconv_app:231101
+#DICOM_DIR_TEMPLATE
+LIST_OF_SUBJECTS="--subjects test "
+OUTDIR="."
+#CONVERTER
+LOCATOR="--locator='' "
+# ANON_CMD
+HEURISTIC="--heuristic a2cps.py "
+SESSION_FOR_LONGITUDINAL="231027"
+BIDS="--bids "
+# OVERWRITE
+# DATALAD
+# DCMCONFIG
+DELETE_DUPLICATES=1
+POST="--no-post "
 
 # Unzip dicoms locally 
 #shellcheck disable=SC2086
