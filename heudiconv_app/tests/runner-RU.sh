@@ -2,7 +2,7 @@
 #SBATCH -J heudiconv-ru-test
 #SBATCH -o heudiconv-ru-test.out
 #SBATCH -e heudiconv-ru-test.err
-#SBATCH -t 19:58:00
+#SBATCH -t 1:00:00
 #SBATCH -p corralextra
 #SBATCH -N 1 -n 1
 #SBATCH -A A2CPS
@@ -12,7 +12,7 @@ module unload xalt
 
 FILES=/work2/08266/psadil/data/mris/RU_rush/dicoms/RU_Test.zip
 BIND_DIR=/corral-secure/projects/A2CPS
-CONTAINER_IMAGE=psadil/heudiconv_app:231101
+CONTAINER_IMAGE=psadil/heudiconv:231101
 #DICOM_DIR_TEMPLATE
 LIST_OF_SUBJECTS="--subjects test "
 OUTDIR="."
@@ -20,13 +20,15 @@ OUTDIR="."
 LOCATOR="--locator='' "
 # ANON_CMD
 HEURISTIC="--heuristic a2cps.py "
-SESSION_FOR_LONGITUDINAL="231027"
+SESSION_FOR_LONGITUDINAL="--ses 231027 "
 BIDS="--bids "
 # OVERWRITE
 # DATALAD
 # DCMCONFIG
 DELETE_DUPLICATES=1
 POST="--no-post "
+CHECK_JSONS=1
+SITE=RU
 
 # Unzip dicoms locally 
 #shellcheck disable=SC2086
@@ -85,7 +87,7 @@ case "${SITE}" in
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
-        && python exclude_derived-dwi_sh.py ${LOCAL_DICOM}
+        && python exclude_derived-dwi_xa30.py ${LOCAL_DICOM}
       "
 
     singularity run \
@@ -95,7 +97,7 @@ case "${SITE}" in
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
-        && python exclude_derived-dwi_sh.py ${LOCAL_DICOM}
+        && python exclude_derived-dwi_xa30.py ${LOCAL_DICOM}
       "
 
     echo singularity run \
