@@ -25,5 +25,18 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 100
+    "maxMinutes": 100,
+    "subscriptions": [
+        {
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
+            "deliveryTargets": [
+                {
+                    "deliveryMethod": "WEBHOOK",
+                    "deliveryAddress": ""
+                }
+            ]
+        }
+    ]
 }

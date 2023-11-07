@@ -1,7 +1,7 @@
 {
     "name": "fslanat",
     "appId": "urrutia-fslanat",
-    "appVersion": "0.4",
+    "appVersion": "0.5",
     "parameterSet": {
         "appArgs": [
             {
@@ -29,5 +29,18 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 240
+    "maxMinutes": 240,
+    "subscriptions": [
+        {
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
+            "deliveryTargets": [
+                {
+                    "deliveryMethod": "WEBHOOK",
+                    "deliveryAddress": ""
+                }
+            ]
+        }
+    ]
 }

@@ -5,7 +5,7 @@ RUN apt-get update \
     && wget -O /tmp/fslinstaller.py https://git.fmrib.ox.ac.uk/fsl/conda/installer/-/raw/03d60135741657094d509e648da0da13263971a5/fsl/installer/fslinstaller.py \
     && python3 /tmp/fslinstaller.py -d /opt/fsl -V 6.0.6.5
 
-FROM mambaorg/micromamba:1.4.3-jammy
+FROM mambaorg/micromamba:1.4.7-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/fslanat /tmp/fslanat/
@@ -20,11 +20,6 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
 
 COPY --from=fsl --chown=$MAMBA_USER:$MAMBA_USER /opt/fsl/ /opt/fsl
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py /opt/entrypoint.py
-
-# Unless otherwise specified each process should only use one thread - nipype
-# will handle parallelization
-ENV MKL_NUM_THREADS=1 
-ENV OMP_NUM_THREADS=1
 
 ENV FSLDIR=/opt/fsl
 ENV FSLOUTPUTTYPE=NIFTI_GZ

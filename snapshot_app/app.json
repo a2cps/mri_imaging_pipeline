@@ -1,7 +1,7 @@
 {
-    "id": "functional-connectivity",
-    "version": "0.4",
-    "description": "Run Functional Connectivity",
+    "id": "urrutia-snapshot_app",
+    "version": "2.1",
+    "description": "snapshot mri",
     "owner": "${apiUserId}",
     "enabled": true,
     "runtime": "SINGULARITY",
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/fcn_app:0.4",
+    "containerImage": "docker://a2cps/snapshot_app:2.1",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -23,27 +23,41 @@
         "execSystemInputDir": "${JobWorkingDir}",
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
-        "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
-        "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
         "parameterSet": {
             "appArgs": [
                 {
-                    "name": "FMRIPREP_DIR",
+                    "name": "INROOT",
                     "inputMode": "REQUIRED",
                     "arg": null
                 },
                 {
-                    "name": "OUTPUT_DIR",
+                    "name": "OUTROOT",
+                    "inputMode": "REQUIRED",
+                    "arg": null
+                },
+                {
+                    "name": "RIADIR",
                     "inputMode": "REQUIRED",
                     "arg": null
                 },
                 {
                     "name": "N_WORKERS",
                     "arg": "--n-workers 1"
+                },
+                {
+                    "name": "COPY",
+                    "inputMode": "INCLUDE_ON_DEMAND"
+                },
+                {
+                    "name": "INIT_DATALAD",
+                    "inputMode": "INCLUDE_ON_DEMAND"
+                },
+                {
+                    "name": "ARCHIVE",
+                    "inputMode": "INCLUDE_ON_DEMAND"
                 }
             ],
             "containerArgs": [

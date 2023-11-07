@@ -11,11 +11,6 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
     && rm -rf /tmp/functional_connectivity /tmp/env.yml \
     && micromamba clean --yes --all
 
-# Unless otherwise specified each process should only use one thread - nipype
-# will handle parallelization
-ENV MKL_NUM_THREADS=1 
-ENV OMP_NUM_THREADS=1
-
 ENV PREFECT_HOME=/tmp/prefect
 ENV PREFECT_LOCAL_STORAGE_PATH="${PREFECT_HOME}/storage"
 ENV PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///${PREFECT_HOME}/orion.db"
