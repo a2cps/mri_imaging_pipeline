@@ -29,6 +29,16 @@ TASK_THRESH = {"rest": 0.3, "cuff": 0.9}
 PEM = Path("/opt/confluence-a2cps-org-chain.pem")
 DEFAULT_CACHED_CLIENT = Path.home() / ".tapis3" / "client.json"
 
+SITE_CODES = {
+    "UI": "UI_uic",
+    "NS": "NS_northshore",
+    "UC": "UC_uchicago",
+    "UM": "UM_umichigan",
+    "WS": "WS_wayne_state",
+    "SH": "SH_spectrum_health",
+    "RU": "RU_rush",
+}
+
 
 def load_cached_client(src: Path) -> dict:
     with open(src, "r") as f:
@@ -179,14 +189,6 @@ def get_outliers(
     get_outliers(fname=pd.read_csv('group_T1w.tsv', delimiter="\t"))
     get_outliers(fname=pd.read_csv('group_T1w.tsv', delimiter="\t"), ['site'])
     """
-    SITE_CODES = {
-        "UI": "UI_uic",
-        "NS": "NS_northshore",
-        "UC": "UC_uchicago",
-        "UM": "UM_umichigan",
-        "WS": "WS_wayne_state",
-        "SH": "SH_spectrum_health",
-    }
 
     sites = (
         pd.read_csv(imaging_log, usecols=["subject_id", "site"])
@@ -310,14 +312,7 @@ def gather_motion(
     root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
 ) -> pd.DataFrame:
     confounds = []
-    for s in [
-        "NS_northshore",
-        "SH_spectrum_health",
-        "UC_uchicago",
-        "UI_uic",
-        "UM_umichigan",
-        "WS_wayne_state",
-    ]:
+    for s in SITE_CODES.values():
         for task in ["rest", "cuff"]:
             for tsv in (root / s / "fmriprep").glob(
                 f"{s[0:2]}*/{task}/fmriprep/sub*/ses*/func/*confounds_timeseries.tsv"
@@ -441,6 +436,7 @@ def rate_dwi(
         "UI": [104],
         "UM": [104],
         "WS": [102],
+        "RU": [103],
     }
 
     bvals = (
