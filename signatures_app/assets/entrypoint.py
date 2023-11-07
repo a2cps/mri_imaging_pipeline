@@ -1,7 +1,7 @@
 import argparse
+import logging
 import os
 import shutil
-import logging
 from pathlib import Path
 
 from signatures.cli import signatures
@@ -26,13 +26,14 @@ def main(
     output_dir_final = []
     for ind, outd in zip(fmriprep_dir, output_dir, strict=True):
         logging.info(f"Looking for sub dirs in {ind}")
-        for d in ind.glob("sub*"):
-            if d.is_dir():
+        sub_directories = [d for d in ind.glob("sub*") if d.is_dir()]
+        if len(sub_directories) > 0:
+            for d in sub_directories:
                 logging.info(f"Found! Will process files in {d}")
                 fmriprep_subdirs.append(d)
                 output_dir_final.append(outd)
-            else:
-                logging.warning(f"No valid sub directories found within {ind}")
+        else:
+            logging.warning(f"No valid sub directories found within {ind}")
 
     signatures._main(
         fmriprep_subdirs=fmriprep_subdirs,
@@ -41,9 +42,10 @@ def main(
     )
 
     for o in output_dir:
-        if not o.exists():
-            o.mkdir(parents=True)
-        shutil.copy2(oldlog, o / f"{uuid}.out")
+        if o.exists():
+            shutil.copy2(oldlog, o / f"{uuid}.out")
+        else:
+            logging.warning(f"Expected {o} but that path does not exist")
 
 
 if __name__ == "__main__":

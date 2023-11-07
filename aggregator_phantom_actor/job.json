@@ -1,16 +1,16 @@
 {
-    "name": "aggregate",
-    "appId": "urrutia-aggregator",
-    "appVersion": "0.6",
+    "name": "aggregator_phantom_job",
+    "appId": "urrutia-aggregator_phantom_app",
+    "appVersion": "3.0",
     "parameterSet": {
         "appArgs": [
             {
                 "name": "INROOT",
-                "arg": "/corral-secure/projects/A2CPS/products/mris"
+                "arg": "--inroot /corral-secure/projects/A2CPS/products/mris"
             },
             {
-                "name": "OUTROOT",
-                "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites"
+                "name": "OUTDIR",
+                "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/phantom/bids"
             }
         ]
     },
@@ -25,7 +25,7 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 1440,
+    "maxMinutes": 100,
     "subscriptions": [
         {
             "description": "Message on Failure",
