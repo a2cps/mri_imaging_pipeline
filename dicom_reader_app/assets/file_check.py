@@ -83,7 +83,7 @@ def find_dicom(filename: str, isZip: bool) -> str:
 
 def get_site_from_zipfile(
     zipfile: pathlib.Path,
-) -> Literal["UI", "NS", "UC", "UM", "WS", "SH"]:
+) -> Literal["UI", "NS", "UC", "UM", "WS", "SH", "RU"]:
 
     SUBMISSION_SITE = {
         "a2dtn01": "UI",
