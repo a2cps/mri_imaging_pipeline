@@ -47,7 +47,8 @@ def main() -> None:
                     "UC": "UC_uchicago",
                     "UM": "UM_umichigan",
                     "WS": "WS_wayne_state",
-                    "SH": "SH_spectrum_health"
+                    "SH": "SH_spectrum_health",
+                    "RU": "RU_rush",
                 }
     site_name = site_codes[site]
 
