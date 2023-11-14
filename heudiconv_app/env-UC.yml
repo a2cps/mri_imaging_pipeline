@@ -6,11 +6,11 @@ dependencies:
   - traits>=4.6
   - scipy
   - numpy
-  - pandas
+  - pandas<2.0
   - nomkl
   - nilearn
   - pydicom
-  - openpyxl 
+  - openpyxl
   - deepdiff
   - pigz
   - git-annex
