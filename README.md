@@ -98,7 +98,7 @@ Several apps/actors are scheduled to run via cron -- either in an admin's cronta
 | job                 |     schedule      |
 |---------------------|-------------------|
 | dicom_reader_app    | every 10 minutes  |
-| aggregator_app      | weekl on Tuesday  |
+| aggregator_app      | weekly on Tuesday |
 | imaging_log         | nightly at 11pm   |
 | qc_aggregator_actor | weekly on Tuesday |
 | aggregator_phantom  | weekly on Tuesday |
