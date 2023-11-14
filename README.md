@@ -100,7 +100,7 @@ Several apps/actors are scheduled to run via cron -- either in an admin's cronta
 | dicom_reader_app    | every 10 minutes  |
 | aggregator_app      | weekl on Tuesday  |
 | imaging_log         | nightly at 11pm   |
-| 1c_aggregator_actor | weekly on Tuesday |
+| qc_aggregator_actor | weekly on Tuesday |
 | aggregator_phantom  | weekly on Tuesday |
 | fcn_actor           | weekly on Tuesday |
 | fslanat_actor       | weekly on Tuesday |
