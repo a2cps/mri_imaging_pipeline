@@ -61,6 +61,7 @@ SITE_KEY = {
     "UI": "UI_uic",
     "UM": "UM_umichigan",
     "WS": "WS_wayne_state",
+    "RU": "RU_rush",
 }
 
 

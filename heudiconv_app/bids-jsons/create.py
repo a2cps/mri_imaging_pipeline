@@ -3,8 +3,8 @@ import os
 import re
 from glob import glob
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 keep_list = [
     "AcquisitionMatricPE",
@@ -93,7 +93,7 @@ for j in jsons:
             for i, row in enumerate(affine):
                 json_out["dcmmeta_affine"][i] = row[0:-1]
         d = pd.json_normalize(json_out)
-        scanner = re.findall("site-(NS|SH|WS|UM1|UM2|UI|UC)", j)[0]
+        scanner = re.findall("site-(NS|SH|WS|UM1|UM2|UI|UC|RU)", j)[0]
         d["scanner"] = scanner
         phantom = len(re.findall("phantom_", j)) > 0
         d["phantom"] = phantom
@@ -131,7 +131,7 @@ for j in jsons:
         # parameters that follow a set whitelist
         # note that WS stores this information in "CoilString" and so does not need to be included
         # in this check
-        if scanner in ["NS", "SH"]:
+        if scanner in ["NS", "SH", "RU"]:
             d["ReceiveCoilActiveElements"] = [
                 [
                     "HC1-6",

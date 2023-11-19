@@ -30,6 +30,7 @@ SITE_LONG = {
     "UM": "UM_umichigan",
     "SH": "SH_spectrum_health",
     "WS": "WS_wayne_state",
+    "RU": "RU_rush",
 }
 
 
@@ -269,6 +270,7 @@ def _synthstrip(src: Path, n_threads: int = 1) -> Path:
         )
         src.unlink()
         shutil.copy2(brain.name, src)
+        os.chmod(src, 0o640)
     return src
 
 

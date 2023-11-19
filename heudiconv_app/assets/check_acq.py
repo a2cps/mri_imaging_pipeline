@@ -1,13 +1,15 @@
-import os, argparse, pathlib
-import re
+import argparse
 import logging
+import os
+import pathlib
+import re
 from glob import glob
 from itertools import chain
+
 import bids
 import numpy as np
 import pandas as pd
 from deepdiff import DeepDiff
-
 from utils import print_and_post
 
 # parameters to check for numerical equivalence
@@ -21,6 +23,8 @@ FLOATING_PARAMS = {
     0.01: ["ImagingFrequency", "WaterFatShift"],
     0.1: ["SliceTiming", "EchoTime"],
 }
+
+SIEMENS_W_64 = ["NS", "SH", "RU"]
 
 
 def remove_translation(meta: dict) -> dict:
@@ -47,7 +51,7 @@ def assert_constant(jsons: list, meta: list, key: str, post: bool = False) -> bo
     return ok
 
 
-def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) -> None:
+def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) -> bool:
     """
     Some parameters won't be consistant from participant to participant, even while
     they should have a single value within a session. This function organizes checks for
@@ -63,11 +67,11 @@ def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) ->
     )
     meta_list = [layout.get_metadata(x) for x in json_list]
 
-    if site in ["NS", "SH"]:
+    if site in SIEMENS_W_64:
         ok = assert_constant(
             json_list, meta_list, "ReceiveCoilActiveElements", post=post
         )
-        ok *= assert_constant(json_list, meta_list, "ShimSettings", post=post)
+        ok &= assert_constant(json_list, meta_list, "ShimSettings", post=post)
     elif site == "WS":
         ok = assert_constant(json_list, meta_list, "CoilString", post=post)
     else:
@@ -88,7 +92,7 @@ def check_receivecoil(observed: dict, reference: pd.DataFrame) -> bool:
 
 def add_deepkeys(observed: dict) -> dict:
     if observed.__contains__("global"):
-        observed["BitsStored"] = observed.get("global").get("const").get("BitsStored")
+        observed["BitsStored"] = observed.get("global").get("const").get("BitsStored") # type: ignore
     return observed
 
 
@@ -106,8 +110,8 @@ def check_bvalsbvecs(
     root issue seems to be: https://github.com/moloney/dcmstack/issues/51
     """
 
-    rb = np.array(pd.eval(reference["bval"]), dtype=float).squeeze()
-    rv = np.array(pd.eval(reference["bvec"]), dtype=float).squeeze()
+    rb = np.array(pd.eval(reference["bval"]), dtype=float).squeeze() # type: ignore
+    rv = np.array(pd.eval(reference["bvec"]), dtype=float).squeeze() # type: ignore
 
     # in the case of UC scans, we don't get a full dcmstack output in the DWI, so notification must
     # happen
@@ -141,7 +145,7 @@ def compare(
     meta = layout.get_metadata(js_observed)
     meta = add_deepkeys(meta)
 
-    if reference.scanner.unique()[0] in ["NS", "SH"]:
+    if reference.scanner.unique()[0] in SIEMENS_W_64:
         if check_receivecoil(meta, reference):
             reference.drop(["ReceiveCoilActiveElements"], axis=1, inplace=True)
         else:
@@ -167,7 +171,7 @@ def compare(
         "SliceTiming",
     ]:
         if n in js_goal.columns.values.tolist():
-            js_goal[n] = pd.eval(js_goal.loc[:, n])
+            js_goal[n] = pd.eval(js_goal.loc[:, n]) # type: ignore
 
     js_goal = js_goal.to_dict(orient="records")[0]
     observed = {key: meta.get(key) for key in js_goal.keys()}
@@ -215,7 +219,7 @@ def compare(
         ok = False
     else:
         print(f"json for {os.path.basename(js_observed)} looks okay")
-        ok *= True
+        ok &= True
 
     return ok
 
@@ -330,7 +334,7 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
     for fmap in layout.get(extension="nii.gz", return_type="file", suffix="epi"):
         acq = re.findall("acq-(dwib0|fmrib0)", fmap)[0]
         dir = re.findall("dir-(AP|PA)", fmap)[0]
-        ok *= compare(
+        ok &= compare(
             layout,
             fmap,
             reference.query("suffix == 'epi' & acq == @acq & dir == @dir").copy(),
@@ -347,7 +351,7 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check bids.json files")
     parser.add_argument("root", type=pathlib.Path)
-    parser.add_argument("site", choices=["NS", "SH", "UC", "UI", "UM", "WS"])
+    parser.add_argument("site", choices=["NS", "SH", "UC", "UI", "UM", "WS", "RU"])
     parser.add_argument(
         "--phantom", action=argparse.BooleanOptionalAction, default=False
     )

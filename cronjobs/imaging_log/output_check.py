@@ -188,7 +188,7 @@ def redcap_query():
             std_name = item['fmripatientname']
             std_name = std_name.upper()
             #print(std_name)
-            patient_id = re.search('(NS|WS|UC|UM|UI|SH)\d{5}[vV](1|3)',std_name)
+            patient_id = re.search('(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)',std_name)
             #print(patient_id)
             (site_id, subject_id, v, session_number, space) = re.split('(\d+)',patient_id.group(0))
             session_id = v + session_number

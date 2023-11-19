@@ -17,6 +17,7 @@ SITE_CODES = {
     "UM": "UM_umichigan",
     "WS": "WS_wayne_state",
     "SH": "SH_spectrum_health",
+    "RU": "RU_rush",
 }
 
 
@@ -82,7 +83,7 @@ def find_dicom(filename: str, isZip: bool) -> str:
 
 def get_site_from_zipfile(
     zipfile: pathlib.Path,
-) -> Literal["UI", "NS", "UC", "UM", "WS", "SH"]:
+) -> Literal["UI", "NS", "UC", "UM", "WS", "SH", "RU"]:
 
     SUBMISSION_SITE = {
         "a2dtn01": "UI",
@@ -93,6 +94,7 @@ def get_site_from_zipfile(
         "SH_spectrum_health_grand_rapids": "SH",
         "SH_spectrum_health": "SH",  # helps to have this when testing on files stored in products
         "WS_wayne_state": "WS",
+        "RU_rush_imaging": "RU"        
     }
 
     return SUBMISSION_SITE.get(
@@ -136,7 +138,7 @@ def read_dicom_metadata(
         )
     else:
         std_name = re.search(
-            "(NS|WS|UC|UM|UI|SH)\d{5}[vV](1|3)", patientname.upper()
+            "(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)", patientname.upper()
         ).group(0)
         (site_id, subject_id, v, session_number, _) = re.split("(\d+)", std_name)
         session_id = v + session_number

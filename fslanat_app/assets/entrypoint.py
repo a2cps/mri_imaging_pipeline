@@ -35,12 +35,12 @@ def main(
 
         for i, o in zip(anats, output_dir):
             if (
-                tmpi := fslanat_flow._predict_fsl_anat_output(
+                tmpout := fslanat_flow._predict_fsl_anat_output(
                     tmpdir, fslanat_flow._img_stem(i)
                 )
             ).exists():
-                if o.exists():
-                    shutil.copytree(tmpi, o / tmpi.name)
+                if tmpout.exists():
+                    shutil.copytree(tmpout, o / tmpout.name)
                     shutil.copy2(oldlog, o / f"{uuid}.out")
                 else:
                     logging.warning(

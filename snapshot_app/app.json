@@ -1,6 +1,6 @@
 {
     "id": "urrutia-snapshot_app",
-    "version": "2.0",
+    "version": "2.1",
     "description": "snapshot mri",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/snapshot_app:2.0",
+    "containerImage": "docker://a2cps/snapshot_app:2.1",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -23,9 +23,6 @@
         "execSystemInputDir": "${JobWorkingDir}",
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
-        "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "./",
-        "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
