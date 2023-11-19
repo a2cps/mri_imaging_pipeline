@@ -2,7 +2,9 @@
     "name": "test_signatures",
     "appId": "urrutia-signatures",
     "appVersion": "0.2",
+    "archiveSystemId": "secure.frontera",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
+    "archiveOnAppError": false,
     "parameterSet": {
         "appArgs": [
             {
@@ -16,6 +18,10 @@
             {
                 "name": "N_WORKERS",
                 "arg": "--n-workers 5"
+            },
+            {
+                "name": "STAGE_DIR",
+                "arg": "--stage-dir /tmp/input"
             }
         ]
     },

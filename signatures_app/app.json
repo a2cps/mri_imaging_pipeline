@@ -23,9 +23,6 @@
         "execSystemInputDir": "${JobWorkingDir}",
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
-        "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
-        "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
@@ -44,6 +41,10 @@
                 {
                     "name": "N_WORKERS",
                     "arg": "--n-workers 1"
+                },
+                {
+                    "name": "STAGE_DIR",
+                    "arg": "--stage-dir /tmp/input"
                 }
             ],
             "containerArgs": [
