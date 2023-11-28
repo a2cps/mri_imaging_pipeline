@@ -69,7 +69,7 @@ def find_dicom(filename: str, isZip: bool) -> str:
     if isZip:
         site_zip = zipfile.ZipFile(filename)
         for listing in site_zip.infolist():
-            if not listing.is_dir():  # and 'DICOMDIR' not in listing.orig_filename
+            if (not listing.is_dir()) and ("DICOMDIR" not in listing.orig_filename):
                 break
         dicom_file = site_zip.extract(listing)
         return dicom_file
