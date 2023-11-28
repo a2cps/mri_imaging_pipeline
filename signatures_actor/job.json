@@ -1,7 +1,7 @@
 {
     "name": "test_signatures",
     "appId": "urrutia-signatures",
-    "appVersion": "0.4",
+    "appVersion": "0.5",
     "archiveSystemId": "secure.frontera",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "archiveOnAppError": false,

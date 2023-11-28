@@ -224,7 +224,8 @@ def main() -> None:
     print(json.dumps(job, indent=4))
 
     try:
-        client.jobs.submitJob(**job)  # type: ignore
+        submitted = client.jobs.submitJob(**job)  # type: ignore
+        print(submitted.uuid)
     except Exception as e:
         logging.error(f"encountered while trying to submit job: {e}")
 
