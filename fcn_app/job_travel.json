@@ -1,0 +1,37 @@
+{
+  "name": "fcn-travel",
+  "appId": "psadil-fcn_app",
+  "appVersion": "0.3",
+  "parameterSet": {
+    "appArgs": [
+      {
+        "name": "FMRIPREP_DIR",
+        "arg": "--fmriprep-dir /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel1/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/fmriprep/SHtravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/fmriprep/SHtravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel1/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel1/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM1travel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM1travel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM2travel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM2travel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/fmriprep/WStravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/fmriprep/WStravel2/rest/fmriprep"
+      },
+      {
+        "name": "OUTPUT_DIR",
+        "arg": "--output-dir NS_northshore/fcn/NStravel1 NS_northshore/fcn/NStravel2 NS_northshore/fcn/NStravel1 NS_northshore/fcn/NStravel2 SH_spectrum_health/fcn/SHtravel2 SH_spectrum_health/fcn/SHtravel2 UC_uchicago/fcn/UCtravel1 UC_uchicago/fcn/UCtravel2 UC_uchicago/fcn/UCtravel1 UC_uchicago/fcn/UCtravel2 UI_uic/fcn/UItravel1 UI_uic/fcn/UItravel2 UI_uic/fcn/UItravel1 UI_uic/fcn/UItravel2 UM_umichigan/fcn/UM1travel2 UM_umichigan/fcn/UM1travel2 UM_umichigan/fcn/UM2travel2 UM_umichigan/fcn/UM2travel2 WS_wayne_state/fcn/WStravel2 WS_wayne_state/fcn/WStravel2"
+      },
+      {
+        "name": "N_WORKERS",
+        "arg": "--n-workers 8"
+      },
+      {
+        "name": "STAGE_DIR",
+        "arg": "--stage-dir /tmp/input"
+      }
+    ]
+  },
+  "moduleLoads": [
+    {
+      "moduleLoadCommand": "module load",
+      "modulesToLoad": [
+        "tacc-apptainer"
+      ]
+    }
+  ],
+  "hiddenOptions": [
+    "MEM"
+  ],
+  "maxMinutes": 240
+}

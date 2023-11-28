@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:1.4.7-jammy
+FROM mambaorg/micromamba:1.5.3-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/functional_connectivity /tmp/functional_connectivity/
@@ -17,6 +17,7 @@ ENV PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///${PREFECT_HOME}/ori
 ENV PREFECT_API_DATABASE_CONNECTION_TIMEOUT=1200
 ENV PREFECT_API_DATABASE_TIMEOUT=1200
 ENV PREFECT_API_REQUEST_TIMEOUT=2400
+ENV APPTAINER_SHELL=/usr/local/bin/_apptainer_shell.sh
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py /opt/entrypoint.py
 

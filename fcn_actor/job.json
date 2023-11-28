@@ -2,6 +2,8 @@
     "name": "test_fcn",
     "appId": "functional-connectivity",
     "appVersion": "0.4",
+    "archiveSystemId": "secure.frontera",
+    "archiveOnAppError": false,
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "parameterSet": {
         "appArgs": [
@@ -16,6 +18,10 @@
             {
                 "name": "N_WORKERS",
                 "arg": "--n-workers 8"
+            },
+            {
+                "name": "STAGE_DIR",
+                "arg": "--stage-dir /tmp/input"
             }
         ]
     },
