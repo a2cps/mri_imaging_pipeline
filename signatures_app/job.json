@@ -1,21 +1,30 @@
 {
     "name": "test_signatures",
     "appId": "psadil-signatures",
-    "appVersion": "0",
-    "archiveSystemDir": "${JobWorkingDir}",
+    "appVersion": "0.5",
     "parameterSet": {
         "appArgs": [
             {
                 "name": "FMRIPREP_DIR",
-                "arg": "--fmriprep-dir /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/fmriprep/NStravel1/rest/fmriprep /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/fmriprep/NStravel1/cuff/fmriprep"
+                "arg": "--fmriprep-dir /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel1/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/fmriprep/SHtravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/fmriprep/SHtravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel1/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel1/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM1travel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM1travel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM2travel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM2travel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/fmriprep/WStravel2/cuff/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/fmriprep/WStravel2/rest/fmriprep"
             },
             {
                 "name": "OUTPUT_DIR",
-                "arg": "--output-dir NS_northsthore/signatures/travel1 NS_northsthore/signatures/travel1"
+                "arg": "--output-dir NS_northshore/signatures/NStravel1 NS_northshore/signatures/NStravel2 NS_northshore/signatures/NStravel1 NS_northshore/signatures/NStravel2 SH_spectrum_health/signatures/SHtravel2 SH_spectrum_health/signatures/SHtravel2 UC_uchicago/signatures/UCtravel1 UC_uchicago/signatures/UCtravel2 UC_uchicago/signatures/UCtravel1 UC_uchicago/signatures/UCtravel2 UI_uic/signatures/UItravel1 UI_uic/signatures/UItravel2 UI_uic/signatures/UItravel1 UI_uic/signatures/UItravel2 UM_umichigan/signatures/UM1travel2 UM_umichigan/signatures/UM1travel2 UM_umichigan/signatures/UM2travel2 UM_umichigan/signatures/UM2travel2 WS_wayne_state/signatures/WStravel2 WS_wayne_state/signatures/WStravel2"
             },
             {
                 "name": "N_WORKERS",
-                "arg": "--n-workers 6"
+                "arg": "--n-workers 4"
+            },
+            {
+                "name": "STAGE_DIR",
+                "arg": "--stage-dir /tmp/input"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "POLARS_MAX_THREADS",
+                "value": "14"
             }
         ]
     },
@@ -30,5 +39,5 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 2880
+    "maxMinutes": 120
 }
