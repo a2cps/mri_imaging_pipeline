@@ -88,6 +88,8 @@ protocols2fix.update(
             # after SH upgrade
             ("Tra T1 MPRAGE orthog", "anat-T1w"),
             ("^T1_MPRAGE_ND$", "anat-T1w"),
+            # SH Traveling Human
+            ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
         ],
     }
 )

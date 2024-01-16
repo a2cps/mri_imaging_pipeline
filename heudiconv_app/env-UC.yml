@@ -16,15 +16,11 @@ dependencies:
   - git-annex
   - nipype
   - heudiconv=0.10.0
-  - dcmstack
   - sqlalchemy<1.4.0
   - cmake
   - compilers
   - make
-  # pybids suff
-  - docopt
-  - num2words
-  - wrapt>=1.0
-  - astor>=0.8
-  - formulaic<0.4
+  - pybids=0.16.4
   - nodejs # bids-validator
+  - pip:
+      - dcmstack==0.9

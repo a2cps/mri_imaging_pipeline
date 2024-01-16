@@ -1,10 +1,38 @@
 #!/bin/bash
+#SBATCH -J heudiconv-RU111323DEV
+#SBATCH -o heudiconv-RU111323DEV.out
+#SBATCH -e heudiconv-RU111323DEV.err
+#SBATCH -t 1:00:00
+#SBATCH -p corralextra
+#SBATCH -N 1 -n 1
+#SBATCH -A A2CPS
 
-# Import Agave runtime extensions
-. _lib/extend-runtime.sh
+module load tacc-singularity
+module unload xalt
+
+FILES=/corral-secure/projects/A2CPS/products/development/mris/RU_rush/dicoms/RU111323DEV.zip
+BIND_DIR=/corral-secure/projects/A2CPS
+CONTAINER_IMAGE=psadil/heudiconv:231101
+#DICOM_DIR_TEMPLATE
+LIST_OF_SUBJECTS="--subjects test "
+OUTDIR="."
+#CONVERTER
+LOCATOR="--locator='' "
+# ANON_CMD
+HEURISTIC="--heuristic a2cps.py "
+SESSION_FOR_LONGITUDINAL="--ses 231113 "
+BIDS="--bids "
+# OVERWRITE
+# DATALAD
+# DCMCONFIG
+DELETE_DUPLICATES=1
+POST="--no-post "
+CHECK_JSONS=1
+SITE=RU
 
 # Unzip dicoms locally 
-LOCAL_DICOM=/tmp/$(basename "${FILES}")
+#shellcheck disable=SC2086
+LOCAL_DICOM=$(basename ${FILES})
 # remove zip suffix
 #shellcheck disable=SC2086
 LOCAL_DICOM=${LOCAL_DICOM%.*}
@@ -59,7 +87,7 @@ case "${SITE}" in
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
-        && python exclude_derived-dwi_sh.py ${LOCAL_DICOM}
+        && python exclude_derived-dwi_xa30.py ${LOCAL_DICOM}
       "
 
     singularity run \
@@ -69,7 +97,7 @@ case "${SITE}" in
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
-        && python exclude_derived-dwi_sh.py ${LOCAL_DICOM}
+        && python exclude_derived-dwi_xa30.py ${LOCAL_DICOM}
       "
 
     echo singularity run \
@@ -134,7 +162,7 @@ case "${SITE}" in
   *)
     echo singularity run \
       --cleanenv \
-      --env ENV_NAME=v1.0.20230411 \
+      --env ENV_NAME=v1.0.20211006 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
@@ -152,7 +180,7 @@ case "${SITE}" in
 
     singularity run \
       --cleanenv \
-      --env ENV_NAME=v1.0.20230411 \
+      --env ENV_NAME=v1.0.20211006 \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
@@ -184,7 +212,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   case "${SITE}" in
     NS) 
       # dcm2niix generates several extra scans, derivatives from NS.
-      singularity run --cleanenv --env ENV_NAME=v1.0.20230411 \
+      singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
         bash -c "
@@ -199,7 +227,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       ;;
     WS)
       # heuristic can result in run-1 tag, unlike all other sites
-      singularity run --cleanenv --env ENV_NAME=v1.0.20230411 \
+      singularity run --cleanenv --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
         bash -c "
@@ -210,9 +238,6 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   else
   PHANTOM="--no-phantom"
 fi
-
-# The UM2 traveling scan had these ADC files
-find "${OUTDIR}" -name "*ADC*" -delete
 
 # Need to inject IntendedFor field into some jsons, and in the case of GE images
 # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
@@ -229,7 +254,7 @@ if (( ${#dups[@]} > 1 )); then
 
   singularity run \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    --env ENV_NAME=v1.0.20230411 \
+    --env ENV_NAME=v1.0.20211006 \
     --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" "${POST}"
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
     # delete duplicte scans
@@ -251,7 +276,7 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
     UI | UM)
       echo singularity run \
         --cleanenv \
-        --env ENV_NAME=v1.0.20230411 \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
         bash -c "
@@ -260,7 +285,7 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
 
       singularity run \
         --cleanenv \
-        --env ENV_NAME=v1.0.20230411 \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
         bash -c "
@@ -269,7 +294,7 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
 
       echo singularity run \
         --cleanenv \
-        --env ENV_NAME=v1.0.20230411 \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
         bash -c "
@@ -278,7 +303,7 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
 
       singularity run \
         --cleanenv \
-        --env ENV_NAME=v1.0.20230411 \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
         bash -c "
@@ -299,7 +324,7 @@ else
       echo "overwritting coil_QA with final volume"
       singularity run \
         --cleanenv \
-        --env ENV_NAME=v1.0.20230411 \
+        --env ENV_NAME=v1.0.20211006 \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
         bash -c "
@@ -311,7 +336,7 @@ fi
 
 echo singularity run \
   --cleanenv \
-  --env ENV_NAME=v1.0.20230411 \
+  --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://"${CONTAINER_IMAGE}" \
     bash -c "
@@ -320,7 +345,7 @@ echo singularity run \
 
 singularity run \
   --cleanenv \
-  --env ENV_NAME=v1.0.20230411 \
+  --env ENV_NAME=v1.0.20211006 \
   -B "${BIND_DIR}":"${BIND_DIR}" \
   docker://"${CONTAINER_IMAGE}" \
     bash -c "
@@ -339,7 +364,7 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
   # be divided by whether we're dealing with a phantom scan or not.
   singularity run \
     --cleanenv \
-    --env ENV_NAME=v1.0.20230411 \
+    --env ENV_NAME=v1.0.20211006 \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     docker://"${CONTAINER_IMAGE}" \
       bash -c "
