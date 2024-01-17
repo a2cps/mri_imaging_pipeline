@@ -78,7 +78,11 @@
             "envVariables": [],
             "archiveFilter": {
                 "includes": [],
-                "excludes": [],
+                "excludes": [
+                    "tapisjob.sh",
+                    "tapisjob.out",
+                    "tapisjob.env"
+                ],
                 "includeLaunchFiles": false
             }
         },
