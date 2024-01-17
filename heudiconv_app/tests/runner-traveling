@@ -453,10 +453,18 @@ for i in "${!SUBJECTS[@]}"; do
             <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' ${project}/"${common_path}") \
             <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' "${json}") \
             &> "${OUT_DIR}"/"${json_name%.*}"
+        
+        tmpd=/tmp/"${sublong}"
+        mkdir -p "${tmpd}"/{new,orig}
+        cp "${json%.*}.nii.gz" "${tmpd}"/new/
+        cp ${project}/"${common_path%.*}.nii.gz" "${tmpd}"/orig/
+        gzip -d "${tmpd}"/{orig,new}/*gz
 
-        # initial 10 correspond to gzip header
-        cmp --ignore-initial=10 \
-            ${project}/"${common_path%.*}.nii.gz" "${json%.*}.nii.gz" \
-            &>> "${OUT_DIR}"/"${json_name%.*}"
+        cmp \
+            "${tmpd}/orig/${json_name%.*}.nii" \
+            "${tmpd}/new/${json_name%.*}.nii" \
+            &>> "${OUT_DIR}"/"${json_name%.*}" &
     done
 done
+
+wait
