@@ -1,0 +1,28 @@
+distributed:
+  admin:
+    event-loop: asyncio
+    system-monitor:
+      disk: false
+      gil:
+        enabled: false
+  logging:
+    distributed: error
+  scheduler:
+    active-memory-manager:
+      start: false
+      measure: managed
+    work-stealing-interval: 1s
+  worker:
+    memory:
+      rebalance:
+        measure: managed
+        spill: False
+        target: False
+        pause: False
+        terminate: False
+    profile:
+      enabled: false
+  comm:
+    timeouts:
+      connect: 180s
+      tcp: 180s
