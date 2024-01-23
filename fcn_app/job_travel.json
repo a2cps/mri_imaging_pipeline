@@ -1,7 +1,7 @@
 {
   "name": "fcn-travel",
   "appId": "psadil-fcn_app",
-  "appVersion": "0.3",
+  "appVersion": "0.4",
   "parameterSet": {
     "appArgs": [
       {
