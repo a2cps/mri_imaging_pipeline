@@ -1,6 +1,6 @@
 {
     "id": "urrutia-signatures",
-    "version": "0.6",
+    "version": "0.7",
     "description": "Multivariate Pattern Signatures",
     "owner": "${apiUserId}",
     "enabled": true,
