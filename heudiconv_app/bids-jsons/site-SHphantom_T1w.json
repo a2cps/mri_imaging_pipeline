@@ -3,15 +3,20 @@
     "AcquisitionMatrixPE": 208,
     "AcquisitionNumber": 1,
     "BaseResolution": 256,
+    "BidsGuess": [
+        "discard",
+        "_acq-fl2_run-2_localizer"
+    ],
     "BodyPartExamined": "HEAD",
     "CoilCombinationMethod": "Sum of Squares",
     "CoilString": "HeadNeck_64",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20220720",
+    "ConversionSoftwareVersion": "v1.0.20240123",
     "DeviceSerialNumber": "66022",
     "DwellTime": 0.0000082,
     "EchoTime": 0.00614,
     "FlipAngle": 15,
+    "FrequencyEncodingSteps": 256,
     "ImageOrientationPatientDICOM": [
         1,
         0,
@@ -33,7 +38,7 @@
         "NORM",
         "DIS2D"
     ],
-    "ImagingFrequency": 123.257,
+    "ImagingFrequency": 123.257356,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionAddress": "East Beltline NE 2750,Grand Rapids,MI,US,49503",
     "InstitutionName": "Spectrum ICCB Campus",
@@ -51,6 +56,7 @@
     "PercentPhaseFOV": 81.25,
     "PercentSampling": 100,
     "PhaseEncodingDirection": "j-",
+    "PhaseEncodingSteps": 208,
     "PhaseResolution": 1,
     "PixelBandwidth": 238,
     "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
@@ -67,17 +73,17 @@
     "SeriesNumber": 2,
     "ShimSetting": [
         -1200,
-        -11047,
-        2840,
-        152,
-        177,
-        -293,
-        146,
-        43
+        -11036,
+        2845,
+        145,
+        167,
+        -300,
+        134,
+        47
     ],
     "SliceThickness": 5,
     "SoftwareVersions": "syngo MR XA30",
     "SpacingBetweenSlices": 5,
     "StationName": "AWP66022",
-    "TxRefAmp": 150.636
+    "TxRefAmp": 156.936
 }

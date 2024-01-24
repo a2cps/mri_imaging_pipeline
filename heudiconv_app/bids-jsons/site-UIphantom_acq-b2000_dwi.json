@@ -1,13 +1,17 @@
 {
     "AcquisitionMatrixPE": 128,
     "AcquisitionNumber": 1,
+    "BidsGuess": [
+        "dwi",
+        "_acq-EPI2_dir-PA_run-40006_dwi"
+    ],
     "BodyPartExamined": "HEAD",
     "CoilString": "RM:Nova32ch",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20211006",
+    "ConversionSoftwareVersion": "v1.0.20240123",
     "DeviceSerialNumber": "000000312996MR3T",
     "EchoTime": 0.0737,
-    "EffectiveEchoSpacing": 0.000372533,
+    "EffectiveEchoSpacing": 0.000748,
     "FlipAngle": 90,
     "ImageOrientationPatientDICOM": [
         1,
@@ -22,7 +26,7 @@
         "PRIMARY",
         "OTHER"
     ],
-    "ImagingFrequency": 127.779,
+    "ImagingFrequency": 127.778702,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionName": "UNIVERSITY OF ILLINOIS",
     "InternalPulseSequenceName": "EPI2",
@@ -37,7 +41,9 @@
     "PhaseEncodingDirection": "j",
     "PhaseEncodingPolarityGE": "Flipped",
     "PixelBandwidth": 1953.12,
+    "PrescanReuseString": "RN/s1",
     "ProtocolName": "UM1_A2CPS QA_6.24.21",
+    "PulseSequenceName": "epi2",
     "ReconMatrixPE": 256,
     "RepetitionTime": 2,
     "SAR": 0.04248,
@@ -46,29 +52,34 @@
     "SequenceVariant": "NONE",
     "SeriesDescription": "ORIG dwi-dwi_acq-b2000",
     "SeriesNumber": 40006,
+    "ShimSetting": [
+        -2,
+        8,
+        -12
+    ],
     "SliceThickness": 5,
     "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
     "SpacingBetweenSlices": 6,
     "StationName": "GEMSGEMS",
-    "TotalReadoutTime": 0.094996,
+    "TotalReadoutTime": 0.19074,
     "dcmmeta_affine": [
         [
             -0.8593999743461609,
             0.0,
             0.0,
-            106.44499969482422
+            107.69499969482422
         ],
         [
             0.0,
             0.8593999743461609,
             0.0,
-            -102.70099639892578
+            -105.82599639892578
         ],
         [
             0.0,
             0.0,
             6.0,
-            -7.874499797821045
+            -22.874500274658203
         ],
         [
             0.0,
@@ -135,12 +146,13 @@
             "BodyPartExamined": "HEAD",
             "CardiacNumberOfImages": 0,
             "Columns": 256,
-            "ContentTime": "094406",
+            "ContentTime": "151356",
             "EchoNumbers": 1,
             "EchoTime": 73.7,
             "EchoTrainLength": 1,
             "FlipAngle": 90.0,
             "GroupLength_0X10_0X0": 96,
+            "GroupLength_0X20_0X0": 408,
             "GroupLength_0X28_0X0": 156,
             "GroupLength_0X40_0X0": 82,
             "GroupLength_0X7FE0_0X0": 131080,
@@ -162,7 +174,7 @@
             ],
             "ImagedNucleus": "1H",
             "ImagesInAcquisition": 15,
-            "ImagingFrequency": 127.778718,
+            "ImagingFrequency": 127.778702,
             "InPlanePhaseEncodingDirection": "COL",
             "MRAcquisitionType": "2D",
             "MagneticFieldStrength": 3.0,
@@ -173,7 +185,7 @@
             "PercentPhaseFieldOfView": 100.0,
             "PercentSampling": 100.0,
             "PerformedLocation": "GEMS",
-            "PerformedProcedureStepStartTime": "093944",
+            "PerformedProcedureStepStartTime": "150705",
             "PhotometricInterpretation": "MONOCHROME2",
             "PixelBandwidth": 1953.12,
             "PixelRepresentation": 1,
@@ -188,7 +200,7 @@
                 {
                     "GroupLength": 100,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.245161380640528400974807034451794986253"
+                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.239335310030062981905735976300439524022"
                 }
             ],
             "RepetitionTime": 2000.0,
@@ -207,7 +219,7 @@
             "SequenceVariant": "NONE",
             "SeriesDescription": "ORIG dwi-dwi_acq-b2000",
             "SeriesNumber": 40006,
-            "SeriesTime": "094406",
+            "SeriesTime": "151356",
             "SliceThickness": 5.0,
             "SmallestImagePixelValue": 0,
             "SoftwareVersions": [
@@ -218,8 +230,8 @@
             "SpacingBetweenSlices": 6.0,
             "SpecificCharacterSet": "ISO_IR 100",
             "StackID": "1",
-            "StudyID": "10394",
-            "StudyTime": "093949",
+            "StudyID": "11635",
+            "StudyTime": "150721",
             "TriggerWindow": 0,
             "VariableFlipAngleFlag": "N",
             "VolumetricProperties": "VOLUME"
@@ -243,55 +255,55 @@
                 13
             ],
             "LargestImagePixelValue": [
-                1479,
-                1443,
-                1414,
-                1728,
-                1681,
-                1630,
-                1720,
-                1663,
-                1631,
-                1644,
-                1611,
-                1555,
-                1497,
-                1464,
-                1399
+                1839,
+                1873,
+                1825,
+                1892,
+                1919,
+                1867,
+                1851,
+                1907,
+                1869,
+                1818,
+                1833,
+                1785,
+                1856,
+                1884,
+                1836
             ],
             "WindowCenter": [
-                739.0,
-                721.0,
-                707.0,
-                864.0,
-                840.0,
-                815.0,
-                860.0,
-                831.0,
-                815.0,
-                822.0,
-                805.0,
-                777.0,
-                748.0,
-                732.0,
-                699.0
+                919.0,
+                936.0,
+                912.0,
+                946.0,
+                959.0,
+                933.0,
+                925.0,
+                953.0,
+                934.0,
+                909.0,
+                916.0,
+                892.0,
+                928.0,
+                942.0,
+                918.0
             ],
             "WindowWidth": [
-                1479.0,
-                1443.0,
-                1414.0,
-                1728.0,
-                1681.0,
-                1630.0,
-                1720.0,
-                1663.0,
-                1631.0,
-                1644.0,
-                1611.0,
-                1555.0,
-                1497.0,
-                1464.0,
-                1399.0
+                1839.0,
+                1873.0,
+                1825.0,
+                1892.0,
+                1919.0,
+                1867.0,
+                1851.0,
+                1907.0,
+                1869.0,
+                1818.0,
+                1833.0,
+                1785.0,
+                1856.0,
+                1884.0,
+                1836.0
             ]
         }
     },
@@ -313,26 +325,21 @@
             ]
         },
         "slices": {
-            "GroupLength_0X20_0X0": [
-                408,
-                408,
-                404
-            ],
             "ImagePositionPatient": [
                 [
-                    -106.445,
-                    -116.446,
-                    -7.8745
+                    -107.695,
+                    -113.321,
+                    -22.8745
                 ],
                 [
-                    -106.445,
-                    -116.446,
-                    -1.8745
+                    -107.695,
+                    -113.321,
+                    -16.8745
                 ],
                 [
-                    -106.445,
-                    -116.446,
-                    4.1255
+                    -107.695,
+                    -113.321,
+                    -10.8745
                 ]
             ],
             "InStackPositionNumber": [
@@ -341,9 +348,9 @@
                 1
             ],
             "SliceLocation": [
-                -7.87449646,
-                -1.87449646,
-                4.12550354
+                -22.87449646,
+                -16.87449646,
+                -10.87449646
             ]
         }
     }

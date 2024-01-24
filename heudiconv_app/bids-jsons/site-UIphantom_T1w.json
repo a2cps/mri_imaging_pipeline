@@ -4,7 +4,7 @@
     "BodyPartExamined": "HEAD",
     "CoilString": "RM:Nova32ch",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20211006",
+    "ConversionSoftwareVersion": "v1.0.20240123",
     "DeviceSerialNumber": "000000312996MR3T",
     "EchoTime": 0.0049,
     "FlipAngle": 15,
@@ -21,7 +21,7 @@
         "PRIMARY",
         "OTHER"
     ],
-    "ImagingFrequency": 127.779,
+    "ImagingFrequency": 127.778627,
     "InPlanePhaseEncodingDirectionDICOM": "ROW",
     "InstitutionName": "UNIVERSITY OF ILLINOIS",
     "MRAcquisitionType": "2D",
@@ -37,7 +37,9 @@
     "PercentSampling": 100,
     "PhaseEncodingAxis": "i",
     "PixelBandwidth": 244.141,
+    "PrescanReuseString": "TG/s1,CF/s2,AS/s2,RN/s1",
     "ProtocolName": "UM1_A2CPS QA_6.24.21",
+    "PulseSequenceName": "2dfast",
     "ReconMatrixPE": 256,
     "RepetitionTime": 0.15,
     "SAR": 0.00659559,
@@ -46,6 +48,11 @@
     "SequenceVariant": "SS",
     "SeriesDescription": "ORIG anat-T1w_acq-GRE",
     "SeriesNumber": 40003,
+    "ShimSetting": [
+        -2,
+        7,
+        -12
+    ],
     "SliceThickness": 5,
     "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
     "SpacingBetweenSlices": 5,
@@ -55,19 +62,19 @@
             -0.8593999743461609,
             0.0,
             0.0,
-            106.44499969482422
+            107.69499969482422
         ],
         [
             0.0,
             0.8593999743461609,
             0.0,
-            -102.70099639892578
+            -105.82599639892578
         ],
         [
             0.0,
             0.0,
             5.0,
-            -21.874500274658203
+            -36.8745002746582
         ],
         [
             0.0,
@@ -133,7 +140,7 @@
             "BodyPartExamined": "HEAD",
             "CardiacNumberOfImages": 0,
             "Columns": 256,
-            "ContentTime": "094126",
+            "ContentTime": "151113",
             "EchoNumbers": 1,
             "EchoTime": 4.9,
             "EchoTrainLength": 1,
@@ -161,7 +168,7 @@
             ],
             "ImagedNucleus": "1H",
             "ImagesInAcquisition": 9,
-            "ImagingFrequency": 127.778617,
+            "ImagingFrequency": 127.778627,
             "InPlanePhaseEncodingDirection": "ROW",
             "MRAcquisitionType": "2D",
             "MagneticFieldStrength": 3.0,
@@ -172,7 +179,7 @@
             "PercentPhaseFieldOfView": 100.0,
             "PercentSampling": 100.0,
             "PerformedLocation": "GEMS",
-            "PerformedProcedureStepStartTime": "093944",
+            "PerformedProcedureStepStartTime": "150705",
             "PhotometricInterpretation": "MONOCHROME2",
             "PixelBandwidth": 244.141,
             "PixelRepresentation": 1,
@@ -187,7 +194,7 @@
                 {
                     "GroupLength": 100,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.245161380640528400974807034451794986253"
+                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.239335310030062981905735976300439524022"
                 }
             ],
             "RepetitionTime": 150.0,
@@ -199,7 +206,7 @@
             "SequenceVariant": "SS",
             "SeriesDescription": "ORIG anat-T1w_acq-GRE",
             "SeriesNumber": 40003,
-            "SeriesTime": "094126",
+            "SeriesTime": "151113",
             "SliceThickness": 5.0,
             "SmallestImagePixelValue": 0,
             "SoftwareVersions": [
@@ -210,8 +217,8 @@
             "SpacingBetweenSlices": 5.0,
             "SpecificCharacterSet": "ISO_IR 100",
             "StackID": "1",
-            "StudyID": "10394",
-            "StudyTime": "093949",
+            "StudyID": "11635",
+            "StudyTime": "150721",
             "TriggerWindow": 0,
             "VariableFlipAngleFlag": "N"
         },
@@ -222,56 +229,56 @@
                 408,
                 408,
                 408,
-                404,
-                404,
                 408,
-                408
+                408,
+                408,
+                404
             ],
             "ImagePositionPatient": [
                 [
-                    -106.445,
-                    -116.446,
+                    -107.695,
+                    -113.321,
+                    -36.8745
+                ],
+                [
+                    -107.695,
+                    -113.321,
+                    -31.8745
+                ],
+                [
+                    -107.695,
+                    -113.321,
+                    -26.8745
+                ],
+                [
+                    -107.695,
+                    -113.321,
                     -21.8745
                 ],
                 [
-                    -106.445,
-                    -116.446,
+                    -107.695,
+                    -113.321,
                     -16.8745
                 ],
                 [
-                    -106.445,
-                    -116.446,
+                    -107.695,
+                    -113.321,
                     -11.8745
                 ],
                 [
-                    -106.445,
-                    -116.446,
+                    -107.695,
+                    -113.321,
                     -6.8745
                 ],
                 [
-                    -106.445,
-                    -116.446,
+                    -107.695,
+                    -113.321,
                     -1.8745
                 ],
                 [
-                    -106.445,
-                    -116.446,
+                    -107.695,
+                    -113.321,
                     3.1255
-                ],
-                [
-                    -106.445,
-                    -116.446,
-                    8.1255
-                ],
-                [
-                    -106.445,
-                    -116.446,
-                    13.1255
-                ],
-                [
-                    -106.445,
-                    -116.446,
-                    18.1255
                 ]
             ],
             "InStackPositionNumber": [
@@ -297,48 +304,48 @@
                 1
             ],
             "LargestImagePixelValue": [
-                1809,
-                2039,
-                2170,
-                2161,
-                2089,
-                2058,
-                2073,
-                2086,
-                2031
+                1457,
+                1729,
+                1994,
+                2211,
+                2289,
+                2270,
+                2128,
+                1894,
+                1767
             ],
             "SliceLocation": [
+                -36.87449646,
+                -31.87449646,
+                -26.87449646,
                 -21.87449646,
                 -16.87449646,
                 -11.87449646,
                 -6.87449646,
                 -1.87449646,
-                3.12550354,
-                8.12550354,
-                13.12550354,
-                18.12550354
+                3.12550354
             ],
             "WindowCenter": [
-                904.0,
-                1019.0,
-                1085.0,
-                1080.0,
-                1044.0,
-                1029.0,
-                1036.0,
-                1043.0,
-                1015.0
+                728.0,
+                864.0,
+                997.0,
+                1105.0,
+                1144.0,
+                1135.0,
+                1064.0,
+                947.0,
+                883.0
             ],
             "WindowWidth": [
-                1809.0,
-                2039.0,
-                2170.0,
-                2161.0,
-                2089.0,
-                2058.0,
-                2073.0,
-                2086.0,
-                2031.0
+                1457.0,
+                1729.0,
+                1994.0,
+                2211.0,
+                2289.0,
+                2270.0,
+                2128.0,
+                1894.0,
+                1767.0
             ]
         }
     }

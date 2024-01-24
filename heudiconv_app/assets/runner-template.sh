@@ -157,9 +157,10 @@ if (( ${#dups[@]} > 1 )); then
   # post about found duplicates to slack channel
   msg="duplicate scans found: ${dups[*]}"
 
+  #shellcheck disable=SC2086
   singularity run \
     -B "${BIND_DIR}":"${BIND_DIR}" \
-    --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" "${POST}"
+    --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" ${POST}
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
     # delete duplicte scans
     echo "removing duplicate scans" 
@@ -245,11 +246,12 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
   # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
   # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
   # be divided by whether we're dealing with a phantom scan or not.
+  #shellcheck disable=SC2086
   singularity run \
     --cleanenv \
     -B "${BIND_DIR}":"${BIND_DIR}" \
     docker://"${CONTAINER_IMAGE}" \
-    python check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} "${POST}"
+    python check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
 else
   echo "Skipping check of jsons"
 fi

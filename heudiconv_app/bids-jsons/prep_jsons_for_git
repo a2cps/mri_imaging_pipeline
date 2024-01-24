@@ -4,5 +4,5 @@ set -euo pipefail
 
 for j in *json; do
     mv "${j}" "${j}".bak 
-    grep -v '"AcquisitionTime": "' "${j}".bak | jq --indent 4 --sort-keys "." > "${j}" 
+    jq --indent 4 --sort-keys "." "${j}".bak | grep -v '"AcquisitionTime": "' > "${j}" 
 done

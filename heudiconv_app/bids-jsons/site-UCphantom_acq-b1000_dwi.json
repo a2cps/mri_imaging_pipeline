@@ -1,16 +1,23 @@
 {
+    "AcquisitionDuration": 12,
     "AcquisitionMatrixPE": 127,
     "AcquisitionNumber": 3,
+    "BidsGuess": [
+        "dwi",
+        "_acq-SKSEDwiSE_run-301_dwi"
+    ],
     "BodyPartExamined": "BRAIN",
     "CoilString": "MULTI COIL",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20211215",
+    "ConversionSoftwareVersion": "v1.0.20240123",
     "DeviceSerialNumber": "71399",
     "EchoTime": 0.11467,
     "EchoTrainLength": 127,
+    "EffectiveEchoSpacing": 0.000883465,
     "EstimatedEffectiveEchoSpacing": 0.000883465,
     "EstimatedTotalReadoutTime": 0.126336,
     "FlipAngle": 90,
+    "FrequencyEncodingSteps": 128,
     "ImageOrientationPatientDICOM": [
         1,
         0,
@@ -27,7 +34,7 @@
         "M",
         "SE"
     ],
-    "ImagingFrequency": 127.767,
+    "ImagingFrequency": 127.76688,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionAddress": "5835 S. Cottage Grove",
     "InstitutionName": "UNIVERSITY OF CHICAGO MEDICAL CENTER",
@@ -45,14 +52,17 @@
     "PercentPhaseFOV": 100,
     "PercentSampling": 100,
     "PhaseEncodingAxis": "j",
+    "PhaseEncodingDirection": "j",
     "PhaseEncodingStepsNoPartialFourier": 127,
+    "PhaseEncodingStepsOutOfPlane": 1,
     "PhilipsRWVIntercept": 0,
-    "PhilipsRWVSlope": 7.45934,
+    "PhilipsRWVSlope": 6.92821,
     "PhilipsRescaleIntercept": 0,
-    "PhilipsRescaleSlope": 7.45934,
-    "PhilipsScaleSlope": 0.053223,
+    "PhilipsRescaleSlope": 6.92821,
+    "PhilipsScaleSlope": 0.0549506,
     "PixelBandwidth": 1516,
     "ProtocolName": "WIP dwi-dwi_acq-b1000",
+    "PulseSequenceName": "DwiSE",
     "ReconMatrixPE": 144,
     "RepetitionTime": 2,
     "SAR": 0.0212104,
@@ -65,6 +75,7 @@
     "SoftwareVersions": "5.6.1\\5.6.1.0",
     "SpacingBetweenSlices": 6,
     "StationName": "HOST-1O4ONO2CHP",
+    "TotalReadoutTime": 0.126336,
     "UsePhilipsFloatNotDisplayScaling": 1,
-    "WaterFatShift": 55.3135
+    "WaterFatShift": 55.3132
 }

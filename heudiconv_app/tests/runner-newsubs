@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -J heudiconv-bids-ref
-#SBATCH -o heudiconv-bids-ref.out
-#SBATCH -e heudiconv-bids-ref.err
+#SBATCH -J heudiconv-ref
+#SBATCH -o heudiconv-ref.out
+#SBATCH -e heudiconv-ref.err
 #SBATCH -t 3:00:00
 #SBATCH -p corralextra
 #SBATCH -N 1 -n 1
@@ -9,7 +9,7 @@
 
 # this is for running the newest heudiconv_app
 # with real participants for generating the reference
-# bids jsons
+# bids jsons with phantoms
 
 module load tacc-apptainer
 module unload xalt
@@ -17,7 +17,7 @@ module unload xalt
 BIND_DIR=/corral-secure/projects/A2CPS
 CONTAINER_IMAGE=psadil/heudiconv_app:240124
 # shellcheck disable=SC2089
-LOCATOR="--locator='' "
+LOCATOR='--locator="" '
 HEURISTIC="--heuristic a2cps.py "
 BIDS="--bids "
 DELETE_DUPLICATES=1
@@ -26,17 +26,24 @@ CHECK_JSONS=1
 project=/corral-secure/projects/A2CPS/products/mris
 DICOMS=(
     "${project}"/NS_northshore/dicoms/NS10920V1.zip
+    "${project}"/NS_northshore/dicoms/QC_NS012324QA.zip
     /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/dicoms/RU011724DEV.zip
+    /corral-secure/projects/A2CPS/products/development/mris/RU_rush/dicoms/RU111323DEV.zip
     "${project}"/SH_spectrum_health/dicoms/SH20371V1.zip
+    "${project}"/SH_spectrum_health/dicoms/QC_SH011924QA.zip
     "${project}"/UC_uchicago/dicoms/UC10885V1.zip
+    "${project}"/UC_uchicago/dicoms/QC_UC011024QA.zip
     "${project}"/UI_uic/dicoms/UI10910V1.zip
+    "${project}"/UI_uic/dicoms/QC_UI083123QA.zip
     "${project}"/UM_umichigan/dicoms/UM20369V1.zip # UM1
     "${project}"/UM_umichigan/dicoms/UM25245V1.zip  # UM2
+    /corral-secure/projects/A2CPS/products/development/mris/UM_umichigan/dicoms/UM02081322QA.zip
     "${project}"/WS_wayne_state/dicoms/WS25225V1.zip
+    "${project}"/WS_wayne_state/dicoms/QC_WS010824QA.zip
     )
-SUBJECTS=( 10920  travel1  20371  10885  10910  20369 25245 25225)
-SITES=(    NS     RU       SH     UC     UI     UM    UM    WS)
-SES=(      V1     RU       V1     V1     V1     V1    V1    V1)
+SUBJECTS=( 10920 nsphantom  travel1 ruphantom  20371 shphantom  10885 ucphantom  10910  uiphantom 20369 25245 umphantom 25225 wsphantom )
+SITES=(    NS    NS         RU      RU         SH    SH         UC    UC         UI     UI        UM    UM    UM        WS    WS )
+SES=(      V1    240123     RU      231113     V1    240119     V1    240110     V1     230831    V1    V1    220813    V1    240108)
 
 declare -A SITE_LONG=(
     [NS]=NS_northshore
@@ -57,7 +64,7 @@ main() {
     local LIST_OF_SUBJECTS="--subjects $2 "
     local SITE="$3"
     local SESSION_FOR_LONGITUDINAL="--ses ${4} "
-    local OUTDIR="${SITE_LONG[${SITE}]}/bids/${3}${2}${4}"
+    local OUTDIR="${SITE_LONG[${SITE}]}/bids/${SITE}${2}${4}"
 
     # Unzip dicoms locally 
     local LOCAL_DICOM
@@ -80,7 +87,7 @@ main() {
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
-        python exclude_derived-dwi_xa30.py ${LOCAL_DICOM}
+        python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
         #shellcheck disable=SC2086,SC2090
         echo apptainer run \
@@ -116,13 +123,13 @@ main() {
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
-        python add_date_to_xa30.py ${LOCAL_DICOM}
+        python add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
 
         apptainer run \
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
-        python add_date_to_xa30.py ${LOCAL_DICOM}
+        python add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
 
     ;;
     *)
@@ -210,9 +217,10 @@ main() {
     # post about found duplicates to slack channel
     msg="duplicate scans found: ${dups[*]}"
 
+    #shellcheck disable=SC2086
     apptainer run \
         -B "${BIND_DIR}":"${BIND_DIR}" \
-        --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" "${POST}"
+        --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" ${POST}
     if [[ ${DELETE_DUPLICATES} == 1 ]]; then
         # delete duplicte scans
         echo "removing duplicate scans" 
@@ -298,11 +306,12 @@ main() {
         # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
         # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
         # be divided by whether we're dealing with a phantom scan or not.
+        #shellcheck disable=SC2086
         apptainer run \
             --cleanenv \
             -B "${BIND_DIR}":"${BIND_DIR}" \
             docker://"${CONTAINER_IMAGE}" \
-            python check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} "${POST}"
+            python check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
     else
         echo "Skipping check of jsons"
     fi
