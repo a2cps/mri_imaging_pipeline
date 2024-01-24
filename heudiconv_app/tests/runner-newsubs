@@ -1,40 +1,42 @@
 #!/bin/bash
-#SBATCH -J heudiconv-traveling
-#SBATCH -o heudiconv-traveling.out
-#SBATCH -e heudiconv-traveling.err
-#SBATCH -t 2:00:00
+#SBATCH -J heudiconv-bids-ref
+#SBATCH -o heudiconv-bids-ref.out
+#SBATCH -e heudiconv-bids-ref.err
+#SBATCH -t 3:00:00
 #SBATCH -p corralextra
 #SBATCH -N 1 -n 1
 #SBATCH -A A2CPS
+
+# this is for running the newest heudiconv_app
+# with real participants for generating the reference
+# bids jsons
 
 module load tacc-apptainer
 module unload xalt
 
 BIND_DIR=/corral-secure/projects/A2CPS
-CONTAINER_IMAGE=psadil/heudiconv_app:240123
+CONTAINER_IMAGE=psadil/heudiconv_app:240124
+# shellcheck disable=SC2089
 LOCATOR="--locator='' "
 HEURISTIC="--heuristic a2cps.py "
 BIDS="--bids "
 DELETE_DUPLICATES=1
 POST="--no-post "
 CHECK_JSONS=1
-project=/corral-secure/projects/A2CPS/community/resources/imaging/traveling
+project=/corral-secure/projects/A2CPS/products/mris
 DICOMS=(
-    "${project}"/NS_northshore/dicoms/1.3.12.2.1107.5.2.42.70032.30000020100520532859700000004.zip
-    "${project}"/NS_northshore/dicoms/NSTravel2.zip
-    "${project}"/RU_rush/dicoms/RU011724DEV.zip
-    "${project}"/SH_spectrum_health/dicoms/A2CPS-Travel-220301.zip
-    "${project}"/UC_uchicago/dicoms/UC0001V1_A2CPS.zip
-    "${project}"/UC_uchicago/dicoms/UCtravel2.zip
-    "${project}"/UI_uic/dicoms/UI8186V1.zip
-    "${project}"/UI_uic/dicoms/EXAM9552.zip
-    "${project}"/UM_umichigan/dicoms/UM62121DEV.zip
-    "${project}"/UM_umichigan/dicoms/UM070121.zip
-    "${project}"/WS_wayne_state/dicoms/WS06302021DEV.zip
+    "${project}"/NS_northshore/dicoms/NS10920V1.zip
+    /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/dicoms/RU011724DEV.zip
+    "${project}"/SH_spectrum_health/dicoms/SH20371V1.zip
+    "${project}"/UC_uchicago/dicoms/UC10885V1.zip
+    "${project}"/UI_uic/dicoms/UI10910V1.zip
+    "${project}"/UM_umichigan/dicoms/UM20369V1.zip # UM1
+    "${project}"/UM_umichigan/dicoms/UM25245V1.zip  # UM2
+    "${project}"/WS_wayne_state/dicoms/WS25225V1.zip
     )
-SUBJECTS=( 1  2  1  2  1  2  1  2  2   2   2)
-SITES=(    NS NS RU SH UC UC UI UI UM  UM  WS)
-SES=(      NS NS RU SH UC UC UI UI UM1 UM2 WS)
+SUBJECTS=( 10920  travel1  20371  10885  10910  20369 25245 25225)
+SITES=(    NS     RU       SH     UC     UI     UM    UM    WS)
+SES=(      V1     RU       V1     V1     V1     V1    V1    V1)
 
 declare -A SITE_LONG=(
     [NS]=NS_northshore
@@ -47,15 +49,15 @@ declare -A SITE_LONG=(
     )
 
 # do this once to cache before parallelism
-apptainer exec docker://"${CONTAINER_IMAGE}" ls
+apptainer run docker://"${CONTAINER_IMAGE}" ls
 
 main() {
 
     local FILES="$1"
-    local LIST_OF_SUBJECTS="--subjects travel$2 "
+    local LIST_OF_SUBJECTS="--subjects $2 "
     local SITE="$3"
     local SESSION_FOR_LONGITUDINAL="--ses ${4} "
-    local OUTDIR="${SITE_LONG[${SITE}]}/bids/${4}travel${2}"
+    local OUTDIR="${SITE_LONG[${SITE}]}/bids/${3}${2}${4}"
 
     # Unzip dicoms locally 
     local LOCAL_DICOM
@@ -72,7 +74,7 @@ main() {
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
         docker://"${CONTAINER_IMAGE}" \
-        python exclude_derived-dwi_xa30.py ${LOCAL_DICOM}
+        python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
         apptainer run \
         --cleanenv \
@@ -80,6 +82,7 @@ main() {
         docker://"${CONTAINER_IMAGE}" \
         python exclude_derived-dwi_xa30.py ${LOCAL_DICOM}
 
+        #shellcheck disable=SC2086,SC2090
         echo apptainer run \
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
@@ -94,6 +97,7 @@ main() {
             ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
             ${DATALAD} ${DCMCONFIG} --minmeta
         
+        #shellcheck disable=SC2086,SC2090
         apptainer run \
         --cleanenv \
         -B "${BIND_DIR}":"${BIND_DIR}" \
@@ -122,6 +126,7 @@ main() {
 
     ;;
     *)
+        #shellcheck disable=SC2086,SC2090
         echo apptainer run \
             --cleanenv \
             -B "${BIND_DIR}":"${BIND_DIR}" \
@@ -136,6 +141,7 @@ main() {
                 ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
                 ${DATALAD} ${DCMCONFIG}
     
+        #shellcheck disable=SC2086,SC2090
         apptainer run \
             --cleanenv \
             -B "${BIND_DIR}":"${BIND_DIR}" \
@@ -317,7 +323,7 @@ main() {
 
 
 for i in "${!SUBJECTS[@]}"; do
-    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
+    sublong="${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
     main "${DICOMS[${i}]}" "${SUBJECTS[${i}]}" "${SITES[${i}]}" "${SES[${i}]}" \
         1> "${sublong}".out \
         2> "${sublong}".err &
@@ -325,43 +331,3 @@ done
 
 wait
 
-# files can only be copied over after dsts have been created
-for i in "${!SUBJECTS[@]}"; do
-    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
-    site_long="${SITE_LONG[${SITES[${i}]}]}"
-    dst="${site_long}"/bids
-    cp "${sublong}".{err,out} "${dst}/${sublong}"
-    cp run "${dst}/${sublong}"
-done
-
-NEW_DIR="."
-OUT_DIR=json_comparisons
-mkdir -p ${OUT_DIR}
-for i in "${!SUBJECTS[@]}"; do
-    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
-    printf '#### %s ####\n' "${sublong}"
-
-    site_long="${SITE_LONG[${SITES[${i}]}]}"
-
-    for json in "${NEW_DIR}"/"${site_long}"/bids/"${sublong}"/sub-travel"${SUBJECTS[${i}]}"/ses-"${SES[${i}]}"/*/*json; do
-        json_name=$(basename "${json}")
-        common_path=$(realpath --relative-to ${NEW_DIR} "${json}")
-        printf '## %s ##\n' "${json_name}"
-        diff \
-            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' ${project}/"${common_path}") \
-            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' "${json}") \
-            &> "${OUT_DIR}"/"${json_name%.*}"
-        
-        tmpd=/tmp/"${sublong}"
-        mkdir -p "${tmpd}"/new \
-            && mkdir -p "${tmpd}"/orig \
-            && cp "${json%.*}.nii.gz" "${tmpd}"/new/ \
-            && cp ${project}/"${common_path%.*}.nii.gz" "${tmpd}"/orig/ \
-            && gzip -d "${tmpd}"/new/*gz \
-            && gzip -d "${tmpd}"/orig/*gz \
-            && cmp \
-                "${tmpd}/orig/${json_name%.*}.nii" \
-                "${tmpd}/new/${json_name%.*}.nii" \
-                &>> "${OUT_DIR}"/"${json_name%.*}" 
-    done
-done
