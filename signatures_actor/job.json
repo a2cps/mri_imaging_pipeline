@@ -1,7 +1,7 @@
 {
     "name": "test_signatures",
     "appId": "urrutia-signatures",
-    "appVersion": "0.5",
+    "appVersion": "0.7",
     "archiveSystemId": "secure.frontera",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "archiveOnAppError": false,
@@ -17,11 +17,17 @@
             },
             {
                 "name": "N_WORKERS",
-                "arg": "--n-workers 5"
+                "arg": "--n-workers 4"
             },
             {
                 "name": "STAGE_DIR",
                 "arg": "--stage-dir /tmp/input"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "POLARS_MAX_THREADS",
+                "value": "14"
             }
         ]
     },
@@ -36,7 +42,7 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 1440,
+    "maxMinutes": 240,
     "subscriptions": [
         {
             "description": "Message on Failure",

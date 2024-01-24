@@ -1,4 +1,8 @@
 import argparse
+import asyncio
+from asyncio import subprocess
+from collections import abc
+import contextlib
 import logging
 import os
 import shutil
@@ -88,6 +92,24 @@ def main(
     if stage_dir:
         shutil.rmtree(stage_dir)
 
+async def _startup() -> subprocess.Process:
+    proc = await asyncio.create_subprocess_exec(
+        *["/opt/conda/bin/prefect", "server", "start", "--no-ui"]
+    )
+
+    # sleep to ensure server started
+    await asyncio.sleep(10)
+
+    return proc
+
+
+@contextlib.contextmanager
+def get_prefect() -> abc.Generator[None, None, None]:
+    proc = asyncio.run(_startup())
+    try:
+        yield
+    finally:
+        proc.terminate()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -97,4 +119,5 @@ if __name__ == "__main__":
     parser.add_argument("--stage-dir", type=Path, default=None)
 
     args = parser.parse_args()
-    main(**vars(args))
+    with get_prefect():
+        main(**vars(args))

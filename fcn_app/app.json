@@ -1,6 +1,6 @@
 {
     "id": "functional-connectivity",
-    "version": "0.5",
+    "version": "0.6",
     "description": "Run Functional Connectivity",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/fcn_app:0.5",
+    "containerImage": "docker://a2cps/fcn_app:0.6",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -78,7 +78,11 @@
             "envVariables": [],
             "archiveFilter": {
                 "includes": [],
-                "excludes": [],
+                "excludes": [
+                    "tapisjob.sh",
+                    "tapisjob.out",
+                    "tapisjob.env"
+                ],
                 "includeLaunchFiles": false
             }
         },

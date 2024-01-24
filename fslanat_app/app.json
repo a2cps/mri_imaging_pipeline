@@ -1,6 +1,6 @@
 {
   "id": "urrutia-fslanat",
-  "version": "0.5",
+  "version": "0.6",
   "description": "Run fsl_anat",
   "owner": "${apiUserId}",
   "enabled": true,
@@ -81,7 +81,11 @@
       "envVariables": [],
       "archiveFilter": {
         "includes": [],
-        "excludes": [],
+        "excludes": [
+          "tapisjob.sh",
+          "tapisjob.out",
+          "tapisjob.env"
+        ],
         "includeLaunchFiles": false
       }
     },
