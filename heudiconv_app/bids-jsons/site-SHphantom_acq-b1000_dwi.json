@@ -2,7 +2,6 @@
     "AcquisitionDuration": 35.32,
     "AcquisitionMatrixPE": 130,
     "AcquisitionNumber": 1,
-    "AcquisitionTime": "10:42:10.737500",
     "BandwidthPerPixelPhaseEncode": 10.395,
     "BaseResolution": 130,
     "BodyPartExamined": "HEAD",
@@ -13,26 +12,33 @@
     "DerivedVendorReportedEchoSpacing": 0.000740001,
     "DeviceSerialNumber": "66022",
     "DiffusionScheme": "Bipolar",
-    "DwellTime": 2.6e-06,
+    "DwellTime": 0.0000026,
     "EchoTime": 0.091,
     "EchoTrainLength": 98,
     "EffectiveEchoSpacing": 0.000740001,
     "FlipAngle": 90,
-    "ImageOrientationPatientDICOM": [1, 0, 0, 0, 1, 0],
+    "ImageOrientationPatientDICOM": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0
+    ],
     "ImageType": [
-      "ORIGINAL",
-      "PRIMARY",
-      "DIFFUSION",
-      "NONE"
-  ],
+        "ORIGINAL",
+        "PRIMARY",
+        "DIFFUSION",
+        "NONE"
+    ],
     "ImageTypeText": [
-      "ORIGINAL",
-      "PRIMARY",
-      "DIFFUSION",
-      "NONE",
-      "ND",
-      "NORM"
-  ],
+        "ORIGINAL",
+        "PRIMARY",
+        "DIFFUSION",
+        "NONE",
+        "ND",
+        "NORM"
+    ],
     "ImagingFrequency": 123.257,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionAddress": "East Beltline NE 2750,Grand Rapids,MI,US,49503",
@@ -66,11 +72,25 @@
     "SequenceVariant": "SK\\SP",
     "SeriesDescription": "dwi_dwi_acq_b1000",
     "SeriesNumber": 3,
-    "ShimSetting": [-1200, -11038, 2833, 129, 96, -547, 62, 49],
+    "ShimSetting": [
+        -1200,
+        -11038,
+        2833,
+        129,
+        96,
+        -547,
+        62,
+        49
+    ],
     "SliceThickness": 5,
-    "SliceTiming": [0, 1.32, 0.66],
+    "SliceTiming": [
+        0,
+        1.32,
+        0.66
+    ],
     "SoftwareVersions": "syngo MR XA30",
     "SpacingBetweenSlices": 6,
     "StationName": "AWP66022",
     "TotalReadoutTime": 0.0954601,
-    "TxRefAmp": 150.636}
+    "TxRefAmp": 150.636
+}
