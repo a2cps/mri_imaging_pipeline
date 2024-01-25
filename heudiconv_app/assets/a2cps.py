@@ -178,8 +178,17 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # RU sends both T1_MPRAGE (with NonlinearGradientCorrection: true) and T1_MPRAGE_ND
     # (with NonlinearGradientCorrection: false). Both are sent to anat (as duplicates),
     # but we only want to store T1_MPRAGE_ND (same as with SH after conversion to XA30)
-    elif (dcmdata.get("DeviceSerialNumber") == "166295") and (
-        dcmdata.SeriesDescription == "T1_MPRAGE"
+    # except, there is at least one case where the T1_MPRAGE is the only scan that was sent,
+    # and so we make an exception in order to have at least 1 anatomical image
+    elif (
+        (dcmdata.get("DeviceSerialNumber") == "166295")
+        and (dcmdata.get("SeriesDescription") == "T1_MPRAGE")
+        and (
+            dcmdata.get("SeriesInstanceUID")
+            not in [
+                "1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"
+            ]
+        )
     ):
         exclude = True
 
