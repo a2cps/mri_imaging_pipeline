@@ -9,7 +9,6 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
     && rm /tmp/env.yml \
     && micromamba clean --yes --all
 
-COPY --chown=$MAMBA_USER:$MAMBA_USER assets/confluence-a2cps-org-chain.pem /opt/confluence-a2cps-org-chain.pem
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py /opt/entrypoint.py
 
 ENTRYPOINT [ "/usr/local/bin/_entrypoint.sh", "python", "/opt/entrypoint.py"]

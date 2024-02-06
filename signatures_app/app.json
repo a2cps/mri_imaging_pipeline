@@ -1,6 +1,6 @@
 {
     "id": "urrutia-signatures",
-    "version": "0.4",
+    "version": "0.7",
     "description": "Multivariate Pattern Signatures",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/signatures_app:3.3",
+    "containerImage": "docker://a2cps/signatures_app:3.5",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -23,9 +23,6 @@
         "execSystemInputDir": "${JobWorkingDir}",
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
-        "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
-        "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
@@ -44,6 +41,10 @@
                 {
                     "name": "N_WORKERS",
                     "arg": "--n-workers 1"
+                },
+                {
+                    "name": "STAGE_DIR",
+                    "arg": "--stage-dir /tmp/input"
                 }
             ],
             "containerArgs": [
@@ -77,7 +78,11 @@
             "envVariables": [],
             "archiveFilter": {
                 "includes": [],
-                "excludes": [],
+                "excludes": [
+                    "tapisjob.sh",
+                    "tapisjob.out",
+                    "tapisjob.env"
+                ],
                 "includeLaunchFiles": false
             }
         },

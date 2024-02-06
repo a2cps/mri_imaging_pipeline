@@ -1,6 +1,6 @@
 {
     "id": "aggregator_qc_app",
-    "version": "3.1",
+    "version": "3.2",
     "description": "Aggregate quality control metrics and run simple checks",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/aggregator_qc_app:3.1",
+    "containerImage": "docker://a2cps/aggregator_qc_app:3.2",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -59,6 +59,10 @@
                     "name": "IMAGING_LOG",
                     "inputMode": "INCLUDE_BY_DEFAULT",
                     "arg": "--imaging_log /corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+                },
+                {
+                    "name": "CONFLUENCE_USERNAME",
+                    "inputMode": "INCLUDE_ON_DEMAND"
                 }
             ],
             "containerArgs": [

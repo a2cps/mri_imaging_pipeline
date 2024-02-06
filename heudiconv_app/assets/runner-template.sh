@@ -52,7 +52,7 @@ case "${SITE}" in
       "
     ;;
 
-  SH)
+  SH | RU)
     echo singularity run \
       --cleanenv \
       --env ENV_NAME=v1.0.20220720 \
@@ -118,7 +118,7 @@ case "${SITE}" in
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
-        && python add_date_to_sh.py ${LOCAL_DICOM} ${OUTDIR}
+        && python add_date_to_xa30.py ${LOCAL_DICOM} ${OUTDIR}
       "
 
     singularity run \
@@ -128,7 +128,7 @@ case "${SITE}" in
       docker://"${CONTAINER_IMAGE}" \
       bash -c "
         source /usr/local/bin/_activate_current_env.sh \
-        && python add_date_to_sh.py ${LOCAL_DICOM} ${OUTDIR}
+        && python add_date_to_xa30.py ${LOCAL_DICOM} ${OUTDIR}
       "
     ;;
 

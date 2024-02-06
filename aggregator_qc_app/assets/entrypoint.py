@@ -29,6 +29,24 @@ TASK_THRESH = {"rest": 0.3, "cuff": 0.9}
 PEM = Path("/opt/confluence-a2cps-org-chain.pem")
 DEFAULT_CACHED_CLIENT = Path.home() / ".tapis3" / "client.json"
 
+SITE_CODES = {
+    "UI": "UI_uic",
+    "NS": "NS_northshore",
+    "UC": "UC_uchicago",
+    "UM": "UM_umichigan",
+    "WS": "WS_wayne_state",
+    "SH": "SH_spectrum_health",
+    "RU": "RU_rush",
+}
+
+CONFLUENCE_URL = "https://a2cps.atlassian.net"
+
+
+@dataclass
+class Confluence_Auth:
+    username: str
+    token: str
+
 
 def load_cached_client(src: Path) -> dict:
     with open(src, "r") as f:
@@ -106,7 +124,7 @@ def post_notification(
 ) -> None:
     if confluence is not None:
         confluence.update_page(
-            page_id="25755998",
+            page_id="5406790",
             title="QC Aggregation",
             body=notification,
             parent_id=None,
@@ -179,14 +197,6 @@ def get_outliers(
     get_outliers(fname=pd.read_csv('group_T1w.tsv', delimiter="\t"))
     get_outliers(fname=pd.read_csv('group_T1w.tsv', delimiter="\t"), ['site'])
     """
-    SITE_CODES = {
-        "UI": "UI_uic",
-        "NS": "NS_northshore",
-        "UC": "UC_uchicago",
-        "UM": "UM_umichigan",
-        "WS": "WS_wayne_state",
-        "SH": "SH_spectrum_health",
-    }
 
     sites = (
         pd.read_csv(imaging_log, usecols=["subject_id", "site"])
@@ -310,14 +320,7 @@ def gather_motion(
     root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
 ) -> pd.DataFrame:
     confounds = []
-    for s in [
-        "NS_northshore",
-        "SH_spectrum_health",
-        "UC_uchicago",
-        "UI_uic",
-        "UM_umichigan",
-        "WS_wayne_state",
-    ]:
+    for s in SITE_CODES.values():
         for task in ["rest", "cuff"]:
             for tsv in (root / s / "fmriprep").glob(
                 f"{s[0:2]}*/{task}/fmriprep/sub*/ses*/func/*confounds_timeseries.tsv"
@@ -401,14 +404,10 @@ def auto_rate_bold(d: pd.DataFrame) -> pd.DataFrame:
 
 
 def start_session(
-    secret_name: str, cached_client: Path | None = None
+    confluence_auth: Confluence_Auth,
 ) -> requests.Session:
-    token = get_confluence_token(
-        secret_name=secret_name, cached_client=cached_client
-    )
     s = requests.Session()
-    s.headers.update({"Authorization": f"Bearer {token}"})
-    s.verify = str(PEM)
+    s.auth = (confluence_auth.username, confluence_auth.token)
     return s
 
 
@@ -441,6 +440,7 @@ def rate_dwi(
         "UI": [104],
         "UM": [104],
         "WS": [102],
+        "RU": [103],
     }
 
     bvals = (
@@ -526,8 +526,7 @@ def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
 def update_qclog(
     imaging_log: Path,
     json_dir: Path,
-    secret_name: str | None = None,
-    cached_client: Path | None = None,
+    confluence_auth: Confluence_Auth | None = None,
 ) -> pd.DataFrame:
     RATING = {"4": "green", "3": "green", "2": "yellow", "1": "red", "0": ""}
     LOG_KEYS = {
@@ -604,19 +603,16 @@ def update_qclog(
     names = ["site", "sub", "ses", "scan", "rating", "source", "date", "notes"]
     to_upload = d2[names].sort_values(names)
 
-    if secret_name is not None:
+    if confluence_auth is not None:
         confluence = Confluence(
-            url="https://confluence.a2cps.org",
-            cloud=True,
-            session=start_session(
-                secret_name=secret_name, cached_client=cached_client
-            ),
+            url=CONFLUENCE_URL,
+            session=start_session(confluence_auth=confluence_auth),
         )
         with tempfile.NamedTemporaryFile(suffix=".xlsx") as f:
             to_upload.to_excel(f.name, index=False, engine="openpyxl")
             confluence.attach_file(
                 filename=f.name,
-                page_id="29065229",
+                page_id="5406798",
                 name="qc_log.xlsx",
                 title="QC Log",
             )
@@ -633,14 +629,12 @@ def main(
     imaging_log: Path = Path(
         "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
-    secret_name: str | None = None,
-    cached_client: Path | None = None,
+    confluence_auth: Confluence_Auth | None = None,
 ) -> None:
     qclog = update_qclog(
         imaging_log=imaging_log,
         json_dir=json_dir,
-        secret_name=secret_name,
-        cached_client=cached_client,
+        confluence_auth=confluence_auth,
     )
 
     qclog_anat = build_bids_name(
@@ -696,15 +690,12 @@ def main(
         ]
     )
 
-    if secret_name is not None:
+    if confluence_auth is not None:
         post_notification(
             notification,
             Confluence(
-                url="https://confluence.a2cps.org",
-                cloud=True,
-                session=start_session(
-                    secret_name, cached_client=cached_client
-                ),
+                url=CONFLUENCE_URL,
+                session=start_session(confluence_auth=confluence_auth),
             ),
         )
     else:
@@ -746,6 +737,7 @@ if __name__ == "__main__":
         type=Path,
     )
     parser.add_argument("--secret-name", type=str)
+    parser.add_argument("--confluence-username", type=str)
     parser.add_argument(
         "--cached-client", type=Path, default=DEFAULT_CACHED_CLIENT
     )
@@ -754,12 +746,22 @@ if __name__ == "__main__":
 
     if args.secret_name:
         check_client(args.cached_client)
+        if not args.confluence_username:
+            msg = "Received secret_name but no username. Unable to access confluence without username"
+            raise ValueError(msg)
+        confluence_auth = Confluence_Auth(
+            username=args.confluence_username,
+            token=get_confluence_token(
+                secret_name=args.secret_name, cached_client=args.cached_client
+            ),
+        )
+    else:
+        confluence_auth = None
 
     main(
         args.t1w_fname,
         args.bold_fname,
         json_dir=args.json_dir,
-        secret_name=args.secret_name,
-        cached_client=args.cached_client,
         imaging_log=args.imaging_log,
+        confluence_auth=confluence_auth,
     )

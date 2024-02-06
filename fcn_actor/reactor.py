@@ -28,7 +28,7 @@ JOB = Path("/opt/job.json")
 ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
-_MAXJOBS = 50
+_MAXJOBS = 20
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -37,6 +37,7 @@ SITE_LONG = {
     "UM": "UM_umichigan",
     "SH": "SH_spectrum_health",
     "WS": "WS_wayne_state",
+    "RU": "RU_rush",
 }
 
 
@@ -223,7 +224,8 @@ def main() -> None:
     print(json.dumps(job, indent=4))
 
     try:
-        client.jobs.submitJob(**job)  # type: ignore
+        submitted = client.jobs.submitJob(**job)  # type: ignore
+        print(submitted.uuid)
     except Exception as e:
         logging.error(f"encountered while trying to submit job: {e}")
 
