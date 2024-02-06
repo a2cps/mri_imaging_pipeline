@@ -9,6 +9,31 @@ import numpy as np
 import requests
 import xlsxwriter
 
+# function to filter reponse object for highest record_id+visit repeat instance
+def filter_highest_value(data, identification_keys, key_to_compare):
+    result = []
+
+    # Create a dictionary to store the highest values for each combination of identification keys
+    highest_values = {}
+
+    for item in data:
+        # Create a tuple for the combination of identification keys
+        identification_values = tuple(item[key] for key in identification_keys)
+
+        # Check if the combination of identification keys already in highest_values
+        if identification_values in highest_values:
+            # Compare 'b' values and update if higher
+            if item[key_to_compare] > highest_values[identification_values][key_to_compare]:
+                highest_values[identification_values] = item
+        else:
+            # If combination not in highest_values, add the item
+            highest_values[identification_values] = item
+
+    # Convert the dictionary of highest values back to a list
+    result.extend(highest_values.values())
+
+    return result
+
 def redcap_query():
     #read secrets
     with open('secrets.json') as jsonfile:
@@ -77,6 +102,7 @@ def redcap_query():
 
     relevant_keys = [
     'record_id',
+    'redcap_repeat_instance',
     'fmripatientname',
     'fmricufft1yn',
     'fmricuffdwiyn',
@@ -140,6 +166,10 @@ def redcap_query():
     mcc2_uploaded_list = [item for item in all_mcc2 if item['imaging_mcc2_v01_complete'] == '2'] 
     mcc2_uploaded_list = [item for item in mcc2_uploaded_list if item['fmricuffcompletescl'] != '0']
 
+    # filter lists for highest repeat instance
+    mcc1_uploaded_list = filter_highest_value(mcc1_uploaded_list, ['record_id', 'redcap_event_name'], 'redcap_repeat_instance')
+    mcc2_uploaded_list = filter_highest_value(mcc2_uploaded_list, ['record_id', 'redcap_event_name'], 'redcap_repeat_instance')
+    
     #foodict = {k: v for k, v in mydict.items() if k in relevant_keys}
     for index,item in enumerate(mcc1_uploaded_list):
         # resetting all uploads to 1 if the "complete" box is checked
@@ -155,13 +185,23 @@ def redcap_query():
                             if updated_item['fmricuffcompletescl'] == '1'
                             and k.endswith('yn')
                             and k in update_scans})
+        # If it comes from mcc1 and is V1, pull value from fmricuffcalfpressure on the QST form
+        # if it comes from mcc1 and is V3, pull value from fmricuffcalfpressure on the imaging form
+        # if it is from mcc2 and V1 pull value from cuffpfmripressure on the QST form
+        # if it is from mcc2 and V3 pull value from cuffpfmripressure on the imaging form 
         # add correct contraindicated
         try: 
-            contra = [i['fmricuffcontrayn'] for i in all_mcc1 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][0]
+            contra = [i['fmricuffcontrayn'] for i in all_mcc1 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
         except Exception as e:
             contra = ''
         updated_item['fmricuffcontrayn'] = contra
-        
+
+        if item['redcap_event_name'] == 'baseline_visit_arm_1':
+            try: 
+                pressure = [i['fmricuffcalfpressure'] for i in all_mcc1 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
+            except Exception as e:
+                pressure = ''
+            updated_item['fmricuffcalfpressure'] = pressure
 
         mcc1_uploaded_list[index] = updated_item
 
@@ -173,10 +213,17 @@ def redcap_query():
                             and k in update_scans})
 
         try: 
-            contra = [i['cuffpfmricontraindyn'] for i in all_mcc2 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][0]
+            contra = [i['cuffpfmricontraindyn'] for i in all_mcc2 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
         except Exception as e:
             contra = ''
         updated_item['cuffpfmricontraindyn'] = contra
+
+        if item['redcap_event_name'] == 'baseline_visit_arm_1':
+            try: 
+                pressure = [i['cuffpfmripressure'] for i in all_mcc2 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
+            except Exception as e:
+                pressure = ''
+            updated_item['cuffpfmripressure'] = pressure
 
         mcc2_uploaded_list[index] = updated_item
 
@@ -188,7 +235,7 @@ def redcap_query():
             std_name = item['fmripatientname']
             std_name = std_name.upper()
             #print(std_name)
-            patient_id = re.search('(NS|WS|UC|UM|UI|SH)\d{5}[vV](1|3)',std_name)
+            patient_id = re.search('(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)',std_name)
             #print(patient_id)
             (site_id, subject_id, v, session_number, space) = re.split('(\d+)',patient_id.group(0))
             session_id = v + session_number
@@ -510,7 +557,8 @@ def main():
                         "Cuff contraindicated": contraindicated,
                         "Surgery Week": surg_day,
                         "Face Mask": row['fmri_face_mask'],
-                        "Magnet Name": row['fmri_magnet_name']
+                        "Magnet Name": row['fmri_magnet_name'],
+                        "Repeat instance": row['redcap_repeat_instance']
                         #"comments": row['fmricuffnotes']
                         }
 
@@ -630,7 +678,8 @@ def main():
     "Cuff contraindicated",
     "Surgery Week",
     "Face Mask",
-    "Magnet Name"
+    "Magnet Name",
+    "Repeat instance"
     #'comments'
     ]]
     df.drop_duplicates(inplace=True)
@@ -642,3 +691,5 @@ def main():
 
 if __name__ == '__main__':
     main() 
+
+

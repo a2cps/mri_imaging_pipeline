@@ -1,8 +1,6 @@
 # Provide mapping into reproin heuristic names
 import pydicom
-
 from heudiconv.heuristics import reproin
-
 from heudiconv.heuristics.reproin import *
 
 protocols2fix.update(
@@ -61,8 +59,14 @@ protocols2fix.update(
             ("^ORIG T1_MPRAGE$", "anat-T1w"),
             # this rule must come *after* DWI_B0
             ("^D[TW]I", "dwi"),
-            (r".*(REST|Rest)([12])([_\s]*R[1-9]*)*$", r"func_task-rest_run-\2"),
-            (r".*(CUFF|Cuff)([12])([_\s]*R[1-9]*)*$", r"func_task-cuff_run-\2"),
+            (
+                r".*(REST|Rest)([12])([_\s]*R[1-9]*)*$",
+                r"func_task-rest_run-\2",
+            ),
+            (
+                r".*(CUFF|Cuff)([12])([_\s]*R[1-9]*)*$",
+                r"func_task-cuff_run-\2",
+            ),
             # phantom scan heuristics
             # anat should grab one that has ORIG
             (".*(anat-T1w)[-_]acq[-_]GRE$", r"\1"),
@@ -147,7 +151,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         exclude = True
 
     # after the SH upgrade, (i.e., software "syngo MR XA30"), SH sends the raw anatomical as
-    # T1_MPRAGE_ND ("No Distorction Correction"), but also always a derived scan called T1_MPRAGE
+    # T1_MPRAGE_ND ("No Distortion Correction"), but also always a derived scan called T1_MPRAGE
     elif (
         dcmdata.get("DeviceSerialNumber") == "66022"
         and dcmdata.SoftwareVersions == "syngo MR XA30"
@@ -161,6 +165,13 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
             dcmdata.SeriesInstanceUID
             == "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028"
         )
+    ):
+        exclude = True
+    # RU sends both T1_MPRAGE (with NonlinearGradientCorrection: true) and T1_MPRAGE_ND
+    # (with NonlinearGradientCorrection: false). Both are sent to anat (as duplicates),
+    # but we only want to store T1_MPRAGE_ND (same as with SH after conversion to XA30)
+    elif (dcmdata.get("DeviceSerialNumber") == "166295") and (
+        dcmdata.SeriesDescription == "T1_MPRAGE"
     ):
         exclude = True
 

@@ -11,6 +11,10 @@
             {
                 "name": "SECRET_NAME",
                 "arg": "--secret-name urrutia-confluence-token"
+            },
+            {
+                "name": "CONFLUENCE_USERNAME",
+                "arg": "--confluence-username jurrutia@tacc.utexas.edu"
             }
         ]
     },

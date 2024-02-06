@@ -18,7 +18,7 @@ def main():
     #read secrets
     with open('secrets.json') as jsonfile:
         secrets = json.load(jsonfile)
-    response = run_bash('curl -H "Authorization: Bearer {}" -k https://confluence.a2cps.org/rest/api/content/15929269?expand=body.storage,version  > confluence_response.json'.format(secrets['CONFLUENCE_TOKEN']))
+    response = run_bash('curl  --request GET --user "jurrutia@tacc.utexas.edu:{}" --url https://a2cps.atlassian.net/wiki/rest/api/content/5406795?expand=body.storage,version --header "Accept: application/json"  > confluence_response.json'.format(secrets['CONFLUENCE_TOKEN']))
     confluence_page_response = json.load(open('confluence_response.json'))
     html_string = confluence_page_response['body']['storage']['value']
     soup = BeautifulSoup(html_string, 'html.parser')
@@ -74,7 +74,7 @@ def main():
     confluence_push_json['body']['storage']['value'] = updated_page
     with open('confluence_push.json', 'w') as outfile:
         json.dump(confluence_push_json, outfile, indent=4)
-    response = run_bash('curl -H "Authorization: Bearer {}" -k -X PUT -H "Content-Type: application/json" -d "@confluence_push.json" https://confluence.a2cps.org/rest/api/content/15929269'.format(secrets['CONFLUENCE_TOKEN']))
+    response = run_bash('curl  --request PUT --user "jurrutia@tacc.utexas.edu:{}" --url https://a2cps.atlassian.net/wiki/rest/api/content/5406795 --header "Accept: application/json" --header "Content-Type: application/json" --data "@confluence_push.json"'.format(secrets['CONFLUENCE_TOKEN']))
 
 if __name__ == '__main__':
     main() 
