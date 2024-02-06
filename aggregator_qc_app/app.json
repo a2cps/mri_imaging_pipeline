@@ -59,6 +59,10 @@
                     "name": "IMAGING_LOG",
                     "inputMode": "INCLUDE_BY_DEFAULT",
                     "arg": "--imaging_log /corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+                },
+                {
+                    "name": "CONFLUENCE_USERNAME",
+                    "inputMode": "INCLUDE_ON_DEMAND"
                 }
             ],
             "containerArgs": [
