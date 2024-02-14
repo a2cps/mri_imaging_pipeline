@@ -13,7 +13,7 @@ module unload xalt
 BIND_DIR=/corral-secure/projects/A2CPS
 CONTAINER_IMAGE=psadil/heudiconv_app:240123
 # shellcheck disable=SC2089
-LOCATOR="--locator='' "
+LOCATOR='--locator="" '
 HEURISTIC="--heuristic a2cps.py "
 BIDS="--bids "
 DELETE_DUPLICATES=1
