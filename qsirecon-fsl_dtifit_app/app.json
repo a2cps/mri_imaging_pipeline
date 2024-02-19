@@ -1,0 +1,218 @@
+{
+    "id": "qsiprep-recon-fsl_dtifit_app",
+    "version": "1.0",
+    "description": "Prepare QSIPrep outputs for FSL, run dtifit, prepare for TBSS",
+    "owner": "${apiUserId}",
+    "enabled": true,
+    "runtime": "SINGULARITY",
+    "runtimeVersion": null,
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "containerImage": "docker://pennbbl/qsiprep:0.20.0",
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "strictFileInputs": true,
+    "jobAttributes": {
+        "description": null,
+        "dynamicExecSystem": false,
+        "execSystemConstraints": null,
+        "execSystemId": "secure.frontera",
+        "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemInputDir": "${JobWorkingDir}",
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "execSystemLogicalQueue": "corralextra",
+        "archiveSystemId": "secure.frontera",
+        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/maj/qsiprep-recon-fsl_dtifit_app",
+        "archiveOnAppError": false,
+        "isMpi": false,
+        "mpiCmd": null,
+        "cmdPrefix": null,
+        "parameterSet": {
+            "appArgs": [
+                {
+                    "id": "BIDS_DIRECTORY",
+                    "value": {
+                      "default": "agave://a2cps.storage.public/a2cps_openneuro_testdata/",
+                      "visible": true,
+                      "type": "string",
+                      "required": true
+                    },
+                    "semantics": {
+                      "ontology": [
+                        "https://bids.neuroimaging.io/specification.html"
+                      ]
+                    },
+                    "details": {
+                      "label": "BIDS_DIRECTORY",
+                      "description": "The root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder)."
+                    }
+                  },
+                  {
+                    "id": "RECON_OUTPUT",
+                    "value": {
+                      "default": "outputs",
+                      "description": "the output path for the outcomes of preprocessing and visual reports",
+                      "type": "string",
+                      "visible": true,
+                      "required": true
+                    }
+                  },
+                  {
+                    "id": "WORK_DIRECTORY",
+                    "details": {
+                      "argument": "-w ",
+                      "showArgument": true,
+                      "description": "change the folder to store intermediate results"
+                    },
+                    "value": {
+                      "default": "work",
+                      "type": "string",
+                      "visible": true,
+                      "required": true
+                    }
+                  },
+                {
+                    "name": "RECON_ONLY",
+                    "inputMode": "INCLUDE_BY_DEFAULT",
+                    "arg": "--recon-only"
+                },
+                {
+                    "name": "RECON_SPEC",
+                    "inputMode": "INCLUDE_BY_DEFAULT",
+                    "arg": "--recon_spec reorient_fslstd"
+                },
+                {
+                    "name": "RECON_SPEC",
+                    "inputMode": "INCLUDE_BY_DEFAULT",
+                    "arg": "--recon_input "
+                },
+                {
+                    "id": "PARTICIPANT_LABEL",
+                    "value": {
+                      "default": "01",
+                      "type": "string",
+                      "visible": true,
+                      "required": true
+                    },
+                    "details": {
+                      "description": "A space delimited list of participant identifiers or a single identifier (the sub- prefix can be removed)",
+                      "showArgument": false,
+                      "argument": "participant --participant_label "
+                    }
+                },
+                {
+                    "name": "FREESURFER_INPUT",
+                    "inputMode": "INCLUDE_BY_DEFAULT",
+                    "arg": "--freesurfer-input "
+                },
+                {
+                    "id": "NTHREADS",
+                    "details": {
+                      "argument": "--nthreads ",
+                      "showArgument": true,
+                      "description": "Maximum number of threads available when processing each participant"
+                    },
+                    "value": {
+                      "default": 8,
+                      "type": "number",
+                      "visible": true,
+                      "required": false
+                    }
+                },
+                {
+                    "id": "MEMMB",
+                    "details": {
+                      "argument": "--mem_mb ",
+                      "showArgument": true,
+                      "description": "Maximum amount of MB available when processing each participant"
+                    },
+                    "value": {
+                      "default": 32000,
+                      "type": "number",
+                      "visible": true,
+                      "required": false
+                    }
+                },
+                {
+                    "id": "OUTPUT_RESOLUTION",
+                    "details": {
+                      "argument": "--output-resolution ",
+                      "showArgument": true,
+                      "description": "Output voxel dimensions, identical from qsiprep_app"
+                    },
+                    "value": {
+                      "default": null,
+                      "type": "number",
+                      "visible": true,
+                      "required": false
+                    }
+                },
+                {
+                    "id": "DTIFIT_OUTPUT_OLS",
+                    "value": {
+                      "default": "outputs",
+                      "description": "the output path for dtifit",
+                      "type": "string",
+                      "visible": true,
+                      "required": true
+                    }
+                },
+                {
+                    "id": "DTIFIT_OUTPUT_WLS",
+                    "value": {
+                      "default": "outputs",
+                      "description": "the output path for dtifit",
+                      "type": "string",
+                      "visible": true,
+                      "required": true
+                    }
+                }
+
+            ],
+            "containerArgs": [
+                {
+                    "name": "Container Mounts",
+                    "description": "Mount for TAP functions",
+                    "inputMode": "FIXED",
+                    "arg": "--bind /corral-secure/projects/A2CPS"
+                }
+            ],
+            "schedulerOptions": [
+                {
+                    "name": "TACC Scheduler Profile",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "arg": "--tapis-profile tacc-apptainer"
+                },
+                {
+                    "name": "TAP Session Substring",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "arg": "--job-name ${JobName}"
+                },
+                {
+                    "name": "TACC Allocation",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "arg": "-A A2CPS"
+                }
+            ],
+            "envVariables": [],
+            "archiveFilter": {
+                "includes": [],
+                "excludes": [
+                    "*out"
+                ],
+                "includeLaunchFiles": false
+            }
+        },
+        "fileInputs": [],
+        "fileInputArrays": [],
+        "nodeCount": 1,
+        "maxMinutes": 120,
+        "subscriptions": [],
+        "tags": []
+    }
+}

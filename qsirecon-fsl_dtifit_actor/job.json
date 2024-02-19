@@ -1,0 +1,46 @@
+{
+    "name": "qsiprep-recon-fsl_dtifit",
+    "appId": "qsiprep-recon-fsl_dtifit_app",
+    "appVersion": "1.0",
+    "parameterSet": {
+        "appArgs": [
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        },
+        {
+            "moduleLoadCommand": "module unload",
+            "modulesToLoad": [
+                "xalt"
+            ]
+        },
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "docker://jurrutia/fmriprep:20.2.3.1"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 120,
+    "subscriptions": [
+        {
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
+            "deliveryTargets": [
+                {
+                    "deliveryMethod": "WEBHOOK",
+                    "deliveryAddress": ""
+                }
+            ]
+        }
+    ]
+}
