@@ -268,9 +268,8 @@ echo "ensuring that dir-[dir] entities match PhaseEncodingDirection"
 singularity run \
   --cleanenv \
   -B "${BIND_DIR}":"${BIND_DIR}" \
-  --env ENV_NAME=v1.0.20220720 \
   docker://"${CONTAINER_IMAGE}" \
-  bash -c "source /usr/local/bin/_activate_current_env.sh && python conform_dir.py ${OUTDIR}"
+  python conform_dir.py "${OUTDIR}"
 
 # end with check of newly created directory. if the output is not valid, the job will fail
 singularity run \

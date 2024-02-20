@@ -381,7 +381,7 @@ def edit_json(data_path):
     # NOTE: for Philips, this must happen after the PhaseEncodingDirection has been set (PED not
     # filled automatically)
     for i in dirs.glob("sub*/ses*/fmap/*dwib0*json"):
-        if manufacturer in ["philips", "ge"]:
+        if manufacturer in ["philips"]:
             if "AP" in str(Path(i).name):
                 value = "j-"
             else:
