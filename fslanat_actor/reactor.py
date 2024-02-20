@@ -225,7 +225,7 @@ def main() -> None:
     ilog = get_ilog(client=client)
 
     runlist = get_runlist(
-        ilog=ilog, maxjobs=context.message_dict.get("maxjobs")
+        ilog=ilog, maxjobs=context.message_dict.get("maxjobs", _MAXJOBS)
     )
     if not len(runlist):
         logging.warning("Did not find any jobs to submit")
