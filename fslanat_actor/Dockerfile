@@ -1,7 +1,7 @@
 FROM python:3.11.4-bullseye
 
 RUN pip install --no-cache-dir \
-    tapipy==1.4.1 \
+    tapipy==1.6.1 \
     ibis-framework[duckdb]==6.0.0
 
 COPY reactor.py /opt/reactor.py
