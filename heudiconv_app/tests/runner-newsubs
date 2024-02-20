@@ -15,7 +15,7 @@ module load tacc-apptainer
 module unload xalt
 
 BIND_DIR=/corral-secure/projects/A2CPS
-CONTAINER_IMAGE=psadil/heudiconv_app:240124
+CONTAINER_IMAGE=psadil/heudiconv_app:240220
 # shellcheck disable=SC2089
 LOCATOR='--locator="" '
 HEURISTIC="--heuristic a2cps.py "
