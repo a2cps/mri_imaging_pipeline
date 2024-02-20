@@ -1,7 +1,7 @@
 {
-    "id": "qsiprep-recon-fsl_dtifit_app",
+    "id": "qsirecon-fsl_dtifit_app",
     "version": "1.0",
-    "description": "Prepare QSIPrep outputs for FSL, run dtifit, prepare for TBSS",
+    "description": "Prepare QSIPrep outputs for FSL and run dtifit",
     "owner": "${apiUserId}",
     "enabled": true,
     "runtime": "SINGULARITY",
@@ -24,7 +24,7 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
         "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/maj/qsiprep-recon-fsl_dtifit_app",
+        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app",
         "archiveOnAppError": false,
         "isMpi": false,
         "mpiCmd": null,
@@ -32,7 +32,19 @@
         "parameterSet": {
             "appArgs": [
                 {
-                    "id": "BIDS_DIRECTORY",
+                  "id": "BIND_DIR",
+                  "value": {
+                    "default": "/corral-secure/projects/A2CPS/",
+                    "visible": true,
+                    "type": "string",
+                    "required": true
+                  },
+                  "details": {
+                    "description": "Directory that is mounted into the container"
+                  }
+                },
+                {
+                    "id": "BIDSDIR",
                     "value": {
                       "default": "agave://a2cps.storage.public/a2cps_openneuro_testdata/",
                       "visible": true,
@@ -45,12 +57,12 @@
                       ]
                     },
                     "details": {
-                      "label": "BIDS_DIRECTORY",
+                      "label": "BIDSDIR",
                       "description": "The root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder)."
                     }
                   },
                   {
-                    "id": "RECON_OUTPUT",
+                    "id": "RECON_OUTDIR",
                     "value": {
                       "default": "outputs",
                       "description": "the output path for the outcomes of preprocessing and visual reports",
@@ -60,7 +72,7 @@
                     }
                   },
                   {
-                    "id": "WORK_DIRECTORY",
+                    "id": "WORKDIR",
                     "details": {
                       "argument": "-w ",
                       "showArgument": true,
@@ -84,14 +96,23 @@
                     "arg": "--recon_spec reorient_fslstd"
                 },
                 {
-                    "name": "RECON_SPEC",
-                    "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--recon_input "
+                  "id": "QSIPREP_DIR",
+                  "details": {
+                    "argument": "-recon_input ",
+                    "showArgument": true,
+                    "description": "the output dir from QSIPREP"
+                  },
+                  "value": {
+                    "default": "qsiprep",
+                    "type": "string",
+                    "visible": true,
+                    "required": true
+                  }
                 },
                 {
                     "id": "PARTICIPANT_LABEL",
                     "value": {
-                      "default": "01",
+                      "default": "sub-01",
                       "type": "string",
                       "visible": true,
                       "required": true
@@ -103,7 +124,7 @@
                     }
                 },
                 {
-                    "name": "FREESURFER_INPUT",
+                    "name": "FREESURFER_DIR",
                     "inputMode": "INCLUDE_BY_DEFAULT",
                     "arg": "--freesurfer-input "
                 },
