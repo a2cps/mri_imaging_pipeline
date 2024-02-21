@@ -1,6 +1,6 @@
-FROM penbbl/qsiprep:0.20.0
+FROM pennbbl/qsiprep:0.20.0
 
-COPY assets/entrypoint.sh /opt/entryoint.sh
+COPY assets/entrypoint.sh /opt/entrypoint.sh
 
-ENTRYPOINT [ "/opt/entrypoint.sh"]
+ENTRYPOINT [ "/bin/bash", "/opt/entrypoint.sh"]
 
