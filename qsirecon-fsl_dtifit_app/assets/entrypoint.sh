@@ -3,45 +3,47 @@
 main (){
     local BIDSDIR="${1}"
     local WORKDIR="${2}"
-    local RECON_OUTDIR="${3}"
-    local RECON_ONLY="${4}"
-    local RECON_SPEC="${5}"
-    local QSIPREP_DIR="${6}"
-    local PARTICIPANT_LABEL="${7}"
-    local FREESURFER_DIR="${8}"
-    local NTHREADS="${9}"
-    local MEMMB="${10}"
-    local OUTPUT_RESOLUTION="${11}"
+    local QSIPREPDIR="${3}"
+    local FREESURFERDIR="${4}"
+    local OUTDIR="${5}"
+    local PARTICIPANT_LABEL="${6}"
+    local NTHREADS="${7}"
+    local MEMMB="${8}"
+    local DTIFIT_OUTDIR_OLS="${9}"
+    local DTIFIT_OUTDIR_WLS="${10}"
 
+    ## RUN QSIRECON
     qsiprep \
+        participant \
         --participant_label "${PARTICIPANT_LABEL}" \
+        "${BIDSDIR}" \
+        "${OUTDIR}" \
         --work-dir "${WORKDIR}" \
-        "${BIDSDIR}"
-    # remaining arguments here
+        --recon-only \
+        --recon_spec reorient_fslstd \
+        --recon_input "${QSIPREPDIR}" \
+        --freesurfer-input "${FREESURFERDIR}" \
+        --output-resolution 1.7 \
+        --nthreads "${NTHREADS}" \
+        --mem_mb "${MEMMB}" \
 
-    ## How to define $subj and $ses??
+    ## DEFINE ARGS FOR DTIFIT
+    local qsirecon_dir="${OUTDIR}"/qsirecon/"${PARTICIPANT_LABEL}"/dwi
+        ## check, does qsirecon outpout for traveling data include "_ses-" by default?
+    local data="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_space-T1w_desc-preproc_fslstd_dwi.nii.gz
+    local mask="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_space-T1w_desc-preproc_fslstd_mask.nii.gz
+    local bvecs="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_space-T1w_desc-preproc_fslstd_dwi.bvec
+    local bvals="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_space-T1w_desc-preproc_fslstd_dwi.bval
 
-    local recon_dir="${RECON_OUTPUT}"/qsirecon/sub-${subj}/ses-${ses}/dwi
+    ## RUN DTIFIT (OLS)
+    dtifit -k ${data} -o "${DTIFIT_OUTDIR_OLS}"/"${PARTICIPANT_LABEL}" -m ${mask} -r ${bvecs} -b ${bvals} --ols --sse --save_tensor
 
-    local data=$recon_dir/sub-${subj}_ses-${ses}_space-T1w_desc-preproc_fslstd_dwi.nii.gz
-    local mask=$recon_dir/sub-${subj}_ses-${ses}_space-T1w_desc-preproc_fslstd_mask.nii.gz
-    local bvecs=$recon_dir/sub-${subj}_ses-${ses}_space-T1w_desc-preproc_fslstd_dwi.bvec
-    local bvals=$recon_dir/sub-${subj}_ses-${ses}_space-T1w_desc-preproc_fslstd_dwi.bval
-
-    ## "DTIFIT_OUTPUT_OLS"
-    ## e.g., /corral-secure/projects/A2CPS/products/mris/${site}/dtifit_ols/sub-${subj}/ses-${ses}/sub-${subj}_ses-${ses}
-
-    dtifit -k ${data} -o "${DTIFIT_OUTPUT_OLS}" -m ${mask} -r ${bvecs} -b ${bvals} --ols --sse --save_tensor
-
-
-    ## "DTIFIT_OUTPUT_WLS"
-    ## e.g., /corral-secure/projects/A2CPS/products/mris/${site}/dtifit_wls/sub-${subj}/ses-${ses}/sub-${subj}_ses-${ses}
-    dtifit -k ${data} -o "${DTIFIT_OUTPUT_WLS}" -m ${mask} -r ${bvecs} -b ${bvals} --wls --sse --save_tensor
+    ## RUN DTIFIT (WLS)
+    dtifit -k ${data} -o "${DTIFIT_OUTDIR_WLS}"/"${PARTICIPANT_LABEL}" -m ${mask} -r ${bvecs} -b ${bvals} --wls --sse --save_tensor
 
 
 }
+
 export -f main
 
 main "$@"
-
-

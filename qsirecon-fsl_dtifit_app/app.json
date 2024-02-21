@@ -34,7 +34,7 @@
         {
           "name": "BIDSDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/NStravel1"
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/bids/NStravel1"
         },
         {
           "name": "WORKDIR",
@@ -42,123 +42,44 @@
           "arg": "./work"
         },
         {
-          "id": "WORKDIR",
-          "details": {
-            "argument": "-w ",
-            "showArgument": true,
-            "description": "change the folder to store intermediate results"
-          },
-          "value": {
-            "default": "work",
-            "type": "string",
-            "visible": true,
-            "required": true
-          }
-        },
-        {
-          "name": "RECON_ONLY",
+          "name": "QSIPREPDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "--recon-only"
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep/derivatives/NStravel1"
         },
         {
-          "name": "RECON_SPEC",
+          "name": "FREESURFERDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "--recon_spec reorient_fslstd"
+          "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel1/anat/freesurfer"
         },
         {
-          "id": "QSIPREP_DIR",
-          "details": {
-            "argument": "-recon_input ",
-            "showArgument": true,
-            "description": "the output dir from QSIPREP"
-          },
-          "value": {
-            "default": "qsiprep",
-            "type": "string",
-            "visible": true,
-            "required": true
-          }
-        },
-        {
-          "id": "PARTICIPANT_LABEL",
-          "value": {
-            "default": "sub-01",
-            "type": "string",
-            "visible": true,
-            "required": true
-          },
-          "details": {
-            "description": "A space delimited list of participant identifiers or a single identifier (the sub- prefix can be removed)",
-            "showArgument": false,
-            "argument": "participant --participant_label "
-          }
-        },
-        {
-          "name": "FREESURFER_DIR",
+          "name": "OUTDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "--freesurfer-input "
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon_fsl/derivatives/NStravel1"
         },
         {
-          "id": "NTHREADS",
-          "details": {
-            "argument": "--nthreads ",
-            "showArgument": true,
-            "description": "Maximum number of threads available when processing each participant"
-          },
-          "value": {
-            "default": 8,
-            "type": "number",
-            "visible": true,
-            "required": false
-          }
+          "name": "PARTICIPANT_LABEL",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "sub-NStravel1"
         },
         {
-          "id": "MEMMB",
-          "details": {
-            "argument": "--mem_mb ",
-            "showArgument": true,
-            "description": "Maximum amount of MB available when processing each participant"
-          },
-          "value": {
-            "default": 32000,
-            "type": "number",
-            "visible": true,
-            "required": false
-          }
+          "name": "NTHREADS",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": 8
         },
         {
-          "id": "OUTPUT_RESOLUTION",
-          "details": {
-            "argument": "--output-resolution ",
-            "showArgument": true,
-            "description": "Output voxel dimensions, identical from qsiprep_app"
-          },
-          "value": {
-            "default": null,
-            "type": "number",
-            "visible": true,
-            "required": false
-          }
+          "name": "MEMMB",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": 32000
         },
         {
-          "id": "DTIFIT_OUTPUT_OLS",
-          "value": {
-            "default": "outputs",
-            "description": "the output path for dtifit",
-            "type": "string",
-            "visible": true,
-            "required": true
-          }
+          "name": "DTIFIT_OUTDIR_OLS",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/dtifit/derivatives/dtifit_ols/NStravel1"
         },
         {
-          "id": "DTIFIT_OUTPUT_WLS",
-          "value": {
-            "default": "outputs",
-            "description": "the output path for dtifit",
-            "type": "string",
-            "visible": true,
-            "required": true
-          }
+          "name": "DTIFIT_OUTDIR_WLS",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/dtifit/derivatives/dtifit_wls/NStravel1"
         }
       ],
       "containerArgs": [
