@@ -9,8 +9,6 @@ main (){
     local PARTICIPANT_LABEL="${6}"
     local NTHREADS="${7}"
     local MEMMB="${8}"
-    local DTIFIT_OUTDIR_OLS="${9}"
-    local DTIFIT_OUTDIR_WLS="${10}"
 
     ## RUN QSIRECON
     qsiprep \
@@ -25,7 +23,7 @@ main (){
         --freesurfer-input "${FREESURFERDIR}" \
         --output-resolution 1.7 \
         --nthreads "${NTHREADS}" \
-        --mem_mb "${MEMMB}" \
+        --mem_mb "${MEMMB}"
 
     ## DEFINE ARGS FOR DTIFIT
     local qsirecon_dir="${OUTDIR}"/qsirecon/"${PARTICIPANT_LABEL}"/dwi
@@ -35,12 +33,14 @@ main (){
     local bvecs="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_space-T1w_desc-preproc_fslstd_dwi.bvec
     local bvals="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_space-T1w_desc-preproc_fslstd_dwi.bval
 
+    local DTIFIT_OUTDIR_OLS="${OUTDIR}"/dtifit/ols
+    local DTIFIT_OUTDIR_WLS="${OUTDIR}"/dtifit/wls
+
     ## RUN DTIFIT (OLS)
-    dtifit -k ${data} -o "${DTIFIT_OUTDIR_OLS}"/"${PARTICIPANT_LABEL}" -m ${mask} -r ${bvecs} -b ${bvals} --ols --sse --save_tensor
+    dtifit -k ${data} -o "${DTIFIT_OUTDIR_OLS}" -m ${mask} -r ${bvecs} -b ${bvals} --ols --sse --save_tensor
 
     ## RUN DTIFIT (WLS)
-    dtifit -k ${data} -o "${DTIFIT_OUTDIR_WLS}"/"${PARTICIPANT_LABEL}" -m ${mask} -r ${bvecs} -b ${bvals} --wls --sse --save_tensor
-
+    dtifit -k ${data} -o "${DTIFIT_OUTDIR_WLS}" -m ${mask} -r ${bvecs} -b ${bvals} --wls --sse --save_tensor
 
 }
 

@@ -34,7 +34,7 @@
         {
           "name": "BIDSDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/shared/maj/bids/NStravel1"
+          "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1"
         },
         {
           "name": "WORKDIR",
@@ -54,7 +54,7 @@
         {
           "name": "OUTDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon_fsl/derivatives/NStravel1"
+          "arg": "."
         },
         {
           "name": "PARTICIPANT_LABEL",
@@ -70,16 +70,6 @@
           "name": "MEMMB",
           "inputMode": "INCLUDE_BY_DEFAULT",
           "arg": 32000
-        },
-        {
-          "name": "DTIFIT_OUTDIR_OLS",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/shared/maj/dtifit/derivatives/dtifit_ols/NStravel1"
-        },
-        {
-          "name": "DTIFIT_OUTDIR_WLS",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/shared/maj/dtifit/derivatives/dtifit_wls/NStravel1"
         }
       ],
       "containerArgs": [
