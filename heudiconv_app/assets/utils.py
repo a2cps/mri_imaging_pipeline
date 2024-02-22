@@ -238,9 +238,12 @@ def create_fieldmaps(dirs: Path) -> None:
                     only_dwi_b0_json_file,
                     output_AP_fname_dwi.with_suffix("").with_suffix(".json"),
                 )
-                shutil.copyfile(
-                    only_dwi_b0_json_file,
-                    output_PA_fname_dwi.with_suffix("").with_suffix(".json"),
+                PA_json_fname = output_PA_fname_dwi.with_suffix(
+                    ""
+                ).with_suffix(".json")
+                shutil.copyfile(only_dwi_b0_json_file, PA_json_fname)
+                set_jsonfield(
+                    PA_json_fname, key="PhaseEncodingDirection", value="j"
                 )
                 only_dwi_b0_json_file.unlink()
                 only_dwi_b0_file.unlink()
