@@ -303,7 +303,6 @@
             "WindowCenterWidthExplanation": "Algo1",
             "WindowWidth": 1010.0,
             "dBdt": 0.0
-        },
-        "slices": {}
+        }
     }
 }
