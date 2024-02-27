@@ -11,7 +11,7 @@ import pandas as pd
 from nibabel import orientations
 
 DIR: typing.TypeAlias = typing.Literal["RL", "LR", "AP", "PA", "IS", "SI"]
-PED: typing.TypeAlias = typing.Literal["i", "i-", "j", "j-", "k", "k-"]
+PED: typing.TypeAlias = typing.Literal["i-", "i", "j-", "j", "k-", "k"]
 RAS_DIR_PED: dict[DIR, PED] = {
     k: v for k, v in zip(typing.get_args(DIR), typing.get_args(PED))
 }
@@ -84,13 +84,16 @@ def main(bids_path: pathlib.Path) -> None:
                 f"""
                 Mismatch of {existing_dir=} and {ped=}.
                 Axis Codes are {orientations.aff2axcodes(nii.affine)}.                 
-                Updating filename with {expected_dir=}."""
+                Trying to update filename to {expected_dir=}."""
             )
 
-            shutil.move(
-                f, f.with_name(f.name.replace(existing_dir, expected_dir))
-            )
+            new_f = f.with_name(f.name.replace(existing_dir, expected_dir))
             new_n = n.with_name(n.name.replace(existing_dir, expected_dir))
+            if new_f.exists() or new_n.exists():
+                msg = "Destination already exists!"
+                raise RuntimeError(msg)
+
+            shutil.move(f, new_f)
             shutil.move(n, new_n)
 
             # repeat renaming for files in the scans.tsv

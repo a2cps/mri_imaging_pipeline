@@ -15,7 +15,7 @@ module load tacc-apptainer
 module unload xalt
 
 BIND_DIR=/corral-secure/projects/A2CPS
-CONTAINER_IMAGE=psadil/heudiconv_app:240220
+CONTAINER_IMAGE=a2cps/heudiconv:240220
 # shellcheck disable=SC2089
 LOCATOR='--locator="" '
 HEURISTIC="--heuristic a2cps.py "
@@ -340,3 +340,27 @@ done
 
 wait
 
+NEW_DIR="."
+OUT_DIR=json_comparisons
+mkdir -p ${OUT_DIR}
+for i in "${!SUBJECTS[@]}"; do
+    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
+    if [[  "${sublong}" == *"phantom"*  ]]; then
+        printf 'skipping %s \n' "${sublong}"
+        continue
+    fi
+    printf '#### %s ####\n' "${sublong}"
+
+    site_long="${SITE_LONG[${SITES[${i}]}]}"
+
+    for json in "${NEW_DIR}"/"${site_long}"/bids/"${SITES[${i}]}""${SUBJECTS[${i}]}""${SES[${i}]}"/sub-*/ses-"${SES[${i}]}"/*/*json; do
+        json_name=$(basename "${json}")
+        common_path=$(realpath --relative-to ${NEW_DIR} "${json}")
+        printf '## %s ##\n' "${json_name}"
+        diff \
+            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time, .BidsGuess)' ${project}/"${common_path}") \
+            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time, .BidsGuess)' "${json}") \
+            &> "${OUT_DIR}"/"${json_name%.*}"
+        
+    done
+done
