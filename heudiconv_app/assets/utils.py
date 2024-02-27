@@ -413,6 +413,9 @@ def edit_json(data_path):
     # https://github.com/rordenlab/dcm2niix/issues/635
     # dcm2niix will only extract SliceTiming on UHP scans
     # collected with older software through special treatment
+    #
+    # personal communication indicates that newer versions
+    # may also be affected
     manufacturer_model_name = get_field_from_first_json(
         dirs, "ManufacturersModelName"
     )
@@ -421,6 +424,7 @@ def edit_json(data_path):
         if software_versions in [
             "27\\LX\\MR Software release:DV26.0_R02_1810.b".lower(),
             "28\\LX\\MR Software release:RX28.0_R04_UHP3T_2111.a".lower(),
+            "30\\LX\\SIGNA_LX1.MR30.1_R01_2322.c".lower(),
         ]:
             add_slicetiming_to_uhp_dwi(dirs)
 
