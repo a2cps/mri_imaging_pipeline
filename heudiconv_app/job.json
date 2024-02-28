@@ -1,13 +1,13 @@
 {
-    "appId": "urrutia-heudiconv-0.12.5",
-    "name": "heudiconv-test",
+    "appId": "urrutia-heudiconv-0.12.7",
+    "name": "heudiconv-UM20333V3-test",
     "archive": true,
-    "archivePath": "products/mris/UM_umichigan/bids/UM20320V3",
+    "archivePath": "products/mris/UM_umichigan/bids/UM20333V3",
     "maxRunTime": "04:59:00",
     "parameters": {
         "BIND_DIR": "/corral-secure/projects/A2CPS/",
-        "FILES": "/corral-secure/projects/A2CPS/products/mris/UM_umichigan/dicoms/UM20320V3.zip",
-        "LIST_OF_SUBJECTS": "20320",
+        "FILES": "/corral-secure/projects/A2CPS/products/mris/UM_umichigan/dicoms/UM20333V3.zip",
+        "LIST_OF_SUBJECTS": "20333",
         "OUTDIR": ".",
         "SESSION_FOR_LONGITUDINAL": "V3",
         "BIDS": true,
