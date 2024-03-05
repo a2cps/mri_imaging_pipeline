@@ -11,35 +11,40 @@ keep_list = [
     "BandwidthPerPixelPhaseEncode",
     "BaseResolution",
     # "BodyPartExamined",
-    # "CoilCombinationMethod",
+    "CoilCombinationMethod",
     "CoilString",
     "ConsistencyInfo",
     "DeviceSerialNumber",
+    "DiffGradientCyclingGE",
     "DiffusionScheme",
     "DwellTime",
     "EchoTime",
     "EchoTrainLength",
     "EffectiveEchoSpacing",
     "FlipAngle",
+    "FrequencyEncodingSteps",
     "ImageOrientationPatientDICOM",
     "ImageType",
     "ImagingFrequency",
     "InPlanePhaseEncodingDirectionDICOM",
     "InversionTime",
-    # "MatrixCoilMode",
+    "MatrixCoilMode",
     "MRAcquisitionType",
     "MagneticFieldStrength",
     "Manufacturer",
     "ManufacturersModelName",
     "MultibandAccelerationFactor",
-    # "NumberOfArms",
-    # "NumberOfExcitations",
-    # "NumberOfPointsPerArm",
-    # "ParallelAcquisitionTechnique",
-    # "ParallelReductionFactorInPlane",
-    # "ParallelReductionOutOfPlane"
+    "NonlinearGradientCorrection",
+    "NumberOfDiffusionT2GE",
+    "NumberOfArms",
+    "NumberOfDiffusionDirectionGE",
+    "NumberOfExcitations",
+    "NumberOfPointsPerArm",
+    "ParallelAcquisitionTechnique",
+    "ParallelReductionFactorInPlane",
+    "ParallelReductionOutOfPlane",
     "PartialFourier",
-    # "PartialFourierDirection",
+    "PartialFourierDirection",
     "PartialFourierEnabled",
     "PercentPhaseFOV",
     "PercentSampling",
@@ -48,10 +53,14 @@ keep_list = [
     "PhaseEncodingPolarityGE",
     "PhaseEncodingSteps",
     "PhaseEncodingStepsNoPartialFourier",
+    "PhaseEncodingStepsOutOfPlane",
     "PhaseResolution",
     "PixelBandwidth",
     "PixelSpacing",
+    "PrescanReuseString",
+    "ProcedureStepDescription",
     "PulseSequenceDetails",
+    "PulseSequenceName",
     "ReceiveCoilActiveElements",
     "ReceiveCoilName",
     "ReconMatrixPE",
@@ -65,6 +74,7 @@ keep_list = [
     "SliceTiming",
     "SoftwareVersions",
     "SpacingBetweenSlices",
+    "TensorFileNumberGE",
     # "SpoilingState",
     # "TxRefAmp",
     "TotalReadoutTime",
@@ -111,18 +121,30 @@ for j in jsons:
                 acq = re.findall("acq-(b1000|b2000)", j)[0]
                 d["acq"] = acq
                 d["bval"] = [
-                    np.genfromtxt(f"site-{scanner}phantom_acq-{acq}_dwi.bval").tolist()
+                    np.genfromtxt(
+                        f"site-{scanner}phantom_acq-{acq}_dwi.bval"
+                    ).tolist()
                 ]
                 d["bvec"] = [
-                    np.genfromtxt(f"site-{scanner}phantom_acq-{acq}_dwi.bvec").tolist()
+                    np.genfromtxt(
+                        f"site-{scanner}phantom_acq-{acq}_dwi.bvec"
+                    ).tolist()
                 ]
             elif phantom and scanner == "UM2":
-                d["bval"] = [np.genfromtxt(f"site-{scanner}phantom_dwi.bval").tolist()]
-                d["bvec"] = [np.genfromtxt(f"site-{scanner}phantom_dwi.bvec").tolist()]
+                d["bval"] = [
+                    np.genfromtxt(f"site-{scanner}phantom_dwi.bval").tolist()
+                ]
+                d["bvec"] = [
+                    np.genfromtxt(f"site-{scanner}phantom_dwi.bvec").tolist()
+                ]
 
             else:
-                d["bval"] = [np.genfromtxt(f"site-{scanner}_dwi.bval").tolist()]
-                d["bvec"] = [np.genfromtxt(f"site-{scanner}_dwi.bvec").tolist()]
+                d["bval"] = [
+                    np.genfromtxt(f"site-{scanner}_dwi.bval").tolist()
+                ]
+                d["bvec"] = [
+                    np.genfromtxt(f"site-{scanner}_dwi.bvec").tolist()
+                ]
 
         # parameters stored deeper in the file
         if data.__contains__("global"):
@@ -148,5 +170,9 @@ for j in jsons:
 
         d_list.append(d)
 
-dd = pd.concat(d_list).set_index(["suffix", "scanner", "task", "acq"]).sort_index()
+dd = (
+    pd.concat(d_list)
+    .set_index(["suffix", "scanner", "task", "acq"])
+    .sort_index()
+)
 dd.to_csv(os.path.join(root, "assets", "acq-params.tsv"), sep="\t")

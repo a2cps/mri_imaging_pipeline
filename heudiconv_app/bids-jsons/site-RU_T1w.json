@@ -1,25 +1,29 @@
 {
-    "AcquisitionDuration": 346.595,
+    "AcquisitionDuration": 346.617,
     "AcquisitionMatrixPE": 256,
     "AcquisitionNumber": 1,
-    "AcquisitionTime": "15:26:15.130000",
     "BaseResolution": 256,
+    "BidsGuess": [
+        "anat",
+        "_acq-tfl3p2_run-2_T1w"
+    ],
     "BodyPartExamined": "BRAIN",
     "CoilCombinationMethod": "Adaptive Combine",
     "CoilString": "HeadNeck_64",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20220720",
+    "ConversionSoftwareVersion": "v1.0.20240123",
     "DeviceSerialNumber": "166295",
-    "DwellTime": 1.22e-05,
-    "EchoTime": 0.00307,
+    "DwellTime": 0.0000122,
+    "EchoTime": 0.00262,
     "FlipAngle": 8,
+    "FrequencyEncodingSteps": 256,
     "ImageOrientationPatientDICOM": [
-        1,
-        0,
-        0,
         0,
         1,
-        0
+        0,
+        0,
+        0,
+        -1
     ],
     "ImageType": [
         "ORIGINAL",
@@ -31,10 +35,11 @@
         "ORIGINAL",
         "PRIMARY",
         "M",
-        "ND"
+        "ND",
+        "NORM"
     ],
-    "ImagingFrequency": 123.203,
-    "InPlanePhaseEncodingDirectionDICOM": "COL",
+    "ImagingFrequency": 123.203179,
+    "InPlanePhaseEncodingDirectionDICOM": "ROW",
     "InstitutionAddress": "W. Harrison St 1520,Chicago,IL,US,60612",
     "InstitutionName": "Rush University Med Ctr",
     "InstitutionalDepartmentName": "RAB Builidng",
@@ -50,17 +55,18 @@
     "ParallelAcquisitionTechnique": "GRAPPA",
     "ParallelReductionFactorInPlane": 2,
     "PartialFourier": 1,
-    "PartialFourierDirection": "SLICE_SELECT",
     "PatientPosition": "HFS",
     "PercentPhaseFOV": 100,
     "PercentSampling": 100,
+    "PhaseEncodingSteps": 256,
+    "PhaseEncodingStepsOutOfPlane": 176,
     "PhaseResolution": 1,
     "PixelBandwidth": 160,
     "ProcedureStepDescription": "RIRC A2CPS",
     "ProtocolName": "T1_MPRAGE",
     "PulseSequenceDetails": "%SiemensSeq%\\tfl",
-    "PulseSequenceName": "*tfl3d1_16",
-    "ReceiveCoilActiveElements": "HC1-7",
+    "PulseSequenceName": "*tfl3d1_16ns",
+    "ReceiveCoilActiveElements": "HC1-7;NC1",
     "ReceiveCoilName": "HeadNeck_64",
     "ReconMatrixPE": 256,
     "RefLinesPE": 24,
@@ -83,5 +89,5 @@
     "SliceThickness": 1,
     "SoftwareVersions": "syngo MR XA30",
     "StationName": "MRI",
-    "TxRefAmp": 149.608
+    "TxRefAmp": 256.395
 }
