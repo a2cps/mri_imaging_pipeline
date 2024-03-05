@@ -6,7 +6,7 @@ import pandas as pd
 
 def main(bidsdir: Path) -> None:
     for scans_tsv in bidsdir.rglob("*scans.tsv"):
-        scans = pd.read_csv(scans_tsv, delim_whitespace=True)
+        scans = pd.read_csv(scans_tsv, sep=r"\s+")
         scans.drop(columns=["operator", "randstr"], inplace=True)
         scans.to_csv(scans_tsv, sep="\t", na_rep="n/a", index=False)
 

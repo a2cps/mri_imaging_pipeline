@@ -2,38 +2,49 @@
     "AcquisitionDuration": 35.32,
     "AcquisitionMatrixPE": 130,
     "AcquisitionNumber": 1,
-    "AcquisitionTime": "10:42:45.915000",
     "BandwidthPerPixelPhaseEncode": 10.395,
     "BaseResolution": 130,
+    "BidsGuess": [
+        "dwi",
+        "_acq-epse2_dir-AP_run-6_dwi"
+    ],
     "BodyPartExamined": "HEAD",
     "CoilCombinationMethod": "Adaptive Combine",
     "CoilString": "HeadNeck_64",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20220720",
+    "ConversionSoftwareVersion": "v1.0.20240123",
     "DerivedVendorReportedEchoSpacing": 0.000740001,
     "DeviceSerialNumber": "66022",
     "DiffusionScheme": "Bipolar",
-    "DwellTime": 2.6e-06,
+    "DwellTime": 0.0000026,
     "EchoTime": 0.091,
     "EchoTrainLength": 98,
     "EffectiveEchoSpacing": 0.000740001,
     "FlipAngle": 90,
-    "ImageOrientationPatientDICOM": [1, 0, 0, 0, 1, 0],
+    "FrequencyEncodingSteps": 130,
+    "ImageOrientationPatientDICOM": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0
+    ],
     "ImageType": [
-      "ORIGINAL",
-      "PRIMARY",
-      "DIFFUSION",
-      "NONE"
-  ],
+        "ORIGINAL",
+        "PRIMARY",
+        "DIFFUSION",
+        "NONE"
+    ],
     "ImageTypeText": [
-      "ORIGINAL",
-      "PRIMARY",
-      "DIFFUSION",
-      "NONE",
-      "ND",
-      "NORM"
-  ],
-    "ImagingFrequency": 123.257,
+        "ORIGINAL",
+        "PRIMARY",
+        "DIFFUSION",
+        "NONE",
+        "ND",
+        "NORM"
+    ],
+    "ImagingFrequency": 123.257354,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionAddress": "East Beltline NE 2750,Grand Rapids,MI,US,49503",
     "InstitutionName": "Spectrum ICCB Campus",
@@ -51,6 +62,7 @@
     "PercentPhaseFOV": 100,
     "PercentSampling": 100,
     "PhaseEncodingDirection": "j-",
+    "PhaseEncodingSteps": 130,
     "PhaseResolution": 1,
     "PixelBandwidth": 1479,
     "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
@@ -66,11 +78,25 @@
     "SequenceVariant": "SK\\SP",
     "SeriesDescription": "dwi_dwi_acq_b2000",
     "SeriesNumber": 6,
-    "ShimSetting": [-1200, -11038, 2833, 129, 96, -547, 62, 49],
+    "ShimSetting": [
+        -1209,
+        -11022,
+        2829,
+        180,
+        170,
+        -432,
+        93,
+        62
+    ],
     "SliceThickness": 5,
-    "SliceTiming": [0, 1.32, 0.66],
+    "SliceTiming": [
+        0,
+        1.32,
+        0.66
+    ],
     "SoftwareVersions": "syngo MR XA30",
     "SpacingBetweenSlices": 6,
     "StationName": "AWP66022",
     "TotalReadoutTime": 0.0954601,
-    "TxRefAmp": 150.636}
+    "TxRefAmp": 156.936
+}

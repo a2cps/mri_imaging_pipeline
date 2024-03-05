@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -euo pipefail
+
+for j in *json; do
+    mv "${j}" "${j}".bak 
+    jq --indent 4 --sort-keys "del(.time, .global.slices)" "${j}".bak | grep -v '"AcquisitionTime": "' > "${j}" 
+done

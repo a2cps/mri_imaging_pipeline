@@ -3,12 +3,12 @@ logs:
   level: DEBUG
   token: ~
 heudiconv:
-  appId: urrutia-heudiconv-0.12.4
+  appId: urrutia-heudiconv-0.12.7
   batchQueue: corralextra
   name: heudiconv_test
   archive: true
   archivePath: testing/actor-heudiconv
-  maxRunTime: "19:59:00"
+  maxRunTime: "9:00:00"
   parameters:
     FILES: norshore/bids/1
     LIST_OF_SUBJECTS: sub-01

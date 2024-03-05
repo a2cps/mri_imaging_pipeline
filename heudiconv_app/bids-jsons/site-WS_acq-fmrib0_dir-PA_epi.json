@@ -1,20 +1,23 @@
 {
     "AcquisitionMatrixPE": 90,
     "AcquisitionNumber": 1,
-    "AcquisitionTime": "13:44:13.052500",
     "BandwidthPerPixelPhaseEncode": 52.083,
     "BaseResolution": 90,
+    "BidsGuess": [
+        "fmap",
+        "_acq-epse2p3_dir-PA_run-8_epi"
+    ],
     "CoilCombinationMethod": "Sum of Squares",
     "CoilString": "C:HEA;HEP",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20211006",
+    "ConversionSoftwareVersion": "v1.0.20240123",
     "DerivedVendorReportedEchoSpacing": 0.000640004,
     "DeviceSerialNumber": "40292",
-    "DwellTime": 3e-06,
+    "DwellTime": 0.000003,
     "EchoTime": 0.058,
     "EffectiveEchoSpacing": 0.000213335,
     "FlipAngle": 90,
-    "ImageComments": "WS20064V1",
+    "ImageComments": "WS25225V1",
     "ImageOrientationPatientDICOM": [
         1,
         0,
@@ -31,16 +34,16 @@
         "ND",
         "MOSAIC"
     ],
-    "ImagingFrequency": 123.247,
+    "ImagingFrequency": 123.247065,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionAddress": "SJohn R. Stre3990,Detroit ,District,US,48201",
     "InstitutionName": "Wayne State Research Facility 3T",
     "InstitutionalDepartmentName": "Department",
     "IntendedFor": [
-        "ses-V1/func/sub-20064_ses-V1_task-cuff_run-01_bold.nii.gz",
-        "ses-V1/func/sub-20064_ses-V1_task-cuff_run-02_bold.nii.gz",
-        "ses-V1/func/sub-20064_ses-V1_task-rest_run-01_bold.nii.gz",
-        "ses-V1/func/sub-20064_ses-V1_task-rest_run-02_bold.nii.gz"
+        "ses-V1/func/sub-25225_ses-V1_task-rest_run-01_bold.nii.gz",
+        "ses-V1/func/sub-25225_ses-V1_task-cuff_run-02_bold.nii.gz",
+        "ses-V1/func/sub-25225_ses-V1_task-rest_run-02_bold.nii.gz",
+        "ses-V1/func/sub-25225_ses-V1_task-cuff_run-01_bold.nii.gz"
     ],
     "MRAcquisitionType": "2D",
     "MagneticFieldStrength": 3,
@@ -48,6 +51,7 @@
     "ManufacturersModelName": "Verio",
     "MatrixCoilMode": "GRAPPA",
     "Modality": "MR",
+    "NonlinearGradientCorrection": false,
     "ParallelReductionFactorInPlane": 3,
     "PartialFourier": 0.875,
     "PatientPosition": "HFS",
@@ -64,7 +68,7 @@
     "ReconMatrixPE": 90,
     "RefLinesPE": 36,
     "RepetitionTime": 6,
-    "SAR": 0.186259,
+    "SAR": 0.166633,
     "ScanOptions": "PFP\\FS",
     "ScanningSequence": "EP",
     "SequenceName": "epse2d1_90",
@@ -72,14 +76,14 @@
     "SeriesDescription": "FMRI_B0_PA",
     "SeriesNumber": 8,
     "ShimSetting": [
-        4676,
-        14051,
-        1522,
-        -33,
-        -173,
-        -96,
-        403,
-        120
+        4659,
+        14068,
+        1596,
+        190,
+        -69,
+        245,
+        259,
+        105
     ],
     "SliceThickness": 2.4,
     "SliceTiming": [
@@ -127,7 +131,7 @@
         4.115,
         4.215,
         4.315,
-        4.415,
+        4.4175,
         4.5175,
         4.6175,
         4.7175,
@@ -148,25 +152,25 @@
     "SpacingBetweenSlices": 2.4,
     "StationName": "MRC40292",
     "TotalReadoutTime": 0.0189868,
-    "TxRefAmp": 488.195,
+    "TxRefAmp": 448.111,
     "dcmmeta_affine": [
         [
             -2.4000000953674316,
             0.0,
             0.0,
-            112.58021545410156
+            104.73760986328125
         ],
         [
             0.0,
             2.4000000953674316,
             0.0,
-            -116.25379943847656
+            -126.85658264160156
         ],
         [
             0.0,
             0.0,
             2.3999998569488525,
-            -64.9818115234375
+            -68.24420166015625
         ],
         [
             0.0,
@@ -216,11 +220,12 @@
                 0,
                 90
             ],
+            "AcquisitionNumber": 1,
             "AngioFlag": "N",
             "BitsAllocated": 16,
             "BitsStored": 12,
             "Columns": 720,
-            "ContentTime": "134432.078000",
+            "ContentTime": "151233.015000",
             "EchoNumbers": 1,
             "EchoTime": 58.0,
             "EchoTrainLength": 1,
@@ -235,9 +240,9 @@
                 0.0
             ],
             "ImagePositionPatient": [
-                -868.58024168015,
-                -853.34623527527,
-                -64.981811523438
+                -860.73764109612,
+                -842.74345779419,
+                -68.244201660156
             ],
             "ImageType": [
                 "ORIGINAL",
@@ -247,9 +252,11 @@
                 "MOSAIC"
             ],
             "ImagedNucleus": "1H",
-            "ImagingFrequency": 123.234242,
+            "ImagingFrequency": 123.247065,
             "InPlanePhaseEncodingDirection": "COL",
-            "InstanceCreationTime": "134432.078000",
+            "InstanceCreationTime": "151233.015000",
+            "InstanceNumber": 1,
+            "LargestImagePixelValue": 3720,
             "MRAcquisitionType": "2D",
             "MagneticFieldStrength": 3.0,
             "Manufacturer": "SIEMENS",
@@ -259,7 +266,7 @@
             "NumberOfPhaseEncodingSteps": 80,
             "PercentPhaseFieldOfView": 100.0,
             "PercentSampling": 100.0,
-            "PerformedProcedureStepStartTime": "131453.546000",
+            "PerformedProcedureStepStartTime": "144002.671000",
             "PhotometricInterpretation": "MONOCHROME2",
             "PixelBandwidth": 1852.0,
             "PixelRepresentation": 0,
@@ -270,7 +277,7 @@
             "ProtocolName": "FMRI_B0_PA",
             "RepetitionTime": 6000.0,
             "Rows": 720,
-            "SAR": 0.18625877515195,
+            "SAR": 0.16663322276375,
             "SamplesPerPixel": 1,
             "ScanOptions": [
                 "PFP",
@@ -281,55 +288,21 @@
             "SequenceVariant": "SK",
             "SeriesDescription": "FMRI_B0_PA",
             "SeriesNumber": 8,
-            "SeriesTime": "134432.062000",
-            "SliceLocation": -64.981811523438,
+            "SeriesTime": "151233.015000",
+            "SliceLocation": -68.244201660156,
             "SliceThickness": 2.4000000953674,
             "SmallestImagePixelValue": 0,
             "SoftwareVersions": "syngo MR B17",
             "SpacingBetweenSlices": 2.3999999741376,
             "SpecificCharacterSet": "ISO_IR 100",
             "StudyID": "1",
-            "StudyTime": "131453.500000",
+            "StudyTime": "144002.625000",
             "TransmitCoilName": "Body",
             "VariableFlipAngleFlag": "N",
+            "WindowCenter": 471.0,
             "WindowCenterWidthExplanation": "Algo1",
+            "WindowWidth": 1033.0,
             "dBdt": 0.0
-        },
-        "slices": {}
-    },
-    "time": {
-        "samples": {
-            "AcquisitionNumber": [
-                1,
-                2,
-                3
-            ],
-            "AcquisitionTime": [
-                "134413.052500",
-                "134419.075000",
-                "134425.100000"
-            ],
-            "InstanceNumber": [
-                1,
-                2,
-                3
-            ],
-            "LargestImagePixelValue": [
-                3770,
-                3738,
-                3760
-            ],
-            "WindowCenter": [
-                565.0,
-                564.0,
-                564.0
-            ],
-            "WindowWidth": [
-                1254.0,
-                1250.0,
-                1249.0
-            ]
-        },
-        "slices": {}
+        }
     }
 }

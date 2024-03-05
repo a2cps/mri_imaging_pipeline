@@ -225,7 +225,7 @@ def main() -> None:
     ilog = get_ilog(client=client)
 
     runlist = get_runlist(
-        ilog=ilog, maxjobs=context.message_dict.get("maxjobs")
+        ilog=ilog, maxjobs=context.message_dict.get("maxjobs", _MAXJOBS)
     )
     if not len(runlist):
         logging.warning("Did not find any jobs to submit")
@@ -245,7 +245,8 @@ def main() -> None:
     print(json.dumps(job, indent=4))
 
     try:
-        client.jobs.submitJob(**job)  # type: ignore
+        submitted = client.jobs.submitJob(**job)  # type: ignore
+        print(submitted.uuid)
     except Exception as e:
         logging.error(f"encountered while trying to submit job: {e}")
 

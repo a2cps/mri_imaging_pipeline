@@ -1,13 +1,17 @@
-import json, shutil, re
-import typing
+import json
 import logging
 import pathlib
+import re
+import shutil
+import subprocess
+import tempfile
+import typing
 from pathlib import Path
-import requests
-from nilearn.image import load_img, index_img
-import pandas as pd
 
 import nibabel as nb
+import pandas as pd
+import requests
+from nilearn.image import index_img, load_img
 
 # Hardcoded slice timings to be added to fmri json file. Used only for Philips scanner
 # From Xiaodong: The fMRI sequence in phantom QA is the same as that for subjects scan (June 7th, 2022):
@@ -143,7 +147,9 @@ def rename_fmri_b0(
                 f"PhaseEncodingDirection set to {phaseencoding}! Don't know what to do with this."
             )
 
-        name_translations.update({re.findall(r"epi\d", str(filename))[0]: epi_dir})
+        name_translations.update(
+            {re.findall(r"epi\d", str(filename))[0]: epi_dir}
+        )
 
     for src in fmri_b0_nifti + fmri_b0_json:
         dst = (
@@ -171,20 +177,21 @@ def edit_scansdf(scans_df: pd.DataFrame) -> pd.DataFrame:
     dwib0 = filenames[filenames.filename.str.contains("dwib0_epi")]
     ap = pd.DataFrame(
         dwib0.apply(
-            lambda x: re.sub("dwib0_epi", "dwib0_dir-AP_epi", x.filename), axis=1
+            lambda x: re.sub("dwib0_epi", "dwib0_dir-AP_epi", x.filename),
+            axis=1,
         ),
         columns=["filename"],
     )
     pa = pd.DataFrame(
         dwib0.apply(
-            lambda x: re.sub("dwib0_epi", "dwib0_dir-PA_epi", x.filename), axis=1
+            lambda x: re.sub("dwib0_epi", "dwib0_dir-PA_epi", x.filename),
+            axis=1,
         ),
         columns=["filename"],
     )
 
     out = (
-        out0[~out0.filename.str.contains("dwib0_epi")]
-        .append([ap, pa])
+        pd.concat([out0[~out0.filename.str.contains("dwib0_epi")], ap, pa])
         .fillna("n/a")
         .reset_index(drop=True)
     )
@@ -204,7 +211,11 @@ def create_fieldmaps(dirs: Path) -> None:
             dwi_file = tuple(ses_dir.glob("dwi/*dwi*.nii.gz"))
             dwi_b0_json_file = tuple(ses_dir.glob("fmap/*dwib0*.json"))
 
-            if len(dwi_b0_file) > 1 or len(dwi_file) > 1 or len(dwi_b0_json_file) > 1:
+            if (
+                len(dwi_b0_file) > 1
+                or len(dwi_file) > 1
+                or len(dwi_b0_json_file) > 1
+            ):
                 raise AssertionError(
                     f"found too many files related to DWI in {ses_dir}. Not sure how to proceed."
                 )
@@ -227,9 +238,12 @@ def create_fieldmaps(dirs: Path) -> None:
                     only_dwi_b0_json_file,
                     output_AP_fname_dwi.with_suffix("").with_suffix(".json"),
                 )
-                shutil.copyfile(
-                    only_dwi_b0_json_file,
-                    output_PA_fname_dwi.with_suffix("").with_suffix(".json"),
+                PA_json_fname = output_PA_fname_dwi.with_suffix(
+                    ""
+                ).with_suffix(".json")
+                shutil.copyfile(only_dwi_b0_json_file, PA_json_fname)
+                set_jsonfield(
+                    PA_json_fname, key="PhaseEncodingDirection", value="j"
                 )
                 only_dwi_b0_json_file.unlink()
                 only_dwi_b0_file.unlink()
@@ -257,6 +271,29 @@ def save_as_json(data: dict, json_filename: typing.Union[str, Path]):
         json.dump(obj=data, fp=data_file, indent=1, sort_keys=True)
 
 
+def get_field_from_first_json(dirs: pathlib.Path, field: str) -> str:
+    """
+    extract field field from json_file
+
+    Args:
+        dirs: bids root directory
+        field: field to extract
+
+    Returns:
+        extracted key
+
+    Raises:
+        AssertionError: key not found in any of the jsons
+    """
+    for i in dirs.glob("sub*/ses*/*/*json"):
+        with open(i, "r") as f:
+            json_data = json.load(f)
+        if json_data.__contains__(field):
+            return json_data[field].lower()
+
+    raise AssertionError("Unable to find json with Manufacturer field")
+
+
 def get_manufacturer(dirs: pathlib.Path) -> str:
     """
     extract manufacturer field from json_file
@@ -270,26 +307,24 @@ def get_manufacturer(dirs: pathlib.Path) -> str:
     Raises:
         AssertionError: key not found in any of the jsons
     """
-    for i in dirs.glob("sub*/ses*/*/*json"):
-        with open(i, "r") as f:
-            json_data = json.load(f)
-            if json_data.__contains__("Manufacturer"):
-                return json_data["Manufacturer"].lower()
-
-    raise AssertionError("Unable to find json with Manufacturer field")
+    return get_field_from_first_json(dirs, "Manufacturer")
 
 
 def write_dummy_fields(filename: typing.Union[str, Path]):
     with open(filename) as f:
         json_data = json.load(f)
         json_data["TotalReadoutTime"] = json_data["EstimatedTotalReadoutTime"]
-        json_data["EffectiveEchoSpacing"] = json_data["EstimatedEffectiveEchoSpacing"]
+        json_data["EffectiveEchoSpacing"] = json_data[
+            "EstimatedEffectiveEchoSpacing"
+        ]
 
     save_as_json(json_data, filename)
     print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {filename}")
 
 
-def add_intendedfor(meta: pathlib.Path, dirs: pathlib.Path, modality: str) -> None:
+def add_intendedfor(
+    meta: pathlib.Path, dirs: pathlib.Path, modality: str
+) -> None:
     # add each fmri or dwi to the fmap intendedfor, but only if the phase encoding axes match
     intendedfor = []
     json_data = json.loads(meta.read_text())
@@ -349,7 +384,7 @@ def edit_json(data_path):
     # NOTE: for Philips, this must happen after the PhaseEncodingDirection has been set (PED not
     # filled automatically)
     for i in dirs.glob("sub*/ses*/fmap/*dwib0*json"):
-        if manufacturer in ["philips", "ge"]:
+        if manufacturer in ["philips"]:
             if "AP" in str(Path(i).name):
                 value = "j-"
             else:
@@ -374,6 +409,65 @@ def edit_json(data_path):
         # https://github.com/nipy/heudiconv/issues/303
         for f in dirs.glob("sub*/ses*/*/*json"):
             sanitize_json(f)
+
+    # https://github.com/rordenlab/dcm2niix/issues/635
+    # dcm2niix will only extract SliceTiming on UHP scans
+    # collected with older software through special treatment
+    #
+    # personal communication indicates that newer versions
+    # may also be affected
+    manufacturer_model_name = get_field_from_first_json(
+        dirs, "ManufacturersModelName"
+    )
+    if "uhp" in manufacturer_model_name:
+        software_versions = get_field_from_first_json(dirs, "SoftwareVersions")
+        if software_versions in [
+            "27\\LX\\MR Software release:DV26.0_R02_1810.b".lower(),
+            "28\\LX\\MR Software release:RX28.0_R04_UHP3T_2111.a".lower(),
+            "30\\LX\\SIGNA_LX1.MR30.1_R01_2322.c".lower(),
+        ]:
+            add_slicetiming_to_uhp_dwi(dirs)
+
+
+def add_slicetiming_to_uhp_dwi(dirs: Path) -> None:
+    """Redo dcm2niix with hidden option to get slicetiming info in GE dwi"""
+
+    for old_json in dirs.glob("sub*/ses*/dwi*/*json"):
+        tgz = (dirs / "sourcedata" / old_json.relative_to(dirs)).with_suffix(
+            ".dicom.tgz"
+        )
+        logging.warning(
+            f"Rerunning dcm2niix with {tgz=} to add slice timing into {old_json}"
+        )
+        with tempfile.TemporaryDirectory() as extract_dir:
+            shutil.unpack_archive(tgz, extract_dir=extract_dir)
+            with tempfile.TemporaryDirectory() as bids_dir:
+                subprocess.run(
+                    [
+                        "dcm2niix",
+                        "-b",
+                        "o",
+                        "-o",
+                        bids_dir,
+                        "--diffCyclingModeGE",
+                        "0",
+                        extract_dir,
+                    ]
+                )
+                jsons = list(Path(bids_dir).glob("*json"))
+                if not len(jsons) == 1:
+                    msg = "Unexpected number of jsons produced during dcm2niix rerun"
+                    raise RuntimeError(msg)
+                new_json: dict[str, typing.Any] = json.loads(
+                    jsons[0].read_text()
+                )
+                new_slice_timing = new_json.get("SliceTiming")
+                if not new_slice_timing:
+                    msg = "No slicetiming info found during dcm2niix rerun"
+
+                set_jsonfield(
+                    old_json, key="SliceTiming", value=new_slice_timing
+                )
 
 
 def remove_key_inplace(d, remove_key: str) -> bool:

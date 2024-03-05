@@ -88,6 +88,8 @@ protocols2fix.update(
             # after SH upgrade
             ("Tra T1 MPRAGE orthog", "anat-T1w"),
             ("^T1_MPRAGE_ND$", "anat-T1w"),
+            # SH Traveling Human
+            ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
         ],
     }
 )
@@ -108,10 +110,16 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # want."
     # For T1w, we get both a modified "T1_MPRAGE" and "ORIG T1_MPRAGE". This
     # prevents the modifed one from going through conversion
-    elif dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX" and (
-        dcmdata.SeriesDescription == "DTI"
-        or dcmdata.SeriesDescription == "DWI"
-        or dcmdata.SeriesDescription == "T1_MPRAGE"
+    elif (
+        dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX"
+        and (
+            dcmdata.SeriesDescription == "DTI"
+            or dcmdata.SeriesDescription == "DWI"
+            or dcmdata.SeriesDescription == "T1_MPRAGE"
+        )
+        and (
+            dcmdata.get("PatientName") not in ["UM070121"]
+        )  # patients without "ORIG"
     ):
         exclude = True
     # similar issue for UI phantom scans
@@ -170,8 +178,17 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # RU sends both T1_MPRAGE (with NonlinearGradientCorrection: true) and T1_MPRAGE_ND
     # (with NonlinearGradientCorrection: false). Both are sent to anat (as duplicates),
     # but we only want to store T1_MPRAGE_ND (same as with SH after conversion to XA30)
-    elif (dcmdata.get("DeviceSerialNumber") == "166295") and (
-        dcmdata.SeriesDescription == "T1_MPRAGE"
+    # except, there is at least one case where the T1_MPRAGE is the only scan that was sent,
+    # and so we make an exception in order to have at least 1 anatomical image
+    elif (
+        (dcmdata.get("DeviceSerialNumber") == "166295")
+        and (dcmdata.get("SeriesDescription") == "T1_MPRAGE")
+        and (
+            dcmdata.get("SeriesInstanceUID")
+            not in [
+                "1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"
+            ]
+        )
     ):
         exclude = True
 

@@ -17,7 +17,7 @@ def main(dicomdir: Path, bidsdir: Path) -> None:
                     header.SeriesDate + header.SeriesTime, "%Y%m%d%H%M%S.%f"
                 ).isoformat()
                 for scans_tsv in bidsdir.glob("**/sub*scans.tsv"):
-                    scans = pd.read_csv(scans_tsv, delim_whitespace=True)
+                    scans = pd.read_csv(scans_tsv, sep=r"\s+")
                     scans.acq_time = AcquisitionDateTime
                     scans.to_csv(
                         scans_tsv, sep="\t", na_rep="n/a", index=False
