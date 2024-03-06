@@ -18,13 +18,13 @@ case "${SITE}" in
       --cleanenv \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://"${CONTAINER_IMAGE}" \
-      python exclude_derived-dwi_sh.py "${LOCAL_DICOM}"
+      python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
     singularity run \
       --cleanenv \
       -B "${BIND_DIR}":"${BIND_DIR}" \
       docker://"${CONTAINER_IMAGE}" \
-      python exclude_derived-dwi_sh.py "${LOCAL_DICOM}"
+      python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
     #shellcheck disable=SC2086
     echo singularity run \
