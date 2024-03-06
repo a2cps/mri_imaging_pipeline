@@ -9,6 +9,7 @@ from tapipy.tapis import Tapis, TapisResult
 
 SLACKBOT_ADDRESS_SECRET_NAME = "SLACKBOT_ADDRESS_SECRET_NAME"
 SLACKBOT_ADDRESS_SECRET_KEY = "SLACKBOT_ADDRESS_SECRET_KEY"
+DEFAULT_TENANT = "a2cps"
 
 
 class DeliveryTarget(BaseModel):
@@ -17,30 +18,31 @@ class DeliveryTarget(BaseModel):
 
 
 class EventData(BaseModel):
-    newJobStatus: str | None
-    oldJobStatus: str | None
-    jobStatus: str | None
-    blockedCount: int
-    remoteJobId: str
-    remoteJobId2: str | None
-    remoteOutcome: str
-    remoteResultInfo: str
-    remoteQueue: str | None
-    remoteSubmitted: datetime.datetime | None
-    remoteStarted: datetime.datetime | None
-    remoteEnded: datetime.datetime | None
-    jobName: str
-    jobUuid: str
-    jobOwner: str
-    message: str
+    newJobStatus: str | None = None
+    oldJobStatus: str | None = None
+    jobStatus: str | None = None
+    blockedCount: int | None = None
+    remoteJobId: str | None = None
+    remoteJobId2: str | None = None
+    remoteOutcome: str | None = None
+    remoteResultInfo: str | None = None
+    remoteQueue: str | None = None
+    remoteSubmitted: datetime.datetime | None = None
+    remoteStarted: datetime.datetime | None = None
+    remoteEnded: datetime.datetime | None = None
+    jobName: str | None = None
+    jobUuid: str | None = None
+    jobOwner: str | None = None
+    message: str | None = None
 
 
+# https://tapis.readthedocs.io/en/latest/technical/notifications.html#event-attributes
 class Event(BaseModel):
     source: str
     type: str
     subject: str
-    data: Json[EventData]
-    seriesId: str
+    data: Json[EventData] | None = None
+    seriesId: str | None = None
     timestamp: datetime.datetime
     deleteSubscriptionsMatchingSubject: bool
     tenant: str
@@ -48,6 +50,7 @@ class Event(BaseModel):
     uuid: str
 
 
+# https://tapis.readthedocs.io/en/latest/technical/notifications.html#notification-attributes
 class Notification(BaseModel):
     uuid: str
     tenant: str
@@ -102,8 +105,12 @@ def get_slackbot_url() -> str:
     token: TapisResult = client.sk.readSecret(  # type: ignore
         secretType="user",
         secretName=SLACKBOT_ADDRESS_SECRET_NAME,
-        tenant=os.environ.get("_abaco_api_server").split('.')[0].split("/")[-1],
-        user=client.actors.get_actor(actor_id=os.environ.get("_abaco_actor_id")).owner,
+        tenant=os.environ.get("_abaco_api_server", DEFAULT_TENANT)
+        .split(".")[0]
+        .split("/")[-1],
+        user=client.actors.get_actor(
+            actor_id=os.environ.get("_abaco_actor_id")
+        ).owner,
     )
     url: str | None = token.get("secretMap").get(SLACKBOT_ADDRESS_SECRET_KEY)  # type: ignore
     if url is None:
@@ -122,19 +129,20 @@ def main() -> None:
     context: Context = actors.get_context()  # type: ignore
 
     notification = Notification(**context.message_dict)
+    data = notification.event.data
+
+    if data:
+        msg = data.model_dump_json(
+            indent=2,
+            include={"remoteSubmitted", "jobName", "jobUuid", "message"},
+        )
+    else:
+        msg = notification.event.model_dump_json(indent=2)
 
     msg = f"""
     Potential failure detected:
     {
-        notification.event.data.json(
-            indent=2, 
-            include={
-                "remoteSubmitted", 
-                "jobName", 
-                "jobUuid",
-                "message"
-            }
-        )
+        msg
     }
     """
 
