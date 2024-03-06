@@ -14,17 +14,17 @@ unzip ${FILES} -d ${LOCAL_DICOM}
 
 case "${SITE}" in
   SH | RU)
-    echo singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
+    # echo singularity run \
+    #   --cleanenv \
+    #   -B "${BIND_DIR}":"${BIND_DIR}" \
+    #   docker://"${CONTAINER_IMAGE}" \
+    #   python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
-    singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
+    # singularity run \
+    #   --cleanenv \
+    #   -B "${BIND_DIR}":"${BIND_DIR}" \
+    #   docker://"${CONTAINER_IMAGE}" \
+    #   python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
     #shellcheck disable=SC2086
     echo singularity run \
