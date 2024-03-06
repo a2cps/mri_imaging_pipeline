@@ -12,3 +12,8 @@ for j in *json; do
         | awk 'NR>1{print PREV} {PREV=$0} END{printf("%s",$0)}' \
         > "${j}" 
 done
+
+# Also, RU references need to be updated based on values from first scan
+# - DWI RepetitionTime
+# - T1w DwellTime, EchoTime, and PixelBandwidth
+# https://a2cps-pain.slack.com/archives/C02JP3G763X/p1709737714740369
