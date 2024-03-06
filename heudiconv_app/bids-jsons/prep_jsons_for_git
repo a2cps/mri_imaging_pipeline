@@ -4,5 +4,11 @@ set -euo pipefail
 
 for j in *json; do
     mv "${j}" "${j}".bak 
-    jq --indent 4 --sort-keys "del(.time, .global.slices)" "${j}".bak | grep -v '"AcquisitionTime": "' > "${j}" 
+    # remove fields that can change from scan to scan (and so aren't checked)
+    # the awk line deletes any trailing endlines
+    #   https://unix.stackexchange.com/questions/140727/how-can-i-delete-a-trailing-newline-in-bash/140729#140729
+    jq --indent 4 --sort-keys "del(.time, .global.slices)" "${j}".bak \
+        | grep -v '"AcquisitionTime": "' \
+        | awk 'NR>1{print PREV} {PREV=$0} END{printf("%s",$0)}' \
+        > "${j}" 
 done
