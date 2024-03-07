@@ -57,7 +57,7 @@ keep_list = [
     "PhaseResolution",
     "PixelBandwidth",
     "PixelSpacing",
-    "PrescanReuseString",
+    # "PrescanReuseString", # redundant with ShimSetting
     "ProcedureStepDescription",
     "PulseSequenceDetails",
     "PulseSequenceName",

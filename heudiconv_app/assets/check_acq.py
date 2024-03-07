@@ -9,6 +9,7 @@ from itertools import chain
 import bids
 import numpy as np
 import pandas as pd
+from bids.layout.utils import BIDSMetadata
 from deepdiff import DeepDiff
 from utils import print_and_post
 
@@ -35,7 +36,7 @@ def remove_translation(meta: dict) -> dict:
     return meta
 
 
-def assert_constant(jsons: list, meta: list, key: str, post: bool = False) -> bool:
+def assert_constant(jsons: list, meta: list[BIDSMetadata], key: str, post: bool = False) -> bool:
     tocheck = pd.DataFrame(
         {"json": [os.path.basename(x) for x in jsons], key: [x.get(key) for x in meta]}
     )
@@ -70,12 +71,13 @@ def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) ->
     if site in SIEMENS_W_64:
         ok = assert_constant(
             json_list, meta_list, "ReceiveCoilActiveElements", post=post
-        )
-        ok &= assert_constant(json_list, meta_list, "ShimSettings", post=post)
+        )        
     elif site == "WS":
         ok = assert_constant(json_list, meta_list, "CoilString", post=post)
     else:
         ok = True
+    
+    ok &= assert_constant(json_list, meta_list, "ShimSetting", post=post)
 
     return ok
 
