@@ -127,6 +127,7 @@ def post_notification(notification: str) -> requests.Response | None:
 
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
+    print("Message: ", context.message_dict)
 
     notification = Notification(**context.message_dict)
     data = notification.event.data
