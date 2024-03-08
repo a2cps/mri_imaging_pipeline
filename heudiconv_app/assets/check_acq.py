@@ -1,15 +1,20 @@
 import argparse
+import json
 import logging
 import os
 import pathlib
 import re
+import typing
 from glob import glob
 from itertools import chain
 
-import bids
+import ancpbids
+
+# import bids
 import numpy as np
 import pandas as pd
-from bids.layout.utils import BIDSMetadata
+
+# from bids.layout.utils import BIDSMetadata
 from deepdiff import DeepDiff
 from utils import print_and_post
 
@@ -27,6 +32,24 @@ FLOATING_PARAMS = {
 
 SIEMENS_W_64 = ["NS", "SH", "RU"]
 
+def get_metadata(file: str) -> dict[str, typing.Any]:
+    """get_metadata associated with nii.gz file
+
+    Args:
+        file (str): nifti file
+
+    Returns:
+        dict[str, typing.Any]: contents of associated json sidecar
+
+    Description:
+        Unlike layout.get_metadata(), this function does not collapse
+        keys that appear in multiple positions
+    """
+    if not file.endswith("nii.gz"):
+        msg = f"expecting file that ends with nii.gz, received {file}"
+        raise AssertionError(msg)
+    
+    return json.loads(pathlib.Path(file.replace("nii.gz","json")).read_text())
 
 def remove_translation(meta: dict) -> dict:
     if (affine := meta.get("dcmmeta_affine")) is not None:
@@ -36,7 +59,7 @@ def remove_translation(meta: dict) -> dict:
     return meta
 
 
-def assert_constant(jsons: list, meta: list[BIDSMetadata], key: str, post: bool = False) -> bool:
+def assert_constant(jsons: list, meta: list, key: str, post: bool = False) -> bool:
     tocheck = pd.DataFrame(
         {"json": [os.path.basename(x) for x in jsons], key: [x.get(key) for x in meta]}
     )
@@ -52,21 +75,21 @@ def assert_constant(jsons: list, meta: list[BIDSMetadata], key: str, post: bool 
     return ok
 
 
-def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) -> bool:
+def compare_withinsub(layout: ancpbids.BIDSLayout, site: str, post: bool = False) -> bool:
     """
     Some parameters won't be consistant from participant to participant, even while
     they should have a single value within a session. This function organizes checks for
     that consistency
 
     """
-    json_list = (
+    json_list: list[str] = (
         layout.get(suffix="T1w", extension="nii.gz", return_type="file")
         + layout.get(task="cuff", extension="nii.gz", return_type="file")
         + layout.get(task="rest", extension="nii.gz", return_type="file")
         + layout.get(suffix="dwi", extension="nii.gz", return_type="file")
         + layout.get(suffix="epi", extension="nii.gz", return_type="file")
-    )
-    meta_list = [layout.get_metadata(x) for x in json_list]
+    ) # type: ignore
+    meta_list = [get_metadata(x) for x in json_list]
 
     if site in SIEMENS_W_64:
         ok = assert_constant(
@@ -77,7 +100,22 @@ def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) ->
     else:
         ok = True
     
-    ok &= assert_constant(json_list, meta_list, "ShimSetting", post=post)
+    func_list: list[str] = (
+        layout.get(task="rest", extension="nii.gz", return_type="file")
+        + layout.get(task="cuff", extension="nii.gz", return_type="file")
+        + layout.get(suffix="epi", extension="nii.gz", return_type="file", acq="fmrib0")
+    )  # type: ignore
+    if len(func_list):
+        func_meta = [get_metadata(x) for x in func_list]
+        ok &= assert_constant(func_list, func_meta, "ShimSetting", post=post)
+    
+    dwi_list: list[str] = (
+        layout.get(suffix="dwi", extension="nii.gz", return_type="file")
+        + layout.get(suffix="epi",extension="nii.gz", return_type="file", acq="dwib0")
+    ) # type: ignore
+    if len(dwi_list):
+        dwi_meta = [get_metadata(x) for x in dwi_list]
+        ok &= assert_constant(dwi_list, dwi_meta, "ShimSetting", post=post)
 
     return ok
 
@@ -137,7 +175,7 @@ def check_bvalsbvecs(
 
 
 def compare(
-    layout: bids.BIDSLayout,
+    layout: ancpbids.BIDSLayout,
     js_observed: str,
     reference: pd.DataFrame,
     post: bool = False,
@@ -240,7 +278,7 @@ def getUM(t1w_meta: dict) -> str:
 def main(root: str, site: str, phantom: bool = False, post: bool = False) -> None:
     ok = 1
 
-    layout = bids.layout.BIDSLayout(root, validate=False)
+    layout = ancpbids.BIDSLayout(root, validate=False)
 
     if site == "UM":
         any_nii = layout.get(extension="nii.gz", return_type="file")
@@ -258,7 +296,7 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
 
     # T1w is easy and _should_ always be present by now. But if it isn't we still don't want the app to
     # fail, so this does a check only if one can be found
-    T1ws = layout.get(suffix="T1w", extension="nii.gz", return_type="file")
+    T1ws: list[str] = layout.get(suffix="T1w", extension="nii.gz", return_type="file") # type: ignore
     if len(T1ws) > 0:
         for scan in T1ws:
             ok *= compare(
@@ -352,7 +390,7 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check bids.json files")
-    parser.add_argument("root", type=pathlib.Path)
+    parser.add_argument("root")
     parser.add_argument("site", choices=["NS", "SH", "UC", "UI", "UM", "WS", "RU"])
     parser.add_argument(
         "--phantom", action=argparse.BooleanOptionalAction, default=False
