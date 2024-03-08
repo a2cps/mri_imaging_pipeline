@@ -513,7 +513,9 @@ def main():
                 surg_day = ''
 
             # add column for applied pressure
-            if row['fmricuffcalfpressurerecal'] != '':
+            if row["fmricuffipyn"] == '0':
+                applied_pressure = 'na'
+            elif row['fmricuffcalfpressurerecal'] != '':
                 applied_pressure = row['fmricuffcalfpressurerecal']
             else:
                 applied_pressure = cuff1_pressure
@@ -691,5 +693,7 @@ def main():
 
 if __name__ == '__main__':
     main() 
+
+
 
 
