@@ -1,15 +1,18 @@
 import argparse
+import json
 import logging
 import os
 import pathlib
 import re
+import typing
 from glob import glob
 from itertools import chain
 
-import bids
+import ancpbids
 import numpy as np
 import pandas as pd
 from deepdiff import DeepDiff
+
 from utils import print_and_post
 
 # parameters to check for numerical equivalence
@@ -27,6 +30,26 @@ FLOATING_PARAMS = {
 SIEMENS_W_64 = ["NS", "SH", "RU"]
 
 
+def get_metadata(file: str) -> dict[str, typing.Any]:
+    """get_metadata associated with nii.gz file
+
+    Args:
+        file (str): nifti file
+
+    Returns:
+        dict[str, typing.Any]: contents of associated json sidecar
+
+    Description:
+        Unlike layout.get_metadata(), this function does not collapse
+        keys that appear in multiple positions
+    """
+    if not file.endswith("nii.gz"):
+        msg = f"expecting file that ends with nii.gz, received {file}"
+        raise AssertionError(msg)
+
+    return json.loads(pathlib.Path(file.replace("nii.gz", "json")).read_text())
+
+
 def remove_translation(meta: dict) -> dict:
     if (affine := meta.get("dcmmeta_affine")) is not None:
         for i, row in enumerate(affine):
@@ -35,14 +58,20 @@ def remove_translation(meta: dict) -> dict:
     return meta
 
 
-def assert_constant(jsons: list, meta: list, key: str, post: bool = False) -> bool:
+def assert_constant(
+    jsons: list, meta: list, key: str, post: bool = False
+) -> bool:
     tocheck = pd.DataFrame(
-        {"json": [os.path.basename(x) for x in jsons], key: [x.get(key) for x in meta]}
+        {
+            "json": [os.path.basename(x) for x in jsons],
+            key: [x.get(key) for x in meta],
+        }
     )
 
     if len(tocheck.drop_duplicates(subset=key)) > 1:
         print_and_post(
-            f"Visit has multiple values for {key}\n" + tocheck.to_string(), post=post
+            f"Visit has multiple values for {key}\n" + tocheck.to_string(),
+            post=post,
         )
         ok = False
     else:
@@ -51,31 +80,52 @@ def assert_constant(jsons: list, meta: list, key: str, post: bool = False) -> bo
     return ok
 
 
-def compare_withinsub(layout: bids.BIDSLayout, site: str, post: bool = False) -> bool:
+def compare_withinsub(
+    layout: ancpbids.BIDSLayout, site: str, post: bool = False
+) -> bool:
     """
     Some parameters won't be consistant from participant to participant, even while
     they should have a single value within a session. This function organizes checks for
     that consistency
 
     """
-    json_list = (
+    json_list: list[str] = (
         layout.get(suffix="T1w", extension="nii.gz", return_type="file")
         + layout.get(task="cuff", extension="nii.gz", return_type="file")
         + layout.get(task="rest", extension="nii.gz", return_type="file")
         + layout.get(suffix="dwi", extension="nii.gz", return_type="file")
         + layout.get(suffix="epi", extension="nii.gz", return_type="file")
-    )
-    meta_list = [layout.get_metadata(x) for x in json_list]
+    )  # type: ignore
+    meta_list = [get_metadata(x) for x in json_list]
 
     if site in SIEMENS_W_64:
         ok = assert_constant(
             json_list, meta_list, "ReceiveCoilActiveElements", post=post
         )
-        ok &= assert_constant(json_list, meta_list, "ShimSettings", post=post)
     elif site == "WS":
         ok = assert_constant(json_list, meta_list, "CoilString", post=post)
     else:
         ok = True
+
+    func_list: list[str] = (
+        layout.get(task="rest", extension="nii.gz", return_type="file")
+        + layout.get(task="cuff", extension="nii.gz", return_type="file")
+        + layout.get(
+            suffix="epi", extension="nii.gz", return_type="file", acq="fmrib0"
+        )
+    )  # type: ignore
+    if len(func_list):
+        func_meta = [get_metadata(x) for x in func_list]
+        ok &= assert_constant(func_list, func_meta, "ShimSetting", post=post)
+
+    dwi_list: list[str] = layout.get(
+        suffix="dwi", extension="nii.gz", return_type="file"
+    ) + layout.get(
+        suffix="epi", extension="nii.gz", return_type="file", acq="dwib0"
+    )  # type: ignore
+    if len(dwi_list):
+        dwi_meta = [get_metadata(x) for x in dwi_list]
+        ok &= assert_constant(dwi_list, dwi_meta, "ShimSetting", post=post)
 
     return ok
 
@@ -92,7 +142,7 @@ def check_receivecoil(observed: dict, reference: pd.DataFrame) -> bool:
 
 def add_deepkeys(observed: dict) -> dict:
     if observed.__contains__("global"):
-        observed["BitsStored"] = observed.get("global").get("const").get("BitsStored") # type: ignore
+        observed["BitsStored"] = observed.get("global").get("const").get("BitsStored")  # type: ignore
     return observed
 
 
@@ -110,20 +160,24 @@ def check_bvalsbvecs(
     root issue seems to be: https://github.com/moloney/dcmstack/issues/51
     """
 
-    rb = np.array(pd.eval(reference["bval"]), dtype=float).squeeze() # type: ignore
-    rv = np.array(pd.eval(reference["bvec"]), dtype=float).squeeze() # type: ignore
+    rb = np.array(pd.eval(reference["bval"]), dtype=float).squeeze()  # type: ignore
+    rv = np.array(pd.eval(reference["bvec"]), dtype=float).squeeze()  # type: ignore
 
     # in the case of UC scans, we don't get a full dcmstack output in the DWI, so notification must
     # happen
     # root issue seems to be: https://github.com/moloney/dcmstack/issues/51
     if bval_observed.shape[0] < rb.shape[0]:
-        print_and_post(f"{os.path.basename(scan)} appears truncated", post=post)
+        print_and_post(
+            f"{os.path.basename(scan)} appears truncated", post=post
+        )
         ok = False
     elif not (
-        np.isclose(rb, bval_observed).all() and np.isclose(rv, bvec_observed).all()
+        np.isclose(rb, bval_observed).all()
+        and np.isclose(rv, bvec_observed).all()
     ):
         print_and_post(
-            f"{os.path.basename(scan)} has unexpected bvals or bvecs", post=post
+            f"{os.path.basename(scan)} has unexpected bvals or bvecs",
+            post=post,
         )
         logging.warning(f"bvals: {bval_observed}")
         logging.warning(f"bvecs: {bvec_observed}")
@@ -135,7 +189,7 @@ def check_bvalsbvecs(
 
 
 def compare(
-    layout: bids.BIDSLayout,
+    layout: ancpbids.BIDSLayout,
     js_observed: str,
     reference: pd.DataFrame,
     post: bool = False,
@@ -171,7 +225,7 @@ def compare(
         "SliceTiming",
     ]:
         if n in js_goal.columns.values.tolist():
-            js_goal[n] = pd.eval(js_goal.loc[:, n]) # type: ignore
+            js_goal[n] = pd.eval(js_goal.loc[:, n])  # type: ignore
 
     js_goal = js_goal.to_dict(orient="records")[0]
     observed = {key: meta.get(key) for key in js_goal.keys()}
@@ -181,8 +235,16 @@ def compare(
     for epsilon, params in FLOATING_PARAMS.items():
         if any(observed.__contains__(x) for x in params):
             dd1 = DeepDiff(
-                {key: js_goal[key] for key in params if js_goal.__contains__(key)},
-                {key: observed[key] for key in params if js_goal.__contains__(key)},
+                {
+                    key: js_goal[key]
+                    for key in params
+                    if js_goal.__contains__(key)
+                },
+                {
+                    key: observed[key]
+                    for key in params
+                    if js_goal.__contains__(key)
+                },
                 math_epsilon=epsilon,
                 ignore_numeric_type_changes=True,
                 ignore_type_subclasses=True,
@@ -235,10 +297,12 @@ def getUM(t1w_meta: dict) -> str:
     return site
 
 
-def main(root: str, site: str, phantom: bool = False, post: bool = False) -> None:
+def main(
+    root: str, site: str, phantom: bool = False, post: bool = False
+) -> None:
     ok = 1
 
-    layout = bids.layout.BIDSLayout(root, validate=False)
+    layout = ancpbids.BIDSLayout(root, validate=False)
 
     if site == "UM":
         any_nii = layout.get(extension="nii.gz", return_type="file")
@@ -251,16 +315,22 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
         "acq-params.tsv",
         low_memory=False,
         delimiter="\t",
-        converters={"ImageOrientationPatientDICOM": pd.eval, "ImageType": pd.eval},
+        converters={
+            "ImageOrientationPatientDICOM": pd.eval,
+            "ImageType": pd.eval,
+        },
     ).query("scanner == @site & phantom == @phantom")
 
     # T1w is easy and _should_ always be present by now. But if it isn't we still don't want the app to
     # fail, so this does a check only if one can be found
-    T1ws = layout.get(suffix="T1w", extension="nii.gz", return_type="file")
+    T1ws: list[str] = layout.get(suffix="T1w", extension="nii.gz", return_type="file")  # type: ignore
     if len(T1ws) > 0:
         for scan in T1ws:
             ok *= compare(
-                layout, scan, reference.query("suffix == 'T1w'").copy(), post=post
+                layout,
+                scan,
+                reference.query("suffix == 'T1w'").copy(),
+                post=post,
             )
     else:
         print_and_post(
@@ -268,7 +338,9 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
             post=post,
         )
 
-    for scan in layout.get(suffix="dwi", extension="nii.gz", return_type="file"):
+    for scan in layout.get(
+        suffix="dwi", extension="nii.gz", return_type="file"
+    ):
         # phantom scans have the DWI split into acq-b1000 and acq-b2000, but there is no
         # acq tag in typical patient scans
         if phantom and (not site == "UM2"):
@@ -295,18 +367,28 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
                 )
                 query = "suffix == 'dwi'"
                 bval_obs = np.genfromtxt(
-                    glob(os.path.join(root, "**", "dwi", "*bval"), recursive=True)[0]
+                    glob(
+                        os.path.join(root, "**", "dwi", "*bval"),
+                        recursive=True,
+                    )[0]
                 )
                 bvec_obs = np.genfromtxt(
-                    glob(os.path.join(root, "**", "dwi", "*bvec"), recursive=True)[0]
+                    glob(
+                        os.path.join(root, "**", "dwi", "*bvec"),
+                        recursive=True,
+                    )[0]
                 )
         else:
             query = "suffix == 'dwi'"
             bval_obs = np.genfromtxt(
-                glob(os.path.join(root, "**", "dwi", "*bval"), recursive=True)[0]
+                glob(os.path.join(root, "**", "dwi", "*bval"), recursive=True)[
+                    0
+                ]
             )
             bvec_obs = np.genfromtxt(
-                glob(os.path.join(root, "**", "dwi", "*bvec"), recursive=True)[0]
+                glob(os.path.join(root, "**", "dwi", "*bvec"), recursive=True)[
+                    0
+                ]
             )
 
         ok *= check_bvalsbvecs(
@@ -319,7 +401,9 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
         ok *= compare(layout, scan, reference.query(query).copy(), post=post)
 
     for task in ["rest", "cuff"]:
-        for scan in layout.get(task=task, extension="nii.gz", return_type="file"):
+        for scan in layout.get(
+            task=task, extension="nii.gz", return_type="file"
+        ):
             if acq := re.findall("(?<=acq-)[a-zA-Z]+", scan):
                 query = "suffix == 'bold' & task == @task & acq == @acq"
             else:
@@ -331,13 +415,17 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
                 post=post,
             )
 
-    for fmap in layout.get(extension="nii.gz", return_type="file", suffix="epi"):
+    for fmap in layout.get(
+        extension="nii.gz", return_type="file", suffix="epi"
+    ):
         acq = re.findall("acq-(dwib0|fmrib0)", fmap)[0]
         dir = re.findall("dir-(AP|PA)", fmap)[0]
         ok &= compare(
             layout,
             fmap,
-            reference.query("suffix == 'epi' & acq == @acq & dir == @dir").copy(),
+            reference.query(
+                "suffix == 'epi' & acq == @acq & dir == @dir"
+            ).copy(),
             post=post,
         )
 
@@ -350,12 +438,16 @@ def main(root: str, site: str, phantom: bool = False, post: bool = False) -> Non
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Check bids.json files")
-    parser.add_argument("root", type=pathlib.Path)
-    parser.add_argument("site", choices=["NS", "SH", "UC", "UI", "UM", "WS", "RU"])
+    parser.add_argument("root")
+    parser.add_argument(
+        "site", choices=["NS", "SH", "UC", "UI", "UM", "WS", "RU"]
+    )
     parser.add_argument(
         "--phantom", action=argparse.BooleanOptionalAction, default=False
     )
-    parser.add_argument("--post", action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument(
+        "--post", action=argparse.BooleanOptionalAction, default=False
+    )
 
     args = parser.parse_args()
     main(root=args.root, site=args.site, phantom=args.phantom, post=args.post)

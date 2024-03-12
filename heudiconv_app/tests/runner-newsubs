@@ -15,7 +15,8 @@ module load tacc-apptainer
 module unload xalt
 
 BIND_DIR=/corral-secure/projects/A2CPS
-CONTAINER_IMAGE=a2cps/heudiconv:240220
+CONTAINER_IMAGE=psadil/heudiconv_app:240306
+CONTAINER_IMAGE=psadil/heudiconv_app:240306
 # shellcheck disable=SC2089
 LOCATOR='--locator="" '
 HEURISTIC="--heuristic a2cps.py "
@@ -27,8 +28,8 @@ project=/corral-secure/projects/A2CPS/products/mris
 DICOMS=(
     "${project}"/NS_northshore/dicoms/NS10920V1.zip
     "${project}"/NS_northshore/dicoms/QC_NS012324QA.zip
-    /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/dicoms/RU011724DEV.zip
-    /corral-secure/projects/A2CPS/products/development/mris/RU_rush/dicoms/RU111323DEV.zip
+    "${project}"/RU_rush/dicoms/RU10945V1.zip
+    "${project}"/RU_rush/dicoms/QC_RU022324QA.zip
     "${project}"/SH_spectrum_health/dicoms/SH20371V1.zip
     "${project}"/SH_spectrum_health/dicoms/QC_SH011924QA.zip
     "${project}"/UC_uchicago/dicoms/UC10885V1.zip
@@ -40,10 +41,11 @@ DICOMS=(
     /corral-secure/projects/A2CPS/products/development/mris/UM_umichigan/dicoms/UM02081322QA.zip
     "${project}"/WS_wayne_state/dicoms/WS25225V1.zip
     "${project}"/WS_wayne_state/dicoms/QC_WS010824QA.zip
+    "${project}"/UM_umichigan/dicoms/UM20340V3.zip  # scan with variable ShimSetting
     )
-SUBJECTS=( 10920 nsphantom  travel1 ruphantom  20371 shphantom  10885 ucphantom  10910  uiphantom 20369 25245 umphantom 25225 wsphantom )
-SITES=(    NS    NS         RU      RU         SH    SH         UC    UC         UI     UI        UM    UM    UM        WS    WS )
-SES=(      V1    240123     RU      231113     V1    240119     V1    240110     V1     230831    V1    V1    220813    V1    240108)
+SUBJECTS=( 10920 nsphantom  10945 ruphantom  20371 shphantom  10885 ucphantom  10910  uiphantom 20369 25245 umphantom 25225 wsphantom 20340)
+SITES=(    NS    NS         RU      RU         SH    SH         UC    UC         UI     UI        UM    UM    UM        WS    WS      UM)
+SES=(      V1    240123     V1      240223     V1    240119     V1    240110     V1     230831    V1    V1    220813    V1    240108  V3)
 
 declare -A SITE_LONG=(
     [NS]=NS_northshore
