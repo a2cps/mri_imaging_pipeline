@@ -7,7 +7,7 @@ dicom_reader:
   name: dicom
   archive: true
   archivePath: system/jobs/dicom_reader
-  maxRunTime: "19:50:00"
+  maxRunTime: "02:20:00"
   parameters:
     FILENAME: /corral-secure/projects/A2CPS/submissions/UC_uchicago/UC0001V1_A2CPS.zip
   notifications:
