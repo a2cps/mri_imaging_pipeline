@@ -29,13 +29,14 @@ FLOATING_PARAMS = {
 SIEMENS_W_64 = ["NS", "SH", "RU"]
 
 def add_deepkeys(observed: dict[str, typing.Any]) -> dict[str, typing.Any]:
-    if observed.__contains__("global"):
+    if "global" in observed:
         observed["BitsStored"] = observed.get("global").get("const").get("BitsStored")  # type: ignore
     return observed
 
 
 def tidy_metadata(meta: dict[str, typing.Any]):
-    del meta["global"]
+    if "global" in meta:
+        del meta["global"]
     return meta
 
 def get_metadata(file: str) -> dict[str, typing.Any]:
@@ -238,17 +239,17 @@ def compare(
 
     # These are the parameters
     for epsilon, params in FLOATING_PARAMS.items():
-        if any(observed.__contains__(x) for x in params):
+        if any(x in observed for x in params):
             dd1 = DeepDiff(
                 {
                     key: js_goal[key]
                     for key in params
-                    if js_goal.__contains__(key)
+                    if key in js_goal
                 },
                 {
                     key: observed[key]
                     for key in params
-                    if js_goal.__contains__(key)
+                    if key in js_goal
                 },
                 math_epsilon=epsilon,
                 ignore_numeric_type_changes=True,
