@@ -12,7 +12,6 @@ import ancpbids
 import numpy as np
 import pandas as pd
 from deepdiff import DeepDiff
-
 from utils import print_and_post
 
 # parameters to check for numerical equivalence
@@ -29,6 +28,16 @@ FLOATING_PARAMS = {
 
 SIEMENS_W_64 = ["NS", "SH", "RU"]
 
+def add_deepkeys(observed: dict[str, typing.Any]) -> dict[str, typing.Any]:
+    if "global" in observed:
+        observed["BitsStored"] = observed.get("global").get("const").get("BitsStored")  # type: ignore
+    return observed
+
+
+def tidy_metadata(meta: dict[str, typing.Any]):
+    if "global" in meta:
+        del meta["global"]
+    return meta
 
 def get_metadata(file: str) -> dict[str, typing.Any]:
     """get_metadata associated with nii.gz file
@@ -46,8 +55,12 @@ def get_metadata(file: str) -> dict[str, typing.Any]:
     if not file.endswith("nii.gz"):
         msg = f"expecting file that ends with nii.gz, received {file}"
         raise AssertionError(msg)
+    
+    meta = json.loads(pathlib.Path(file.replace("nii.gz", "json")).read_text())
+    meta = add_deepkeys(meta)
+    meta = tidy_metadata(meta)
 
-    return json.loads(pathlib.Path(file.replace("nii.gz", "json")).read_text())
+    return meta
 
 
 def remove_translation(meta: dict) -> dict:
@@ -140,11 +153,6 @@ def check_receivecoil(observed: dict, reference: pd.DataFrame) -> bool:
     return observed.get("ReceiveCoilActiveElements") in okay_values[0]
 
 
-def add_deepkeys(observed: dict) -> dict:
-    if observed.__contains__("global"):
-        observed["BitsStored"] = observed.get("global").get("const").get("BitsStored")  # type: ignore
-    return observed
-
 
 def check_bvalsbvecs(
     bval_observed: np.ndarray,
@@ -189,15 +197,13 @@ def check_bvalsbvecs(
 
 
 def compare(
-    layout: ancpbids.BIDSLayout,
     js_observed: str,
     reference: pd.DataFrame,
     post: bool = False,
 ) -> bool:
     ok = True
 
-    meta = layout.get_metadata(js_observed)
-    meta = add_deepkeys(meta)
+    meta = get_metadata(js_observed)
 
     if reference.scanner.unique()[0] in SIEMENS_W_64:
         if check_receivecoil(meta, reference):
@@ -233,17 +239,17 @@ def compare(
 
     # These are the parameters
     for epsilon, params in FLOATING_PARAMS.items():
-        if any(observed.__contains__(x) for x in params):
+        if any(x in observed for x in params):
             dd1 = DeepDiff(
                 {
                     key: js_goal[key]
                     for key in params
-                    if js_goal.__contains__(key)
+                    if key in js_goal
                 },
                 {
                     key: observed[key]
                     for key in params
-                    if js_goal.__contains__(key)
+                    if key in js_goal
                 },
                 math_epsilon=epsilon,
                 ignore_numeric_type_changes=True,
@@ -305,9 +311,9 @@ def main(
     layout = ancpbids.BIDSLayout(root, validate=False)
 
     if site == "UM":
-        any_nii = layout.get(extension="nii.gz", return_type="file")
+        any_nii: list[str] = layout.get(extension="nii.gz", return_type="file") # type: ignore
         if len(any_nii) > 0:
-            site = getUM(layout.get_metadata(any_nii[0]))
+            site = getUM(get_metadata(any_nii[0]))
         else:
             raise AssertionError("No scan jsons found")
 
@@ -327,7 +333,6 @@ def main(
     if len(T1ws) > 0:
         for scan in T1ws:
             ok *= compare(
-                layout,
                 scan,
                 reference.query("suffix == 'T1w'").copy(),
                 post=post,
@@ -395,10 +400,13 @@ def main(
             bval_observed=bval_obs,
             bvec_observed=bvec_obs,
             reference=reference.query(query).copy(),
-            scan=scan,
+            scan=scan, # type: ignore
             post=post,
         )
-        ok *= compare(layout, scan, reference.query(query).copy(), post=post)
+        ok *= compare(
+            scan, # type: ignore
+            reference.query(query).copy(), 
+            post=post)
 
     for task in ["rest", "cuff"]:
         for scan in layout.get(
@@ -409,8 +417,7 @@ def main(
             else:
                 query = "suffix == 'bold' & task == @task"
             ok *= compare(
-                layout,
-                scan,
+                scan, # type: ignore
                 reference.query(query).copy(),
                 post=post,
             )
@@ -419,10 +426,9 @@ def main(
         extension="nii.gz", return_type="file", suffix="epi"
     ):
         acq = re.findall("acq-(dwib0|fmrib0)", fmap)[0]
-        dir = re.findall("dir-(AP|PA)", fmap)[0]
+        dir = re.findall("dir-(AP|PA)", fmap)[0]  # noqa: F841
         ok &= compare(
-            layout,
-            fmap,
+            fmap, # type: ignore
             reference.query(
                 "suffix == 'epi' & acq == @acq & dir == @dir"
             ).copy(),
