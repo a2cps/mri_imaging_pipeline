@@ -230,9 +230,11 @@
 
     {
       "id": "OUTPUT_DIR",
+      "details": {
+        "description": "the output path for the outcomes of preprocessing and visual reports"
+      },
       "value": {
         "default": "outputs",
-        "description": "the output path for the outcomes of preprocessing and visual reports",
         "type": "string",
         "visible": true,
         "required": true

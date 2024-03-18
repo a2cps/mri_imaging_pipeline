@@ -1,12 +1,12 @@
 {
-  "name": "dicom-UM20021V3",
-  "appId": "urrutia-dicom_reader-1.0.2",
+  "name": "dicom-WS20207V1",
+  "appId": "urrutia-dicom_reader-2.0.1",
   "archive": false,
-  "maxRunTime": "19:50:00",
+  "maxRunTime": "04:50:00",
   "inputs": {
   },
   "parameters": {
-    "FILENAME": "/corral-secure/projects/A2CPS/submissions/UM_umichigan/UM20021V3.zip",
-    "SUBJECT_ID": "UM20021V3"
+    "FILENAME": "/corral-secure/projects/A2CPS/submissions/WS_wayne_state/WS20207V1.zip",
+    "SUBJECT_ID": "WS20207V1"
   }
 }

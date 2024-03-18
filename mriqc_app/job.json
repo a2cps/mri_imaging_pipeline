@@ -1,24 +1,46 @@
 {
-  "name": "test mriqc",
-  "appId": "urrutia-mriqc-0.15.1",
-  "archive": true,
-  "maxRunTime": "24:00:00",
-  "archivePath": "testing/mriqc-0.15.1",
-  "archiveSystem": "a2cps.home.urrutia",
-  "archiveOnAppError": true,
-  "inputs": {
-    "BIDS_DIRECTORY": "agave://a2cps.storage.public/a2cps_openneuro_testdata"
-  },
-  "parameters": {
-    "PARTICIPANT_LABEL": "01",
-    "START_IDX": 0,
-    "STOP_IDX": 0,
-    "WRITE_GRAPH": true,
-    "ICA": true,
-    "FD_THRESHOLD": 0,
-    "FFT_SPIKES": true,
-    "CORRECT_SLICE_TIMING": true,
-    "WORK_DIR": "work",
-    "OUTPUT_DIR": "outputs"
-  }
-}
+    "name": "mriqc-anat",
+    "appId": "mriqc",
+    "appVersion": "0.15.2",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/development/mris/UI_uic/bids/",
+    "parameterSet": {
+       "envVariables": [
+       {
+       "key": "BIDS_DIRECTORY",
+       "value": "/corral-secure/projects/A2CPS/products/mris/UI_uic/bids/UI10704V1"
+       },
+       {
+        "key": "PARTICIPANT_LABEL",
+        "value": "10704"
+        },
+        {
+        "key": "START_IDX",
+        "value": "--start-idx 0"
+        },
+        {
+          "key": "STOP_IDX",
+          "value": "--stop-idx 0"
+        },
+        {
+          "key": "FD_THRESHOLD",
+          "value": "--fd_thres 0.9"
+        },
+        {
+          "key": "MODALITIES",
+          "value": "--modalities T1w"
+        },
+        {
+          "key": "TASK_ID",
+          "value": " "
+        },
+        {
+          "key": "WORK_DIR",
+          "value": "-w work"
+        },
+        {
+          "key": "OUTPUT_DIR",
+          "value": "."
+       }
+       ]
+     }
+   }

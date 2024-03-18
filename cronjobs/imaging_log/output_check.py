@@ -308,7 +308,7 @@ def find_outputs(bids_path):
         print("no cat12", cat12_path)
         cat12 = 0
         
-    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_anat, qsiprep, cat12, acq_time
+    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time
 
 
 def find_heudiconv_outputs(bids_dir):

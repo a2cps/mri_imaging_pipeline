@@ -1,4 +1,6 @@
 FROM poldracklab/mriqc:0.15.1
 
-ADD opt /opt
-ENV FREESUFERHOME /opt
+COPY assets /tapis/assets
+RUN chmod +x /tapis/assets/runner-template.sh
+
+ENTRYPOINT ["/tapis/assets/runner-template.sh"]

@@ -47,8 +47,7 @@ for o in "${outs[@]}"; do
     fi
 done
 wait
-rm ./*{out,err}
-echo "${LAUNCHER_JOB_FILE}" >> .agave.archive
+rm ./*{out,err} "${LAUNCHER_JOB_FILE}"
 
 # have seen a few cases where the .nii.gz files are corrupted. 
 # unclear why or when that happens

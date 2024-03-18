@@ -1,4 +1,14 @@
-FROM sd2e/reactors:python3
+FROM python:3.9
 
-# reactor.py, config.yml, and message.jsonschema will be automatically
-# added to the container when you run docker build or abaco deploy
+RUN pip install tapipy
+
+ADD reactor.py /reactor.py
+
+CMD ["python", "/reactor.py"]
+
+# Onbuild support
+ONBUILD ADD requirements.txt /tmp/requirements.txt
+ONBUILD RUN pip3 install -r /tmp/requirements.txt
+ONBUILD ADD reactor.py /
+ONBUILD ADD config.yml /
+ONBUILD ADD message.json* /message.jsonschema
