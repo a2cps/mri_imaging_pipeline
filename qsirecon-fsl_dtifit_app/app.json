@@ -1,6 +1,6 @@
 {
-  "id": "qsirecon-fsl_dtifit_app",
-  "version": "1.0",
+  "id": "maj-qsirecon-fsl_dtifit_app",
+  "version": "1.3",
   "description": "Prepare QSIPrep outputs for FSL and run dtifit",
   "owner": "${apiUserId}",
   "enabled": true,
@@ -9,7 +9,7 @@
   "runtimeOptions": [
     "SINGULARITY_RUN"
   ],
-  "containerImage": "docker://pennbbl/qsiprep:0.20.0",
+  "containerImage": "docker://micaceous/qsirecon-fsl_dtifit_app",
   "jobType": "BATCH",
   "maxJobs": -1,
   "maxJobsPerUser": -1,
@@ -34,7 +34,7 @@
         {
           "name": "BIDSDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1"
+          "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2"
         },
         {
           "name": "WORKDIR",
@@ -44,32 +44,32 @@
         {
           "name": "QSIPREPDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep/derivatives/NStravel1"
-        },
-        {
-          "name": "FREESURFERDIR",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel1/anat/freesurfer"
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/derivatives/NS_northshore/NStravel2/qsiprep"
         },
         {
           "name": "OUTDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "."
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives"
         },
         {
           "name": "PARTICIPANT_LABEL",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "sub-NStravel1"
+          "arg": "sub-travel2"
         },
         {
           "name": "NTHREADS",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": 8
+          "arg": "8"
         },
         {
           "name": "MEMMB",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": 32000
+          "arg": "32000"
+        },
+        {
+          "name": "LICENSE",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/code/license.txt"
         }
       ],
       "containerArgs": [

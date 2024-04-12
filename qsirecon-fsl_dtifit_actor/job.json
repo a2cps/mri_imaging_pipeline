@@ -1,9 +1,25 @@
 {
-    "name": "qsiprep-recon-fsl_dtifit",
-    "appId": "qsiprep-recon-fsl_dtifit_app",
-    "appVersion": "1.0",
+    "name": "qsirecon-fsl_dtifit",
+    "appId": "maj-qsirecon-fsl_dtifit_app",
+    "appVersion": "1.3",
     "parameterSet": {
         "appArgs": [
+            {
+                "name": "PARTICIPANT_LABEL",
+                "arg": "sub-10042"
+            },
+            {
+                "name": "QSIPREPDIR",
+                "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsiprep/NS10042V1/qsiprep"
+            },
+            {
+                "name": "BIDSDIR",
+                "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/bids/NS10042V1"
+            },
+            {
+                "name": "OUTDIR",
+                "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives"
+            }
         ]
     },
     "moduleLoads": [
@@ -18,29 +34,10 @@
             "modulesToLoad": [
                 "xalt"
             ]
-        },
-        {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "docker://jurrutia/fmriprep:20.2.3.1"
-            ]
         }
     ],
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 120,
-    "subscriptions": [
-        {
-            "description": "Message on Failure",
-            "enabled": true,
-            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
-            "deliveryTargets": [
-                {
-                    "deliveryMethod": "WEBHOOK",
-                    "deliveryAddress": ""
-                }
-            ]
-        }
-    ]
+    "maxMinutes": 120
 }
