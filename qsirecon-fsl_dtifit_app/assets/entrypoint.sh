@@ -30,7 +30,7 @@ main (){
     echo "qsiprep recon finished!"
 
     ## DEFINE ARGS FOR DTIFIT
-    local qsirecon_dir="${OUTDIR}"/"${PARTICIPANT_LABEL}"/qsirecon/"${PARTICIPANT_LABEL}"/ses-V1/dwi
+    local qsirecon_dir="${OUTDIR}"/qsirecon/"${PARTICIPANT_LABEL}"/ses-V1/dwi
     
     local data="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_ses-V1_space-T1w_desc-preproc_fslstd_dwi.nii.gz
     local mask="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_ses-V1_space-T1w_desc-preproc_fslstd_mask.nii.gz
