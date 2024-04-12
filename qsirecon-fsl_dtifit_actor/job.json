@@ -1,7 +1,7 @@
 {
     "name": "qsirecon-fsl_dtifit",
     "appId": "maj-qsirecon-fsl_dtifit_app",
-    "appVersion": "1.4",
+    "appVersion": "1.5",
     "parameterSet": {
         "appArgs": [
             {
