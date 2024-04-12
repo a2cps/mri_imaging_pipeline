@@ -1,6 +1,6 @@
 {
   "id": "maj-qsirecon-fsl_dtifit_app",
-  "version": "1.3",
+  "version": "1.4",
   "description": "Prepare QSIPrep outputs for FSL and run dtifit",
   "owner": "${apiUserId}",
   "enabled": true,
