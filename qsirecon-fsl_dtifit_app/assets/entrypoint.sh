@@ -37,8 +37,8 @@ main (){
     local bvecs="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_ses-V1_space-T1w_desc-preproc_fslstd_dwi.bvec
     local bvals="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_ses-V1_space-T1w_desc-preproc_fslstd_dwi.bval
 
-    local DTIFIT_OUTDIR_OLS="${OUTDIR}"/dtifit/dtifit_ols
-    local DTIFIT_OUTDIR_WLS="${OUTDIR}"/dtifit/dtifit_wls
+    local DTIFIT_OUTDIR_OLS="${OUTDIR}"/dtifit/dtifit_ols/"${PARTICIPANT_LABEL}"
+    local DTIFIT_OUTDIR_WLS="${OUTDIR}"/dtifit/dtifit_wls/"${PARTICIPANT_LABEL}"
 
     ## Need to make output dirs first
     mkdir -p "${DTIFIT_OUTDIR_OLS}"
