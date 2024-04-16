@@ -1,4 +1,5 @@
 FROM mambaorg/micromamba:1.5.8 as micromamba
+FROM afni/afni_make_build:AFNI_23.1.10 as AFNI
 
 FROM psadil/brainager:240403
 
@@ -50,6 +51,7 @@ ENV APPTAINER_SHELL=/usr/local/bin/_apptainer_shell.sh
     
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py /opt/entrypoint.py
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/dask.yml /opt/conda/etc/dask/dask.yml
+COPY --link=true --from=AFNI /opt/afni/install/3dWarp /opt/afni/install/libf2c.so /opt/afni/install/libmri.so /opt/afni/install/
 
 USER root
 
