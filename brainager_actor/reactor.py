@@ -23,8 +23,8 @@ FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
 JOB = Path("/opt/job.json")
 
 # on TACC
-# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
+#ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
 _MAXJOBS = 500
@@ -118,15 +118,15 @@ def get_runlist(
     return runlist[:maxjobs]
 
 
-def set_app_arg(job: dict, name: str, arg: str) -> dict:
+def set_app_arg(job: dict, arg_pos: int, name: str, arg: str) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[0] = {"name": name, "arg": arg}  # type: ignore
+    job2.get("parameterSet").get("appArgs")[arg_pos] = {"name": name, "arg": arg}  # type: ignore
     return job2
 
 
 def set_name(job: dict) -> dict:
     job2 = copy.deepcopy(job)
-    job2["name"] = f"fcn-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
+    job2["name"] = f"brainager-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
     return job2
 
 
@@ -187,11 +187,13 @@ def main() -> None:
 
     job = set_app_arg(
         job,
+        0,
         name="INPUT_DIRS",
         arg="--input-dirs " + " ".join(x[0] for x in runlist),
     )
     job = set_app_arg(
         job,
+        1,
         name="OUTPUT_DIRS",
         arg="--output-dirs " + " ".join(x[1] for x in runlist),
     )

@@ -27,10 +27,6 @@
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
-        "logConfig": {
-            "stdoutFilename": "${JobUUID}.out",
-            "stderrFilename": "${JobUUID}.err"
-        },
         "parameterSet": {
             "appArgs": [
                 {
@@ -86,6 +82,10 @@
                     "tapisjob.env"
                 ],
                 "includeLaunchFiles": false
+            },
+            "logConfig": {
+                "stdoutFilename": "${JobUUID}.out",
+                "stderrFilename": "${JobUUID}.err"
             }
         },
         "fileInputs": [],
