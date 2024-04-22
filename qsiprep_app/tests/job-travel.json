@@ -1,0 +1,41 @@
+{
+    "appId": "psadil-qsiprep",
+    "appVersion": "0.1",
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "logConfig": {
+        "stderrFilename": "${JobUUID}.err",
+        "stdoutFilename": "${JobUUID}.out"
+    },
+    "maxMinutes": 720,
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        }
+    ],
+    "name": "qsiprep",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--bidsdir /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel2",
+                "name": "BIDSDIR"
+            },
+            {
+                "arg": "--outdir RU_rush/qsiprep/RUtravel1 RU_rush/qsiprep/RUtravel2",
+                "name": "OUTDIR"
+            },
+            {
+                "arg": "--nthreads 25",
+                "name": "NTHREADS"
+            },
+            {
+                "arg": "--mem-mb 70000",
+                "name": "MEM_MB"
+            }
+        ]
+    }
+}

@@ -1,107 +1,97 @@
 {
-	"name": "{{ agave.username }}-{{ app.name }}",
-	"version": "{{ app.version }}",
-	"executionType": "HPC",
-	"executionSystem": "{{ app.hpc_system}}",
-	"parallelism": "SERIAL",
-	"deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
-	"deploymentSystem": "{{ app.storage_system}}",
-	"defaultProcessorsPerNode": 1,
-	"defaultNodeCount": 1,
-	"defaultQueue": "{{ app.queue }}",
-	"label": "qsiprep",
-	"modules": [
-		"unload xalt",
-		"load tacc-singularity",
-		"load python3",
-		"load launcher"
+	"containerImage": "docker://psadil/qsiprep_app:240425",
+	"description": "Run qsiprep",
+	"enabled": true,
+	"id": "psadil-qsiprep",
+	"jobAttributes": {
+		"archiveOnAppError": false,
+		"cmdPrefix": "ibrun -n 1",
+		"description": null,
+		"dynamicExecSystem": false,
+		"execSystemConstraints": null,
+		"execSystemExecDir": "${JobWorkingDir}",
+		"execSystemId": "secure.frontera",
+		"execSystemInputDir": "${JobWorkingDir}",
+		"execSystemLogicalQueue": "corralextra",
+		"execSystemOutputDir": "${JobWorkingDir}",
+		"fileInputArrays": [],
+		"fileInputs": [],
+		"maxMinutes": 720,
+		"nodeCount": 1,
+		"parameterSet": {
+			"appArgs": [
+				{
+					"arg": null,
+					"inputMode": "REQUIRED",
+					"name": "BIDSDIR"
+				},
+				{
+					"arg": null,
+					"inputMode": "REQUIRED",
+					"name": "OUTDIR"
+				},
+				{
+					"arg": "--nthreads 1",
+					"name": "NTHREADS"
+				},
+				{
+					"arg": null,
+					"inputMode": "INCLUDE_ON_DEMAND",
+					"name": "MEM_MB"
+				}
+			],
+			"archiveFilter": {
+				"excludes": [
+					"tapisjob.sh",
+					"${JobUUID}.out",
+					"${JobUUID}.err",
+					"tapisjob.env"
+				],
+				"includeLaunchFiles": false,
+				"includes": []
+			},
+			"containerArgs": [
+				{
+					"arg": "--bind /corral-secure/projects/A2CPS",
+					"description": "Mount for TAP functions",
+					"inputMode": "FIXED",
+					"name": "Container Mounts"
+				}
+			],
+			"envVariables": [],
+			"schedulerOptions": [
+				{
+					"arg": "--tapis-profile tacc-apptainer",
+					"description": "Scheduler profile for HPC clusters at TACC",
+					"inputMode": "FIXED",
+					"name": "TACC Scheduler Profile"
+				},
+				{
+					"arg": "--job-name ${JobName}",
+					"description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+					"inputMode": "FIXED",
+					"name": "TAP Session Substring"
+				},
+				{
+					"arg": "-A A2CPS",
+					"description": "The TACC allocation associated with this job execution",
+					"inputMode": "FIXED",
+					"name": "TACC Allocation"
+				}
+			]
+		},
+		"subscriptions": [],
+		"tags": []
+	},
+	"jobType": "BATCH",
+	"maxJobs": -1,
+	"maxJobsPerUser": -1,
+	"owner": "${apiUserId}",
+	"runtime": "SINGULARITY",
+	"runtimeOptions": [
+		"SINGULARITY_RUN"
 	],
-	"shortDescription": "{{ app.description }}",
-	"templatePath": "runner-template.sh",
-	"testPath": "tester.sh",
-	"inputs": [],
-	"parameters": [
-		{
-			"id": "CONTAINER_IMAGE",
-			"value": {
-				"default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
-				"description": "Container Image. Do not edit.",
-				"type": "string",
-				"visible": false,
-				"required": true
-			}
-		},
-		{
-			"id": "BIDS",
-			"value": {
-				"default": "",
-				"visible": true,
-				"type": "string",
-				"required": true
-			},
-			"details": {
-				"description": "Directory containing files to analyze",
-				"showArgument": false
-			},
-			"semantics": {
-				"minCardinality": 1,
-				"maxCardinality": -1
-			}
-		},
-		{
-			"id": "OUTDIR",
-			"value": {
-				"default": "",
-				"visible": true,
-				"type": "string",
-				"required": true
-			},
-			"details": {
-				"description": "Comma separated list of directories to which results will be written",
-				"showArgument": false
-			},
-			"semantics": {
-				"minCardinality": 1,
-				"maxCardinality": -1
-			}
-		},
-		{
-			"id": "BIND_DIR",
-			"value": {
-				"default": null,
-				"description": "Binds the directory in the container",
-				"type": "string",
-				"visible": true,
-				"required": true
-			}
-		},
-		{
-			"id": "MEMMB",
-			"details": {
-				"argument": "--mem-mb ",
-				"showArgument": true
-			},
-			"value": {
-				"default": 190000,
-				"description": "Maximum amount of MB available to QSIprep when processing each participant",
-				"type": "number",
-				"visible": true,
-				"required": true
-			}
-		},
-		{
-			"id": "NTHREADS",
-			"details": {
-				"argument": "--nthreads ",
-				"showArgument": true
-			},
-			"value": {
-				"default": 56,
-				"description": "Maximum number of threads available to QSIprep when processing each participant",
-				"type": "number",
-				"visible": true,
-				"required": true
-			}
-		}
-	]
+	"runtimeVersion": null,
+	"strictFileInputs": true,
+	"version": "0.1"
 }
