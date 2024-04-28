@@ -14,6 +14,7 @@ import freesurfer_wf
 import fslanat_wf
 import mriqc_wf
 import pandas as pd
+import qsiprep_wf
 import signatures_wf
 import utils
 
@@ -68,15 +69,17 @@ def _get_deriv_tocopy(
         .query("site == @site_code")
         .query(
             """fslanat in ['1', 'na'] \
-            and fmriprep_anat in ['1', 'na'] \
-            and fmriprep_rest in ['1', 'na'] \
-            and fmriprep_cuff in ['1', 'na'] \
-            and mriqc_anat in ['1', 'na'] \
-            and mriqc_rest in ['1', 'na'] \
-            and mriqc_cuff in ['1', 'na'] \
-            and cat12 in ['1', 'na'] \
-            and fcn in ['1', 'na'] \
-            and signatures in ['1', 'na'] \
+            or fmriprep_anat in ['1', 'na'] \
+            or fmriprep_rest in ['1', 'na'] \
+            or fmriprep_cuff in ['1', 'na'] \
+            or mriqc_anat in ['1', 'na'] \
+            or mriqc_rest in ['1', 'na'] \
+            or mriqc_cuff in ['1', 'na'] \
+            or qsiprep in ['1', 'na'] \
+            or cat12 in ['1', 'na'] \
+            or fcn in ['1', 'na'] \
+            or signatures in ['1', 'na'] \
+            or qsiprep in ['1', 'na'] \
             """
         )
     )
@@ -85,51 +88,48 @@ def _get_deriv_tocopy(
     # this is rare, but see NS10205V1 (for which there is nothing)
     derivatives: dict[str, list[str]] = dict()
     for row in ready.itertuples():
-        sublong = _make_sublong(row.site, row.subject_id, row.visit)
+        sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
         jobs = set()
-        already_aggregated = True
         # cannot rely on imaging log only, because imaging log will say that a job is
         # done even when there are no outputs
         if row.fmriprep_anat == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "anat"
         ):
-            already_aggregated &= (
-                outroot
-                / "fmriprep-anat"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
-            jobs.add("fmriprep")
+            if not (
+                outroot / "fmriprep-anat" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
+            ).exists():
+                jobs.add("fmriprep")
         if row.fmriprep_rest == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "rest"
         ):
-            already_aggregated &= (
-                outroot
-                / "fmriprep-rest"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
-            jobs.add("fmriprep")
+            if not (
+                outroot / "fmriprep-rest" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
+            ).exists():
+                jobs.add("fmriprep")
         if row.fmriprep_cuff == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "cuff"
         ):
-            already_aggregated &= (
-                outroot
-                / "fmriprep-cuff"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
-            jobs.add("fmriprep")
+            if not (
+                outroot / "fmriprep-cuff" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
+            ).exists():
+                jobs.add("fmriprep")
+        if row.qsiprep == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "qsiprep" / sublong / "qsiprep"
+        ):
+            if not (
+                outroot / "qsiprep" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
+            ).exists():
+                jobs.add("qsiprep")
         if row.cat12 == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "cat12" / sublong
         ):
-            already_aggregated &= (
+            if not (
                 outroot
                 / "cat12"
                 / "report"
                 / f"catreport_sub-{row.subject_id}_ses-{row.visit}_T1w.pdf"
-            ).exists()
-            jobs.add("cat12")
+            ).exists():
+                jobs.add("cat12")
         if (
             (
                 row.mriqc_anat == "1"
@@ -150,37 +150,30 @@ def _get_deriv_tocopy(
                 )
             )
         ):
-            already_aggregated &= (
-                outroot
-                / "mriqc"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
+            # mriqc has tiny outputs, so always arrange copy
             jobs.add("mriqc")
         if row.fslanat == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fslanat" / sublong
         ):
-            already_aggregated &= (
-                outroot
-                / "fslanat"
-                / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
-            ).exists()
-            jobs.add("fslanat")
+            if not (
+                outroot / "fslanat" / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
+            ).exists():
+                jobs.add("fslanat")
         if row.fcn == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fcn" / sublong
         ):
-            already_aggregated &= (
+            if not (
                 outroot
                 / "fcn"
                 / "connectivity"
                 / f"sub={row.subject_id}"
                 / f"ses={row.visit}"
-            ).exists()
-            jobs.add("fcn")
+            ).exists():
+                jobs.add("fcn")
         if row.signatures == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "signatures" / sublong
         ):
-            already_aggregated &= all(
+            if not all(
                 (
                     outroot
                     / "signatures"
@@ -194,10 +187,10 @@ def _get_deriv_tocopy(
                     "signature-by-tr",
                     "signature-labels",
                 ]
-            )
-            jobs.add("signatures")
-        if not already_aggregated:
-            derivatives.update({sublong: list(jobs)})
+            ):
+                jobs.add("signatures")
+
+        derivatives.update({sublong: list(jobs)})
 
     return derivatives
 
@@ -238,19 +231,15 @@ def _prep_staged_dir(outroot: Path) -> None:
 def _get_bids_tocopy(outroot: Path, site_code: str) -> set[str]:
     bids_avail: pd.DataFrame = pd.read_csv(ILOG).query(
         "bids == 1 and site == @site_code"
-    )[["site", "subject_id", "visit"]]
+    )[["site", "subject_id", "visit"]]  # type: ignore
     exists: list[bool] = []
     for row in bids_avail.itertuples():
         exists.append(
-            (
-                outroot / "bids" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
-            ).exists()
+            (outroot / "bids" / f"sub-{row.subject_id}" / f"ses-{row.visit}").exists()
         )
     bids_avail["exists"] = exists
     out = bids_avail.query("not exists")
-    return set(
-        f"{row.site}{row.subject_id}{row.visit}" for row in out.itertuples()
-    )
+    return set(f"{row.site}{row.subject_id}{row.visit}" for row in out.itertuples())
 
 
 def _synthstrip(src: Path, n_threads: int = 1) -> Path:
@@ -277,15 +266,11 @@ def _synthstrip(src: Path, n_threads: int = 1) -> Path:
 @click.command()
 @click.argument(
     "inroot",
-    type=click.Path(
-        exists=True, file_okay=False, resolve_path=True, path_type=Path
-    ),
+    type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path),
 )
 @click.argument(
     "outroot",
-    type=click.Path(
-        exists=False, file_okay=False, resolve_path=True, path_type=Path
-    ),
+    type=click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path),
 )
 @click.option("--max-subs", type=float, default=float("inf"))
 @click.option("--n-threads", type=int, default=1)
@@ -334,9 +319,7 @@ def _main(
             for i, (subsesd, jobs) in enumerate(subses_tocopy.items()):
                 if i >= max_subs:
                     break
-                logging.info(
-                    f"Making initial symlinks for {subsesd} derivatives"
-                )
+                logging.info(f"Making initial symlinks for {subsesd} derivatives")
                 for job in jobs:
                     shutil.copytree(
                         inroot / site_long / job / subsesd,
@@ -362,31 +345,22 @@ def _main(
             if len(subses_tocopy):
                 logging.info("Storing derivatives in final location")
                 cat12_wf.copy(inroot=tmp_site, outdir=outroot / "cat12")
-                # qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
+                qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
                 mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
-                fmriprep_wf.copy(
-                    inroot=tmp_site, outdir=outroot / "fmriprep-anat"
-                )
-                fmriprep_wf.copy(
-                    inroot=tmp_site, outdir=outroot / "fmriprep-cuff"
-                )
-                fmriprep_wf.copy(
-                    inroot=tmp_site, outdir=outroot / "fmriprep-rest"
-                )
-                freesurfer_wf.copy(
-                    inroot=tmp_site, outdir=outroot / "freesurfer"
-                )
+                fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep-anat")
+                fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep-cuff")
+                fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep-rest")
+                freesurfer_wf.copy(inroot=tmp_site, outdir=outroot / "freesurfer")
                 fslanat_wf.copy(inroot=tmp_site, outdir=outroot / "fslanat")
                 fcn_wf.copy(inroot=tmp_site, outdir=outroot / "fcn")
-                signatures_wf.copy(
-                    inroot=tmp_site, outdir=outroot / "signatures"
-                )
+                signatures_wf.copy(inroot=tmp_site, outdir=outroot / "signatures")
 
         # finally, handle all toplevel file material
         logging.info("Adding toplevel files")
         # NOTE: no cat12 toplevel files
         bids_wf.make_toplevel(outdir=outroot / "bids")
         mriqc_wf.make_toplevel(outdir=outroot / "mriqc")
+        qsiprep_wf.make_toplevel(outdir=outroot / "qsiprep")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-anat")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-cuff")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-rest")
@@ -395,4 +369,4 @@ def _main(
 
 
 if __name__ == "__main__":
-    _main()
+    _main()  # type: ignore
