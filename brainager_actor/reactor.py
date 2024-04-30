@@ -1,12 +1,12 @@
 import copy
 import dataclasses
-import datetime
 import io
 import json
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
 
 import ibis
 import pandas as pd
@@ -21,12 +21,13 @@ FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
 
 # within docker container
 JOB = Path("/opt/job.json")
+
 # on TACC
-# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
+#ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
-_MAXJOBS = 80
+_MAXJOBS = 500
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -36,51 +37,6 @@ SITE_LONG = {
     "SH": "SH_spectrum_health",
     "WS": "WS_wayne_state",
     "RU": "RU_rush",
-}
-
-# participants that cannot go through fslanat without
-# having images cropped manually
-PRECROP_SUBS = {
-    "UC10066V1",
-    "UC10119V1",
-    "UC10147V1",
-    "UC10153V1",
-    "UC10244V3",
-    "UC10315V3",
-    "UC10335V1",
-    "UC10335V3",
-    "UC10363V1",
-    "UC10372V1",
-    "UI10390V1",
-    "UC10411V1",
-    "UC10416V1",
-    "UI10459V1",
-    "UC10483V1",
-    "UC10506V3",
-    "UC10513V1",
-    "UC10518V3",
-    "UC10610V1",
-    "UC10610V3",
-    "UC10643V1",
-    "UC10643V3",
-    "UC10757V1",
-    "UC10758V1",
-    "UC10766V1",
-    "UC10766V3"
-    "UC10785V3",
-    "UC10789V1",
-    "UC10789V3",
-    "UC10804V1",
-    "UC10810V1",
-    "UC10821V3",
-    "UC10828V3",
-    "UC10844V1",
-    "UC10864V1",
-    "UC10864V3",
-    "UC10867V1",
-    "UC10880V1",
-    "UC10926V1",
-    "UC10949V1",
 }
 
 
@@ -127,61 +83,50 @@ def get_ilog(client: Tapis) -> Table:
     ilog: bytes = client.files.getContents(  # type: ignore
         systemId="secure.corral", path=str(ILOG)
     )
-    return ibis.memtable(
-        pd.read_csv(
-            io.BytesIO(ilog),
-            na_values="na",
-            dtype={"subject_id": str, "fslanat": pd.Int64Dtype()},
-        )
-    )
+    return ibis.memtable(pd.read_csv(io.BytesIO(ilog), na_values="na"))
 
 
 def get_runlist(
-    ilog: Table, maxjobs: int | None = _MAXJOBS
+    ilog: Table, maxjobs: int = _MAXJOBS
 ) -> list[tuple[str, str]]:
     rundef: pd.DataFrame = (
-        ilog.select("site", "subject_id", "visit", "bids", "fslanat")
-        .filter(_.fslanat == 0)  # type: ignore
-        .filter(_.bids == 1)  # type: ignore
+        ilog.select("site", "subject_id", "visit", "bids", "brainager")
+        # exclude rows that were already processed
+        .filter(_.brainager == 0)  # type: ignore
+        # include rows bids ready
+        .filter((_.bids == 1))  # type: ignore  
+        .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
         )
-        .mutate(OUTPUT_DIR=_.sitelong + "/fslanat/" + _.sublong)  # type: ignore
+        .mutate(OUTPUT_DIR=_.sitelong + "/brainager/" + _.sublong)  # type: ignore
         .mutate(
-            ANATS=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
+            INPUT_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
             + x.sitelong
             + "/bids/"
-            + x.sublong
-            + "/sub-"
-            + x.subject_id
-            + "/ses-"
-            + x.visit
-            + "/anat"
-            + "/sub-"
-            + x.subject_id
-            + "_ses-"
-            + x.visit
-            + "_T1w.nii.gz"  # type: ignore
+            + x.sublong  # type: ignore
         )
         .execute()
     )
     runlist = [
         (x, y)
-        for x, y in zip(rundef.ANATS.to_list(), rundef.OUTPUT_DIR.to_list())
+        for x, y in zip(
+            rundef.INPUT_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
+        )
     ]
     return runlist[:maxjobs]
 
 
-def set_anat(job: dict, arg: str) -> dict:
+def set_app_arg(job: dict, arg_pos: int, name: str, arg: str) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[0] = {"name": "ANATS", "arg": arg}  # type: ignore
+    job2.get("parameterSet").get("appArgs")[arg_pos] = {"name": name, "arg": arg}  # type: ignore
     return job2
 
 
-def set_outputdir(job: dict, arg: str) -> dict:
+def set_name(job: dict) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[1] = {"name": "OUTPUT_DIR", "arg": arg}  # type: ignore
+    job2["name"] = f"brainager-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
     return job2
 
 
@@ -192,39 +137,19 @@ def set_maxminutes(job: dict, maxminutes: int | None = None) -> dict:
     return job2
 
 
-def set_name(job: dict) -> dict:
-    job2 = copy.deepcopy(job)
-    job2["name"] = f"fslanat-{datetime.datetime.today().strftime('%Y-%m-%d')}"
-    return job2
-
-
-def set_precrop(job: dict, outputdirs: Sequence[str]) -> dict:
-    """Determine whether participants will undergo manual robustfov
-
-    Args:
-        job: _description_
-        anats: _description_
-
-    Returns:
-        dict: _description_
-    """
-    precrop = [outputdir in PRECROP_SUBS for outputdir in outputdirs]
-    job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs").append(  # type: ignore
-        {
-            "name": "PRECROP",
-            "arg": "--precrop " + " ".join(str(x) for x in precrop),
-        }
-    )
-    return job2
-
-
 def get_failurebot_url(client) -> str:
+    api_server = os.environ.get("_abaco_api_server")
+    if not api_server:
+        msg = "Unable to detect tapis tenant"
+        raise RuntimeError(msg)
+
     token: TapisResult = client.sk.readSecret(  # type: ignore
         secretType="user",
         secretName=FAILUREBOT_ADDRESS_SECRET_NAME,
-        tenant=os.environ.get("_abaco_api_server").split('.')[0].split("/")[-1],
-        user=client.actors.get_actor(actor_id=os.environ.get("_abaco_actor_id")).owner,
+        tenant=api_server.split(".")[0].split("/")[-1],
+        user=client.actors.get_actor(
+            actor_id=os.environ.get("_abaco_actor_id")
+        ).owner,
     )
     url: str | None = token.get("secretMap").get(FAILUREBOT_ADDRESS_SECRET_KEY)  # type: ignore
     if url is None:
@@ -245,6 +170,7 @@ def set_subscription_url(job: dict, arg: str) -> dict:
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
+
     client = actors_get_client()
 
     ilog = get_ilog(client=client)
@@ -259,11 +185,22 @@ def main() -> None:
     with open(JOB, "r") as f:
         job = json.load(f)
 
-    job = set_anat(job, "--anats " + " ".join(x[0] for x in runlist))
-    job = set_outputdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
-    job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
+    job = set_app_arg(
+        job,
+        0,
+        name="INPUT_DIRS",
+        arg="--input-dirs " + " ".join(x[0] for x in runlist),
+    )
+    job = set_app_arg(
+        job,
+        1,
+        name="OUTPUT_DIRS",
+        arg="--output-dirs " + " ".join(x[1] for x in runlist),
+    )
+    job = set_maxminutes(
+        job, context.message_dict.get("maxMinutes")
+    )
     job = set_name(job)
-    job = set_precrop(job, [Path(x[1]).name for x in runlist])
     failurebot_url = get_failurebot_url(client=client)
     job = set_subscription_url(job, arg=failurebot_url)
 
