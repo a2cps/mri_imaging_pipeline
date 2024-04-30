@@ -13,7 +13,8 @@
         {
             "moduleLoadCommand": "module load",
             "modulesToLoad": [
-                "tacc-apptainer"
+                "tacc-apptainer",
+                "intel/23.1.0"
             ]
         }
     ],
@@ -21,11 +22,11 @@
     "parameterSet": {
         "appArgs": [
             {
-                "arg": "--bidsdir /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel2",
+                "arg": "--bidsdir /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel2",
                 "name": "BIDSDIR"
             },
             {
-                "arg": "--outdir RU_rush/qsiprep/RUtravel1 RU_rush/qsiprep/RUtravel2",
+                "arg": "--outdir RU_rush/qsiprep/RUtravel2",
                 "name": "OUTDIR"
             },
             {

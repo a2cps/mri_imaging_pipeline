@@ -12,12 +12,12 @@ ENV MAMBA_USER=$MAMBA_USER
 ENV MAMBA_ROOT_PREFIX="/opt/conda"
 ENV MAMBA_EXE="/bin/micromamba"
 
-COPY --from=micromamba "$MAMBA_EXE" "$MAMBA_EXE"
-COPY --from=micromamba /usr/local/bin/_activate_current_env.sh /usr/local/bin/_activate_current_env.sh
-COPY --from=micromamba /usr/local/bin/_dockerfile_shell.sh /usr/local/bin/_dockerfile_shell.sh
-COPY --from=micromamba /usr/local/bin/_entrypoint.sh /usr/local/bin/_entrypoint.sh
-COPY --from=micromamba /usr/local/bin/_dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
-COPY --from=micromamba /usr/local/bin/_dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
+COPY --link=true --from=micromamba "$MAMBA_EXE" "$MAMBA_EXE"
+COPY --link=true --from=micromamba /usr/local/bin/_activate_current_env.sh /usr/local/bin/_activate_current_env.sh
+COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_shell.sh /usr/local/bin/_dockerfile_shell.sh
+COPY --link=true --from=micromamba /usr/local/bin/_entrypoint.sh /usr/local/bin/_entrypoint.sh
+COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
+COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
 
 RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh && \
     /usr/local/bin/_dockerfile_setup_root_prefix.sh
@@ -41,7 +41,7 @@ ENV EDDY_PARAMS=/opt/qsiprep_app/eddy_params.json
 ENV TZ=US/Central
 ENV ENV_NAME=qsiprep
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "qsiprep"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/qsiprep_app/entrypoint.py"]
 
 CMD [ "--help" ]
 

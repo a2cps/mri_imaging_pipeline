@@ -18,7 +18,7 @@ FS_LICENSE = os.environ.get("FS_LICENSE")
 RANK = MPI.COMM_WORLD.Get_rank()
 USIZE = MPI.COMM_WORLD.Get_size()
 logging.basicConfig(
-    format=f"%(asctime)s %(levelname)-8s {RANK=}/{USIZE} %(message)s",
+    format=f"%(asctime)s | %(levelname)-8s | {RANK=} | {USIZE=} | %(message)s",
     level=logging.INFO,
 )
 
@@ -31,7 +31,6 @@ async def get_orchestration_async(
     mem_mb: int | None = None,
 ) -> typing.AsyncIterator[asyncio.subprocess.Process]:
     with tempfile.TemporaryDirectory() as workd:
-        logging.info(f"qsiprep work-dir set to {workd}")
         args = [
             "qsiprep",
             "--fs-license-file",
@@ -56,6 +55,7 @@ async def get_orchestration_async(
             extra_args.extend(["--mem_mb", mem_mb])
         extra_args.extend([str(bidsdir), str(outdir), "participant"])
         args.extend(extra_args)
+        logging.info(f"{args=}")
 
         with open(outdir / f"rank-{RANK}.log", mode="w") as stdout:
             procs = await asyncio.create_subprocess_exec(
@@ -80,23 +80,52 @@ def copy_tapis_logs_to_out(outdirs: list[pathlib.Path]) -> None:
                 shutil.copy2(stdout, outdir)
 
 
+def stage(srcs: list[pathlib.Path], dst: pathlib.Path) -> pathlib.Path:
+    for rank, src in enumerate(srcs):
+        if rank == RANK:
+            logging.info(f"Staging files for {src=} -> {dst=}")
+            shutil.copytree(
+                src,
+                dst,
+                ignore=shutil.ignore_patterns(
+                    "*sourcedata*", "*func*", "*scans.tsv", "*scans.json", "*fmrib0*"
+                ),
+            )
+        # ensure that only one copy happens at a time
+        MPI.COMM_WORLD.barrier()
+    return dst
+
+
+def archive(src: pathlib.Path, dsts: list[pathlib.Path], returncode: int | None):
+    for rank, dst in enumerate(dsts):
+        if rank == RANK:
+            if returncode == 0:
+                logging.info(f"Copying {src} -> {dst}")
+                shutil.copytree(src, dst, dirs_exist_ok=True)
+            else:
+                logging.warning(f"{dsts[RANK]=} ended with {returncode=}")
+        # ensure that only one copy happens at a time
+        MPI.COMM_WORLD.barrier()
+
+
 async def main(
     bidsdirs: list[pathlib.Path],
     outdirs: list[pathlib.Path],
     nthreads: int | None = None,
     mem_mb: int | None = None,
 ) -> None:
-    with tempfile.TemporaryDirectory() as _tmpd_out:
-        tmpd_out = pathlib.Path(_tmpd_out)
-        async with get_orchestration_async(
-            bidsdir=bidsdirs[RANK], outdir=tmpd_out, nthreads=nthreads, mem_mb=mem_mb
-        ) as proc:
-            await proc.wait()
-            if proc.returncode == 0:
-                logging.info(f"Copying {tmpd_out} -> {outdirs[RANK]}")
-                shutil.copytree(tmpd_out, outdirs[RANK])
-            else:
-                logging.warning(f"{bidsdirs[RANK]} ended with {proc.returncode=}")
+    with tempfile.TemporaryDirectory() as _tmpd_in:
+        tmpd_in = stage(bidsdirs, pathlib.Path(_tmpd_in))
+        with tempfile.TemporaryDirectory() as _tmpd_out:
+            tmpd_out = pathlib.Path(_tmpd_out)
+            async with get_orchestration_async(
+                bidsdir=tmpd_in,
+                outdir=tmpd_out,
+                nthreads=nthreads,
+                mem_mb=mem_mb,
+            ) as proc:
+                await proc.wait()
+                archive(tmpd_out, outdirs, proc.returncode)
 
     copy_tapis_logs_to_out(outdirs)
 
