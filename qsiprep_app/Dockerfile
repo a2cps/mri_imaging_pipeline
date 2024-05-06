@@ -1,7 +1,7 @@
 # bring in the micromamba image so we can copy files from it
 FROM mambaorg/micromamba:1.5.8 as micromamba
 
-FROM pennbbl/qsiprep:0.21.1
+FROM pennbbl/qsiprep:0.21.4
 
 USER root
 
@@ -32,6 +32,10 @@ RUN micromamba install -q --name qsiprep --yes -c conda-forge --freeze-installed
         rdma-core \
         mpi4py \
     && micromamba install --name qsiprep -c conda-forge --no-deps --yes openssl=3.0.7 \
+    && micromamba install -n fslqsiprep \
+        -c https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public/ \
+        -c conda-forge \
+        fsl-miscvis \
     && micromamba clean --all --yes
 
 # files searched for in entrypoint.py

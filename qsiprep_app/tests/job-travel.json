@@ -1,14 +1,12 @@
 {
     "appId": "psadil-qsiprep",
     "appVersion": "0.1",
+    "cmdPrefix": "ibrun -n 12",
+    "coresPerNode": 6,
     "hiddenOptions": [
         "MEM"
     ],
-    "logConfig": {
-        "stderrFilename": "${JobUUID}.err",
-        "stdoutFilename": "${JobUUID}.out"
-    },
-    "maxMinutes": 720,
+    "maxMinutes": 540,
     "moduleLoads": [
         {
             "moduleLoadCommand": "module load",
@@ -19,24 +17,29 @@
         }
     ],
     "name": "qsiprep",
+    "nodeCount": 2,
     "parameterSet": {
         "appArgs": [
             {
-                "arg": "--bidsdir /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel2",
+                "arg": "--bidsdir /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/RU_rush/bids/RUtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/SH_spectrum_health/bids/SHtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UC_uchicago/bids/UCtravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UC_uchicago/bids/UCtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UI_uic/bids/UItravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UI_uic/bids/UItravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UM_umichigan/bids/UM1travel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UM_umichigan/bids/UM2travel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/WS_wayne_state/bids/WStravel2",
                 "name": "BIDSDIR"
             },
             {
-                "arg": "--outdir RU_rush/qsiprep/RUtravel2",
+                "arg": "--outdir NS_northshore/qsiprep/NStravel1 NS_northshore/qsiprep/NStravel2  RU_rush/qsiprep/RUtravel1 RU_rush/qsiprep/RUtravel2 SH_spectrum_health/qsiprep/SHtravel2 UC_uchicago/qsiprep/UCtravel1 UC_uchicago/qsiprep/UCtravel2 UI_uic/qsiprep/UItravel1 UI_uic/qsiprep/UItravel2 UM_umichigan/qsiprep/UM1travel2 UM_umichigan/qsiprep/UM2travel2 WS_wayne_state/qsiprep/WStravel2",
                 "name": "OUTDIR"
             },
             {
-                "arg": "--nthreads 25",
+                "arg": "--nthreads 8",
                 "name": "NTHREADS"
             },
             {
-                "arg": "--mem-mb 70000",
+                "arg": "--mem-mb 32000",
                 "name": "MEM_MB"
             }
-        ]
+        ],
+        "logConfig": {
+            "stderrFilename": "${JobUUID}.err",
+            "stdoutFilename": "${JobUUID}.out"
+        }
     }
 }

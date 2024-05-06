@@ -16,7 +16,7 @@
 		"execSystemOutputDir": "${JobWorkingDir}",
 		"fileInputArrays": [],
 		"fileInputs": [],
-		"maxMinutes": 720,
+		"maxMinutes": 480,
 		"nodeCount": 1,
 		"parameterSet": {
 			"appArgs": [
@@ -58,7 +58,16 @@
 					"name": "Container Mounts"
 				}
 			],
-			"envVariables": [],
+			"envVariables": [
+				{
+					"key": "FAILURE_LOG_DST",
+					"value": "/corral-secure/projects/A2CPS/products/development/mri/logs/qsiprep/"
+				}
+			],
+			"logConfig": {
+				"stderrFilename": "${JobUUID}.err",
+				"stdoutFilename": "${JobUUID}.out"
+			},
 			"schedulerOptions": [
 				{
 					"arg": "--tapis-profile tacc-apptainer",
