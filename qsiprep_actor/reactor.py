@@ -26,13 +26,13 @@ JOB = Path("/opt/job.json")
 # ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
 ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
-# can be overriden by incoming message
+# can be overridden by incoming message
 MAXJOBS = 1000
 
 # assume deployed on frontera
 # https://docs.tacc.utexas.edu/hpc/frontera/#table1
 N_SUBS_PER_NODE = 7
-N_CORES_PER_NODE = 56
+N_CORES_PER_NODE = 56  # this is total number for a node
 MEM_PER_NODE = 192000  # MB
 
 SITE_LONG = {
@@ -225,8 +225,18 @@ def main() -> None:
     )
     n_jobs = len(runlist)
 
-    set_key_value(job, key="nodeCount", value=n_nodes)
     set_key_value(job, key="cmdPrefix", value=get_cmd_prefix(n_jobs))
+
+    # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
+    set_key_value(job, key="nodeCount", value=n_nodes)
+
+    # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
+    # all nodes will have all cores available, but this needs to be set for ibrun
+    set_key_value(
+        job,
+        key="coresPerNode",
+        value=math.ceil(N_CORES_PER_NODE / N_SUBS_PER_NODE),
+    )
 
     failurebot_url = get_failurebot_url(client=client)
     set_subscription_url(job, arg=failurebot_url)
