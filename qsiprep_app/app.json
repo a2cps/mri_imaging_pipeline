@@ -1,8 +1,8 @@
 {
-	"containerImage": "docker://psadil/qsiprep_app:240425",
+	"containerImage": "docker://a2cps/qsiprep_app:3.0",
 	"description": "Run qsiprep",
 	"enabled": true,
-	"id": "psadil-qsiprep",
+	"id": "urrutia-qsiprep",
 	"jobAttributes": {
 		"archiveOnAppError": false,
 		"cmdPrefix": "ibrun -n 1",
@@ -102,5 +102,5 @@
 	],
 	"runtimeVersion": null,
 	"strictFileInputs": true,
-	"version": "0.1"
+	"version": "3.0"
 }
