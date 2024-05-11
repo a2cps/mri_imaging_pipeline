@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 import bids_wf
+import brainager_wf
 import cat12_wf
 import click
 import fcn_wf
@@ -13,6 +14,7 @@ import fmriprep_wf
 import freesurfer_wf
 import fslanat_wf
 import mriqc_wf
+import qsiprep_wf
 import pandas as pd
 import signatures_wf
 import utils
@@ -77,6 +79,8 @@ def _get_deriv_tocopy(
             and cat12 in ['1', 'na'] \
             and fcn in ['1', 'na'] \
             and signatures in ['1', 'na'] \
+            and qsiprep in ['1', 'na'] \
+            and brainager in ['1', 'na'] \
             """
         )
     )
@@ -85,7 +89,7 @@ def _get_deriv_tocopy(
     # this is rare, but see NS10205V1 (for which there is nothing)
     derivatives: dict[str, list[str]] = dict()
     for row in ready.itertuples():
-        sublong = _make_sublong(row.site, row.subject_id, row.visit)
+        sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
         jobs = set()
         already_aggregated = True
         # cannot rely on imaging log only, because imaging log will say that a job is
@@ -120,6 +124,24 @@ def _get_deriv_tocopy(
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("fmriprep")
+        if row.qsiprep == "1":
+            already_aggregated &= (
+                outroot
+                / "qsiprep"
+                / f"sub-{row.subject_id}"
+                / f"ses-{row.visit}"
+            ).exists()
+            jobs.add("qsiprep")
+
+        if row.brainager == "1":
+            already_aggregated &= (
+                outroot
+                / "brainager"
+                / f"sub-{row.subject_id}"
+                / f"ses-{row.visit}"
+            ).exists()
+            jobs.add("brainager")
+
         if row.cat12 == "1" and is_directory_ready(
             inroot / SITE_LONG[site_code] / "cat12" / sublong
         ):
@@ -362,7 +384,10 @@ def _main(
             if len(subses_tocopy):
                 logging.info("Storing derivatives in final location")
                 cat12_wf.copy(inroot=tmp_site, outdir=outroot / "cat12")
-                # qsiprep_wf.main(inroot=tmp_site, outdir=outroot / "qsiprep")
+                qsiprep_wf.copy(inroot=tmp_site, outdir=outroot)
+                brainager_wf.copy(
+                    inroot=tmp_site, outdir=outroot / "brainager"
+                )
                 mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
                 fmriprep_wf.copy(
                     inroot=tmp_site, outdir=outroot / "fmriprep-anat"

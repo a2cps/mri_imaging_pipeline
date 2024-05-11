@@ -37,7 +37,7 @@ def _copy_overwrite(src: str | Path, dst: str | Path) -> str:
     return out
 
 
-def mergetree_overwrite(src: Path, dst: Path) -> None:
+def mergetree_overwrite(src: Path, dst: Path, ignore=None) -> None:
     """Merge src directory tree with dst directory tree, overwritting files in dst
 
     Args:
@@ -56,7 +56,11 @@ def mergetree_overwrite(src: Path, dst: Path) -> None:
     """
 
     shutil.copytree(
-        src=src, dst=dst, dirs_exist_ok=True, copy_function=_copy_overwrite
+        src=src,
+        dst=dst,
+        dirs_exist_ok=True,
+        copy_function=_copy_overwrite,
+        ignore=ignore,
     )
 
 
@@ -108,18 +112,6 @@ def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
         / "anat"
         / f"sub-{sub}_desc-brain_mask.nii.gz",
     )
-    _deface(
-        subsesdir
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz",
-        subsesdir
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz",
-    )
 
 
 def _deface_freesurfer(subdir: Path, fmriprep_mask: Path) -> None:
@@ -159,13 +151,13 @@ def _deface_fmriprep(
 
 
 def _deface_all_derivatives(subsesdir: Path, tmp_site: Path) -> bool:
-    sub = _get_sub(subsesdir)
-    ses = _get_ses(subsesdir)
-    subses_fmriprep = tmp_site / "fmriprep" / subsesdir
     ok = True
 
     # NOTE: cannot assume that all standard files exist for all participants
     try:
+        sub = _get_sub(subsesdir)
+        ses = _get_ses(subsesdir)
+        subses_fmriprep = tmp_site / "fmriprep" / subsesdir
         fmriprep_mask = (
             subses_fmriprep
             / "anat"
@@ -181,6 +173,7 @@ def _deface_all_derivatives(subsesdir: Path, tmp_site: Path) -> bool:
             sub=sub,
             ses=ses,
         )
+        _deface_qsiprep(subsesdir=tmp_site / "qsiprep" / subsesdir, sub=sub)
 
         _deface_freesurfer(
             subdir=subses_fmriprep / "anat" / "freesurfer" / f"sub-{sub}",
