@@ -114,7 +114,8 @@ def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
         .mutate(
             BIDSDIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
             + x.sitelong
-            + "/bids"  # type: ignore
+            + "/bids/"  # type: ignore
+            + x.sublong
         )
         .execute()
     )
@@ -183,12 +184,10 @@ def get_failurebot_url(client) -> str:
     return url
 
 
-def set_subscription_url(job: dict, arg: str) -> dict:
-    job2 = copy.deepcopy(job)
-    job2.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
+def set_subscription_url(job: dict, arg: str) -> None:
+    job.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
         {"deliveryAddress": arg}
     )
-    return job2
 
 
 def main() -> None:
@@ -211,7 +210,7 @@ def main() -> None:
     n_jobs = len(runlist)
     n_nodes = get_node_count(n_jobs)
     set_bidsdir(job, "--bidsdir " + " ".join(x[0] for x in runlist))
-    set_outdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
+    set_outdir(job, "--outdir " + " ".join(x[1] for x in runlist))
     set_nthreads(job, n_nodes=n_nodes, n_jobs=n_jobs)
     set_mem_mb(job, n_nodes=n_nodes, n_jobs=n_jobs)
 
@@ -221,7 +220,7 @@ def main() -> None:
     set_key_value(
         job,
         key="name",
-        value=f"fslanat-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        value=f"qsiprep-{datetime.datetime.today().strftime('%Y-%m-%d')}",
     )
     n_jobs = len(runlist)
 
@@ -235,7 +234,7 @@ def main() -> None:
     set_key_value(
         job,
         key="coresPerNode",
-        value=math.ceil(N_CORES_PER_NODE / N_SUBS_PER_NODE),
+        value=n_jobs
     )
 
     failurebot_url = get_failurebot_url(client=client)

@@ -41,5 +41,18 @@
             "stderrFilename": "${JobUUID}.err",
             "stdoutFilename": "${JobUUID}.out"
         }
-    }
+    },
+    "subscriptions": [
+        {
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
+            "deliveryTargets": [
+                {
+                    "deliveryMethod": "WEBHOOK",
+                    "deliveryAddress": ""
+                }
+            ]
+        }
+    ]
 }
