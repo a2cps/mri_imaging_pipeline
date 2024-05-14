@@ -89,7 +89,8 @@ def main() -> None:
     job = set_subscription_url(job, arg=failurebot_url)
 
     try:
-        client.jobs.submitJob(**job)  # type: ignore
+        submitted = client.jobs.submitJob(**job)  # type: ignore
+        print(submitted.uuid)
     except Exception as e:
         logging.error(f"encountered while trying to submit job: {e}")
 

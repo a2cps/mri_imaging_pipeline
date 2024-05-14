@@ -1,0 +1,45 @@
+{
+    "appId": "urrutia-qsiprep",
+    "appVersion": "3.0",
+    "cmdPrefix": "ibrun -n 1",
+    "coresPerNode": 1,
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 300,
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer",
+                "intel/23.1.0"
+            ]
+        }
+    ],
+    "name": "qsiprep",
+    "nodeCount": 1,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--bidsdir /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 ",
+                "name": "BIDSDIR"
+            },
+            {
+                "arg": "--outdir NS_northshore/qsiprep/NStravel1 ",
+                "name": "OUTDIR"
+            },
+            {
+                "arg": "--nthreads 50",
+                "name": "NTHREADS"
+            },
+            {
+                "arg": "--mem-mb 96000",
+                "name": "MEM_MB"
+            }
+        ],
+        "logConfig": {
+            "stderrFilename": "${JobUUID}.err",
+            "stdoutFilename": "${JobUUID}.out"
+        }
+    }
+}
