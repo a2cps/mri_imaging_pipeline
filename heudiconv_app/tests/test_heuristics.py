@@ -19,7 +19,7 @@ anatomical = {
         "anat-T1w_acq-MPRAGE",
     ]
 }
-dwi = {"dwi": ["DWI", "dwi", "DTI", "ORIG: DTI"]}
+dwi = {"dwi": ["DWI", "dwi", "DTI", "ORIG: DTI", "dMRI"]}
 rest = {
     "func_task-rest_run-1": [
         "Rest1",
