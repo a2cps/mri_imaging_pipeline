@@ -90,6 +90,7 @@ protocols2fix.update(
             ("^T1_MPRAGE_ND$", "anat-T1w"),
             # SH Traveling Human
             ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
+            ("^dMRI$", "dwi")
         ],
     }
 )
