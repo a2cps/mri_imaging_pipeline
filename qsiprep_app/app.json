@@ -61,7 +61,11 @@
 			"envVariables": [
 				{
 					"key": "FAILURE_LOG_DST",
-					"value": "/corral-secure/projects/A2CPS/products/development/mri/logs/qsiprep/"
+					"value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
+				},
+				{
+					"key": "MIN_ARCHIVE_DURATION",
+					"value": "1800"
 				}
 			],
 			"logConfig": {
