@@ -1,8 +1,11 @@
 {
     "appId": "urrutia-qsiprep",
-    "appVersion": "3.0",
+    "appVersion": "3.2",
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
+    "archiveSystemId": "secure.ls6",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
+    "archiveOnAppError": false,
     "hiddenOptions": [
         "MEM"
     ],
@@ -12,12 +15,13 @@
             "moduleLoadCommand": "module load",
             "modulesToLoad": [
                 "tacc-apptainer",
-                "intel/23.1.0"
+                "intel/24.1"
             ]
         }
     ],
     "name": "qsiprep",
     "nodeCount": 1,
+    "execSystemId": "secure.ls6",
     "parameterSet": {
         "appArgs": [
             {
@@ -41,5 +45,18 @@
             "stderrFilename": "${JobUUID}.err",
             "stdoutFilename": "${JobUUID}.out"
         }
-    }
+    },
+    "subscriptions": [
+        {
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
+            "deliveryTargets": [
+                {
+                    "deliveryMethod": "WEBHOOK",
+                    "deliveryAddress": ""
+                }
+            ]
+        }
+    ]
 }
