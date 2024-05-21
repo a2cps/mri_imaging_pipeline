@@ -1,5 +1,5 @@
 {
-	"containerImage": "docker://a2cps/qsiprep_app:3.0",
+	"containerImage": "docker://a2cps/qsiprep_app:3.2",
 	"description": "Run qsiprep",
 	"enabled": true,
 	"id": "urrutia-qsiprep",
@@ -106,5 +106,5 @@
 	],
 	"runtimeVersion": null,
 	"strictFileInputs": true,
-	"version": "3.0"
+	"version": "3.2"
 }

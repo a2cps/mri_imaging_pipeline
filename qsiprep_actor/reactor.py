@@ -30,10 +30,15 @@ ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 MAXJOBS = 1000
 
 # assume deployed on frontera
-# https://docs.tacc.utexas.edu/hpc/frontera/#table1
-N_SUBS_PER_NODE = 7
-N_CORES_PER_NODE = 56  # this is total number for a node
-MEM_PER_NODE = 192000  # MB
+# # https://docs.tacc.utexas.edu/hpc/frontera/#table1
+# N_SUBS_PER_NODE = 7
+# N_CORES_PER_NODE = 56  # this is total number for a node
+# MEM_PER_NODE = 192000  # MB
+
+# numbers for ls6
+N_SUBS_PER_NODE = 8
+N_CORES_PER_NODE = 128  # this is total number for a node
+MEM_PER_NODE = 256000  # MB
 
 SITE_LONG = {
     "NS": "NS_northshore",
