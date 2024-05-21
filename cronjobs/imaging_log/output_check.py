@@ -470,7 +470,7 @@ def write_excel(df):
     writer.save()
 
 
-def update_to_fail(d: dict[str, int | str], col: str) -> None:
+def update_to_fail(d, col):
     sublong = f"{d.get('site')}{d.get('subject_id')}{d.get('visit')}"
     # the check for in [0,1,etc] is to avoid overwritting 'na' values
     if len(list((FAILURE_LOG_DST / col / sublong).glob("*.out"))) and (d.get(col) in ["0", "1", 0, 1]):
