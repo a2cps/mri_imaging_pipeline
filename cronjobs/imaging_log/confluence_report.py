@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 import subprocess
 import os
 
+from output_check import APP_STEPS
+
 def run_bash(bashCommand):
     # #bashCommand = 'curl -H "Authorization: Bearer $TOKEN" https://confluence.a2cps.org/rest/api/content/15929269?expand=body.storage,version  > confluence_response.json'
     # process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
@@ -45,6 +47,10 @@ def main():
     #df['fMRI T1 Tech Rating'] = pd.to_numeric(df['fMRI T1 Tech Rating'])
     df.replace('1','Y', inplace=True)
     df.replace('0','N', inplace=True)
+
+    for col in APP_STEPS:
+        df[col] = df[col].replace('2', 'Failed')
+
     df.drop_duplicates(inplace=True)
     updated_html = df.to_html(header=False,index=False, classes="wrapped relative-table")
     soup_updated_table = BeautifulSoup(updated_html, 'html.parser')

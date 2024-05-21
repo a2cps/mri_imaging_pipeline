@@ -4,10 +4,29 @@ import glob
 import json
 import sys
 import pandas as pd
+from pathlib import Path
 #'0.24.2'
 import numpy as np
 import requests
 import xlsxwriter
+
+FAILURE_LOG_DST = Path(os.environ.get("FAILURE_LOG_DST", "/corral-secure/projects/A2CPS/products/development/mris/logs"))
+
+APP_STEPS = [
+                "bids", 
+                "fslanat",
+                "fmriprep_anat", 
+                "fmriprep_rest", 
+                "fmriprep_cuff",
+                "mriqc_anat", 
+                "mriqc_rest", 
+                "mriqc_cuff", 
+                "qsiprep", 
+                "cat12",
+                "brainager",
+                "fcn",
+                "signatures"
+            ]
 
 # function to filter reponse object for highest record_id+visit repeat instance
 def filter_highest_value(data, identification_keys, key_to_compare):
@@ -451,6 +470,13 @@ def write_excel(df):
     writer.save()
 
 
+def update_to_fail(d: dict[str, int | str], col: str) -> None:
+    sublong = f"{d.get('site')}{d.get('subject_id')}{d.get('visit')}"
+    # the check for in [0,1,etc] is to avoid overwritting 'na' values
+    if len(list((FAILURE_LOG_DST / col / sublong).glob("*.out"))) and (d.get(col) in ["0", "1", 0, 1]):
+        d[col] = 2
+
+
 def main():
     # scans_indicated = json.loads(sys.argv[1])
     # bids = sys.argv[2]
@@ -624,8 +650,10 @@ def main():
                 scan_report['fcn'] = 'na'
                 scan_report['signatures'] = 'na'
             if scan_report['DWI Indicated'] == '0':
-                scan_report['qsiprep'] = 'na'            
+                scan_report['qsiprep'] = 'na'
 
+            for col in APP_STEPS:
+                update_to_fail(scan_report, col)
 
             list_of_dict.append(scan_report)
         except Exception as e:
