@@ -55,3 +55,11 @@ main (){
 export -f main
 
 main "$@"
+
+## Different options to parallelize
+    ## all require adding options to the Docker file (container based on docker file)
+
+## Option 1) MPI
+## Option 2) ibrun main "$@"" (?)
+    ## ibrun is TACC's version of running an MPI executable, so ibrun launches the container that enables MPI
+## Option 3) parallel main "$@" (prob least optimal)
