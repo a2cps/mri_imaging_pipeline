@@ -38,6 +38,13 @@ logging.basicConfig(
 )
 
 
+def mkdir_recursive(p: pathlib.Path, mode: int = 0o770) -> None:
+    for parent in reversed(p.parents):
+        if not parent.exists():
+            parent.mkdir(mode=mode)
+    p.mkdir(mode=mode)
+
+
 def _get_qsiprep_wait_time() -> float:
     return SLURM_JOB_END_TIME - MIN_ARCHIVE_DURATION - time.time()
 
@@ -196,25 +203,34 @@ def archive(
     src: pathlib.Path, dsts: list[pathlib.Path], returncode: int | None
 ) -> None:
     for rank, dst in enumerate(dsts):
-        if rank == RANK:
-            if returncode == 0:
-                logging.info(f"Copying {src} -> {dst}")
-                shutil.copytree(
-                    src, dst, dirs_exist_ok=True, copy_function=shutil.copyfile
-                )
-            else:
-                # in case of failures, it's helpful to keep logs around
-                log_dst = FAILURE_LOG_DST / dst.stem
-                logging.warning(
-                    f"Failure detected for {dsts[RANK]=}. Copying logs to {log_dst}"
-                )
-                if not log_dst.exists():
-                    log_dst.mkdir(mode=550, parents=True)
-                for log in src.glob("*log"):
-                    shutil.copyfile(log, log_dst / log.name)
-                _copy_tapis_files(log_dst)
-        # ensure that only one copy happens at a time
-        MPI.COMM_WORLD.barrier()
+        try:
+            if rank == RANK:
+                if returncode == 0:
+                    logging.info(f"Copying {src} -> {dst}")
+                    if not dst.exists():
+                        mkdir_recursive(dst, mode=0o770)
+                    shutil.copytree(
+                        src,
+                        dst,
+                        dirs_exist_ok=True,
+                        copy_function=shutil.copyfile,
+                    )
+                else:
+                    # in case of failures, it's helpful to keep logs around
+                    log_dst = FAILURE_LOG_DST / dst.stem
+                    logging.warning(
+                        f"Failure detected for {dsts[RANK]=}. Copying logs to {log_dst}"
+                    )
+                    if not log_dst.exists():
+                        mkdir_recursive(log_dst, mode=0o770)
+                    for log in src.glob("*log"):
+                        shutil.copyfile(log, log_dst / log.name)
+                    _copy_tapis_files(log_dst)
+            # ensure that only one copy happens at a time
+        except Exception as e:
+            logging.error(f"Failed to archive {dsts[RANK]=}: {e}")
+        finally:
+            MPI.COMM_WORLD.barrier()
 
 
 async def main(
