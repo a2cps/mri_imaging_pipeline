@@ -7,6 +7,12 @@ import re
 
 FSOUTPUTS = ("orig.mgz", "orig_nu.mgz", "T1.mgz")
 
+MORPH_EFFECT_SIZE = (
+    Path("/opt/tapis/morph-effect-size.tsv")
+    if Path("/opt/tapis/morph-effect-size.tsv").exists()
+    else Path("morph-effect-size.tsv")
+)
+
 
 def _get_int(line: str) -> int:
     return int(re.findall(r"\d+", line)[0])
@@ -44,7 +50,9 @@ def _parse_aseg_header(f: Path) -> pd.DataFrame:
         if "Measure BrainSeg, BrainSegVol" in line:
             dfs.append(pd.DataFrame({"BrainSegVol": [_get_float(line)]}))
         elif "Measure BrainSegNotVent, BrainSegVolNotVent" in line:
-            dfs.append(pd.DataFrame({"BrainSegVolNotVent": [_get_float(line)]}))
+            dfs.append(
+                pd.DataFrame({"BrainSegVolNotVent": [_get_float(line)]})
+            )
         elif "Measure BrainSegNotVentSurf, BrainSegVolNotVentSurf" in line:
             dfs.append(
                 pd.DataFrame({"BrainSegVolNotVentSurf": [_get_float(line)]})
@@ -174,9 +182,9 @@ def parse_all_aparc(root: Path) -> pd.DataFrame:
         ses = utils._get_ses(subsesdir)
         for hemi in ["lh", "rh"]:
             aparc.append(
-                parse_aparc(subsesdir / "stats" / f"{hemi}.aparc.stats").assign(
-                    sub=sub, ses=ses, hemisphere=hemi, parc="aparc"
-                )
+                parse_aparc(
+                    subsesdir / "stats" / f"{hemi}.aparc.stats"
+                ).assign(sub=sub, ses=ses, hemisphere=hemi, parc="aparc")
             )
             aparc.append(
                 parse_aparc(
@@ -205,7 +213,9 @@ def parse_all_aparc(root: Path) -> pd.DataFrame:
             aparc.append(
                 parse_aparc(
                     subsesdir / "stats" / f"{hemi}.aparc.a2009s.stats"
-                ).assign(sub=sub, ses=ses, hemisphere=hemi, parc="aparc.a2009s")
+                ).assign(
+                    sub=sub, ses=ses, hemisphere=hemi, parc="aparc.a2009s"
+                )
             )
 
     return pd.concat(aparc, ignore_index=True)
@@ -230,6 +240,22 @@ def parse_all_aseg(root: Path) -> pd.DataFrame:
     return pd.concat(aseg, ignore_index=True)
 
 
+def gm_dot(x):
+    d = {}
+    d["surf_area_signature_bhatt"] = x["SurfArea"] @ x["effect_size"]
+    return pd.Series(d, index=["surf_area_signature_bhatt"])
+
+
+def get_gm_morph(aparc: pd.DataFrame) -> pd.DataFrame:
+    effect_sizes = pd.read_csv(MORPH_EFFECT_SIZE, sep="\t")
+    return (
+        aparc.query("parc == 'aparc.a2009s'")
+        .merge(effect_sizes, on=["hemisphere", "StructName", "parc"])
+        .groupby(["sub", "ses"])
+        .apply(gm_dot, include_groups=False)
+    )
+
+
 def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True)
@@ -237,12 +263,19 @@ def copy(outdir: Path, inroot: Path) -> None:
     for src in inroot.glob("fmriprep/*/anat/freesurfer/sub*"):
         # folders renamed so that sessions do not collide
         utils.mergetree_overwrite(
-            src, outdir / f"sub-{utils._get_sub(src)}_ses-{utils._get_ses(src)}"
+            src,
+            outdir / f"sub-{utils._get_sub(src)}_ses-{utils._get_ses(src)}",
         )
 
 
 def make_toplevel(outdir: Path) -> None:
-    parse_all_aparc(outdir).to_csv(outdir / "aparc.tsv", index=False, sep="\t")
+    aparc = parse_all_aparc(outdir)
+
+    # note that we must keep index to preserve sub,ses cols
+    # which end up in multindex
+    get_gm_morph(aparc).to_csv(outdir / "gm_morph.tsv", sep="\t")
+
+    aparc.to_csv(outdir / "aparc.tsv", index=False, sep="\t")
     parse_all_aseg(outdir).to_csv(outdir / "aseg.tsv", index=False, sep="\t")
     parse_all_headers(outdir).to_csv(
         outdir / "headers.tsv", index=False, sep="\t"
