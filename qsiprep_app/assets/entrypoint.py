@@ -215,6 +215,9 @@ def archive(
                         dirs_exist_ok=True,
                         copy_function=shutil.copyfile,
                     )
+                    # need one more chmod for after copytree
+                    # which preserves permissions of dst itself
+                    dst.chmod(0o770)
                 else:
                     # in case of failures, it's helpful to keep logs around
                     log_dst = FAILURE_LOG_DST / dst.stem
