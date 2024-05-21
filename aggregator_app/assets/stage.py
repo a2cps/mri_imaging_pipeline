@@ -384,8 +384,8 @@ def _main(
 
         # finally, handle all toplevel file material
         logging.info("Adding toplevel files")
-        # NOTE: no cat12 toplevel files
         bids_wf.make_toplevel(outdir=outroot / "bids")
+        cat12_wf.make_toplevel(outdir=outroot / "cat12")
         mriqc_wf.make_toplevel(outdir=outroot / "mriqc")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-anat")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-cuff")
