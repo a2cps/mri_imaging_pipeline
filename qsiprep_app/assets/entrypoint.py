@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 import typing
 import time
+import socket
 
 from mpi4py import MPI
 
@@ -29,11 +30,12 @@ SLURM_JOB_END_TIME = float(
 # number of seconds before SLURM_JOB_END_TIME to cancel qsiprep
 MIN_ARCHIVE_DURATION = int(os.environ.get("MIN_ARCHIVE_DURATION", 1800))
 
+HOST = socket.gethostname()
 RANK = MPI.COMM_WORLD.Get_rank()
 USIZE = MPI.COMM_WORLD.Get_size()
 
 logging.basicConfig(
-    format=f"%(asctime)s | %(levelname)-8s | {RANK=} | {USIZE=} | %(message)s",
+    format=f"%(asctime)s | %(levelname)-8s | {HOST=} | {RANK=} | {USIZE=} | %(message)s",
     level=logging.INFO,
 )
 
