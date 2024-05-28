@@ -135,8 +135,8 @@ def get_node_count(n_jobs: int) -> int:
     return math.ceil(n_jobs / N_SUBS_PER_NODE)
 
 
-def get_cmd_prefix(n_jobs: int) -> str:
-    return f"ibrun -n {n_jobs}"
+def get_cmd_prefix(image: str, n_jobs: int) -> str:
+    return f"apptainer pull {image} && ibrun -n {n_jobs}"
 
 
 def set_bidsdir(job: dict, arg: str) -> None:
@@ -218,7 +218,6 @@ def main() -> None:
     set_outdir(job, "--outdir " + " ".join(x[1] for x in runlist))
     set_nthreads(job, n_nodes=n_nodes, n_jobs=n_jobs)
     set_mem_mb(job, n_nodes=n_nodes, n_jobs=n_jobs)
-
     set_key_value(
         job, key="maxMinutes", value=context.message_dict.get("maxMinutes")
     )
@@ -227,9 +226,10 @@ def main() -> None:
         key="name",
         value=f"qsiprep-{datetime.datetime.today().strftime('%Y-%m-%d')}",
     )
-    n_jobs = len(runlist)
-
-    set_key_value(job, key="cmdPrefix", value=get_cmd_prefix(n_jobs))
+ 
+    # get image
+    image = client.apps.getApp(appId=job["appId"], appVersion=job["appVersion"]).containerImage
+    set_key_value(job, key="cmdPrefix", value=get_cmd_prefix(image, n_jobs))
 
     # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
     set_key_value(job, key="nodeCount", value=n_nodes)
@@ -239,7 +239,7 @@ def main() -> None:
     set_key_value(
         job,
         key="coresPerNode",
-        value=n_jobs
+        value=N_SUBS_PER_NODE
     )
 
     failurebot_url = get_failurebot_url(client=client)

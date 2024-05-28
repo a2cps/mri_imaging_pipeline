@@ -80,6 +80,12 @@
 					"name": "TACC Scheduler Profile"
 				},
 				{
+					"arg": "--tapis-profile ls6-mpi",
+					"description": "Scheduler profile for HPC clusters at TACC",
+					"inputMode": "FIXED",
+					"name": "TACC Scheduler Profile"
+				},
+				{
 					"arg": "--job-name ${JobName}",
 					"description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
 					"inputMode": "FIXED",
