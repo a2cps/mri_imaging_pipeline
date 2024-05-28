@@ -90,7 +90,7 @@ protocols2fix.update(
             ("^T1_MPRAGE_ND$", "anat-T1w"),
             # SH Traveling Human
             ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
-            ("^dMRI$", "dwi")
+            ("^dMRI$", "dwi"),
         ],
     }
 )
@@ -190,6 +190,12 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
                 "1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"
             ]
         )
+    ):
+        exclude = True
+
+    # test scan from SH (TE of 80 vs 70), late May 2024
+    elif (dcmdata.get("DeviceSerialNumber") == "66022") and (
+        dcmdata.get("SeriesDescription") == "fMRI_B0_PA_80"
     ):
         exclude = True
 
