@@ -1,0 +1,253 @@
+// Reference=MNI
+// Apkarian_2004: Normals > CBP Patients_ Grey Matter Density
+// Subjects=26
+-35 4 55
+-24 5 59
+34 18 53
+14 -18 16
+ 
+// As-Sanie_2012: Changes in regional gray matter_ Pain < Healthy Controls
+// Subjects=6
+-13 -20 12
+ 
+// Buckalew_2008: Pain-Free Patients > Chronic Low Back Pain Patients_ Gray Matter Volume
+// Subjects=8
+-8 -64 48
+10 -4 56
+ 
+// Geha_2008: Decrease in regional GM in CRPS versus healthy controls
+// Subjects=22
+28 22 -10
+ 
+// Gerstner_2011: Decrease in regional GM in the TMD group
+// Subjects=9
+-47 25 19
+-7 21 45
+11 -42 41
+-49 5 -3
+32 -18 -25
+51 -7 -12
+29 23 -8
+ 
+// Gustin_2011: Gray matter volume differences_ Controls > TNP
+// Subjects=21
+8 -6 4
+-8 -22 8
+-24 -6 10
+20 14 -12
+-52 -10 26
+-32 12 -12
+ 
+// Gwilym_2010: Pre-Operation (Baseline): Osteoarthritis Patients < Healthy Controls_ Gray Matter Volume
+// Subjects=16
+-8.12 -19.11 13.73
+8.27 -15.06 15.43
+ 
+// Kuchinad_2007: Regions of less gray matter density for fibromyalgia patients than for healthy controls
+// Subjects=10
+-26.57 -12.99 -54.39
+-13.41 -39.53 39.89
+12.52 -47.09 37.96
+-40.02 14.39 -1.97
+2.2 61.18 13.98
+ 
+// Rocca_2006: Normals > Migraine Patients_ Gray Matter Density
+// Subjects=15
+25 12 54
+-31 64 11
+63 13 9
+-60 11 13
+1 39 25
+-2 23 -2
+41 28 32
+-41 28 32
+-8 52 -7
+-25 17 53
+48 -2 27
+-34 49 1
+50 -49 5
+-47 11 -11
+46 -9 -11
+56 -74 22
+-60 -7 -18
+55 -64 -18
+-43 -46 27
+-56 -14 -34
+-18 -15 -38
+ 
+// Rodriguez-Racke_2009: Brain Gray Matter
+// Subjects=32
+-4 39 3
+28 1 -15
+23 49 38
+-11 -14 35
+51 17 1
+-41 26 4
+2 -30 -48
+-62 -17 0
+12 23 24
+-9 24 -22
+6 62 -12
+21 -6 59
+27 9 -42
+18 -43 -33
+9 66 13
+54 -32 53
+ 
+// Ruscheweyh_2011: Regions with decreased grey matter in the ongoing pain group
+// Subjects=31
+-58 4 16
+-62 12 24
+-58 14 30
+34 24 46
+-40 -2 52
+-32 -22 46
+-6 30 26
+-10 -10 48
+-10 -10 46
+-32 -24 48
+-8 -42 74
+-28 -40 56
+20 54 26
+58 4 22
+50 24 24
+14 34 30
+34 14 56
+6 -16 54
+6 -44 70
+6 30 26
+2 30 24
+6 -22 50
+58 -12 26
+6 -46 68
+24 -50 56
+24 -46 54
+ 
+// Schmidt-Wilcke_2005: Healthy Controls > Chronic Tension Type Headache Patients_ Gray Matter
+// Subjects=20
+-2 -26 -24
+-2 -18 -44
+-2 39 0
+-5 35 21
+-6 0 48
+10 -31 46
+36 14 -1
+39 -2 10
+-34 14 -4
+-46 -5 10
+57 -46 -9
+13 23 -25
+-29 30 -21
+10 -13 -23
+-11 -14 -26
+16 -46 -53
+ 
+// Schmidt-Wilcke_2006: Normals > Chronic Back Pain Patients_ Gray Matter
+// Subjects=18
+2 -25 -18
+12 -38 80
+38 32 39
+47 -25 -24
+-34 -61 -10
+ 
+// Schmidt-Wilcke_2007: Healthy Controls > Fibromyalgia Patients_ Grey Matter Volume
+// Subjects=20
+-16 -25 2
+57 -6 -6
+ 
+// Schmidt-Wilcke_2008: Healthy Controls > Migraine Patients_ Gray Matter
+// Subjects=31
+9 43 -2
+-5 42 18
+-1 0 47
+43 15 4
+ 
+// Schmidt-Wilcke_2010: PIFP Patients < Healthy Controls_ Gray Matter After Correcting for Side of Facial Pain
+// Subjects=11
+-45 7 -8
+-4 59 1
+-6 39 13
+8 27 32
+8 12 52
+-49 6 35
+-50 -14 49
+-37 -13 58
+37 -18 53
+ 
+// Seminowicz_2010: Decreased gray matter density in IBS versus controls
+// Subjects=49
+-38 -53 69
+-47 46 18
+-12 -29 -4
+13 -29 -2
+30 26 -36
+-14 14 -13
+22 12 -12
+-7 55 9
+8 -77 64
+-59 -30 -11
+-38 0 37
+27 67 -4
+-21 -79 11
+46 -27 11
+-21 60 -15
+-31 -11 11
+-39 40 -9
+55 38 26
+ 
+// Tu_2010: Healthy Controls > Primary Dysmenorrhea Patients_ Gray Matter Volume
+// Subjects=32
+-45 -22 10
+54 -10 6
+21 -67 28
+6 -67 56
+6 69 12
+36 0 -12
+24 -46 65
+15 -90 -23
+-18 -40 -45
+ 
+// Valet_2009: Pain Disorder Patients < Healthy Controls_ Gray Matter Density
+// Subjects=14
+-10 66 -5
+-6 38 -13
+-37 43 -13
+31 23 -15
+-42 54 -7
+-7 53 22
+7 40 14
+-3 -45 25
+35 19 1
+43 -11 -8
+-23 -36 3
+-43 -27 -26
+8 -46 -23
+ 
+// Valfre_2008: Healthy Controls > Migraine Patients_ Gray Matter_ Modulated
+// Subjects=27
+67 -6 5
+65 -6 4
+65 -6 7
+66 -7 10
+64 -9 18
+64 -9 20
+63 14 15
+63 15 19
+62 16 11
+58 14 8
+-60 11 12
+ 
+// Vartiainen_2009: Herpes Simplex Virus Patients < Healthy Controls_ Gray Matter Density
+// Subjects=8
+7 -5 53
+2 52 13
+-6 58 -18
+-17 3 45
+41 -6 54
+-42 8 49
+11 -28 43
+ 
+// Younger_2010: Chronic Myofascial Temporomandibular Pain Patients < Healthy Controls_ Gray Matter Volume
+// Subjects=14
+38 -27 59
+ 

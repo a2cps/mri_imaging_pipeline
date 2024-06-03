@@ -27,7 +27,7 @@ SLURM_JOB_END_TIME = float(
 )  # datetime(2030, 1, 1).timestamp()
 
 # number of seconds before SLURM_JOB_END_TIME to cancel qsiprep
-MIN_ARCHIVE_DURATION = 1800
+MIN_ARCHIVE_DURATION = int(os.environ.get("MIN_ARCHIVE_DURATION", 1800))
 
 RANK = MPI.COMM_WORLD.Get_rank()
 USIZE = MPI.COMM_WORLD.Get_size()
@@ -36,6 +36,13 @@ logging.basicConfig(
     format=f"%(asctime)s | %(levelname)-8s | {RANK=} | {USIZE=} | %(message)s",
     level=logging.INFO,
 )
+
+
+def mkdir_recursive(p: pathlib.Path, mode: int = 0o770) -> None:
+    for parent in reversed(p.parents):
+        if not parent.exists():
+            parent.mkdir(mode=mode)
+    p.mkdir(mode=mode)
 
 
 def _get_qsiprep_wait_time() -> float:
@@ -154,18 +161,19 @@ async def manage_eddyqc(
                 procs.terminate()
 
 
-def _copy_errs_outs(outdir: pathlib.Path) -> None:
-    # tapis log files to dsts
+def _copy_tapis_files(outdir: pathlib.Path) -> None:
+    # tapis logs tend to be in the form of [jobid].{err,out}
+    # this copies them to a destination folder
     for stderr in pathlib.Path.cwd().glob("*.err"):
-        shutil.copy2(stderr, outdir)
+        shutil.copyfile(stderr, outdir / stderr.name)
     for stdout in pathlib.Path.cwd().glob("*.out"):
-        shutil.copy2(stdout, outdir)
+        shutil.copyfile(stdout, outdir / stdout.name)
 
 
 def copy_tapis_logs_to_out(outdirs: list[pathlib.Path]) -> None:
     for rank, outdir in enumerate(outdirs):
         if rank == RANK and outdir.exists():
-            _copy_errs_outs(outdir=outdir)
+            _copy_tapis_files(outdir=outdir)
         # ensure that only one copy happens at a time
         MPI.COMM_WORLD.barrier()
 
@@ -195,23 +203,37 @@ def archive(
     src: pathlib.Path, dsts: list[pathlib.Path], returncode: int | None
 ) -> None:
     for rank, dst in enumerate(dsts):
-        if rank == RANK:
-            if returncode == 0:
-                logging.info(f"Copying {src} -> {dst}")
-                shutil.copytree(src, dst, dirs_exist_ok=True)
-            else:
-                # in case of failures, it's helpful to keep logs around
-                log_dst = FAILURE_LOG_DST / dst.stem
-                logging.warning(
-                    f"Failure detected for {dsts[RANK]=}. Copying logs to {log_dst}"
-                )
-                if not log_dst.exists():
-                    log_dst.mkdir(parents=True)
-                for log in src.glob("*log"):
-                    shutil.copy2(log, log_dst)
-                _copy_errs_outs(log_dst)
-        # ensure that only one copy happens at a time
-        MPI.COMM_WORLD.barrier()
+        try:
+            if rank == RANK:
+                if returncode == 0:
+                    logging.info(f"Copying {src} -> {dst}")
+                    if not dst.exists():
+                        mkdir_recursive(dst, mode=0o770)
+                    shutil.copytree(
+                        src,
+                        dst,
+                        dirs_exist_ok=True,
+                        copy_function=shutil.copyfile,
+                    )
+                    # need one more chmod for after copytree
+                    # which preserves permissions of dst itself
+                    dst.chmod(0o770)
+                else:
+                    # in case of failures, it's helpful to keep logs around
+                    log_dst = FAILURE_LOG_DST / dst.stem
+                    logging.warning(
+                        f"Failure detected for {dsts[RANK]=}. Copying logs to {log_dst}"
+                    )
+                    if not log_dst.exists():
+                        mkdir_recursive(log_dst, mode=0o770)
+                    for log in src.glob("*log"):
+                        shutil.copyfile(log, log_dst / log.name)
+                    _copy_tapis_files(log_dst)
+            # ensure that only one copy happens at a time
+        except Exception as e:
+            logging.error(f"Failed to archive {dsts[RANK]=}: {e}")
+        finally:
+            MPI.COMM_WORLD.barrier()
 
 
 async def main(

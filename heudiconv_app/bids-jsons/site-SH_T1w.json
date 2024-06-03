@@ -64,7 +64,7 @@
     "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
     "ProtocolName": "T1_MPRAGE",
     "PulseSequenceDetails": "%SiemensSeq%\\tfl",
-    "PulseSequenceName": "*tfl3d1_16",
+    "PulseSequenceName": "*tfl3d1_182",
     "ReceiveCoilActiveElements": "HC1-7",
     "ReceiveCoilName": "HeadNeck_64",
     "ReconMatrixPE": 256,
@@ -86,7 +86,7 @@
         47
     ],
     "SliceThickness": 1,
-    "SoftwareVersions": "syngo MR XA30",
+    "SoftwareVersions": "syngo MR XA60",
     "StationName": "AWP66022",
     "TxRefAmp": 260.15
 }

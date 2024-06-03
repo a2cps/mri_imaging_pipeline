@@ -107,7 +107,7 @@ for j in jsons:
         d["scanner"] = scanner
         phantom = len(re.findall("phantom_", j)) > 0
         d["phantom"] = phantom
-        suffix = re.findall("_(dwi|bold|T1w|epi)\.", j)[0]
+        suffix = re.findall(r"_(dwi|bold|T1w|epi)\.", j)[0]
         d["suffix"] = suffix
         if suffix == "bold":
             if acq := re.findall("(?<=acq-)[a-zA-Z]+", j):
