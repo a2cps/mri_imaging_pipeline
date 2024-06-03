@@ -8,9 +8,11 @@ from biomarkers import utils as bu
 import utils
 
 SMALLWOOD = (
-    Path("/opt/tapis/neg_mni152_C05_1k_clust.nii.gz")
-    if Path("/opt/tapis/neg_mni152_C05_1k_clust.nii.gz").exists()
-    else Path("neg_mni152_C05_1k_clust.nii.gz")
+    Path("/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii")
+    if Path(
+        "/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii"
+    ).exists()
+    else Path("tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii")
 )
 
 
@@ -18,7 +20,7 @@ def get_volume(nii: nb.nifti1.Nifti1Image, value: float | int) -> float:
     if not len(nii.shape) == 3:
         raise AssertionError("Expected 3d image")
     n_voxels = np.isclose(nii.get_fdata(), value).sum()
-    return n_voxels * np.prod(nii.header.get_zooms())
+    return n_voxels * np.prod(nii.header.get_zooms())  # type: ignore
 
 
 def get_smallwood(mridir: Path) -> pd.DataFrame:
