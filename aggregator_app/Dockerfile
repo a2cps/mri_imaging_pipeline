@@ -1,6 +1,6 @@
-FROM freesurfer/synthstrip:1.5 as fs
+FROM freesurfer/synthstrip:1.6 as fs
 
-FROM mambaorg/micromamba:1.4.3-jammy
+FROM mambaorg/micromamba:1.5.8-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 

@@ -3,6 +3,8 @@ from pathlib import Path
 import utils
 import pandas as pd
 
+from biomarkers import utils as bu
+
 import re
 
 FSOUTPUTS = ("orig.mgz", "orig_nu.mgz", "T1.mgz")
@@ -136,8 +138,8 @@ def parse_all_headers(root: Path) -> pd.DataFrame:
     _aseg = []
     _aparc = []
     for subsesdir in root.glob("sub*"):
-        sub = utils._get_sub(subsesdir)
-        ses = utils._get_ses(subsesdir)
+        sub = bu.get_sub_from_sublong(subsesdir)
+        ses = bu.get_ses_from_sublong(subsesdir)
         _aseg.append(
             _parse_aseg_header(subsesdir / "stats" / "aseg.stats").assign(
                 sub=sub, ses=ses
@@ -178,8 +180,8 @@ def parse_aseg(f: Path) -> pd.DataFrame:
 def parse_all_aparc(root: Path) -> pd.DataFrame:
     aparc = []
     for subsesdir in root.glob("sub*"):
-        sub = utils._get_sub(subsesdir)
-        ses = utils._get_ses(subsesdir)
+        sub = bu.get_sub_from_sublong(subsesdir)
+        ses = bu.get_ses_from_sublong(subsesdir)
         for hemi in ["lh", "rh"]:
             aparc.append(
                 parse_aparc(
@@ -224,8 +226,8 @@ def parse_all_aparc(root: Path) -> pd.DataFrame:
 def parse_all_aseg(root: Path) -> pd.DataFrame:
     aseg = []
     for subsesdir in root.glob("sub*"):
-        sub = utils._get_sub(subsesdir)
-        ses = utils._get_ses(subsesdir)
+        sub = bu.get_sub_from_sublong(subsesdir)
+        ses = bu.get_ses_from_sublong(subsesdir)
         aseg.append(
             parse_aseg(subsesdir / "stats" / "aseg.stats").assign(
                 sub=sub, ses=ses, seg="aseg"
@@ -252,19 +254,19 @@ def get_gm_morph(aparc: pd.DataFrame) -> pd.DataFrame:
         aparc.query("parc == 'aparc.a2009s'")
         .merge(effect_sizes, on=["hemisphere", "StructName", "parc"])
         .groupby(["sub", "ses"])
-        .apply(gm_dot, include_groups=False)
+        .apply(gm_dot)
     )
 
 
 def copy(outdir: Path, inroot: Path) -> None:
-    if not outdir.exists():
-        outdir.mkdir(parents=True)
+    bu.mkdir_recursive(outdir)
 
     for src in inroot.glob("fmriprep/*/anat/freesurfer/sub*"):
         # folders renamed so that sessions do not collide
         utils.mergetree_overwrite(
             src,
-            outdir / f"sub-{utils._get_sub(src)}_ses-{utils._get_ses(src)}",
+            outdir
+            / f"sub-{bu.get_sub_from_sublong(src)}_ses-{bu.get_ses_from_sublong(src)}",
         )
 
 

@@ -1,3 +1,4 @@
+import argparse
 import logging
 import os
 import shutil
@@ -5,10 +6,15 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from biomarkers import utils as bu
+
+# unclear why, but we must configure the logger before other imports
+bu.configure_root_logger()
+
+
 import bids_wf
 import brainager_wf
 import cat12_wf
-import click
 import fcn_wf
 import fmriprep_wf
 import freesurfer_wf
@@ -19,9 +25,6 @@ import pandas as pd
 import signatures_wf
 import utils
 
-logging.basicConfig(
-    format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO
-)
 
 SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
 
@@ -127,7 +130,7 @@ def _get_deriv_tocopy(
         if row.qsiprep == "1":
             already_aggregated &= (
                 outroot
-                / "qsiprep"
+                / f"qsiprep-{row.visit}"
                 / f"sub-{row.subject_id}"
                 / f"ses-{row.visit}"
             ).exists()
@@ -296,22 +299,7 @@ def _synthstrip(src: Path, n_threads: int = 1) -> Path:
     return src
 
 
-@click.command()
-@click.argument(
-    "inroot",
-    type=click.Path(
-        exists=True, file_okay=False, resolve_path=True, path_type=Path
-    ),
-)
-@click.argument(
-    "outroot",
-    type=click.Path(
-        exists=False, file_okay=False, resolve_path=True, path_type=Path
-    ),
-)
-@click.option("--max-subs", type=float, default=float("inf"))
-@click.option("--n-threads", type=int, default=1)
-def _main(
+def main(
     inroot: Path,
     outroot: Path,
     max_subs: float | int = float("inf"),
@@ -418,6 +406,21 @@ def _main(
         freesurfer_wf.make_toplevel(outdir=outroot / "freesurfer")
         fslanat_wf.make_toplevel(outdir=outroot / "fslanat")
 
+        logging.info("Finished!")
+
 
 if __name__ == "__main__":
-    _main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("inroot", type=Path)
+    parser.add_argument("outroot", type=Path)
+    parser.add_argument("--max-subs", type=float, default=float("inf"))
+    parser.add_argument("--n-threads", type=int, default=1)
+
+    args = parser.parse_args()
+
+    main(
+        inroot=args.inroot,
+        outroot=args.outroot,
+        max_subs=args.max_subs,
+        n_threads=args.n_threads,
+    )

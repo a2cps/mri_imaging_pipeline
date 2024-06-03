@@ -1,20 +1,20 @@
 from pathlib import Path
 import shutil
 
+from biomarkers import utils as bu
+
 import utils
 
 
 def copy(outdir: Path, inroot: Path) -> None:
-    if not outdir.exists():
-        outdir.mkdir(parents=True)
+    bu.mkdir_recursive(outdir)
 
     for src in inroot.glob("brainager/*"):
-        sub = utils._get_sub(src)
-        ses = utils._get_ses(src)
+        sub = bu.get_sub_from_sublong(src)
+        ses = bu.get_ses_from_sublong(src)
 
         out_subses = outdir / f"sub-{sub}" / f"ses-{ses}"
-        if not out_subses.exists():
-            out_subses.mkdir(parents=True)
+        bu.mkdir_recursive(out_subses)
 
         utils.mergetree_overwrite(
             src,

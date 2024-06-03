@@ -4,6 +4,8 @@ from pathlib import Path
 
 import utils
 
+from biomarkers import utils as bu
+
 BIDS_IGNORE = """
 *.html
 logs/
@@ -59,14 +61,13 @@ def copy(outdir: Path, inroot: Path) -> None:
     if not _job:
         raise ValueError
     job = _job[0]
-    if not outdir.exists():
-        outdir.mkdir(parents=True)
+    bu.mkdir_recursive(outdir)
 
     # this grabs both sub-##### directories and sub*html files
     for src in inroot.glob(f"fmriprep/*/{job}/fmriprep/sub*"):
         if src.is_file():
-            sub = utils._get_sub(src)
-            ses = utils._get_ses(src)
+            sub = bu.get_sub_from_sublong(src)
+            ses = bu.get_ses_from_sublong(src)
             utils._copy_overwrite(src, outdir / f"sub-{sub}_ses-{ses}.html")
         else:
             utils.mergetree_overwrite(src, outdir / src.name)
