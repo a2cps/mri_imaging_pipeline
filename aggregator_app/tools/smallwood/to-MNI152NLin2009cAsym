@@ -5,5 +5,5 @@ antsApplyTransforms -v \
     -n GenericLabel \
     -i tools/smallwood/neg_mni152_C05_1k_clust.nii.gz \
     -d 3 \
-    -r tools/smallwood/mwp1sub-travel2_ses-SH_T1w.nii \
+    -r tools/mwp1sub-travel2_ses-SH_T1w.nii \
     -o assets/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz

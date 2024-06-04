@@ -3,54 +3,70 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import nibabel as nb
+from nilearn import maskers
 from biomarkers import utils as bu
 
 import utils
 
 SMALLWOOD = (
-    Path("/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii")
+    Path("/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz")
     if Path(
-        "/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii"
+        "/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz"
     ).exists()
-    else Path("tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii")
+    else Path("tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz")
+)
+
+HENN = (
+    Path(
+        "/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-henn_desc-controlspatientgmtfce05_dseg.nii.gz"
+    )
+    if Path(
+        "/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-henn_desc-controlspatientgmtfce05_dseg.nii.gz"
+    ).exists()
+    else Path(
+        "tpl-MNI152NLin2009cAsym_atlas-henn_desc-controlspatientgmtfce05_dseg.nii.gz"
+    )
 )
 
 
-def get_volume(nii: nb.nifti1.Nifti1Image, value: float | int) -> float:
+def get_volume(nif: Path, masker: maskers.NiftiLabelsMasker) -> np.ndarray:
+    nii: nb.nifti1.Nifti1Image = nb.nifti1.load(nif)  # type: ignore
     if not len(nii.shape) == 3:
         raise AssertionError("Expected 3d image")
-    n_voxels = np.isclose(nii.get_fdata(), value).sum()
+    n_voxels = masker.fit_transform(nii).squeeze()
     return n_voxels * np.prod(nii.header.get_zooms())  # type: ignore
 
 
-def get_smallwood(mridir: Path) -> pd.DataFrame:
-    smallwood: list[pd.DataFrame] = []
+def get_atlas_volumes(mridir: Path, atlas: Path) -> pd.DataFrame:
+    out = []
+    masker = maskers.NiftiLabelsMasker(labels_img=atlas, strategy="sum")
     # https://neuro-jena.github.io/cat12-help/#naming
     for p1 in mridir.glob("*wp1*nii"):
         sub = bu.get_sub_from_sublong(p1)
         ses = bu.get_ses_from_sublong(p1)
-        nii: nb.nifti1.Nifti1Image = nb.nifti1.load(p1)  # type: ignore
-        volumes: list[pd.DataFrame] = []
-        for cluster in range(1, 3):
-            cluster_volume = get_volume(nii, cluster)
-            volumes.append(
-                pd.DataFrame(
-                    {
-                        "sub": [sub],
-                        "ses": [ses],
-                        "modulated": [p1.name.startswith("m")],
-                        f"smallwood_cluster_{cluster}": [cluster_volume],
-                    }
-                ).set_index(["sub", "ses", "modulated"])
-            )
-        smallwood.append(pd.concat(volumes, axis=1))
+        cluster_volume = get_volume(p1, masker)
+        volumes = {
+            "sub": sub,
+            "ses": ses,
+            "mri": bu.img_stem(p1),
+            "atlas": bu.img_stem(atlas),
+            "cluster": list(range(len(cluster_volume))),
+            "volume": cluster_volume,
+        }
+        out.append(
+            pd.DataFrame(volumes).set_index(["sub", "ses", "mri", "atlas"])
+        )
 
-    return pd.concat(smallwood, axis=0)
+    return pd.concat(out, axis=0)
 
 
 def make_toplevel(outdir: Path) -> None:
-    get_smallwood(mridir=outdir / "mri").to_csv(
-        outdir / "smallwood.tsv", sep="\t"
+    smallwood_volumes = get_atlas_volumes(
+        mridir=outdir / "mri", atlas=SMALLWOOD
+    )
+    henn_volumes = get_atlas_volumes(mridir=outdir / "mri", atlas=HENN)
+    pd.concat([smallwood_volumes, henn_volumes]).to_csv(
+        outdir / "cluster_volumes.tsv", sep="\t"
     )
 
 
