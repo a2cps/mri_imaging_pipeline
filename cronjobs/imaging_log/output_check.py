@@ -161,7 +161,8 @@ def redcap_query():
     'fmricuffcontrayn', #MCC1
     'cuffpfmricontraindyn', #MCC2
     'fmri_face_mask',
-    'fmri_magnet_name'
+    'fmri_magnet_name',
+    'fmricuffleg'
     ]
     all_mcc1 = mcc1_imaging.json() + mcc2_tka.json()
     all_mcc2 = mcc2_imaging.json() + mcc1_thoracic.json()
@@ -588,7 +589,8 @@ def main():
                         "Surgery Week": surg_day,
                         "Face Mask": row['fmri_face_mask'],
                         "Magnet Name": row['fmri_magnet_name'],
-                        "Repeat instance": row['redcap_repeat_instance']
+                        "Repeat instance": row['redcap_repeat_instance'],
+                        "Cuff Leg": row['fmricuffleg']
                         #"comments": row['fmricuffnotes']
                         }
 
@@ -651,6 +653,10 @@ def main():
                 scan_report['signatures'] = 'na'
             if scan_report['DWI Indicated'] == '0':
                 scan_report['qsiprep'] = 'na'
+            if scan_report['Cuff Leg'] == '1':
+                scan_report['Cuff Leg'] = 'Right'
+            if scan_report['Cuff Leg'] == '2':
+                scan_report['Cuff Leg'] = 'Left'
 
             for col in APP_STEPS:
                 update_to_fail(scan_report, col)
@@ -714,7 +720,8 @@ def main():
     "Surgery Week",
     "Face Mask",
     "Magnet Name",
-    "Repeat instance"
+    "Repeat instance",
+    "Cuff Leg"
     #'comments'
     ]]
     df.drop_duplicates(inplace=True)
