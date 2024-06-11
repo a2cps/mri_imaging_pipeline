@@ -21,6 +21,12 @@
                 "name": "N_WORKERS",
                 "arg": "--n-workers 100"
             }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fslanat/"
+            }
         ]
     },
     "maxMinutes": 240,
