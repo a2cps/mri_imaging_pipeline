@@ -25,7 +25,8 @@ APP_STEPS = [
                 "cat12",
                 "brainager",
                 "fcn",
-                "signatures"
+                "signatures",
+                "gift_rest"
             ]
 
 # function to filter reponse object for highest record_id+visit repeat instance
@@ -281,6 +282,7 @@ def find_outputs(bids_path: str):
     fcn_path = bids_path.replace('bids','fcn')
     signatures_path = bids_path.replace('bids','signatures')
     brainager_path = bids_path.replace('bids','brainager')
+    gift_rest_path = bids_path.replace('bids','gift_rest')
     print(bids_path)
     # for path in [bids_path, dicom_path, bids_validation_path, fmriprep_path, mriqc_path]
     # outputs = {}
@@ -383,8 +385,9 @@ def find_outputs(bids_path: str):
     fcn = 1 if len(glob.glob(f"{fcn_path}/*.out")) else 0
     signatures = 1 if len(glob.glob(f"{signatures_path}/*.out")) else 0
     brainager = 1 if len(glob.glob(f"{brainager_path}/*.out")) else 0
+    gift_rest = 1 if len(glob.glob(f"{gift_rest_path}/*.out")) else 0
         
-    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager
+    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
 
 
 def find_heudiconv_outputs(bids_dir):
@@ -501,7 +504,7 @@ def main():
         try:
             site_id = row['site_id']
             bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager) = find_outputs(bids_path)
+            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -626,6 +629,7 @@ def main():
             scan_report['qsiprep'] = qsiprep
             scan_report['cat12'] = cat12
             scan_report['brainager'] = brainager
+            scan_report['gift_rest'] = gift_rest
             scan_report['acquisition_week'] = acq_time
 
             # remove preprocessing if scans not indicated
@@ -639,6 +643,7 @@ def main():
                 scan_report["fmriprep_anat"] = "na"
                 scan_report["fmriprep_rest"] = "na"
                 scan_report["fmriprep_cuff"] = "na"
+                scan_report["gift_rest"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
@@ -651,6 +656,7 @@ def main():
             if scan_report["fmriprep_rest"] == "na" and scan_report["fmriprep_cuff"] == "na":
                 scan_report['fcn'] = 'na'
                 scan_report['signatures'] = 'na'
+                scan_report['gift_rest'] = 'na'
             if scan_report['DWI Indicated'] == '0':
                 scan_report['qsiprep'] = 'na'
             if scan_report['Cuff Leg'] == '1':
@@ -691,6 +697,7 @@ def main():
     'fmriprep_anat',
     'fmriprep_cuff',
     'fmriprep_rest',
+    'gift_rest',
     'mriqc_anat',
     'mriqc_cuff',
     'mriqc_rest',
