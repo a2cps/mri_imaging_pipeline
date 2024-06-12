@@ -33,8 +33,8 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
     && micromamba clean --yes --all
 
 # can't use "gift_app" as dst because that breaks gift
-ADD --chown=$MAMBA_USER:$MAMBA_USER https://github.com/trendscenter/gift/raw/master/GroupICAT/icatb/icatb_templates/Neuromark_fMRI_2.0_modelorder-175.nii /opt/gift/
-ADD --chown=$MAMBA_USER:$MAMBA_USER https://github.com/trendscenter/gift/raw/master/GroupICAT/icatb/icatb_templates/Neuromark_fMRI_2.1_modelorder-multi.nii /opt/gift/
+ADD --chown=$MAMBA_USER:$MAMBA_USER https://github.com/trendscenter/gift/raw/b0adaf01441405156ffc37ef80a65154afc07d3f/GroupICAT/icatb/icatb_templates/Neuromark_fMRI_2.0_modelorder-175.nii /opt/gift/
+ADD --chown=$MAMBA_USER:$MAMBA_USER https://github.com/trendscenter/gift/raw/7312fad77273ae5a001285787586226d1238c07a/GroupICAT/icatb/icatb_templates/Neuromark_fMRI_2.1_modelorder-multi.nii /opt/gift/
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py assets/config*m /opt/gift/
 ENV TZ=US/Central
 WORKDIR /tmp

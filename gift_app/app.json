@@ -60,7 +60,7 @@
             "envVariables": [
                 {
                     "key": "FAILURE_LOG_DST",
-                    "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/gift/"
+                    "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/gift_rest/"
                 },
                 {
                     "key": "MIN_ARCHIVE_DURATION",

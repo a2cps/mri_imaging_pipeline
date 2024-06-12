@@ -27,7 +27,7 @@ JOB = Path("/opt/job.json")
 ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
 # can be overridden by incoming message
-MAXJOBS = 1000
+MAXJOBS = 400
 
 # numbers for ls6
 N_SUBS_PER_NODE = 20
