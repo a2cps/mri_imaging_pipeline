@@ -1,0 +1,32 @@
+{
+    "appId": "psadil-gift_app",
+    "appVersion": "0.1",
+    "archiveOnAppError": false,
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.frontera",
+    "cmdPrefix": "ibrun -n 1 apptainer run docker://psadil/gift_app:latest --help && ibrun -n 10",
+    "coresPerNode": 20,
+    "execSystemId": "secure.ls6",
+    "execSystemLogicalQueue": "corralextra",
+    "maxMinutes": 180,
+    "name": "gift",
+    "nodeCount": 1,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/fmriprep/NStravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/fmriprep/SHtravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/fmriprep/UCtravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel1/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/fmriprep/UItravel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM1travel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/fmriprep/UM2travel2/rest/fmriprep /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/fmriprep/WStravel2/rest/fmriprep",
+                "name": "INPUT_DIRS"
+            },
+            {
+                "arg": "--output-dirs NS_northshore/gift-rest/NStravel1 NS_northshore/gift-rest/NStravel2 SH_spectrum_health/gift-rest/SHtravel2 UC_uchicago/gift-rest/UCtravel1 UC_uchicago/gift-rest/UCtravel2 UI_uic/gift-rest/UItravel1 UI_uic/gift-rest/UItravel2 UM_umichigan/gift-rest/UM1travel2 UM_umichigan/gift-rest/UM2travel2 WS_wayne_state/gift-rest/WStravel2",
+                "name": "OUTPUT_DIRS"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "MIN_ARCHIVE_DURATION",
+                "value": "600"
+            }
+        ]
+    }
+}
