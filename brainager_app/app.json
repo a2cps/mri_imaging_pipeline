@@ -24,9 +24,7 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
         "archiveOnAppError": false,
-        "isMpi": false,
-        "mpiCmd": null,
-        "cmdPrefix": null,
+        "cmdPrefix": "ibrun -n 1",
         "parameterSet": {
             "appArgs": [
                 {
@@ -38,10 +36,6 @@
                     "name": "OUTPUT_DIRS",
                     "inputMode": "REQUIRED",
                     "arg": null
-                },
-                {
-                    "name": "N_WORKERS",
-                    "arg": "--n-workers 1"
                 }
             ],
             "containerArgs": [
