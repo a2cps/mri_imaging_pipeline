@@ -1,6 +1,6 @@
 {
     "id": "urrutia-brainager",
-    "version": "0.1",
+    "version": "0.2",
     "description": "Run brainager",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/brainager_app:0.1",
+    "containerImage": "docker://a2cps/brainager_app:0.2",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -47,12 +47,12 @@
                 }
             ],
             "schedulerOptions": [
-                {
-                    "name": "TACC Scheduler Profile",
-                    "description": "Scheduler profile for HPC clusters at TACC",
-                    "inputMode": "FIXED",
-                    "arg": "--tapis-profile tacc-apptainer"
-                },
+				{
+					"arg": "--tapis-profile ls6-mpi",
+					"description": "Scheduler profile for HPC clusters at TACC",
+					"inputMode": "FIXED",
+					"name": "TACC Scheduler Profile"
+				},
                 {
                     "name": "TAP Session Substring",
                     "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",

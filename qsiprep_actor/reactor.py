@@ -36,7 +36,7 @@ MAXJOBS = 1000
 # MEM_PER_NODE = 192000  # MB
 
 # numbers for ls6
-N_SUBS_PER_NODE = 8
+N_SUBS_PER_NODE = 12
 N_CORES_PER_NODE = 128  # this is total number for a node
 MEM_PER_NODE = 256000  # MB
 
