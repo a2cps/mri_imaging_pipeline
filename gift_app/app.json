@@ -1,0 +1,109 @@
+{
+    "containerImage": "docker://psadil/gift_app:latest",
+    "description": "Run gift",
+    "enabled": true,
+    "id": "psadil-gift_app",
+    "jobAttributes": {
+        "archiveOnAppError": false,
+        "cmdPrefix": "ibrun -n 1",
+        "description": null,
+        "dynamicExecSystem": false,
+        "execSystemConstraints": null,
+        "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemId": "secure.ls6",
+        "execSystemInputDir": "${JobWorkingDir}",
+        "execSystemLogicalQueue": "corralextra",
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "fileInputArrays": [],
+        "fileInputs": [],
+        "maxMinutes": 90,
+        "nodeCount": 1,
+        "parameterSet": {
+            "appArgs": [
+                {
+                    "arg": null,
+                    "inputMode": "REQUIRED",
+                    "name": "INPUT_DIRS"
+                },
+                {
+                    "arg": null,
+                    "inputMode": "REQUIRED",
+                    "name": "OUTPUT_DIRS"
+                },
+                {
+                    "arg": "--smooth-fwhm 6",
+                    "name": "SMOOTH_FWHM"
+                },
+                {
+                    "arg": "--voxel-size 2.4",
+                    "name": "VOXEL_SIZE"
+                }
+            ],
+            "archiveFilter": {
+                "excludes": [
+                    "tapisjob.sh",
+                    "${JobUUID}.out",
+                    "${JobUUID}.err",
+                    "tapisjob.env"
+                ],
+                "includeLaunchFiles": false,
+                "includes": []
+            },
+            "containerArgs": [
+                {
+                    "arg": "--bind /corral-secure/projects/A2CPS",
+                    "description": "Mount for TAP functions",
+                    "inputMode": "FIXED",
+                    "name": "Container Mounts"
+                }
+            ],
+            "envVariables": [
+                {
+                    "key": "FAILURE_LOG_DST",
+                    "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/gift/"
+                },
+                {
+                    "key": "MIN_ARCHIVE_DURATION",
+                    "value": "1800"
+                }
+            ],
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
+            },
+            "schedulerOptions": [
+                {
+                    "arg": "--tapis-profile ls6-mpi",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "name": "TACC Scheduler Profile"
+                },
+                {
+                    "arg": "--job-name ${JobName}",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "name": "TAP Session Substring"
+                },
+                {
+                    "arg": "-A A2CPS",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "name": "TACC Allocation"
+                }
+            ]
+        },
+        "subscriptions": [],
+        "tags": []
+    },
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "owner": "${apiUserId}",
+    "runtime": "SINGULARITY",
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "runtimeVersion": "0.1",
+    "strictFileInputs": true,
+    "version": "0.1"
+}
