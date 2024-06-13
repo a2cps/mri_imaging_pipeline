@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 from biomarkers import utils as bu
+import pandas as pd
 
 # unclear why, but we must configure the logger before other imports
 bu.configure_root_logger()
@@ -21,8 +22,8 @@ import freesurfer_wf
 import fslanat_wf
 import mriqc_wf
 import qsiprep_wf
-import pandas as pd
 import signatures_wf
+import gift_wf
 import utils
 
 
@@ -84,6 +85,7 @@ def _get_deriv_tocopy(
             and signatures in ['1', 'na'] \
             and qsiprep in ['1', 'na'] \
             and brainager in ['1', 'na'] \
+            and gift_rest in ['1', 'na'] \
             """
         )
     )
@@ -221,6 +223,16 @@ def _get_deriv_tocopy(
                 ]
             )
             jobs.add("signatures")
+        if row.gift_rest == "1" and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "gift_rest" / sublong
+        ):
+            already_aggregated &= (
+                outroot
+                / "gift_rest"
+                / f"sub-{row.subject_id}"
+                / f"ses={row.visit}"
+            ).exists()
+            jobs.add("gift_rest")
         if not already_aggregated:
             derivatives.update({sublong: list(jobs)})
 
@@ -394,6 +406,7 @@ def main(
                 signatures_wf.copy(
                     inroot=tmp_site, outdir=outroot / "signatures"
                 )
+                gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift_rest")
 
         # finally, handle all toplevel file material
         logging.info("Adding toplevel files")
