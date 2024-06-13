@@ -64,8 +64,14 @@ if __name__ == "__main__":
         output_dirs = []
         for input_dir in args.input_dirs:
             output_dirs.append(
-                Path(input_dir).relative_to(
-                    "/corral-secure/projects/A2CPS/products/mris"
+                Path(
+                    str(
+                        Path(input_dir).relative_to(
+                            "/corral-secure/projects/A2CPS/products/mris"
+                        )
+                    )
+                    .replace("/fmriprep/", "/gift_rest/")
+                    .replace("/rest/fmriprep", "")
                 )
             )
     else:
