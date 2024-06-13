@@ -11,10 +11,6 @@
             {
                 "name": "INPUT_DIRS",
                 "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/bids/SHtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/bids/UCtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/bids/UCtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/bids/UItravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/bids/UItravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/bids/UM1travel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/bids/UM2travel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/bids/WStravel2 "
-            },
-            {
-                "name": "OUTPUT_DIRS",
-                "arg": "--output-dirs NS_northshore/brainager/NStravel1 NS_northshore/brainager/NStravel2 RU_rush/brainager/RUtravel1 RU_rush/brainager/RUtravel2 SH_spectrum_health/brainager/SHtravel2 UC_uchicago/brainager/UCtravel1 UC_uchicago/brainager/UCtravel2 UI_uic/brainager/UItravel1 UI_uic/brainager/UItravel2  UM_umichigan/brainager/UM1travel2 UM_umichigan/brainager/UM2travel2  WS_wayne_state/brainager/WStravel2"
             }
         ],
         "envVariables": [

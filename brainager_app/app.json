@@ -34,7 +34,7 @@
                 },
                 {
                     "name": "OUTPUT_DIRS",
-                    "inputMode": "REQUIRED",
+                    "inputMode": "INCLUDE_ON_DEMAND",
                     "arg": null
                 }
             ],
@@ -47,12 +47,12 @@
                 }
             ],
             "schedulerOptions": [
-				{
-					"arg": "--tapis-profile ls6-mpi",
-					"description": "Scheduler profile for HPC clusters at TACC",
-					"inputMode": "FIXED",
-					"name": "TACC Scheduler Profile"
-				},
+                {
+                    "arg": "--tapis-profile ls6-mpi",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "name": "TACC Scheduler Profile"
+                },
                 {
                     "name": "TAP Session Substring",
                     "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
