@@ -255,8 +255,8 @@ def _prep_staged_dir(outroot: Path) -> None:
         # is a holdover and should also be deleted
         if (
             len(target[2]) == 1
-            and target[2][0].endswith(".nii.gz")
-            and not (to_del := Path(target[2][0])).is_symlink()
+            and str(to_del := (Path(target[0]) / target[2][0])).endswith(".nii.gz")
+            and not to_del.is_symlink()
         ):
             logging.warning(f"deleting isolated file: {to_del}")
             to_del.unlink()
