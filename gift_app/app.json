@@ -1,8 +1,8 @@
 {
-    "containerImage": "docker://psadil/gift_app:latest",
+    "containerImage": "docker://a2cps/gift_app:0.1",
     "description": "Run gift",
     "enabled": true,
-    "id": "psadil-gift_app",
+    "id": "urrutia-gift_app",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": "ibrun -n 1",

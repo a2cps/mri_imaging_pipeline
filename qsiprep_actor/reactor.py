@@ -27,7 +27,7 @@ JOB = Path("/opt/job.json")
 ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overridden by incoming message
-MAXJOBS = 1000
+MAXJOBS = 768
 
 # assume deployed on frontera
 # # https://docs.tacc.utexas.edu/hpc/frontera/#table1
