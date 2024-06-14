@@ -1,0 +1,76 @@
+Mask:
+Reference Space               = MNI152
+Dimensions                    = 91x109x91
+Number of within-brain voxels = 228483
+Mask Size                     = More Conservative (Smaller)
+
+Foci:
+Coordinate System             = MNI
+File of foci coordinates      = fixed_neg.txt
+Number of foci                = 186
+Number of experiments         = 22
+Total number of subjects      = 440
+
+ALE - Random Effects, Turkeltaub Non-Additive (HBM, 2012):
+File of ALE voxels            = neg_mni152_ALE.nii
+FWHM minimum value            = 8.759548511260867
+FWHM median value             = 9.328903358328546
+FWHM maximum value            = 10.935527854620133
+Minimum ALE score             = 6.797303E-32
+Maximum ALE score             = 0.01721676
+
+P Values: Eickhoff (HBM, 2009)
+File of P values              = neg_mni152_P.nii
+Minimum P value               = 7.0382284E-6
+
+Thresholding:
+Threshold Method              = Cluster-level Inference
+Thresholding Value            = 0.05
+Thresholding Permutations     = 1000
+Cluster-Forming Method        = Uncorrected P value
+Cluster-Forming Value         = 0.01
+Volume > Threshold            = 7464 mm^3
+Chosen min. cluster size      = 2016 mm^3
+Thresholded ALE image         = neg_mni152_C05_1k_ALE.nii
+
+Cluster Analysis:
+ #1: 3736 mm^3 from (16,8,-16) to (64,26,20) centered at (36.8,16.8,-3.3) with 5 peaks
+     with a max value of 0.0167 ALE, 1.0502691E-5 P, 4.25 Z at (28,22,-10) 
+   Labels: (Gray Matter only)
+     Hemisphere: 100% Right Cerebrum
+     Lobe: 69.2% Sub-lobar, 30.8% Frontal Lobe
+     Gyrus: 41.1% Lentiform Nucleus, 18.3% Inferior Frontal Gyrus, 15.2% Insula, 12.1% Precentral Gyrus, 11.2% Claustrum, 1.3% Extra-Nuclear
+     Cell Type: 41.1% Putamen, 28.1% Brodmann area 44, 14.3% Brodmann area 13, 3.1% Brodmann area 47, 1.8% Brodmann area 45
+
+ #2: 3728 mm^3 from (-10,20,-2) to (16,46,32) centered at (-.2,35.1,18.8) with 4 peaks
+     with a max value of 0.0151 ALE, 3.656204E-5 P, 3.97 Z at (-4,40,2) 
+   Labels: (Gray Matter only)
+     Hemisphere: 71.3% Left Cerebrum, 28.7% Right Cerebrum
+     Lobe: 89.8% Limbic Lobe, 10.2% Frontal Lobe
+     Gyrus: 56.5% Anterior Cingulate, 36.6% Cingulate Gyrus, 6.9% Medial Frontal Gyrus
+     Cell Type: 71.3% Brodmann area 32, 21.3% Brodmann area 24, 4.6% Brodmann area 9, 2.8% Brodmann area 6
+
+
+Experiment Table:
+[ 0 0 0 1 1 1 0 0 1 1 0 1 0 0 1 0 1 0 2 4 0 0 ]
+[ 0 0 0 0 0 0 0 0 1 2 4 2 0 0 1 2 0 0 0 0 0 0 ]
+
+Contributors to cluster #1
+1 foci from Geha_2008: Decrease in regional GM in CRPS versus healthy controls 
+1 foci from Gerstner_2011: Decrease in regional GM in the TMD group 
+1 foci from Gustin_2011: Gray matter volume differences_ Controls > TNP 
+1 foci from Rocca_2006: Normals > Migraine Patients_ Gray Matter Density 
+1 foci from Rodriguez-Racke_2009: Brain Gray Matter 
+1 foci from Schmidt-Wilcke_2005: Healthy Controls > Chronic Tension Type Headache Patients_ Gray Matter 
+1 foci from Schmidt-Wilcke_2008: Healthy Controls > Migraine Patients_ Gray Matter 
+1 foci from Seminowicz_2010: Decreased gray matter density in IBS versus controls 
+2 foci from Valet_2009: Pain Disorder Patients < Healthy Controls_ Gray Matter Density 
+4 foci from Valfre_2008: Healthy Controls > Migraine Patients_ Gray Matter_ Modulated 
+
+Contributors to cluster #2
+1 foci from Rocca_2006: Normals > Migraine Patients_ Gray Matter Density 
+2 foci from Rodriguez-Racke_2009: Brain Gray Matter 
+4 foci from Ruscheweyh_2011: Regions with decreased grey matter in the ongoing pain group 
+2 foci from Schmidt-Wilcke_2005: Healthy Controls > Chronic Tension Type Headache Patients_ Gray Matter 
+1 foci from Schmidt-Wilcke_2008: Healthy Controls > Migraine Patients_ Gray Matter 
+2 foci from Schmidt-Wilcke_2010: PIFP Patients < Healthy Controls_ Gray Matter After Correcting for Side of Facial Pain 
