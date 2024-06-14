@@ -22,23 +22,15 @@ FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
 
 # within docker container
 JOB = Path("/opt/job.json")
+
 # on TACC
-# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
 # can be overridden by incoming message
-MAXJOBS = 1000
-
-# assume deployed on frontera
-# # https://docs.tacc.utexas.edu/hpc/frontera/#table1
-# N_SUBS_PER_NODE = 7
-# N_CORES_PER_NODE = 56  # this is total number for a node
-# MEM_PER_NODE = 192000  # MB
+MAXJOBS = 400
 
 # numbers for ls6
-N_SUBS_PER_NODE = 12
-N_CORES_PER_NODE = 128  # this is total number for a node
-MEM_PER_NODE = 256000  # MB
+N_SUBS_PER_NODE = 20
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -65,9 +57,6 @@ class Context(util.AttrDict):
     state: str
     raw_message_parse_log: str
     message_dict: dict[str, typing.Any]
-
-
-# context=Context(raw_message="", content_type="", actor_repo="", actor_name="", actor_dbid="", execution_id="", worker_id="", username="", state="", raw_message_parse_log="", message_dict={"a":""}, actor_id="")
 
 
 def actors_get_client() -> Tapis:
@@ -101,32 +90,58 @@ def get_ilog(client: Tapis) -> Table:
         pd.read_csv(
             io.BytesIO(ilog),
             na_values=["na", ""],
-            dtype={"subject_id": str, "qsiprep": pd.Int64Dtype()},
+            dtype={"subject_id": str},
         )
     )
 
 
-def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
-    rundef: pd.DataFrame = (
-        ilog.select("site", "subject_id", "visit", "bids", "qsiprep")
-        .filter(_.qsiprep == 0)  # type: ignore
-        .filter(_.bids == 1)  # type: ignore
+def get_task_runlist(
+    ilog: Table, task: typing.Literal["cuff", "rest"]
+) -> Table:
+    return (
+        ilog.select(
+            "site",
+            "subject_id",
+            "visit",
+            f"fmriprep_{task}",
+            f"gift_{task}",
+        )
+        .rename(gift=f"gift_{task}")
+        .rename(fmriprep=f"fmriprep_{task}")
+        # exclude rows that were already processed
+        .filter(_.gift == 0)  # type: ignore
+        .filter(_.fmriprep == 1)  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
         )
-        .mutate(OUTDIR=_.sitelong + "/qsiprep/" + _.sublong)  # type: ignore
+        .mutate(OUTPUT_DIR=_.sitelong + f"/gift_{task}/" + _.sublong)  # type: ignore
         .mutate(
-            BIDSDIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
+            FMRIPREP_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
             + x.sitelong
-            + "/bids/"  # type: ignore
+            + "/fmriprep/"
             + x.sublong
+            + f"/{task}"
+            + "/fmriprep"  # type: ignore
         )
+        .mutate(task=ibis.literal(task))
+    )
+
+
+def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
+    rest_rundef = get_task_runlist(ilog, "rest")
+    # cuff_rundef = get_task_runlist(ilog, "cuff")
+    rundef = (
+        ibis.union(rest_rundef)
+        .order_by([_.visit, _.task.desc(), _.subject_id])  # type:ignore
         .execute()
     )
+
     runlist = [
         (x, y)
-        for x, y in zip(rundef.BIDSDIR.to_list(), rundef.OUTDIR.to_list())
+        for x, y in zip(
+            rundef.FMRIPREP_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
+        )
     ]
     return runlist[:maxjobs]
 
@@ -136,33 +151,13 @@ def get_node_count(n_jobs: int) -> int:
 
 
 def get_cmd_prefix(image: str, n_jobs: int) -> str:
-    return f"apptainer pull {image} && ibrun -n {n_jobs}"
+    return f"ibrun -n 1 apptainer run {image} --help && ibrun -n {n_jobs}"
 
 
-def set_bidsdir(job: dict, arg: str) -> None:
-    job.get("parameterSet").get("appArgs")[0] = {"name": "BIDSDIR", "arg": arg}  # type: ignore
-
-
-def set_outdir(job: dict, arg: str) -> None:
-    job.get("parameterSet").get("appArgs")[1] = {"name": "OUTDIR", "arg": arg}  # type: ignore
-
-
-def set_nthreads(job: dict, n_nodes: int, n_jobs: int) -> None:
-    if n_nodes > 1:
-        n_threads = math.floor(N_CORES_PER_NODE / N_SUBS_PER_NODE)
-    else:
-        n_threads = math.floor(N_CORES_PER_NODE / n_jobs)
-
-    job.get("parameterSet").get("appArgs")[2] = {"name": "NTHREADS", "arg": f"--nthreads {n_threads}"}  # type: ignore
-
-
-def set_mem_mb(job: dict, n_nodes: int, n_jobs: int) -> None:
-    if n_nodes > 1:
-        n_threads = math.floor(MEM_PER_NODE / N_SUBS_PER_NODE)
-    else:
-        n_threads = math.floor(MEM_PER_NODE / n_jobs)
-
-    job.get("parameterSet").get("appArgs")[3] = {"name": "MEM_MB", "arg": f"--mem-mb {n_threads}"}  # type: ignore
+def set_app_arg(job: dict, arg_pos: int, name: str, arg: str) -> dict:
+    job2 = copy.deepcopy(job)
+    job2.get("parameterSet").get("appArgs")[arg_pos] = {"name": name, "arg": arg}  # type: ignore
+    return job2
 
 
 def set_key_value(job: dict, key: str, value: int | str | None = None) -> None:
@@ -189,10 +184,12 @@ def get_failurebot_url(client) -> str:
     return url
 
 
-def set_subscription_url(job: dict, arg: str) -> None:
-    job.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
+def set_subscription_url(job: dict, arg: str) -> dict:
+    job2 = copy.deepcopy(job)
+    job2.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
         {"deliveryAddress": arg}
     )
+    return job2
 
 
 def main() -> None:
@@ -214,33 +211,41 @@ def main() -> None:
 
     n_jobs = len(runlist)
     n_nodes = get_node_count(n_jobs)
-    set_bidsdir(job, "--bidsdir " + " ".join(x[0] for x in runlist))
-    set_outdir(job, "--outdir " + " ".join(x[1] for x in runlist))
-    set_nthreads(job, n_nodes=n_nodes, n_jobs=n_jobs)
-    set_mem_mb(job, n_nodes=n_nodes, n_jobs=n_jobs)
+    job = set_app_arg(
+        job,
+        0,
+        name="INPUT_DIRS",
+        arg="--input-dirs " + " ".join(x[0] for x in runlist),
+    )
+    job = set_app_arg(
+        job,
+        1,
+        name="OUTPUT_DIRS",
+        arg="--output-dirs " + " ".join(x[1] for x in runlist),
+    )
+
     set_key_value(
         job, key="maxMinutes", value=context.message_dict.get("maxMinutes")
     )
     set_key_value(
         job,
         key="name",
-        value=f"qsiprep-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        value=f"gift-{datetime.datetime.today().strftime('%Y-%m-%d')}",
     )
- 
-    # get image
-    image = client.apps.getApp(appId=job["appId"], appVersion=job["appVersion"]).containerImage
-    set_key_value(job, key="cmdPrefix", value=get_cmd_prefix(image, n_jobs))
+
+    image = client.apps.getApp(
+        appId=job["appId"], appVersion=job["appVersion"]
+    ).containerImage
+    set_key_value(
+        job, key="cmdPrefix", value=get_cmd_prefix(n_jobs=n_jobs, image=image)
+    )
 
     # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
     set_key_value(job, key="nodeCount", value=n_nodes)
 
     # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
     # all nodes will have all cores available, but this needs to be set for ibrun
-    set_key_value(
-        job,
-        key="coresPerNode",
-        value=N_SUBS_PER_NODE
-    )
+    set_key_value(job, key="coresPerNode", value=N_SUBS_PER_NODE)
 
     failurebot_url = get_failurebot_url(client=client)
     set_subscription_url(job, arg=failurebot_url)

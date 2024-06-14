@@ -9,16 +9,7 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 300,
-    "moduleLoads": [
-        {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer",
-                "intel/24.1"
-            ]
-        }
-    ],
+    "maxMinutes": 360,
     "name": "qsiprep",
     "nodeCount": 1,
     "execSystemId": "secure.ls6",

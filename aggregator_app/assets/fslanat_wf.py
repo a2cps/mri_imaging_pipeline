@@ -1,7 +1,8 @@
 from pathlib import Path
 
 import pandas as pd
-from fslanat.models import fslanat
+from biomarkers.models import fslanat
+from biomarkers import utils as bu
 
 import utils
 
@@ -16,20 +17,22 @@ def _get_fslanat_table(root: Path) -> pd.DataFrame:
 def _get_all_volumes(root: Path) -> pd.DataFrame:
     volumes = []
     for src in root.glob("sub*"):
-        sub = utils._get_sub(src)
-        ses = utils._get_ses(src)
+        sub = bu.get_sub_from_sublong(src)
+        ses = bu.get_ses_from_sublong(src)
         volumes.append(_get_fslanat_table(src).assign(sub=sub, ses=ses))
 
     return pd.concat(volumes, ignore_index=True)
 
 
 def copy(outdir: Path, inroot: Path) -> None:
-    if not outdir.exists():
-        outdir.mkdir(parents=True)
+    bu.mkdir_recursive(outdir)
 
     for src in inroot.glob("fslanat/*"):
         utils.mergetree_overwrite(src, outdir)
 
 
 def make_toplevel(outdir: Path) -> None:
-    _get_all_volumes(outdir).to_csv(outdir / "fslanat.tsv", sep="\t", index=False)
+    bu.mkdir_recursive(outdir)
+    _get_all_volumes(outdir).to_csv(
+        outdir / "fslanat.tsv", sep="\t", index=False
+    )

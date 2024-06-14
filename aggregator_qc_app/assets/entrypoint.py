@@ -188,7 +188,6 @@ def build_bids_name(d: pd.DataFrame, suffix: str) -> pd.DataFrame:
 def get_outliers(
     d: pd.DataFrame,
     groups,
-    url_root: str = "https://a2cps.org/workbench/data/tapis/community/secure.corral/corral-secure/projects/A2CPS/products/mris",
     imaging_log: Path = Path(
         "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
@@ -204,7 +203,7 @@ def get_outliers(
         .drop_duplicates()
     )
     dind = d[["bids_name"]].copy()
-    dind["sub"] = [int(re.findall("\d{5}", x)[0]) for x in dind["bids_name"]]
+    dind["sub"] = [int(re.findall(r"\d{5}", x)[0]) for x in dind["bids_name"]]
     dind["ses"] = [
         re.findall("ses-([a-zA-Z0-9]+)", x)[0] for x in dind["bids_name"]
     ]
@@ -212,7 +211,7 @@ def get_outliers(
     if "task" in groups:
         indices = ["site", "sub", "task", "ses", "bids_name"]
         dind["task"] = [
-            re.findall("task-(\w+)_", x)[0] for x in dind["bids_name"]
+            re.findall(r"task-(\w+)_", x)[0] for x in dind["bids_name"]
         ]
     else:
         indices = ["site", "sub", "ses", "bids_name"]
@@ -228,15 +227,6 @@ def get_outliers(
         .dropna(how="all")
         .round(1)
     )
-    outliers["url"] = [
-        f"{url_root}/{SITE_CODES[site]}/mriqc/{site}{sub}{ses}"
-        for site, sub, ses in zip(
-            outliers.index.get_level_values("site"),
-            outliers.index.get_level_values("sub"),
-            outliers.index.get_level_values("ses"),
-        )
-    ]
-    outliers["url"] = outliers.apply(lambda x: _format_url(x.url), axis=1)
 
     return outliers
 
@@ -296,7 +286,7 @@ def build_cat_df(xml: Path) -> pd.DataFrame:
     d = pd.DataFrame(
         [
             {
-                "sub": int(re.findall("\d{5}", str(xml))[0]),
+                "sub": int(re.findall(r"\d{5}", str(xml))[0]),
                 "ses": re.findall("(?<=ses-)[Vv][13]", str(xml))[0],
                 "scan": "T1w",
                 "rating": rating,
@@ -474,7 +464,7 @@ def rate_dwi(
         axis=1,
     )
     bvals["sublong"] = bvals.apply(
-        lambda x: re.findall("[A-Z]{2}\d{5}V[13]", str(x["f"]))[0],
+        lambda x: re.findall(r"[A-Z]{2}\d{5}V[13]", str(x["f"]))[0],
         axis=1,
     )
     d["sublong"] = d.apply(
@@ -587,7 +577,7 @@ def update_qclog(
     d2 = (
         d.assign(
             notes=[", ".join(x) for x in d["artifacts"]],
-            sub=[int(re.findall("\d{5}", x)[0]) for x in d["subject"]],
+            sub=[int(re.findall(r"\d{5}", x)[0]) for x in d["subject"]],
             ses=[re.findall("(?<=ses-)[Vv][13]", x)[0] for x in d["subject"]],
             rating=[RATING[str(x)] for x in d["rating"]],
             scan=[

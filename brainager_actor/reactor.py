@@ -1,6 +1,7 @@
 import copy
 import dataclasses
 import io
+import math
 import json
 import logging
 import os
@@ -24,10 +25,14 @@ JOB = Path("/opt/job.json")
 
 # on TACC
 ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
-#ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overriden by incoming message
-_MAXJOBS = 500
+_MAXJOBS = 1000
+
+# numbers for ls6
+N_SUBS_PER_NODE = 100
+N_CORES_PER_NODE = 128  # this is total number for a node
+
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -86,15 +91,13 @@ def get_ilog(client: Tapis) -> Table:
     return ibis.memtable(pd.read_csv(io.BytesIO(ilog), na_values="na"))
 
 
-def get_runlist(
-    ilog: Table, maxjobs: int = _MAXJOBS
-) -> list[tuple[str, str]]:
+def get_runlist(ilog: Table, maxjobs: int = _MAXJOBS) -> list[tuple[str, str]]:
     rundef: pd.DataFrame = (
         ilog.select("site", "subject_id", "visit", "bids", "brainager")
         # exclude rows that were already processed
         .filter(_.brainager == 0)  # type: ignore
         # include rows bids ready
-        .filter((_.bids == 1))  # type: ignore  
+        .filter((_.bids == 1))  # type: ignore
         .mutate(subject_id=_.subject_id.cast("str"))  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
@@ -121,12 +124,6 @@ def get_runlist(
 def set_app_arg(job: dict, arg_pos: int, name: str, arg: str) -> dict:
     job2 = copy.deepcopy(job)
     job2.get("parameterSet").get("appArgs")[arg_pos] = {"name": name, "arg": arg}  # type: ignore
-    return job2
-
-
-def set_name(job: dict) -> dict:
-    job2 = copy.deepcopy(job)
-    job2["name"] = f"brainager-{datetime.today().strftime('%Y-%m-%d')}"  # type: ignore
     return job2
 
 
@@ -167,6 +164,19 @@ def set_subscription_url(job: dict, arg: str) -> dict:
     return job2
 
 
+def set_key_value(job: dict, key: str, value: int | str | None = None) -> None:
+    if value:
+        job[key] = value
+
+
+def get_node_count(n_jobs: int) -> int:
+    return math.ceil(n_jobs / N_SUBS_PER_NODE)
+
+
+def get_cmd_prefix(image: str, n_jobs: int) -> str:
+    return f"ibrun -n 1 apptainer run {image} --help && ibrun -n {n_jobs}"
+
+
 def main() -> None:
     context: Context = actors.get_context()  # type: ignore
     print(json.dumps(context, indent=4))
@@ -197,10 +207,32 @@ def main() -> None:
         name="OUTPUT_DIRS",
         arg="--output-dirs " + " ".join(x[1] for x in runlist),
     )
-    job = set_maxminutes(
-        job, context.message_dict.get("maxMinutes")
+
+    set_key_value(
+        job, key="maxMinutes", value=context.message_dict.get("maxMinutes")
     )
-    job = set_name(job)
+    set_key_value(
+        job,
+        key="name",
+        value=f"qsiprep-{datetime.today().strftime('%Y-%m-%d')}",
+    )
+
+    n_jobs = len(runlist)
+    n_nodes = get_node_count(n_jobs)
+
+    # get image
+    image = client.apps.getApp(
+        appId=job["appId"], appVersion=job["appVersion"]
+    ).containerImage
+    set_key_value(job, key="cmdPrefix", value=get_cmd_prefix(image, n_jobs))
+
+    # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
+    set_key_value(job, key="nodeCount", value=n_nodes)
+
+    # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
+    # all nodes will have all cores available, but this needs to be set for ibrun
+    set_key_value(job, key="coresPerNode", value=N_SUBS_PER_NODE)
+
     failurebot_url = get_failurebot_url(client=client)
     job = set_subscription_url(job, arg=failurebot_url)
 

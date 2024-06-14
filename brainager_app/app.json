@@ -1,6 +1,6 @@
 {
     "id": "urrutia-brainager",
-    "version": "0.1",
+    "version": "0.2",
     "description": "Run brainager",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/brainager_app:0.1",
+    "containerImage": "docker://a2cps/brainager_app:0.2",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -24,9 +24,7 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
         "archiveOnAppError": false,
-        "isMpi": false,
-        "mpiCmd": null,
-        "cmdPrefix": null,
+        "cmdPrefix": "ibrun -n 1",
         "parameterSet": {
             "appArgs": [
                 {
@@ -36,12 +34,8 @@
                 },
                 {
                     "name": "OUTPUT_DIRS",
-                    "inputMode": "REQUIRED",
+                    "inputMode": "INCLUDE_ON_DEMAND",
                     "arg": null
-                },
-                {
-                    "name": "N_WORKERS",
-                    "arg": "--n-workers 1"
                 }
             ],
             "containerArgs": [
@@ -54,10 +48,10 @@
             ],
             "schedulerOptions": [
                 {
-                    "name": "TACC Scheduler Profile",
+                    "arg": "--tapis-profile ls6-mpi",
                     "description": "Scheduler profile for HPC clusters at TACC",
                     "inputMode": "FIXED",
-                    "arg": "--tapis-profile tacc-apptainer"
+                    "name": "TACC Scheduler Profile"
                 },
                 {
                     "name": "TAP Session Substring",
