@@ -9,10 +9,6 @@ from pathlib import Path
 from biomarkers import utils as bu
 import pandas as pd
 
-# unclear why, but we must configure the logger before other imports
-bu.configure_root_logger()
-
-
 import bids_wf
 import brainager_wf
 import cat12_wf
@@ -25,6 +21,8 @@ import qsiprep_wf
 import signatures_wf
 import gift_wf
 import utils
+
+bu.configure_root_logger()
 
 
 SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
@@ -70,22 +68,22 @@ def _get_deriv_tocopy(
     outroot: Path, inroot: Path, site_code: str
 ) -> dict[str, list[str]]:
     ready: pd.DataFrame = (
-        pd.read_csv(ILOG)
+        pd.read_csv(ILOG, na_values=["", "na", "n/a"])
         .query("site == @site_code")
         .query(
-            """fslanat in ['1', 'na'] \
-            and fmriprep_anat in ['1', 'na'] \
-            and fmriprep_rest in ['1', 'na'] \
-            and fmriprep_cuff in ['1', 'na'] \
-            and mriqc_anat in ['1', 'na'] \
-            and mriqc_rest in ['1', 'na'] \
-            and mriqc_cuff in ['1', 'na'] \
-            and cat12 in ['1', 'na'] \
-            and fcn in ['1', 'na'] \
-            and signatures in ['1', 'na'] \
-            and qsiprep in ['1', 'na'] \
-            and brainager in ['1', 'na'] \
-            and gift_rest in ['1', 'na'] \
+            """fslanat in [1, @pd.NA] \
+            and fmriprep_anat in [1, @pd.NA] \
+            and fmriprep_rest in [1, @pd.NA] \
+            and fmriprep_cuff in [1, @pd.NA] \
+            and mriqc_anat in [1, @pd.NA] \
+            and mriqc_rest in [1, @pd.NA] \
+            and mriqc_cuff in [1, @pd.NA] \
+            and cat12 in [1, @pd.NA] \
+            and fcn in [1, @pd.NA] \
+            and signatures in [1, @pd.NA] \
+            and qsiprep in [1, @pd.NA] \
+            and brainager in [1, @pd.NA] \
+            and gift_rest in [1, @pd.NA] \
             """
         )
     )
@@ -99,7 +97,7 @@ def _get_deriv_tocopy(
         already_aggregated = True
         # cannot rely on imaging log only, because imaging log will say that a job is
         # done even when there are no outputs
-        if row.fmriprep_anat == "1" and is_directory_ready(
+        if row.fmriprep_anat == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "anat"
         ):
             already_aggregated &= (
@@ -109,7 +107,7 @@ def _get_deriv_tocopy(
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("fmriprep")
-        if row.fmriprep_rest == "1" and is_directory_ready(
+        if row.fmriprep_rest == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "rest"
         ):
             already_aggregated &= (
@@ -119,7 +117,7 @@ def _get_deriv_tocopy(
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("fmriprep")
-        if row.fmriprep_cuff == "1" and is_directory_ready(
+        if row.fmriprep_cuff == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "cuff"
         ):
             already_aggregated &= (
@@ -129,7 +127,9 @@ def _get_deriv_tocopy(
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("fmriprep")
-        if row.qsiprep == "1":
+        if row.qsiprep == 1 and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "qsiprep" / sublong
+        ):
             already_aggregated &= (
                 outroot
                 / f"qsiprep-{row.visit}"
@@ -138,7 +138,9 @@ def _get_deriv_tocopy(
             ).exists()
             jobs.add("qsiprep")
 
-        if row.brainager == "1":
+        if row.brainager == 1 and is_directory_ready(
+            inroot / SITE_LONG[site_code] / "brainager" / sublong
+        ):
             already_aggregated &= (
                 outroot
                 / "brainager"
@@ -147,7 +149,7 @@ def _get_deriv_tocopy(
             ).exists()
             jobs.add("brainager")
 
-        if row.cat12 == "1" and is_directory_ready(
+        if row.cat12 == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "cat12" / sublong
         ):
             already_aggregated &= (
@@ -159,19 +161,19 @@ def _get_deriv_tocopy(
             jobs.add("cat12")
         if (
             (
-                row.mriqc_anat == "1"
+                row.mriqc_anat == 1
                 and is_directory_ready(
                     inroot / SITE_LONG[site_code] / "mriqc" / sublong / "anat"
                 )
             )
             or (
-                row.mriqc_rest == "1"
+                row.mriqc_rest == 1
                 and is_directory_ready(
                     inroot / SITE_LONG[site_code] / "mriqc" / sublong / "rest"
                 )
             )
             or (
-                row.mriqc_cuff == "1"
+                row.mriqc_cuff == 1
                 and is_directory_ready(
                     inroot / SITE_LONG[site_code] / "mriqc" / sublong / "cuff"
                 )
@@ -184,7 +186,7 @@ def _get_deriv_tocopy(
                 / f"ses-{row.visit}"
             ).exists()
             jobs.add("mriqc")
-        if row.fslanat == "1" and is_directory_ready(
+        if row.fslanat == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fslanat" / sublong
         ):
             already_aggregated &= (
@@ -193,7 +195,7 @@ def _get_deriv_tocopy(
                 / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
             ).exists()
             jobs.add("fslanat")
-        if row.fcn == "1" and is_directory_ready(
+        if row.fcn == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fcn" / sublong
         ):
             already_aggregated &= (
@@ -204,7 +206,7 @@ def _get_deriv_tocopy(
                 / f"ses={row.visit}"
             ).exists()
             jobs.add("fcn")
-        if row.signatures == "1" and is_directory_ready(
+        if row.signatures == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "signatures" / sublong
         ):
             already_aggregated &= all(
@@ -223,7 +225,7 @@ def _get_deriv_tocopy(
                 ]
             )
             jobs.add("signatures")
-        if row.gift_rest == "1" and is_directory_ready(
+        if row.gift_rest == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "gift_rest" / sublong
         ):
             already_aggregated &= (
@@ -272,22 +274,26 @@ def _prep_staged_dir(outroot: Path) -> None:
             os.removedirs(to_del)
 
 
-def _get_bids_tocopy(outroot: Path, site_code: str) -> set[str]:
+def _get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
     bids_avail: pd.DataFrame = pd.read_csv(ILOG).query(
         "bids == 1 and site == @site_code"
     )[["site", "subject_id", "visit"]]
-    exists: list[bool] = []
+    exists: dict[str, bool] = {}
     for row in bids_avail.itertuples():
-        exists.append(
-            (
-                outroot / "bids" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
-            ).exists()
-        )
-    bids_avail["exists"] = exists
-    out = bids_avail.query("not exists")
-    return set(
-        f"{row.site}{row.subject_id}{row.visit}" for row in out.itertuples()
-    )
+        sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
+        exists[sublong] = (
+            len(
+                list(
+                    (inroot / SITE_LONG[site_code] / "bids" / sublong).glob(
+                        "*out"
+                    )
+                )
+            )
+            > 0
+        ) and not (
+            outroot / "bids" / f"sub-{row.subject_id}" / f"sub-{row.visit}"
+        ).exists()
+    return set(k for k, v in exists.items() if v)
 
 
 def _synthstrip(src: Path, n_threads: int = 1) -> Path:
@@ -326,7 +332,9 @@ def main(
 
             # first, get all new raw (bids) data
             tmp_site = tmpdir / site_long
-            bidstocopy = _get_bids_tocopy(outroot=outroot, site_code=site_code)
+            bidstocopy = _get_bids_tocopy(
+                inroot=inroot, outroot=outroot, site_code=site_code
+            )
             for i, subsesd in enumerate(bidstocopy):
                 if i >= max_subs:
                     break

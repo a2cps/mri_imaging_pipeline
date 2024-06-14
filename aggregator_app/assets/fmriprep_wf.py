@@ -75,6 +75,8 @@ def copy(outdir: Path, inroot: Path) -> None:
 
 def make_toplevel(outdir: Path) -> None:
     # create top-level files
+    bu.mkdir_recursive(outdir)
+
     readme = outdir / "README"
     readme.touch()
     readme.write_text(README)

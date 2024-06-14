@@ -32,6 +32,7 @@ def copy(outdir: Path, inroot: Path) -> None:
 
 
 def make_toplevel(outdir: Path) -> None:
+    bu.mkdir_recursive(outdir)
     _get_all_volumes(outdir).to_csv(
         outdir / "fslanat.tsv", sep="\t", index=False
     )

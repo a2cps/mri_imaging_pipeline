@@ -271,6 +271,7 @@ def copy(outdir: Path, inroot: Path) -> None:
 
 
 def make_toplevel(outdir: Path) -> None:
+    bu.mkdir_recursive(outdir)
     aparc = parse_all_aparc(outdir)
 
     # note that we must keep index to preserve sub,ses cols
