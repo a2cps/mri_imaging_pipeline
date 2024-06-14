@@ -8,10 +8,11 @@ from biomarkers import utils as bu
 def copy(inroot: Path, outdir: Path) -> None:
     bu.mkdir_recursive(outdir)
 
-    utils.mergetree_overwrite(
-        inroot / "gift_rest",
-        outdir,
-        ignore=shutil.ignore_patterns(
-            "*anat*", "gift_rank-*log", "dataset_description.json"
-        ),
-    )
+    for subsesd in (inroot / "gift_rest").glob("*"):
+        utils.mergetree_overwrite(
+            subsesd / "gift",
+            outdir,
+            ignore=shutil.ignore_patterns(
+                "*anat*", "gift_rank-*log", "dataset_description.json"
+            ),
+        )

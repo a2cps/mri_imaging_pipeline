@@ -42,6 +42,7 @@ ILOG = Path(
     "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 )
 
+
 IGNORE_PATTERNS = shutil.ignore_patterns(
     "work",
     "*_wf",
