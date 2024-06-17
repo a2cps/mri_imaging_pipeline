@@ -4,9 +4,11 @@ import os
 import shutil
 import subprocess
 import tempfile
+import re
 from pathlib import Path
 
 from biomarkers import utils as bu
+from biomarkers.models import brainager, fslanat
 import pandas as pd
 
 import bids_wf
@@ -50,6 +52,8 @@ IGNORE_PATTERNS = shutil.ignore_patterns(
     "*007.out",
     "*007.err",
     "__pycache__",
+    ".heudiconv",
+    ".agave.log",
 )
 
 
@@ -63,6 +67,169 @@ def is_directory_ready(path: Path) -> bool:
         and (len(list(path.glob("*"))) > 0)
         and (any(i.is_dir() for i in path.glob("*")))
     )
+
+
+def is_fmriprep_aggregated(path: Path, row) -> bool:
+    sub = row.subject_id
+    ses = row.visit
+    job = re.findall(r"anat|cuff|rest", str(path))
+    if not len(job):
+        msg = f"unable to indetify fmriprep job in {path}"
+        raise AssertionError(msg)
+    fmriprep_dir = path / f"fmriprep-{job[0]}"
+    return (fmriprep_dir / f"sub-{sub}" / f"ses-{ses}").exists() and (
+        fmriprep_dir / f"sub-{sub}_ses-{ses}.html"
+    ).exists()
+
+
+def is_qsiprep_aggregated(path: Path, row) -> bool:
+    sub = row.subject_id
+    ses = row.visit
+    qsiprep_dir = path / f"qsiprep-{ses}"
+    eddy_dir = path / "eddyqc"
+
+    return (
+        (qsiprep_dir / f"sub-{sub}" / f"ses-{ses}").exists()
+        and (qsiprep_dir / f"sub-{sub}.html").exists()
+        and (eddy_dir / f"sub-{sub}" / f"ses-{ses}").exists()
+    )
+
+
+def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
+    sub = row.subject_id
+    ses = row.visit
+    # The column names will be renamed to positional names if they
+    # are invalid Python identifiers, repeated, or start with
+    # an underscore.
+    t1_received = row._5
+    cuff1_received = row._8
+    cuff2_received = row._10
+    rest1_received = row._12
+    rest2_received = row._14
+    htmls = []
+    if t1_received == 1:
+        htmls.append((mriqc_root / f"sub-{sub}_ses-{ses}_T1w.html").exists())
+    if cuff1_received == 1:
+        htmls.append(
+            (
+                mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-01_bold.html"
+            ).exists()
+        )
+    if cuff2_received == 1:
+        htmls.append(
+            (
+                mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-02_bold.html"
+            ).exists()
+        )
+    if rest1_received == 1:
+        htmls.append(
+            (
+                mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-01_bold.html"
+            ).exists()
+        )
+    if rest2_received == 1:
+        htmls.append(
+            (
+                mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-02_bold.html"
+            ).exists()
+        )
+
+    return (mriqc_root / f"sub-{sub}" / f"ses-{ses}").exists() and all(htmls)
+
+
+def _cleaned_niis_avail(cleaned_root: Path, row) -> bool:
+    sub = row.subject_id
+    ses = row.visit
+    cuff1_received = row._8
+    cuff2_received = row._10
+    rest1_received = row._12
+    rest2_received = row._14
+    niis = []
+    if cuff1_received == 1:
+        niis.append(
+            (
+                cleaned_root
+                / f"sub-{sub}_ses-{ses}_task-cuff_run-1_desc-preproc_bold.nii.gz"
+            ).exists()
+        )
+    if cuff2_received == 1:
+        niis.append(
+            (
+                cleaned_root
+                / f"sub-{sub}_ses-{ses}_task-cuff_run-2_desc-preproc_bold.nii.gz"
+            ).exists()
+        )
+    if rest1_received == 1:
+        niis.append(
+            (
+                cleaned_root
+                / f"sub-{sub}_ses-{ses}_task-rest_run-1_desc-preproc_bold.nii.gz"
+            ).exists()
+        )
+    if rest2_received == 1:
+        niis.append(
+            (
+                cleaned_root
+                / f"sub-{sub}_ses-{ses}_task-rest_run-2_desc-preproc_bold.nii.gz"
+            ).exists()
+        )
+    return all(niis)
+
+
+def is_signatures_aggregated(path: Path, row) -> bool:
+    return all(
+        (path / sig / f"sub={row.subject_id}" / f"ses={row.visit}").exists()
+        for sig in [
+            "signature-by-part",
+            "signature-by-run",
+            "signature-by-tr",
+            "signature-labels",
+            "signature-rawdata",
+        ]
+    ) and _cleaned_niis_avail(path / "signature-cleaned", row)
+
+
+def is_fcn_aggregated(path: Path, row) -> bool:
+    return all(
+        (path / fcn / f"sub={row.subject_id}" / f"ses={row.visit}").exists()
+        for fcn in [
+            "acompcor",
+            "connectivity",
+            "connectivity-confounds",
+        ]
+    ) and _cleaned_niis_avail(path / "fcn-cleaned", row)
+
+
+def is_brainager_aggregated(path: Path, row) -> bool:
+    target = (
+        path
+        / "brainager"
+        / f"sub-{row.subject_id}"
+        / f"ses-{row.visit}"
+        / f"sub-{row.subject_id}_ses-{row.visit}_T1w.nii"
+    )
+    try:
+        brainager.BrainAgeResult.from_nii(target)
+        out = True
+    except Exception:
+        logging.info(f"{target} did not pass validation. Adding to copy list")
+        out = False
+
+    return out
+
+
+def is_fslanat_aggregated(path: Path, row) -> bool:
+    target = (
+        path / "fslanat" / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
+    )
+    try:
+        fslanat.FIRSTResults.from_root(target)
+        out = True
+    except Exception:
+        logging.info(f"{target} did not pass validation. Adding to copy list.")
+        out = False
+
+    return out
 
 
 def _get_deriv_tocopy(
@@ -101,53 +268,34 @@ def _get_deriv_tocopy(
         if row.fmriprep_anat == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "anat"
         ):
-            already_aggregated &= (
-                outroot
-                / "fmriprep-anat"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
+            already_aggregated &= is_fmriprep_aggregated(
+                outroot / "fmriprep-anat", row
+            )
             jobs.add("fmriprep")
         if row.fmriprep_rest == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "rest"
         ):
-            already_aggregated &= (
-                outroot
-                / "fmriprep-rest"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
+            already_aggregated &= is_fmriprep_aggregated(
+                outroot / "fmriprep-rest", row
+            )
             jobs.add("fmriprep")
         if row.fmriprep_cuff == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "cuff"
         ):
-            already_aggregated &= (
-                outroot
-                / "fmriprep-cuff"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
+            already_aggregated &= is_fmriprep_aggregated(
+                outroot / "fmriprep-cuff", row
+            )
             jobs.add("fmriprep")
         if row.qsiprep == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "qsiprep" / sublong
         ):
-            already_aggregated &= (
-                outroot
-                / f"qsiprep-{row.visit}"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
+            already_aggregated &= is_qsiprep_aggregated(outroot, row)
             jobs.add("qsiprep")
 
         if row.brainager == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "brainager" / sublong
         ):
-            already_aggregated &= (
-                outroot
-                / "brainager"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
+            already_aggregated &= is_brainager_aggregated(outroot, row)
             jobs.add("brainager")
 
         if row.cat12 == 1 and is_directory_ready(
@@ -180,50 +328,25 @@ def _get_deriv_tocopy(
                 )
             )
         ):
-            already_aggregated &= (
-                outroot
-                / "mriqc"
-                / f"sub-{row.subject_id}"
-                / f"ses-{row.visit}"
-            ).exists()
+            already_aggregated &= is_mriqc_aggregated(
+                outroot / "mriqc", row=row
+            )
             jobs.add("mriqc")
         if row.fslanat == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fslanat" / sublong
         ):
-            already_aggregated &= (
-                outroot
-                / "fslanat"
-                / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
-            ).exists()
+            already_aggregated &= is_fslanat_aggregated(outroot, row)
             jobs.add("fslanat")
         if row.fcn == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fcn" / sublong
         ):
-            already_aggregated &= (
-                outroot
-                / "fcn"
-                / "connectivity"
-                / f"sub={row.subject_id}"
-                / f"ses={row.visit}"
-            ).exists()
+            already_aggregated &= is_fcn_aggregated(outroot / "fcn", row)
             jobs.add("fcn")
         if row.signatures == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "signatures" / sublong
         ):
-            already_aggregated &= all(
-                (
-                    outroot
-                    / "signatures"
-                    / sig
-                    / f"sub={row.subject_id}"
-                    / f"ses={row.visit}"
-                ).exists()
-                for sig in [
-                    "signature-by-part",
-                    "signature-by-run",
-                    "signature-by-tr",
-                    "signature-labels",
-                ]
+            already_aggregated &= is_signatures_aggregated(
+                outroot / "signatures", row
             )
             jobs.add("signatures")
         if row.gift_rest == 1 and is_directory_ready(
@@ -233,7 +356,7 @@ def _get_deriv_tocopy(
                 outroot
                 / "gift_rest"
                 / f"sub-{row.subject_id}"
-                / f"ses={row.visit}"
+                / f"ses-{row.visit}"
             ).exists()
             jobs.add("gift_rest")
         if not already_aggregated:
@@ -255,11 +378,25 @@ def _prep_staged_dir(outroot: Path) -> None:
         # is a holdover and should also be deleted
         if (
             len(target[2]) == 1
-            and str(to_del := (Path(target[0]) / target[2][0])).endswith(".nii.gz")
+            and str(to_del := (Path(target[0]) / target[2][0])).endswith(
+                ".nii.gz"
+            )
             and not to_del.is_symlink()
         ):
             logging.warning(f"deleting isolated file: {to_del}")
             to_del.unlink()
+
+    # delete fcn directories that have multiple parquet files
+    # they are created during reruns without the products being cleared
+    # recent versions of the aggregator avoid copying duplicates
+    # but there may be some that lingered
+    for sub in (outroot / "fcn" / "connectivity").glob("sub=*"):
+        for ses in list(sub.glob("ses=*")):
+            # just delete the whole subject tree for simplicity
+            if len(list(ses.glob("*parquet"))) > 1:
+                logging.warning(f"found duplicates in {ses}, deleting")
+                shutil.rmtree(ses)
+                break
 
     # delete empty directories
     for target in os.walk(outroot, topdown=False):
@@ -292,14 +429,14 @@ def _get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
             )
             > 0
         ) and not (
-            outroot / "bids" / f"sub-{row.subject_id}" / f"sub-{row.visit}"
+            outroot / "bids" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
         ).exists()
     return set(k for k, v in exists.items() if v)
 
 
 def _synthstrip(src: Path, n_threads: int = 1) -> Path:
     with tempfile.NamedTemporaryFile(suffix=".nii.gz") as brain:
-        subprocess.run(
+        proc = subprocess.run(
             [
                 "synthstrip",
                 "-i",
@@ -312,6 +449,9 @@ def _synthstrip(src: Path, n_threads: int = 1) -> Path:
                 SYNTHSTRIP_MODEL,
             ]
         )
+        if proc.returncode > 0:
+            msg = f"Failed to synthstrip {src}"
+            raise RuntimeError(msg)
         src.unlink()
         shutil.copy2(brain.name, src)
         os.chmod(src, 0o640)
@@ -324,7 +464,7 @@ def main(
     max_subs: float | int = float("inf"),
     n_threads: int = 1,
 ) -> None:
-    logging.warning("tidying output directory")
+    logging.info("tidying output directory")
     _prep_staged_dir(outroot=outroot)
     with tempfile.TemporaryDirectory() as tmpd:
         tmpdir = Path(tmpd)
@@ -336,6 +476,7 @@ def main(
             bidstocopy = _get_bids_tocopy(
                 inroot=inroot, outroot=outroot, site_code=site_code
             )
+            failed_skullstrip = set()
             for i, subsesd in enumerate(bidstocopy):
                 if i >= max_subs:
                     break
@@ -349,7 +490,14 @@ def main(
                 )
                 logging.info(f"Defacing anatomicals for {subsesd}")
                 for t1w in (out_job_dir / subsesd).rglob("*T1w.nii.gz"):
-                    _synthstrip(t1w, n_threads=n_threads)
+                    try:
+                        _synthstrip(t1w, n_threads=n_threads)
+                    except Exception:
+                        logging.error(f"Failed to deface {t1w}")
+                        failed_skullstrip.add(subsesd)
+
+            for subsesd in failed_skullstrip:
+                bidstocopy.remove(subsesd)
 
             if len(bidstocopy):
                 logging.info("Copying bids files to destination")
@@ -369,6 +517,7 @@ def main(
                     f"Making initial symlinks for {subsesd} derivatives"
                 )
                 for job in jobs:
+                    logging.info(f"Making links for {job}")
                     shutil.copytree(
                         inroot / site_long / job / subsesd,
                         tmp_site / job / subsesd,
@@ -377,9 +526,16 @@ def main(
                     )
 
                 # mask all images
-                if not utils._deface_all_derivatives(
-                    subsesdir=Path(subsesd), tmp_site=tmp_site
-                ):
+                logging.info(f"Attempting to deface derivatives for {subsesd}")
+                try:
+                    utils.deface_all_derivatives(
+                        subsesdir=Path(subsesd), tmp_site=tmp_site
+                    )
+                except Exception as e:
+                    logging.error(e)
+                    logging.warning(
+                        f"Unable to deface derivatives for {subsesd}, so not aggregating"
+                    )
                     for d in tmp_site.glob(f"*/{subsesd}"):
                         shutil.rmtree(d)
                     subses_toremove.add(subsesd)
@@ -416,6 +572,8 @@ def main(
                     inroot=tmp_site, outdir=outroot / "signatures"
                 )
                 gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift_rest")
+            logging.info(f"Removing temporary directory for {site_long}")
+            shutil.rmtree(tmp_site)
 
         # finally, handle all toplevel file material
         logging.info("Adding toplevel files")

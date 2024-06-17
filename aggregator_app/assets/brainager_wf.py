@@ -32,7 +32,7 @@ def copy(outdir: Path, inroot: Path) -> None:
         ses = bu.get_ses_from_sublong(src)
         utils.mergetree_overwrite(
             src,
-            out_subses,
+            outdir / f"sub-{sub}" / f"ses-{ses}",
             ignore=shutil.ignore_patterns(
                 "*remove.nii.gz", "sub*nii", "brainager_rank*.log", "*csv"
             ),

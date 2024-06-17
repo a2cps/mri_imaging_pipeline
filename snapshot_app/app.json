@@ -93,6 +93,10 @@
                 "includes": [],
                 "excludes": [],
                 "includeLaunchFiles": false
+            },
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
             }
         },
         "fileInputs": [],
