@@ -50,7 +50,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--inroot", type=Path, required=True)
     parser.add_argument("--outroot", type=Path, required=True)
-    parser.add_argument("--riadir", type=Path, required=True)
+    parser.add_argument("--riadir", type=Path)
     parser.add_argument(
         "--copy", action=argparse.BooleanOptionalAction, default=False
     )
