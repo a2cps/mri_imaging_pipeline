@@ -1,7 +1,7 @@
 {
     "name": "aggregate",
     "appId": "urrutia-aggregator",
-    "appVersion": "0.7",
+    "appVersion": "0.9",
     "parameterSet": {
         "appArgs": [
             {
@@ -14,17 +14,6 @@
             }
         ]
     },
-    "moduleLoads": [
-        {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
-            ]
-        }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
     "maxMinutes": 1440,
     "subscriptions": [
         {
