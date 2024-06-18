@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 import pandas as pd
 from biomarkers.models import fslanat
@@ -28,7 +29,15 @@ def copy(outdir: Path, inroot: Path) -> None:
     bu.mkdir_recursive(outdir)
 
     for src in inroot.glob("fslanat/*"):
-        utils.mergetree_overwrite(src, outdir)
+        sub = bu.get_sub_from_sublong(src)
+        ses = bu.get_ses_from_sublong(src)
+        utils.mergetree_overwrite(
+            src,
+            outdir,
+            ignore=shutil.ignore_patterns(
+                f"fslanat-sub-{sub}_ses-{ses}_T1w.log"
+            ),
+        )
 
 
 def make_toplevel(outdir: Path) -> None:
