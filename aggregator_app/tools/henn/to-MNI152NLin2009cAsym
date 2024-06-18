@@ -1,0 +1,17 @@
+#!/bin/bash
+
+cluster \
+    -i tools/henn/painControlsPatient_GM_TFCE05.nii.gz \
+    --oindex=tools/henn/tpl-MNI152NLin6Asym_atlas-henn_desc-controlspatientgmtfce05_dseg.nii.gz \
+    --olmax=tools/henn/olmax_mm.tsv \
+    -t 0.1 \
+    --mm \
+    -n 10
+
+antsApplyTransforms -v \
+    -t tools/tpl-MNI152NLin2009cAsym_from-MNI152NLin6Asym_mode-image_xfm.h5 \
+    -n GenericLabel \
+    -i tools/henn/tpl-MNI152NLin6Asym_atlas-henn_desc-controlspatientgmtfce05_dseg.nii.gz \
+    -d 3 \
+    -r tools/mwp1sub-travel2_ses-SH_T1w.nii \
+    -o assets/tpl-MNI152NLin2009cAsym_atlas-henn_desc-controlspatientgmtfce05_dseg.nii.gz

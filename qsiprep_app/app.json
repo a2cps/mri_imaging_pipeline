@@ -74,12 +74,6 @@
 			},
 			"schedulerOptions": [
 				{
-					"arg": "--tapis-profile tacc-apptainer",
-					"description": "Scheduler profile for HPC clusters at TACC",
-					"inputMode": "FIXED",
-					"name": "TACC Scheduler Profile"
-				},
-				{
 					"arg": "--tapis-profile ls6-mpi",
 					"description": "Scheduler profile for HPC clusters at TACC",
 					"inputMode": "FIXED",

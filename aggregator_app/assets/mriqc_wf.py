@@ -5,6 +5,8 @@ from mriqc.utils.misc import generate_tsv
 
 import utils
 
+from biomarkers import utils as bu
+
 
 def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
@@ -20,12 +22,14 @@ def copy(outdir: Path, inroot: Path) -> None:
 
 
 def make_toplevel(outdir: Path) -> None:
+    bu.mkdir_recursive(outdir)
     # https://github.com/nipreps/mriqc/blob/a2c320cce2ffff5a0e32d71213db7df834b5026a/mriqc/cli/run.py#L196-L236
     for modality in ["T1w", "bold"]:
         _, out_tsv = generate_tsv(outdir, modality)
-        gen_html(
-            out_tsv,
-            modality,
-            csv_failed=outdir / f"group_variant-failed_{modality}.tsv",
-            out_file=outdir / f"group_{modality}.html",
-        )
+        if Path(out_tsv).exists():
+            gen_html(
+                out_tsv,
+                modality,
+                csv_failed=outdir / f"group_variant-failed_{modality}.tsv",
+                out_file=outdir / f"group_{modality}.html",
+            )

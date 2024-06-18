@@ -1,44 +1,26 @@
 {
     "name": "test_brainager",
     "appId": "urrutia-brainager",
-    "appVersion": "0.1",
+    "appVersion": "0.3",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.frontera",
     "archiveOnAppError": false,
+    "execSystemId": "secure.ls6",
     "parameterSet": {
         "appArgs": [
             {
                 "name": "INPUT_DIRS",
-                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2"
-            },
-            {
-                "name": "OUTPUT_DIRS",
-                "arg": "--output-dirs NS_northshore/brainager/NStravel1 NS_northshore/brainager/NStravel2"
-            },
-            {
-                "name": "N_WORKERS",
-                "arg": "--n-workers 5"
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/bids/SHtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/bids/UCtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/bids/UCtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/bids/UItravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/bids/UItravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/bids/UM1travel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/bids/UM2travel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/bids/WStravel2 "
             }
         ],
         "envVariables": [
             {
-                "key": "APPTAINERENV_OMP_NUM_THREADS",
-                "value": "10"
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/brainager/"
             }
         ]
     },
-    "moduleLoads": [
-        {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
-            ]
-        }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
-    "maxMinutes": 1440,
+    "maxMinutes": 60,
     "subscriptions": [
         {
             "description": "Message on Failure",

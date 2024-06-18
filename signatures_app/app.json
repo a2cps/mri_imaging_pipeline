@@ -1,6 +1,6 @@
 {
     "id": "urrutia-signatures",
-    "version": "0.7",
+    "version": "0.8",
     "description": "Multivariate Pattern Signatures",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -18,7 +18,7 @@
         "description": null,
         "dynamicExecSystem": false,
         "execSystemConstraints": null,
-        "execSystemId": "secure.frontera",
+        "execSystemId": "secure.ls6",
         "execSystemExecDir": "${JobWorkingDir}",
         "execSystemInputDir": "${JobWorkingDir}",
         "execSystemOutputDir": "${JobWorkingDir}",

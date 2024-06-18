@@ -83,10 +83,10 @@ def main() -> None:
     with open(JOB, "r") as f:
         job = json.load(f)
 
-    print(json.dumps(job, indent=4))
     client = actors_get_client()
     failurebot_url = get_failurebot_url(client=client)
     job = set_subscription_url(job, arg=failurebot_url)
+    print(json.dumps(job, indent=4))
 
     try:
         submitted = client.jobs.submitJob(**job)  # type: ignore

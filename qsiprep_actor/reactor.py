@@ -27,7 +27,7 @@ JOB = Path("/opt/job.json")
 ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overridden by incoming message
-MAXJOBS = 1000
+MAXJOBS = 768
 
 # assume deployed on frontera
 # # https://docs.tacc.utexas.edu/hpc/frontera/#table1
@@ -36,7 +36,7 @@ MAXJOBS = 1000
 # MEM_PER_NODE = 192000  # MB
 
 # numbers for ls6
-N_SUBS_PER_NODE = 8
+N_SUBS_PER_NODE = 12
 N_CORES_PER_NODE = 128  # this is total number for a node
 MEM_PER_NODE = 256000  # MB
 

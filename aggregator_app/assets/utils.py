@@ -1,43 +1,30 @@
 import logging
-import re
 import shutil
 from pathlib import Path
+import os
 
 import nibabel as nb
 import numpy as np
 from nilearn import masking
 
-# TODO: deface fslanat
+from biomarkers import utils as bu
 
 
 FSOUTPUTS = ("orig.mgz", "orig_nu.mgz", "T1.mgz")
 
 
-def _get_entity(f: Path, pattern: str) -> str:
-    possibility = re.findall(pattern, str(f))
-    if not len(possibility):
-        raise ValueError
-    return possibility[0]
-
-
-def _get_sub(f: Path) -> str:
-    return _get_entity(f=f, pattern=r"\d{5}")
-
-
-def _get_ses(f: Path) -> str:
-    return _get_entity(f=f, pattern=r"V[13]")
-
-
 def _copy_overwrite(src: str | Path, dst: str | Path) -> str:
-    if (_dst := Path(dst)).exists():
-        logging.warning(f"Overwritting old outputs at {_dst}")
-        _dst.unlink()
+    out = Path(dst)
+    if not out.exists():
+        shutil.copy2(src, dst, follow_symlinks=False)
+    elif not out.samefile(src):
+        logging.warning(f"Overwritting {dst}")
+        out.unlink()
+        shutil.copy2(src, dst, follow_symlinks=False)
+    return str(out)
 
-    out = shutil.copy2(src, dst, follow_symlinks=False)
-    return out
 
-
-def mergetree_overwrite(src: Path, dst: Path) -> None:
+def mergetree_overwrite(src: Path, dst: Path, ignore=None) -> None:
     """Merge src directory tree with dst directory tree, overwritting files in dst
 
     Args:
@@ -56,7 +43,11 @@ def mergetree_overwrite(src: Path, dst: Path) -> None:
     """
 
     shutil.copytree(
-        src=src, dst=dst, dirs_exist_ok=True, copy_function=_copy_overwrite
+        src=src,
+        dst=dst,
+        dirs_exist_ok=True,
+        copy_function=_copy_overwrite,
+        ignore=ignore,
     )
 
 
@@ -70,11 +61,11 @@ def _symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
     return dst
 
 
-def _deface(volume: Path, mask: Path, make_mask: bool = False) -> None:  # type: ignore  # noqa: FBT002, FBT001
+def _deface(volume: Path, mask: Path, make_mask: bool = False):  # type: ignore  # noqa: FBT002, FBT001
     if make_mask:
         _mask = nb.load(mask)  # type: ignore
         mask_data = np.asarray(_mask.get_fdata() > 0, dtype=np.uint8)
-        mask: nb.Nifti1Image = nb.Nifti1Image(mask_data, affine=_mask.affine)  # type: ignore
+        mask: nb.Nifti1Image = nb.Nifti1Image(mask_data, affine=_mask.affine)
 
     masked_data = masking.apply_mask(volume, mask)
     masked: nb.Nifti1Image = masking.unmask(masked_data, mask)  # type: ignore
@@ -82,7 +73,7 @@ def _deface(volume: Path, mask: Path, make_mask: bool = False) -> None:  # type:
     nb.save(masked, volume)  # type: ignore
 
 
-def _deface_fslanat(subsesdir: Path, fmriprep_mask: Path) -> None:
+def _deface_fslanat(subsesdir: Path, fmriprep_mask: Path):
     for anatdir in subsesdir.glob("*anat"):
         for t1 in ("T1.nii.gz", "T1_biascorr.nii.gz"):
             if (f := anatdir / t1).exists():
@@ -95,34 +86,17 @@ def _deface_fslanat(subsesdir: Path, fmriprep_mask: Path) -> None:
                 _deface(f, fmriprep_mask)
 
 
-def _deface_qsiprep(subsesdir: Path, sub: str) -> None:
-    _deface(
-        subsesdir
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_desc-preproc_T1w.nii.gz",
-        subsesdir
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_desc-brain_mask.nii.gz",
-    )
-    _deface(
-        subsesdir
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz",
-        subsesdir
-        / "qsiprep"
-        / f"sub-{sub}"
-        / "anat"
-        / f"sub-{sub}_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz",
-    )
+def _deface_qsiprep(subsesdir: Path, sub: str):
+    for t1w in (subsesdir / f"sub-{sub}" / "anat").glob("*T1w.nii.gz"):
+        _deface(
+            t1w,
+            t1w.with_name(
+                t1w.name.replace("desc-preproc_T1w", "desc-brain_mask")
+            ),
+        )
 
 
-def _deface_freesurfer(subdir: Path, fmriprep_mask: Path) -> None:
+def _deface_freesurfer(subdir: Path, fmriprep_mask: Path):
     for orig in (subdir / "mri" / "orig").glob("*mgz"):
         _deface(orig, fmriprep_mask)
 
@@ -134,9 +108,7 @@ def _deface_freesurfer(subdir: Path, fmriprep_mask: Path) -> None:
             _deface(f, subdir / "mri" / "brainmask.mgz", make_mask=True)
 
 
-def _deface_fmriprep(
-    subsesdir: Path, fmriprep_mask: Path, sub: str, ses: str
-) -> None:
+def _deface_fmriprep(subsesdir: Path, fmriprep_mask: Path, sub: str, ses: str):
     for subjob in ["anat", "cuff", "rest"]:
         for output in (subsesdir / subjob / "fmriprep" / f"sub-{sub}").glob(
             "ses*"
@@ -158,42 +130,57 @@ def _deface_fmriprep(
                 )
 
 
-def _deface_all_derivatives(subsesdir: Path, tmp_site: Path) -> bool:
-    sub = _get_sub(subsesdir)
-    ses = _get_ses(subsesdir)
-    subses_fmriprep = tmp_site / "fmriprep" / subsesdir
-    ok = True
+def deface_all_derivatives(subsesdir: Path, tmp_site: Path):
 
     # NOTE: cannot assume that all standard files exist for all participants
-    try:
-        fmriprep_mask = (
-            subses_fmriprep
-            / "anat"
-            / "fmriprep"
-            / f"sub-{sub}"
-            / f"ses-{ses}"
-            / "anat"
-            / f"sub-{sub}_ses-{ses}_desc-brain_mask.nii.gz"
-        )
-        _deface_fmriprep(
-            subsesdir=subses_fmriprep,
-            fmriprep_mask=fmriprep_mask,
-            sub=sub,
-            ses=ses,
-        )
+    sub = bu.get_sub_from_sublong(subsesdir)
+    ses = bu.get_ses_from_sublong(subsesdir)
+    subses_fmriprep = tmp_site / "fmriprep" / subsesdir
+    fmriprep_mask = (
+        subses_fmriprep
+        / "anat"
+        / "fmriprep"
+        / f"sub-{sub}"
+        / f"ses-{ses}"
+        / "anat"
+        / f"sub-{sub}_ses-{ses}_desc-brain_mask.nii.gz"
+    )
+    _deface_fmriprep(
+        subsesdir=subses_fmriprep,
+        fmriprep_mask=fmriprep_mask,
+        sub=sub,
+        ses=ses,
+    )
+    _deface_qsiprep(
+        subsesdir=tmp_site / "qsiprep" / subsesdir / "qsiprep", sub=sub
+    )
 
-        _deface_freesurfer(
-            subdir=subses_fmriprep / "anat" / "freesurfer" / f"sub-{sub}",
-            fmriprep_mask=fmriprep_mask,
-        )
+    _deface_freesurfer(
+        subdir=subses_fmriprep / "anat" / "freesurfer" / f"sub-{sub}",
+        fmriprep_mask=fmriprep_mask,
+    )
 
-        _deface_fslanat(
-            tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask
-        )
-    except Exception as e:
-        logging.error(
-            f"Encountered {e} while defacing {subsesdir} but attempting to continue."
-        )
-        ok = False
+    _deface_fslanat(
+        tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask
+    )
 
-    return ok
+
+def get_duplicated_parquet(root: Path) -> list[str]:
+    # when there was an accidental rerun of a job, we
+    # could end up with duplicated parquet files
+    # this produces a list of files that should be ignored
+    # (e.g., for passing to shutil.ignore_pattern)
+    to_ignore = []
+    for parent, _, filenames in os.walk(root):
+        n_parquet = sum(f.endswith(".parquet") for f in filenames)
+        if n_parquet > 1:
+            ctimes = {
+                f: os.stat(Path(parent) / f).st_ctime
+                for f in filenames
+                if f.endswith(".parquet")
+            }
+            most_recent = max(ctimes, key=ctimes.get)  # type: ignore
+            to_ignore.extend(
+                [f"*{f}" for f in filenames if f is not most_recent]
+            )
+    return to_ignore

@@ -1,6 +1,6 @@
 {
     "id": "functional-connectivity",
-    "version": "0.6",
+    "version": "0.7",
     "description": "Run Functional Connectivity",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -18,7 +18,7 @@
         "description": null,
         "dynamicExecSystem": false,
         "execSystemConstraints": null,
-        "execSystemId": "secure.frontera",
+        "execSystemId": "secure.ls6",
         "execSystemExecDir": "${JobWorkingDir}",
         "execSystemInputDir": "${JobWorkingDir}",
         "execSystemOutputDir": "${JobWorkingDir}",
