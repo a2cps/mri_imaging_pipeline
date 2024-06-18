@@ -239,19 +239,19 @@ def _get_deriv_tocopy(
         pd.read_csv(ILOG, na_values=["", "na", "n/a"])
         .query("site == @site_code")
         .query(
-            """fslanat in [1, @pd.NA] \
-            and fmriprep_anat in [1, @pd.NA] \
-            and fmriprep_rest in [1, @pd.NA] \
-            and fmriprep_cuff in [1, @pd.NA] \
-            and mriqc_anat in [1, @pd.NA] \
-            and mriqc_rest in [1, @pd.NA] \
-            and mriqc_cuff in [1, @pd.NA] \
-            and cat12 in [1, @pd.NA] \
-            and fcn in [1, @pd.NA] \
-            and signatures in [1, @pd.NA] \
-            and qsiprep in [1, @pd.NA] \
-            and brainager in [1, @pd.NA] \
-            and gift_rest in [1, @pd.NA] \
+            """(fslanat == 1 | fslanat.isna()) \
+            and (fmriprep_anat == 1 | fmriprep_anat.isna()) \
+            and (fmriprep_rest == 1 | fmriprep_rest.isna()) \
+            and (fmriprep_cuff == 1 | fmriprep_cuff.isna()) \
+            and (mriqc_anat == 1 | mriqc_anat.isna()) \
+            and (mriqc_rest == 1 | mriqc_rest.isna()) \
+            and (mriqc_cuff  == 1 | mriqc_cuff.isna()) \
+            and (cat12  == 1 | cat12.isna()) \
+            and (fcn  == 1 | fcn.isna()) \
+            and (signatures == 1 | signatures.isna()) \
+            and (qsiprep  == 1 | qsiprep.isna()) \
+            and (brainager  == 1 | brainager.isna()) \
+            and (gift_rest  == 1 | gift_rest.isna()) \
             """
         )
     )
