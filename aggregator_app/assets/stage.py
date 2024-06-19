@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 from biomarkers import utils as bu
-from biomarkers.models import brainager, fslanat
+from biomarkers.models import fslanat
 import pandas as pd
 
 import bids_wf
@@ -76,10 +76,15 @@ def is_fmriprep_aggregated(path: Path, row) -> bool:
     if not len(job):
         msg = f"unable to indetify fmriprep job in {path}"
         raise AssertionError(msg)
-    fmriprep_dir = path / f"fmriprep-{job[0]}"
-    return (fmriprep_dir / f"sub-{sub}" / f"ses-{ses}").exists() and (
-        fmriprep_dir / f"sub-{sub}_ses-{ses}.html"
+
+    all_ready = (path / f"sub-{sub}" / f"ses-{ses}").exists() and (
+        path / f"sub-{sub}_ses-{ses}.html"
     ).exists()
+
+    if not all_ready:
+        logging.info(f"{sub=}, {ses=} did not pass fmriprep validation")
+
+    return all_ready
 
 
 def is_qsiprep_aggregated(path: Path, row) -> bool:
@@ -87,12 +92,15 @@ def is_qsiprep_aggregated(path: Path, row) -> bool:
     ses = row.visit
     qsiprep_dir = path / f"qsiprep-{ses}"
     eddy_dir = path / "eddyqc"
-
-    return (
+    all_ready = (
         (qsiprep_dir / f"sub-{sub}" / f"ses-{ses}").exists()
         and (qsiprep_dir / f"sub-{sub}.html").exists()
         and (eddy_dir / f"sub-{sub}" / f"ses-{ses}").exists()
     )
+    if not all_ready:
+        logging.info(f"{sub=}, {ses=} did not pass qsiprep validation")
+
+    return all_ready
 
 
 def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
@@ -133,8 +141,13 @@ def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
                 mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-02_bold.html"
             ).exists()
         )
+    all_ready = (mriqc_root / f"sub-{sub}" / f"ses-{ses}").exists() and all(
+        htmls
+    )
+    if not all_ready:
+        logging.info(f"{sub=}, {ses=} did not pass mriqc validation")
 
-    return (mriqc_root / f"sub-{sub}" / f"ses-{ses}").exists() and all(htmls)
+    return all_ready
 
 
 def _cleaned_niis_avail(cleaned_root: Path, row) -> bool:
@@ -177,7 +190,7 @@ def _cleaned_niis_avail(cleaned_root: Path, row) -> bool:
 
 
 def is_signatures_aggregated(path: Path, row) -> bool:
-    return all(
+    all_ready = all(
         (path / sig / f"sub={row.subject_id}" / f"ses={row.visit}").exists()
         for sig in [
             "signature-by-part",
@@ -187,17 +200,27 @@ def is_signatures_aggregated(path: Path, row) -> bool:
             "signature-rawdata",
         ]
     ) and _cleaned_niis_avail(path / "signature-cleaned", row)
+    if not all_ready:
+        logging.info(
+            f"sub={row.subject_id}, ses={row.visit} did not pass signatures validation"
+        )
+    return all_ready
 
 
 def is_fcn_aggregated(path: Path, row) -> bool:
-    return all(
+    all_ready = all(
         (path / fcn / f"sub={row.subject_id}" / f"ses={row.visit}").exists()
         for fcn in [
             "acompcor",
             "connectivity",
             "connectivity-confounds",
         ]
-    ) and _cleaned_niis_avail(path / "fcn-cleaned", row)
+    ) and _cleaned_niis_avail(path / "connectivity-cleaned", row)
+    if not all_ready:
+        logging.info(
+            f"sub={row.subject_id}, ses={row.visit} did not pass fcn validation"
+        )
+    return all_ready
 
 
 def is_brainager_aggregated(path: Path, row) -> bool:
@@ -208,14 +231,17 @@ def is_brainager_aggregated(path: Path, row) -> bool:
         / f"ses-{row.visit}"
         / f"sub-{row.subject_id}_ses-{row.visit}_T1w.nii"
     )
-    try:
-        brainager.BrainAgeResult.from_nii(target)
-        out = True
-    except Exception:
-        logging.info(f"{target} did not pass validation. Adding to copy list")
-        out = False
+    all_ready = (
+        target.with_name(f"{target.stem}_tissue_volumes.tsv").exists()
+        and target.with_suffix(".tsv").exists()
+        and target.with_name(f"slicesdir_{target.name}").exists()
+    )
+    if not all_ready:
+        logging.info(
+            f"sub={row.subject_id}, ses={row.visit} did not pass brainager validation"
+        )
 
-    return out
+    return all_ready
 
 
 def is_fslanat_aggregated(path: Path, row) -> bool:
@@ -223,10 +249,10 @@ def is_fslanat_aggregated(path: Path, row) -> bool:
         path / "fslanat" / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
     )
     try:
-        fslanat.FIRSTResults.from_root(target)
+        fslanat.FSLAnatResult.from_root(target)
         out = True
     except Exception:
-        logging.info(f"{target} did not pass validation. Adding to copy list.")
+        logging.info(f"{target} did not pass fslanat validation")
         out = False
 
     return out
@@ -463,9 +489,11 @@ def main(
     outroot: Path,
     max_subs: float | int = float("inf"),
     n_threads: int = 1,
+    tidy: bool = True,
 ) -> None:
-    logging.info("tidying output directory")
-    _prep_staged_dir(outroot=outroot)
+    if tidy:
+        logging.info("tidying output directory")
+        _prep_staged_dir(outroot=outroot)
     with tempfile.TemporaryDirectory() as tmpd:
         tmpdir = Path(tmpd)
         for site_code, site_long in SITE_LONG.items():
@@ -572,8 +600,9 @@ def main(
                     inroot=tmp_site, outdir=outroot / "signatures"
                 )
                 gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift_rest")
-            logging.info(f"Removing temporary directory for {site_long}")
-            shutil.rmtree(tmp_site)
+            if tmp_site.exists():
+                logging.info(f"Removing temporary directory for {site_long}")
+                shutil.rmtree(tmp_site)
 
         # finally, handle all toplevel file material
         logging.info("Adding toplevel files")
@@ -595,6 +624,9 @@ if __name__ == "__main__":
     parser.add_argument("outroot", type=Path)
     parser.add_argument("--max-subs", type=float, default=float("inf"))
     parser.add_argument("--n-threads", type=int, default=1)
+    parser.add_argument(
+        "--tidy", action=argparse.BooleanOptionalAction, default=True
+    )
 
     args = parser.parse_args()
 
@@ -603,4 +635,5 @@ if __name__ == "__main__":
         outroot=args.outroot,
         max_subs=args.max_subs,
         n_threads=args.n_threads,
+        tidy=args.tidy,
     )
