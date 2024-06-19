@@ -51,6 +51,12 @@
                     "description": "Number of threads used during synthstrip",
                     "inputMode": "INCLUDE_BY_DEFAULT",
                     "arg": "--n-threads 16"
+                },
+                {
+                    "name": "TIDY",
+                    "description": "Whether to tidy output directory (from previous archive)",
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "arg": "--tidy"
                 }
             ],
             "containerArgs": [
