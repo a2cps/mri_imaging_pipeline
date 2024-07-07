@@ -1,337 +1,129 @@
 {
-  "name": "{{ agave.username }}-{{ app.name }}",
-  "version": "{{ app.version }}",
-  "executionType": "HPC",
-  "executionSystem": "{{ app.hpc_system}}",
-  "parallelism": "SERIAL",
-  "deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
-  "deploymentSystem": "{{ app.storage_system}}",
-  "defaultProcessorsPerNode": 1,
-  "defaultNodeCount": 1,
-  "defaultQueue": "{{ app.queue }}",
-  "label": "fMRIPRep",
-  "modules": [
-    "load launcher",
-    "load python3/3.9.2",
-    "load tacc-apptainer",
-    "unload xalt"
+  "containerImage": "docker://psadil/fmriprep_app",
+  "description": "Run fmriprep",
+  "enabled": true,
+  "id": "psadil-fmriprep_app",
+  "jobAttributes": {
+    "archiveOnAppError": false,
+    "cmdPrefix": "ibrun -n 1",
+    "description": null,
+    "execSystemExecDir": "${JobWorkingDir}",
+    "execSystemId": "secure.ls6",
+    "execSystemInputDir": "${JobWorkingDir}",
+    "execSystemLogicalQueue": "corralextra",
+    "execSystemOutputDir": "${JobWorkingDir}",
+    "fileInputArrays": [],
+    "fileInputs": [],
+    "maxMinutes": 540,
+    "nodeCount": 1,
+    "parameterSet": {
+      "appArgs": [
+        {
+          "arg": null,
+          "inputMode": "REQUIRED",
+          "name": "INPUT_DIRS"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "OUTPUT_DIRS"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "N_WORKERS"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "MEM_MB"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "CIFTI_OUTPUT"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "DUMMY_SCANS"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "BOLD2ANAT_DOF"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "OUTPUT_SPACES"
+        }
+      ],
+      "archiveFilter": {
+        "excludes": [
+          "tapisjob.sh",
+          "${JobUUID}.out",
+          "${JobUUID}.err",
+          "tapisjob.env"
+        ],
+        "includeLaunchFiles": false,
+        "includes": []
+      },
+      "containerArgs": [
+        {
+          "arg": "--bind /corral-secure/projects/A2CPS",
+          "description": "Mount for TAP functions",
+          "inputMode": "FIXED",
+          "name": "Container Mounts"
+        }
+      ],
+      "envVariables": [
+        {
+          "key": "FAILURE_LOG_DST",
+          "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fmriprep/"
+        },
+        {
+          "key": "MIN_ARCHIVE_DURATION",
+          "value": "1800"
+        }
+      ],
+      "logConfig": {
+        "stderrFilename": "${JobUUID}.err",
+        "stdoutFilename": "${JobUUID}.out"
+      },
+      "schedulerOptions": [
+        {
+          "arg": "--tapis-profile ls6-mpi",
+          "description": "Scheduler profile for HPC clusters at TACC",
+          "inputMode": "FIXED",
+          "name": "TACC Scheduler Profile"
+        },
+        {
+          "arg": "--job-name ${JobName}",
+          "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+          "inputMode": "FIXED",
+          "name": "TAP Session Substring"
+        },
+        {
+          "arg": "-A A2CPS",
+          "description": "The TACC allocation associated with this job execution",
+          "inputMode": "FIXED",
+          "name": "TACC Allocation"
+        }
+      ]
+    },
+    "subscriptions": [],
+    "tags": []
+  },
+  "jobType": "BATCH",
+  "maxJobs": -1,
+  "maxJobsPerUser": -1,
+  "owner": "${apiUserId}",
+  "runtime": "SINGULARITY",
+  "runtimeOptions": [
+    "SINGULARITY_RUN"
   ],
-  "shortDescription": "{{ app.description }}",
-  "templatePath": "runner-template.sh",
-  "testPath": "tester.sh",
-  "inputs": [],
-  "parameters": [
-    {
-      "id": "CONTAINER_IMAGE",
-      "value": {
-        "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
-        "description": "Container Image. Do not edit.",
-        "type": "string",
-        "visible": false,
-        "required": true
-      }
-    },
-    {
-      "id": "BINDDIR",
-      "value": {
-        "default": "/corral-secure/projects/A2CPS",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "details": {
-        "description": "Directory which will be bound inside the singularity container",
-        "showArgument": false
-      }
-    },
-    {
-      "id": "BIDS_DIRECTORY",
-      "value": {
-        "default": "",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "semantics": {
-        "ontology": [
-          "https://bids.neuroimaging.io/specification.html"
-        ],
-        "minCardinality": 1,
-        "maxCardinality": -1
-      },
-      "details": {
-        "description": "The root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder).",
-        "showArgument": false
-      }
-    },
-    {
-      "id": "PARTICIPANT_LABEL",
-      "value": {
-        "default": "sub-01",
-        "description": "A space delimited list of participant identifiers or a single identifier (the sub- prefix can be removed)",
-        "type": "string",
-        "visible": true,
-        "required": false
-      },
-      "details": {
-        "description": "A space delimited list of participant identifiers or a single identifier (the sub- prefix can be removed)",
-        "showArgument": false,
-        "argument": "participant --participant_label "
-      }
-    },
-    {
-      "id": "OUTPUT_DIR",
-      "details": {
-        "description": "The output directory name for the outcomes of preprocessing and visual reports",
-        "showArgument": false
-      },
-      "value": {
-        "default": "",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "semantics": {
-        "minCardinality": 1,
-        "maxCardinality": -1
-      }
-    },
-    {
-      "id": "IGNORE_FIELD_MAPS",
-      "details": {
-        "argument": "--ignore fieldmaps ",
-        "showArgument": true,
-        "description": "Ignore distortion correction in the pipeline"
-      },
-      "value": {
-        "default": 0,
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "IGNORE_SLICE_TIMING",
-      "details": {
-        "argument": "--ignore slicetiming ",
-        "showArgument": true,
-        "description": "Ignore slice timing correction for the functionals in the pipeline"
-      },
-      "value": {
-        "default": 0,
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "HEAD_MOTION",
-      "details": {
-        "argument": "--bold2t1w-dof ",
-        "showArgument": false,
-        "description": "Degrees of freedom when registering BOLD to T1w images. 9 degrees (rotation, translation, and scaling) are used by default."
-      },
-      "value": {
-        "default": "",
-        "type": "enumeration",
-        "enumValues": [
-          "--bold2t1w-dof 6",
-          "--bold2t1w-dof 9",
-          "--bold2t1w-dof 12",
-          {
-            "": "undefined"
-          }
-        ],
-        "visible": true,
-        "required": true
-      }
-    },
-    {
-      "id": "DUMMY_SCANS",
-      "details": {
-        "argument": "--dummy-scans ",
-        "showArgument": true,
-        "description": "Number of non steady state volumes."
-      },
-      "value": {
-        "default": null,
-        "type": "number",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "ICA_AROMA_USE",
-      "details": {
-        "argument": "--use-aroma ",
-        "showArgument": true,
-        "description": "add ICA_AROMA to your preprocessing stream"
-      },
-      "value": {
-        "default": 0,
-        "description": "add ICA_AROMA to your preprocessing stream",
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "ICA_AROMA_DIMENSIONALITY",
-      "details": {
-        "argument": "--aroma-melodic-dimensionality ",
-        "showArgument": true,
-        "description": "Exact or maximum number of MELODIC components to estimate (positive = exact, negative = maximum)"
-      },
-      "value": {
-        "default": null,
-        "type": "number",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "FD_SPIKE",
-      "details": {
-        "argument": "--fd-spike-threshold ",
-        "showArgument": true,
-        "description": "Threshold for flagging a frame as an outlier on the basis of framewise displacement"
-      },
-      "value": {
-        "default": null,
-        "type": "number",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "CIFTI_OUTPUT",
-      "details": {
-        "description": "output preprocessed BOLD as a CIFTI dense timeseries. Optionally, the number of grayordinate can be specified (default is 91k, which equates to 2mm resolution)",
-        "argument": "--cifti-output ",
-        "showArgument": true
-      },
-      "value": {
-        "default": "91k",
-        "type": "enumeration",
-        "enumValues": [
-          "91k",
-          "170k",
-          {
-            "": "undefined"
-          }
-        ],
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "ANAT_ONLY",
-      "details": {
-        "argument": "--anat-only ",
-        "showArgument": true,
-        "description": "run anatomical workflows only"
-      },
-      "value": {
-        "default": 0,
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "BIDS_FILTER_FILE",
-      "details": {
-        "argument": "--bids-filter-file ",
-        "showArgument": false,
-        "description": "run anatomical workflows only"
-      },
-      "value": {
-        "default": "",
-        "type": "enumeration",
-        "enumValues": [
-          "--bids-filter-file rest_only.json",
-          "--bids-filter-file cuff_only.json",
-          {
-            "": "undefined"
-          }
-        ],
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "FS_NO_RECONALL",
-      "details": {
-        "argument": "--fs-no-reconall ",
-        "showArgument": true,
-        "description": "run anatomical workflows only"
-      },
-      "value": {
-        "default": true,
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "SKIP_BIDS_VALIDATION",
-      "details": {
-        "argument": "--skip-bids-validation ",
-        "showArgument": true,
-        "description": "skip bids validation step"
-      },
-      "value": {
-        "default": true,
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "FS_SUBJECTS_DIR",
-      "details": {
-        "argument": "--fs-subjects-dir ",
-        "showArgument": false,
-        "description": "use precomputed freesurfer directory"
-      },
-      "value": {
-        "default": "",
-        "type": "string",
-        "visible": true,
-        "required": false
-      },
-      "semantics": {
-        "minCardinality": 1,
-        "maxCardinality": -1
-      }
-    },
-    {
-      "id": "MEMMB",
-      "details": {
-        "argument": "--mem-mb ",
-        "showArgument": true
-      },
-      "value": {
-        "default": 190000,
-        "description": "Maximum amount of MB available to QSIprep when processing each participant",
-        "type": "number",
-        "visible": true,
-        "required": true
-      }
-    },
-    {
-      "id": "NTHREADS",
-      "details": {
-        "argument": "--nthreads ",
-        "showArgument": true
-      },
-      "value": {
-        "default": 56,
-        "description": "Maximum number of threads available to QSIprep when processing each participant",
-        "type": "number",
-        "visible": true,
-        "required": true
-      }
-    }
-  ]
+  "runtimeVersion": "0.1",
+  "strictFileInputs": true,
+  "version": "0.1"
 }
