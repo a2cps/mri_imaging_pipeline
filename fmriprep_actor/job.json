@@ -28,6 +28,25 @@
                 "arg": "--dummy-scans 15",
                 "name": "DUMMY_SCANS"
             }
+        ],
+        "envVariables": [
+            {
+                "key": "MIN_ARCHIVE_DURATION",
+                "value": "2160"
+            }
         ]
-    }
+    },
+    "subscriptions": [
+        {
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
+        }
+    ]
 }

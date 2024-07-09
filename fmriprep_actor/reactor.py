@@ -26,11 +26,20 @@ JOB = Path("/opt/job.json")
 # on TACC
 ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
-# can be overridden by incoming message
-MAXJOBS = 400
-
 # numbers for ls6
-N_SUBS_PER_NODE = 10
+# even 8 subs uses to much of /tmp
+N_SUBS_PER_NODE = 6
+
+# for ls
+MAX_NODES_PER_JOB = 64
+
+# can be overridden by incoming message
+MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
+
+# amount of time required to copy one sub from /tmp -> /corral-secure
+# this will be used to terminate the job early in case of 
+# prolonged runtime
+N_SEC_TO_COPY_ONE_SUB = 180
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -84,7 +93,7 @@ def actors_get_client() -> Tapis:
 
 def get_ilog(client: Tapis) -> Table:
     ilog: bytes = client.files.getContents(  # type: ignore
-        systemId="secure.corral", path=str(ILOG)
+        systemId="secure.corral", path=ILOG
     )
     return ibis.memtable(
         pd.read_csv(
@@ -92,39 +101,6 @@ def get_ilog(client: Tapis) -> Table:
             na_values=["na", ""],
             dtype={"subject_id": str},
         )
-    )
-
-
-def get_task_runlist(
-    ilog: Table, task: typing.Literal["cuff", "rest"]
-) -> Table:
-    return (
-        ilog.select(
-            "site",
-            "subject_id",
-            "visit",
-            f"fmriprep_{task}",
-            f"gift_{task}",
-        )
-        .rename(gift=f"gift_{task}")
-        .rename(fmriprep=f"fmriprep_{task}")
-        # exclude rows that were already processed
-        .filter(_.gift == 0)  # type: ignore
-        .filter(_.fmriprep == 1)  # type: ignore
-        .mutate(
-            sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
-            sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
-        )
-        .mutate(OUTPUT_DIR=_.sitelong + f"/gift_{task}/" + _.sublong)  # type: ignore
-        .mutate(
-            FMRIPREP_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
-            + x.sitelong
-            + "/fmriprep/"
-            + x.sublong
-            + f"/{task}"
-            + "/fmriprep"  # type: ignore
-        )
-        .mutate(task=ibis.literal(task))
     )
 
 
@@ -168,6 +144,12 @@ def get_cmd_prefix(image: str, n_jobs: int) -> str:
 def set_app_arg(job: dict, arg_pos: int, name: str, arg: str) -> dict:
     job2 = copy.deepcopy(job)
     job2.get("parameterSet").get("appArgs")[arg_pos] = {"name": name, "arg": arg}  # type: ignore
+    return job2
+
+
+def set_env_var(job: dict, arg_pos: int, key: str, value: str) -> dict:
+    job2 = copy.deepcopy(job)
+    job2.get("parameterSet").get("envVariables")[arg_pos] = {"key": key, "value": value}  # type: ignore
     return job2
 
 
@@ -235,13 +217,15 @@ def main() -> None:
         arg="--output-dirs " + " ".join(x[1] for x in runlist),
     )
 
+    job = set_env_var(job, arg_pos=0, key="MIN_ARCHIVE_DURATION", value=str(n_jobs * N_SEC_TO_COPY_ONE_SUB))
+
     set_key_value(
         job, key="maxMinutes", value=context.message_dict.get("maxMinutes")
     )
     set_key_value(
         job,
         key="name",
-        value=f"gift-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        value=f"fmriprep-{datetime.datetime.today().strftime('%Y-%m-%d')}",
     )
 
     image = client.apps.getApp(

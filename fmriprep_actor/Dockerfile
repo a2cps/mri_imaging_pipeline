@@ -1,7 +1,7 @@
-FROM python:3.11.4-bullseye
+FROM python:3.11.9-bullseye
 
 RUN pip install --no-cache-dir \
-    tapipy==1.4.1 \
+    tapipy==1.6.3 \
     ibis-framework[duckdb]==6.0.0 
 
 

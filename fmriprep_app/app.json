@@ -2,7 +2,7 @@
   "containerImage": "docker://psadil/fmriprep_app",
   "description": "Run fmriprep",
   "enabled": true,
-  "id": "psadil-fmriprep_app",
+  "id": "urrutia-fmriprep_app",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
@@ -81,10 +81,6 @@
         {
           "key": "FAILURE_LOG_DST",
           "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fmriprep/"
-        },
-        {
-          "key": "MIN_ARCHIVE_DURATION",
-          "value": "1800"
         }
       ],
       "logConfig": {
