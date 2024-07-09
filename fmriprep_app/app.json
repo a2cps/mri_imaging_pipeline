@@ -1,5 +1,5 @@
 {
-  "containerImage": "docker://psadil/fmriprep_app",
+  "containerImage": "docker://a2cps/fmriprep_app:3.0",
   "description": "Run fmriprep",
   "enabled": true,
   "id": "urrutia-fmriprep_app",
@@ -119,7 +119,6 @@
   "runtimeOptions": [
     "SINGULARITY_RUN"
   ],
-  "runtimeVersion": "0.1",
   "strictFileInputs": true,
-  "version": "0.1"
+  "version": "3.0"
 }

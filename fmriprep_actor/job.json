@@ -1,6 +1,6 @@
 {
     "appId": "urrutia-fmriprep_app",
-    "appVersion": "0.1",
+    "appVersion": "3.0",
     "cmdPrefix": "ibrun -n 12",
     "coresPerNode": 6,
     "maxMinutes": 360,

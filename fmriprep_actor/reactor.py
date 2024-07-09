@@ -120,7 +120,7 @@ def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
             + "/bids/"
             + x.sublong  # type: ignore
         )
-        .order_by("visit", "subject_id")  # ensure V1 run before V3
+        .order_by(["visit", "subject_id"])  # ensure V1 run before V3
         .execute()
     )
 
@@ -243,7 +243,7 @@ def main() -> None:
     set_key_value(job, key="coresPerNode", value=N_SUBS_PER_NODE)
 
     failurebot_url = get_failurebot_url(client=client)
-    set_subscription_url(job, arg=failurebot_url)
+    job = set_subscription_url(job, arg=failurebot_url)
 
     print(json.dumps(job, indent=4))
 

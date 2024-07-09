@@ -30,7 +30,7 @@ ENV ENV_NAME=fmriprep
 
 RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge --freeze-installed \
         impi_rt=2021.12 \
-        ucx=0.17.0 \
+        ucx=1.17.0 \
         rdma-core=52.0 \
         mpi4py=3.1.6 \
         polars=1.0.0 \
