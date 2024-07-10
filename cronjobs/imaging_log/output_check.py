@@ -271,7 +271,6 @@ def redcap_query():
 
 def find_outputs(bids_path: str):
     dicom_path = bids_path.replace('bids','dicoms')
-    bids_validation_path = bids_path.replace('bids','bids_validation')
     fmriprep_path = bids_path.replace('bids','fmriprep')
     mriqc_path = bids_path.replace('bids','mriqc')
     qsiprep_path = bids_path.replace('bids','qsiprep')
@@ -303,23 +302,12 @@ def find_outputs(bids_path: str):
         acq_time = 'na'
     
     try: 
-        duplicates = glob.glob(bids_path+'/sub-*/ses-*/*/*dup*')[0]
-        duplicates = 1
-    except Exception as e:
-        duplicates = 0
-
-    try: 
         dicom = glob.glob(dicom_path+'.zip')[0]
         dicom = 1
     except Exception as e:
         print("no dicom", dicom_path)
         dicom = 0
-    try: 
-        bids_validation = glob.glob(bids_validation_path+'/*.out')[0]
-        bids_validation = 1
-    except Exception as e:
-        print("no bids_validation", bids_validation_path)
-        bids_validation = 0
+
     if len(glob.glob(f"{fmriprep_path}/*.out")):
         fmriprep = 1
     else:
@@ -366,7 +354,7 @@ def find_outputs(bids_path: str):
     brainager = 1 if len(glob.glob(f"{brainager_path}/*.out")) else 0
     gift_rest = 1 if len(glob.glob(f"{gift_rest_path}/*.out")) else 0
         
-    return dicom, bids, bids_present, bids_validation, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
+    return dicom, bids, bids_present, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
 
 
 def find_heudiconv_outputs(bids_dir):
@@ -483,7 +471,7 @@ def main():
         try:
             site_id = row['site_id']
             bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, bids_validation, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
+            (dicom, bids, bids_present, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -595,7 +583,6 @@ def main():
             scan_report = {**scans_indicated, **processed_scans}
             scan_report['dicom'] = dicom
             scan_report['bids'] = bids_present
-            scan_report['bids_validation'] = bids_present
             scan_report['fslanat'] = fslanat
             scan_report['fcn'] = fcn
             scan_report['signatures'] = signatures
@@ -665,7 +652,6 @@ def main():
     'Cuff1 Applied Pressure',
     'dicom',
     'bids',
-    'bids_validation',
     'fslanat',
     'fmriprep',
     'gift_rest',
