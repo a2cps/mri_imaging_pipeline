@@ -24,8 +24,9 @@ async def main(
     dummy_scans: int | None = None,
     bold2anat_dof: fmriprep_models.BOLD2ANAT_DOF = 6,
     output_spaces: typing.Sequence[fmriprep_models.OUTPUT_SPACE] = (
-        typing.get_args(fmriprep_models.OUTPUT_SPACE)
+        typing.get_args(fmriprep_models.OUTPUT_SPACE),
     ),
+    anat_only: typing.Sequence[bool] | None = None,
 ) -> None:
     await fmriprep.FMRIPRepEntrypoint(
         outs=outdirs,
@@ -41,6 +42,7 @@ async def main(
         stage_ignore_patterns=shutil.ignore_patterns(
             "*.heudiconv", "sourcedata"
         ),
+        anat_only=anat_only,
     ).run()
 
 
@@ -67,6 +69,9 @@ if __name__ == "__main__":
         nargs="+",
         choices=typing.get_args(fmriprep_models.OUTPUT_SPACE),
         default=typing.get_args(fmriprep_models.OUTPUT_SPACE),
+    )
+    parser.add_argument(
+        "--anat-only", nargs="+", default=None, choices=["True", "False"]
     )
 
     args = parser.parse_args()
@@ -99,6 +104,15 @@ if __name__ == "__main__":
         msg = "Output directories must be unique"
         raise AssertionError(msg)
 
+    if args.anat_only:
+        if not len(args.anat_only) == len(args.input_dirs):
+            msg = "If --anat-only is specified, it must have length equal to --input-dirs"
+            raise AssertionError(msg)
+        else:
+            anat_only = [arg == "True" for arg in args.anat_only]
+    else:
+        anat_only = None
+
     asyncio.run(
         main(
             bids_directory=args.input_dirs,
@@ -109,5 +123,6 @@ if __name__ == "__main__":
             dummy_scans=args.dummy_scans,
             bold2anat_dof=args.bold2anat_dof,
             output_spaces=args.output_spaces,
+            anat_only=anat_only,
         )
     )

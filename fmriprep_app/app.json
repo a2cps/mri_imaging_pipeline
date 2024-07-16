@@ -57,6 +57,11 @@
           "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
           "name": "OUTPUT_SPACES"
+        },
+        {
+          "name": "ANAT_ONLY",
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "arg": null
         }
       ],
       "archiveFilter": {

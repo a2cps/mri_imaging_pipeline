@@ -37,7 +37,7 @@ MAX_NODES_PER_JOB = 64
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
 
 # amount of time required to copy one sub from /tmp -> /corral-secure
-# this will be used to terminate the job early in case of 
+# this will be used to terminate the job early in case of
 # prolonged runtime
 N_SEC_TO_COPY_ONE_SUB = 180
 
@@ -99,19 +99,46 @@ def get_ilog(client: Tapis) -> Table:
         pd.read_csv(
             io.BytesIO(ilog),
             na_values=["na", ""],
-            dtype={"subject_id": str},
+            dtype={
+                "subject_id": str,
+                "fMRI Individualized Pressure Received": bool,
+                "fMRI Standard Pressure Received": bool,
+                "1st Resting State Received": bool,
+                "2nd Resting State Received": bool,
+            },
         )
     )
 
 
-def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
+def get_runlist(
+    ilog: Table, maxjobs: int = MAXJOBS
+) -> list[tuple[str, str, str]]:
     rundef = (
-        ilog.select("site", "subject_id", "visit", "bids", "fmriprep")
+        ilog.select(
+            "site",
+            "subject_id",
+            "visit",
+            "bids",
+            "fmriprep",
+            "fMRI Individualized Pressure Received",
+            "fMRI Standard Pressure Received",
+            "1st Resting State Received",
+            "2nd Resting State Received",
+        )
+        .rename(
+            {
+                "CUFF1": "fMRI Individualized Pressure Received",
+                "CUFF2": "fMRI Standard Pressure Received",
+                "REST1": "1st Resting State Received",
+                "REST2": "2nd Resting State Received",
+            }
+        )
         .filter(_.bids == 1)  # type: ignore
         .filter(_.fmriprep == 0)  # type: ignore
         .mutate(
             sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
+            ANAT_ONLY=ibis.or_(_.CUFF1, _.CUFF2, _.REST1, _.REST2).negate(),
         )
         .mutate(OUTPUT_DIR=_.sitelong + "/fmriprep/" + _.sublong)  # type: ignore
         .mutate(
@@ -125,9 +152,11 @@ def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
     )
 
     runlist = [
-        (x, y)
-        for x, y in zip(
-            rundef.INPUT_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
+        (x, y, str(z))
+        for x, y, z in zip(
+            rundef.INPUT_DIR.to_list(),
+            rundef.OUTPUT_DIR.to_list(),
+            rundef.ANAT_ONLY.to_list(),
         )
     ]
     return runlist[:maxjobs]
@@ -216,8 +245,19 @@ def main() -> None:
         name="OUTPUT_DIRS",
         arg="--output-dirs " + " ".join(x[1] for x in runlist),
     )
+    job = set_app_arg(
+        job,
+        2,
+        name="ANAT_ONLY",
+        arg="--anat-only " + " ".join(x[2] for x in runlist),
+    )
 
-    job = set_env_var(job, arg_pos=0, key="MIN_ARCHIVE_DURATION", value=str(n_jobs * N_SEC_TO_COPY_ONE_SUB))
+    job = set_env_var(
+        job,
+        arg_pos=0,
+        key="MIN_ARCHIVE_DURATION",
+        value=str(n_jobs * N_SEC_TO_COPY_ONE_SUB),
+    )
 
     set_key_value(
         job, key="maxMinutes", value=context.message_dict.get("maxMinutes")

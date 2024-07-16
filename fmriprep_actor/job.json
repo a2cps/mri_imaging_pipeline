@@ -17,6 +17,10 @@
                 "name": "OUTPUT_DIRS"
             },
             {
+                "arg": "--anat-only False False False False False False False False False False False False",
+                "name": "ANAT_ONLY"
+            },
+            {
                 "arg": "--n-workers 21",
                 "name": "N_WORKERS"
             },
