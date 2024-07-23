@@ -9,7 +9,7 @@
     "BodyPartExamined": "BRAIN",
     "CoilString": "MULTI COIL",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20240123",
+    "ConversionSoftwareVersion": "v1.0.20240202",
     "DeviceSerialNumber": "71399",
     "EchoTime": 0.030001,
     "EchoTrainLength": 89,
@@ -34,7 +34,7 @@
         "M",
         "FFE"
     ],
-    "ImagingFrequency": 127.76704,
+    "ImagingFrequency": 127.766976,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionAddress": "5835 S. Cottage Grove",
     "InstitutionName": "UNIVERSITY OF CHICAGO MEDICAL CENTER",
@@ -57,10 +57,10 @@
     "PhaseEncodingStepsNoPartialFourier": 89,
     "PhaseEncodingStepsOutOfPlane": 1,
     "PhilipsRWVIntercept": 0,
-    "PhilipsRWVSlope": 0.820757,
+    "PhilipsRWVSlope": 0.831746,
     "PhilipsRescaleIntercept": 0,
-    "PhilipsRescaleSlope": 0.820757,
-    "PhilipsScaleSlope": 0.0757155,
+    "PhilipsRescaleSlope": 0.831746,
+    "PhilipsScaleSlope": 0.0626877,
     "PixelBandwidth": 1825,
     "ProtocolName": "WIP REST1",
     "PulseSequenceName": "FEEPI",
@@ -129,7 +129,7 @@
         0.711,
         0.356
     ],
-    "SoftwareVersions": "5.6.1\\5.6.1.0",
+    "SoftwareVersions": "5.6.1\\5.6.1.3",
     "SpacingBetweenSlices": 2.4,
     "StationName": "HOST-1O4ONO2CHP",
     "TaskName": "rest",
@@ -141,19 +141,19 @@
             -2.21875,
             0.0,
             0.0,
-            105.99182891845703
+            105.99183654785156
         ],
         [
             0.0,
             2.21875,
             0.0,
-            -113.20628356933594
+            -100.58100128173828
         ],
         [
             0.0,
             0.0,
-            2.399993896484375,
-            -59.391265869140625
+            2.4000015258789062,
+            -47.36760711669922
         ],
         [
             0.0,
@@ -240,11 +240,11 @@
                 "FFE"
             ],
             "ImagedNucleus": "1H",
-            "ImagingFrequency": 127.76704,
+            "ImagingFrequency": 127.766976,
             "InPlanePhaseEncodingDirection": "COL",
             "IntervalsAcquired": 0,
             "IntervalsRejected": 0,
-            "IssueTimeOfImagingServiceRequest": "131033.934",
+            "IssueTimeOfImagingServiceRequest": "093227.689",
             "LowRRValue": 0,
             "MRAcquisitionType": "2D",
             "MagneticFieldStrength": 3.0,
@@ -256,8 +256,8 @@
             "NumberOfTemporalPositions": 450,
             "PercentPhaseFieldOfView": 100.0,
             "PercentSampling": 101.136360168457,
-            "PerformedProcedureStepEndTime": "131034",
-            "PerformedProcedureStepStartTime": "131034",
+            "PerformedProcedureStepEndTime": "093228",
+            "PerformedProcedureStepStartTime": "093228",
             "PerformedProtocolCodeSequence": [
                 {
                     "CodeMeaning": "UNDEFINED",
@@ -291,24 +291,24 @@
                     "RealWorldValueFirstValueMapped": 0,
                     "RealWorldValueIntercept": 0.0,
                     "RealWorldValueLastValueMapped": 4095,
-                    "RealWorldValueSlope": 0.8207570207570207
+                    "RealWorldValueSlope": 0.8317460317460318
                 }
             ],
             "ReceiveCoilName": "MULTI COIL",
             "ReconstructionDiameter": 213.0,
             "ReferencedPerformedProcedureStepSequence": [
                 {
-                    "InstanceCreationDate": "20240111",
-                    "InstanceCreationTime": "131034.309",
+                    "InstanceCreationDate": "20240719",
+                    "InstanceCreationTime": "093228.126",
                     "InstanceCreatorUID": "1.3.46.670589.11.89.5",
                     "InstanceNumber": 0,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.3.46.670589.11.71399.5.0.11740.2024011113103430002"
+                    "ReferencedSOPInstanceUID": "1.3.46.670589.11.71399.5.0.10472.2024071909322812003"
                 }
             ],
             "RepetitionTime": 799.999694824218,
             "RescaleIntercept": 0.0,
-            "RescaleSlope": 0.82075702075702,
+            "RescaleSlope": 0.83174603174603,
             "RescaleType": "normalized",
             "Rows": 96,
             "SAR": 0.07760487496852,
@@ -318,16 +318,16 @@
             "SequenceVariant": "SK",
             "SeriesDescription": "REST1",
             "SeriesNumber": 801,
-            "SeriesTime": "134259.39000",
+            "SeriesTime": "100652.92000",
             "SliceThickness": 2.4,
             "SoftwareVersions": [
                 "5.6.1",
-                "5.6.1.0"
+                "5.6.1.3"
             ],
             "SpacingBetweenSlices": 2.4,
             "SpecificCharacterSet": "ISO_IR 100",
-            "StudyID": "757883433",
-            "StudyTime": "131034",
+            "StudyID": "758557947",
+            "StudyTime": "093228",
             "dBdt": 62.4192657470703
         }
     }
