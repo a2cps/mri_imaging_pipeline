@@ -9,7 +9,7 @@
     "BodyPartExamined": "BRAIN",
     "CoilString": "MULTI COIL",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20240123",
+    "ConversionSoftwareVersion": "v1.0.20240202",
     "DeviceSerialNumber": "71399",
     "EchoTime": 0.07,
     "EchoTrainLength": 89,
@@ -34,16 +34,16 @@
         "M",
         "SE"
     ],
-    "ImagingFrequency": 127.76704,
+    "ImagingFrequency": 127.766976,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionAddress": "5835 S. Cottage Grove",
     "InstitutionName": "UNIVERSITY OF CHICAGO MEDICAL CENTER",
     "InstitutionalDepartmentName": "BRIC",
     "IntendedFor": [
-        "ses-V1/func/sub-10885_ses-V1_task-cuff_run-01_bold.nii.gz",
-        "ses-V1/func/sub-10885_ses-V1_task-cuff_run-02_bold.nii.gz",
-        "ses-V1/func/sub-10885_ses-V1_task-rest_run-01_bold.nii.gz",
-        "ses-V1/func/sub-10885_ses-V1_task-rest_run-02_bold.nii.gz"
+        "ses-V1/func/sub-15042_ses-V1_task-cuff_run-01_bold.nii.gz",
+        "ses-V1/func/sub-15042_ses-V1_task-rest_run-02_bold.nii.gz",
+        "ses-V1/func/sub-15042_ses-V1_task-rest_run-01_bold.nii.gz",
+        "ses-V1/func/sub-15042_ses-V1_task-cuff_run-02_bold.nii.gz"
     ],
     "MRAcquisitionType": "2D",
     "MTState": false,
@@ -63,10 +63,10 @@
     "PhaseEncodingStepsNoPartialFourier": 89,
     "PhaseEncodingStepsOutOfPlane": 1,
     "PhilipsRWVIntercept": 0,
-    "PhilipsRWVSlope": 1.58462,
+    "PhilipsRWVSlope": 4.33944,
     "PhilipsRescaleIntercept": 0,
-    "PhilipsRescaleSlope": 1.58462,
-    "PhilipsScaleSlope": 0.0172819,
+    "PhilipsRescaleSlope": 4.33944,
+    "PhilipsScaleSlope": 0.00826093,
     "PixelBandwidth": 2157,
     "ProtocolName": "WIP FMRI_B0_PA",
     "PulseSequenceName": "SEEPI",
@@ -79,7 +79,7 @@
     "SeriesDescription": "FMRI_B0_PA",
     "SeriesNumber": 701,
     "SliceThickness": 2.4,
-    "SoftwareVersions": "5.6.1\\5.6.1.0",
+    "SoftwareVersions": "5.6.1\\5.6.1.3",
     "SpacingBetweenSlices": 2.4,
     "StationName": "HOST-1O4ONO2CHP",
     "TotalReadoutTime": 0.0646229,
@@ -90,19 +90,19 @@
             -2.21875,
             0.0,
             0.0,
-            105.99182891845703
+            105.99183654785156
         ],
         [
             0.0,
             2.21875,
             0.0,
-            -113.20628356933594
+            -100.58100128173828
         ],
         [
             0.0,
             0.0,
             2.4000015258789062,
-            -59.39165496826172
+            -47.36762237548828
         ],
         [
             0.0,
@@ -159,7 +159,7 @@
             "BitsStored": 12,
             "BodyPartExamined": "BRAIN",
             "Columns": 96,
-            "ContentTime": "134215.42",
+            "ContentTime": "100437.98",
             "DiffusionBValue": 0.0,
             "DiffusionGradientOrientation": [
                 0.0,
@@ -189,11 +189,11 @@
                 "SE"
             ],
             "ImagedNucleus": "1H",
-            "ImagingFrequency": 127.76704,
+            "ImagingFrequency": 127.766976,
             "InPlanePhaseEncodingDirection": "COL",
             "IntervalsAcquired": 0,
             "IntervalsRejected": 0,
-            "IssueTimeOfImagingServiceRequest": "131033.934",
+            "IssueTimeOfImagingServiceRequest": "093227.689",
             "LowRRValue": 0,
             "MRAcquisitionType": "2D",
             "MagneticFieldStrength": 3.0,
@@ -205,8 +205,8 @@
             "NumberOfTemporalPositions": 1,
             "PercentPhaseFieldOfView": 100.0,
             "PercentSampling": 101.136360168457,
-            "PerformedProcedureStepEndTime": "131034",
-            "PerformedProcedureStepStartTime": "131034",
+            "PerformedProcedureStepEndTime": "093228",
+            "PerformedProcedureStepStartTime": "093228",
             "PerformedProtocolCodeSequence": [
                 {
                     "CodeMeaning": "UNDEFINED",
@@ -240,24 +240,24 @@
                     "RealWorldValueFirstValueMapped": 0,
                     "RealWorldValueIntercept": 0.0,
                     "RealWorldValueLastValueMapped": 4095,
-                    "RealWorldValueSlope": 1.5846153846153845
+                    "RealWorldValueSlope": 4.339438339438339
                 }
             ],
             "ReceiveCoilName": "MULTI COIL",
             "ReconstructionDiameter": 213.0,
             "ReferencedPerformedProcedureStepSequence": [
                 {
-                    "InstanceCreationDate": "20240111",
-                    "InstanceCreationTime": "131034.309",
+                    "InstanceCreationDate": "20240719",
+                    "InstanceCreationTime": "093228.126",
                     "InstanceCreatorUID": "1.3.46.670589.11.89.5",
                     "InstanceNumber": 0,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.3.46.670589.11.71399.5.0.11740.2024011113103430002"
+                    "ReferencedSOPInstanceUID": "1.3.46.670589.11.71399.5.0.10472.2024071909322812003"
                 }
             ],
             "RepetitionTime": 7000.0009765625,
             "RescaleIntercept": 0.0,
-            "RescaleSlope": 1.58461538461538,
+            "RescaleSlope": 4.33943833943833,
             "RescaleType": "normalized",
             "Rows": 96,
             "SAR": 0.0757243335247,
@@ -267,16 +267,16 @@
             "SequenceVariant": "SK",
             "SeriesDescription": "FMRI_B0_PA",
             "SeriesNumber": 701,
-            "SeriesTime": "134205.03000",
+            "SeriesTime": "100427.59000",
             "SliceThickness": 2.4,
             "SoftwareVersions": [
                 "5.6.1",
-                "5.6.1.0"
+                "5.6.1.3"
             ],
             "SpacingBetweenSlices": 2.4,
             "SpecificCharacterSet": "ISO_IR 100",
-            "StudyID": "757883433",
-            "StudyTime": "131034",
+            "StudyID": "758557947",
+            "StudyTime": "093228",
             "TemporalPositionIdentifier": 1,
             "dBdt": 62.4147567749023
         }

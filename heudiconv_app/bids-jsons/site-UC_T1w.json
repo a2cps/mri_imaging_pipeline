@@ -9,7 +9,7 @@
     "BodyPartExamined": "BRAIN",
     "CoilString": "MULTI COIL",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20240123",
+    "ConversionSoftwareVersion": "v1.0.20240202",
     "DeviceSerialNumber": "71399",
     "EchoTime": 0.002999,
     "EchoTrainLength": 150,
@@ -34,7 +34,7 @@
         "M",
         "FFE"
     ],
-    "ImagingFrequency": 127.767168,
+    "ImagingFrequency": 127.767152,
     "InPlanePhaseEncodingDirectionDICOM": "ROW",
     "InstitutionAddress": "5835 S. Cottage Grove",
     "InstitutionName": "UNIVERSITY OF CHICAGO MEDICAL CENTER",
@@ -54,10 +54,10 @@
     "PhaseEncodingSteps": 256,
     "PhaseEncodingStepsOutOfPlane": 225,
     "PhilipsRWVIntercept": 0,
-    "PhilipsRWVSlope": 3.27033,
+    "PhilipsRWVSlope": 2.90427,
     "PhilipsRescaleIntercept": 0,
-    "PhilipsRescaleSlope": 3.27033,
-    "PhilipsScaleSlope": 0.00623248,
+    "PhilipsRescaleSlope": 2.90427,
+    "PhilipsScaleSlope": 0.00524284,
     "PixelBandwidth": 241,
     "ProtocolName": "WIP T1_MPRAGE",
     "PulseSequenceName": "T1TFE",
@@ -70,7 +70,7 @@
     "SeriesDescription": "T1_MPRAGE",
     "SeriesNumber": 201,
     "SliceThickness": 1,
-    "SoftwareVersions": "5.6.1\\5.6.1.0",
+    "SoftwareVersions": "5.6.1\\5.6.1.3",
     "SpacingBetweenSlices": 1,
     "SpoilingState": true,
     "SpoilingType": "COMBINED",
@@ -83,19 +83,19 @@
             1.0,
             0.0,
             0.0,
-            -111.39879608154297
+            -111.39878845214844
         ],
         [
             0.0,
             1.0,
             0.0,
-            -117.88076782226562
+            -118.48197174072266
         ],
         [
             0.0,
             0.0,
             1.0,
-            -135.91683959960938
+            -126.29759979248047
         ],
         [
             0.0,
@@ -152,7 +152,7 @@
             "BitsStored": 12,
             "BodyPartExamined": "BRAIN",
             "Columns": 256,
-            "ContentTime": "131832.98",
+            "ContentTime": "093947.04",
             "DiffusionBValue": 0.0,
             "DiffusionGradientOrientation": [
                 0.0,
@@ -182,11 +182,11 @@
                 "FFE"
             ],
             "ImagedNucleus": "1H",
-            "ImagingFrequency": 127.767168,
+            "ImagingFrequency": 127.767152,
             "InPlanePhaseEncodingDirection": "ROW",
             "IntervalsAcquired": 0,
             "IntervalsRejected": 0,
-            "IssueTimeOfImagingServiceRequest": "131033.934",
+            "IssueTimeOfImagingServiceRequest": "093227.689",
             "LowRRValue": 0,
             "MRAcquisitionType": "3D",
             "MagneticFieldStrength": 3.0,
@@ -198,8 +198,8 @@
             "NumberOfTemporalPositions": 1,
             "PercentPhaseFieldOfView": 93.75,
             "PercentSampling": 78.5398178100586,
-            "PerformedProcedureStepEndTime": "131034",
-            "PerformedProcedureStepStartTime": "131034",
+            "PerformedProcedureStepEndTime": "093228",
+            "PerformedProcedureStepStartTime": "093228",
             "PerformedProtocolCodeSequence": [
                 {
                     "CodeMeaning": "UNDEFINED",
@@ -233,24 +233,24 @@
                     "RealWorldValueFirstValueMapped": 0,
                     "RealWorldValueIntercept": 0.0,
                     "RealWorldValueLastValueMapped": 4095,
-                    "RealWorldValueSlope": 3.2703296703296703
+                    "RealWorldValueSlope": 2.904273504273504
                 }
             ],
             "ReceiveCoilName": "MULTI COIL",
             "ReconstructionDiameter": 256.0,
             "ReferencedPerformedProcedureStepSequence": [
                 {
-                    "InstanceCreationDate": "20240111",
-                    "InstanceCreationTime": "131034.309",
+                    "InstanceCreationDate": "20240719",
+                    "InstanceCreationTime": "093228.126",
                     "InstanceCreatorUID": "1.3.46.670589.11.89.5",
                     "InstanceNumber": 0,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.3.46.670589.11.71399.5.0.11740.2024011113103430002"
+                    "ReferencedSOPInstanceUID": "1.3.46.670589.11.71399.5.0.10472.2024071909322812003"
                 }
             ],
             "RepetitionTime": 6.65819978713989,
             "RescaleIntercept": 0.0,
-            "RescaleSlope": 3.27032967032967,
+            "RescaleSlope": 2.9042735042735,
             "RescaleType": "normalized",
             "Rows": 256,
             "SAR": 0.02548142895102,
@@ -260,16 +260,16 @@
             "SequenceVariant": "MP",
             "SeriesDescription": "T1_MPRAGE",
             "SeriesNumber": 201,
-            "SeriesTime": "131804.08000",
+            "SeriesTime": "093921.02000",
             "SliceThickness": 1.0,
             "SoftwareVersions": [
                 "5.6.1",
-                "5.6.1.0"
+                "5.6.1.3"
             ],
             "SpacingBetweenSlices": 1.0,
             "SpecificCharacterSet": "ISO_IR 100",
-            "StudyID": "757883433",
-            "StudyTime": "131034",
+            "StudyID": "758557947",
+            "StudyTime": "093228",
             "TemporalPositionIdentifier": 1,
             "dBdt": 120.669853210449
         }
