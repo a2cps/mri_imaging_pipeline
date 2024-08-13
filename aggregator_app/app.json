@@ -1,6 +1,6 @@
 {
     "id": "urrutia-aggregator",
-    "version": "0.9",
+    "version": "1.0",
     "description": "Stage MRI Products for Release",
     "owner": "${apiUserId}",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/aggregator:0.9",
+    "containerImage": "docker://a2cps/aggregator:1.0",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -51,6 +51,12 @@
                     "description": "Number of threads used during synthstrip",
                     "inputMode": "INCLUDE_BY_DEFAULT",
                     "arg": "--n-threads 16"
+                },
+                {
+                    "name": "TIDY",
+                    "description": "Whether to tidy output directory (from previous archive)",
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "arg": "--tidy"
                 }
             ],
             "containerArgs": [

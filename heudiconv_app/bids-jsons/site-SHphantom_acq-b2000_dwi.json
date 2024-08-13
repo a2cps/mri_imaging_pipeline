@@ -65,7 +65,7 @@
     "PhaseEncodingSteps": 130,
     "PhaseResolution": 1,
     "PixelBandwidth": 1479,
-    "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
+    "ProcedureStepDescription": "Physicist A2CPS",
     "ProtocolName": "dwi_dwi_acq_b2000",
     "PulseSequenceDetails": "%SiemensSeq%\\ep2d_diff",
     "PulseSequenceName": "*epse2d1_130",

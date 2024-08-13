@@ -61,7 +61,7 @@
     "PhaseEncodingStepsOutOfPlane": 154,
     "PhaseResolution": 1,
     "PixelBandwidth": 160,
-    "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
+    "ProcedureStepDescription": "Physicist A2CPS",
     "ProtocolName": "T1_MPRAGE",
     "PulseSequenceDetails": "%SiemensSeq%\\tfl",
     "PulseSequenceName": "*tfl3d1_182",

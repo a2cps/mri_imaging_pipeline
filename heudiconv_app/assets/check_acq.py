@@ -21,9 +21,9 @@ FLOATING_PARAMS = {
         "EffectiveEchoSpacing",
         "RepetitionTime",
         "ImageOrientationPatientDICOM",
+        "EchoTime"
     ],
-    0.01: ["ImagingFrequency", "WaterFatShift"],
-    0.1: ["SliceTiming", "EchoTime"],
+    0.01: ["ImagingFrequency", "WaterFatShift", "SliceTiming"],
 }
 
 SIEMENS_W_64 = ["NS", "SH", "RU"]

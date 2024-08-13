@@ -15,9 +15,7 @@ FAILURE_LOG_DST = Path(os.environ.get("FAILURE_LOG_DST", "/corral-secure/project
 APP_STEPS = [
                 "bids", 
                 "fslanat",
-                "fmriprep_anat", 
-                "fmriprep_rest", 
-                "fmriprep_cuff",
+                "fmriprep", 
                 "mriqc_anat", 
                 "mriqc_rest", 
                 "mriqc_cuff", 
@@ -273,7 +271,6 @@ def redcap_query():
 
 def find_outputs(bids_path: str):
     dicom_path = bids_path.replace('bids','dicoms')
-    bids_validation_path = bids_path.replace('bids','bids_validation')
     fmriprep_path = bids_path.replace('bids','fmriprep')
     mriqc_path = bids_path.replace('bids','mriqc')
     qsiprep_path = bids_path.replace('bids','qsiprep')
@@ -284,12 +281,6 @@ def find_outputs(bids_path: str):
     brainager_path = bids_path.replace('bids','brainager')
     gift_rest_path = bids_path.replace('bids','gift_rest')
     print(bids_path)
-    # for path in [bids_path, dicom_path, bids_validation_path, fmriprep_path, mriqc_path]
-    # outputs = {}
-    # for x in [bids_path, dicom_path, bids_validation_path, fmriprep_path, mriqc_path]:
-    #     #d["string{0}".format(x)] = "Hello"
-    #     d["{0}".format(x)] = "Hello"
-    #     outfile = glob.glob("".format(x)+'/*.out')[0]
 
     try: 
         bids_present = glob.glob(bids_path+'/*.out')[0]
@@ -311,41 +302,17 @@ def find_outputs(bids_path: str):
         acq_time = 'na'
     
     try: 
-        duplicates = glob.glob(bids_path+'/sub-*/ses-*/*/*dup*')[0]
-        duplicates = 1
-    except Exception as e:
-        duplicates = 0
-
-    try: 
         dicom = glob.glob(dicom_path+'.zip')[0]
         dicom = 1
     except Exception as e:
         print("no dicom", dicom_path)
         dicom = 0
-    try: 
-        bids_validation = glob.glob(bids_validation_path+'/*.out')[0]
-        bids_validation = 1
-    except Exception as e:
-        print("no bids_validation", bids_validation_path)
-        bids_validation = 0
-    try: 
-        fmriprep_anat = glob.glob(fmriprep_path+'/anat/*.out')[0]
-        fmriprep_anat = 1
-    except Exception as e:
-        print("no fmriprep anat", fmriprep_path)
-        fmriprep_anat = 0
-    try: 
-        fmriprep_cuff = glob.glob(fmriprep_path+'/cuff/*.out')[0]
-        fmriprep_cuff = 1
-    except Exception as e:
-        print("no fmriprep cuff", fmriprep_path)
-        fmriprep_cuff = 0
-    try: 
-        fmriprep_rest = glob.glob(fmriprep_path+'/rest/*.out')[0]
-        fmriprep_rest = 1
-    except Exception as e:
-        print("no fmriprep rest", fmriprep_path)
-        fmriprep_rest = 0
+
+    if len(glob.glob(f"{fmriprep_path}/*.out")):
+        fmriprep = 1
+    else:
+        print("no fmriprep", fmriprep_path)
+        fmriprep = 0
     try: 
         mriqc_anat = glob.glob(mriqc_path+'/*nat/*')[0]
         mriqc_anat = 1
@@ -387,7 +354,7 @@ def find_outputs(bids_path: str):
     brainager = 1 if len(glob.glob(f"{brainager_path}/*.out")) else 0
     gift_rest = 1 if len(glob.glob(f"{gift_rest_path}/*.out")) else 0
         
-    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
+    return dicom, bids, bids_present, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
 
 
 def find_heudiconv_outputs(bids_dir):
@@ -504,7 +471,7 @@ def main():
         try:
             site_id = row['site_id']
             bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
+            (dicom, bids, bids_present, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -616,13 +583,10 @@ def main():
             scan_report = {**scans_indicated, **processed_scans}
             scan_report['dicom'] = dicom
             scan_report['bids'] = bids_present
-            scan_report['bids_validation'] = bids_present
             scan_report['fslanat'] = fslanat
             scan_report['fcn'] = fcn
             scan_report['signatures'] = signatures
-            scan_report['fmriprep_anat'] = fmriprep_anat
-            scan_report['fmriprep_cuff'] = fmriprep_cuff
-            scan_report['fmriprep_rest'] = fmriprep_rest
+            scan_report['fmriprep'] = fmriprep
             scan_report['mriqc_anat'] = mriqc_anat
             scan_report['mriqc_cuff'] = mriqc_cuff
             scan_report['mriqc_rest'] = mriqc_rest
@@ -640,20 +604,16 @@ def main():
                 scan_report["cat12"] = "na"
                 scan_report["brainager"] = "na"
                 scan_report["fslanat"] = "na"
-                scan_report["fmriprep_anat"] = "na"
-                scan_report["fmriprep_rest"] = "na"
-                scan_report["fmriprep_cuff"] = "na"
+                scan_report["fmriprep"] = "na"
                 scan_report["gift_rest"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
             if scan_report['1st Resting State Indicated'] == '0' and scan_report['2nd Resting State Indicated'] == '0':
-                scan_report['fmriprep_rest'] = 'na'
                 scan_report['mriqc_rest'] = 'na'
             if scan_report['fMRI Individualized Pressure Indicated'] == '0' and scan_report['fMRI Standard Pressure Indicated'] == '0':
-                scan_report['fmriprep_cuff'] = 'na'
                 scan_report['mriqc_cuff'] = 'na'
-            if scan_report["fmriprep_rest"] == "na" and scan_report["fmriprep_cuff"] == "na":
+            if scan_report["fmriprep"] == "na":
                 scan_report['fcn'] = 'na'
                 scan_report['signatures'] = 'na'
                 scan_report['gift_rest'] = 'na'
@@ -692,11 +652,8 @@ def main():
     'Cuff1 Applied Pressure',
     'dicom',
     'bids',
-    'bids_validation',
     'fslanat',
-    'fmriprep_anat',
-    'fmriprep_cuff',
-    'fmriprep_rest',
+    'fmriprep',
     'gift_rest',
     'mriqc_anat',
     'mriqc_cuff',
