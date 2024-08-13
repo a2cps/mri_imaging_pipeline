@@ -62,7 +62,7 @@
     "PhaseEncodingSteps": 90,
     "PhaseResolution": 1,
     "PixelBandwidth": 2525,
-    "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
+    "ProcedureStepDescription": "Physicist A2CPS",
     "ProtocolName": "func_bold_acq_QA",
     "PulseSequenceDetails": "%SiemensSeq%\\ep2d_bold",
     "PulseSequenceName": "*epfid2d1_90",
