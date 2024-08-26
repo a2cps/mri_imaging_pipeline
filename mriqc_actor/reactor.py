@@ -27,7 +27,6 @@ JOB = Path("/opt/job.json")
 ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
 # numbers for ls6
-# even 8 subs uses to much of /tmp
 N_SUBS_PER_NODE = 12
 
 # for ls

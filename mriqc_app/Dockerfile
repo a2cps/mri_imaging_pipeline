@@ -1,7 +1,7 @@
 # bring in the micromamba image so we can copy files from it
 FROM mambaorg/micromamba:1.5.8 AS micromamba
 
-FROM nipreps/mriqc:24.0.0
+FROM nipreps/mriqc:24.0.1
 
 USER root
 
