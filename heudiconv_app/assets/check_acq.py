@@ -318,7 +318,7 @@ def main(
             raise AssertionError("No scan jsons found")
 
     reference = pd.read_csv(
-        "acq-params.tsv",
+        "/tapis/assets/acq-params.tsv",
         low_memory=False,
         delimiter="\t",
         converters={

@@ -1,20 +1,28 @@
 {
-    "appId": "urrutia-heudiconv-0.12.7",
-    "name": "heudiconv-UM20333V3-test",
-    "archive": true,
-    "archivePath": "products/mris/UM_umichigan/bids/UM20333V3",
-    "maxRunTime": "04:59:00",
-    "parameters": {
-        "BIND_DIR": "/corral-secure/projects/A2CPS/",
-        "FILES": "/corral-secure/projects/A2CPS/products/mris/UM_umichigan/dicoms/UM20333V3.zip",
-        "LIST_OF_SUBJECTS": "20333",
-        "OUTDIR": ".",
-        "SESSION_FOR_LONGITUDINAL": "V3",
-        "BIDS": true,
-        "HEURISTIC": "a2cps.py",
-        "LOCATOR": "=''",
-        "SITE": "UM",
-        "DELETE_DUPLICATES": true,
-        "POST": "--post"
-    }
+    "name": "trav-human-WS",
+    "appId": "heudiconv",
+    "appVersion": "3.0.1",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/bids/WStravel2",
+    "archiveSystemId": "secure.ls6",
+    "maxMinutes": 1440,
+    "parameterSet": {
+       "envVariables": [
+       {
+       "key": "FILES",
+       "value": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/dicoms/WS082324DEVQA.zip"
+       },
+       {
+        "key": "LIST_OF_SUBJECTS",
+        "value": "--subjects travel2"
+        },
+        {
+        "key": "SESSION_FOR_LONGITUDINAL",
+        "value": "--ses WS2"
+        },
+        {
+        "key": "SITE",
+        "value": "WS"
+        }
+       ]
+     }
 }
