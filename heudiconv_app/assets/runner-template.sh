@@ -13,7 +13,7 @@ LOCAL_DICOM=/tmp/${LOCAL_DICOM%.*}
 unzip ${FILES} -d ${LOCAL_DICOM}
 
 case "${SITE}" in
-  SH | RU)
+  SH | RU | WS)
     echo singularity run \
       --cleanenv \
       -B "${BIND_DIR}":"${BIND_DIR}" \
