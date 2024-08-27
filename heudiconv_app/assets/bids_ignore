@@ -3,3 +3,4 @@
 __pycache__*
 sub-*/ses-*/fmap/*.bval
 sub-*/ses-*/fmap/*.bvec
+tapis*

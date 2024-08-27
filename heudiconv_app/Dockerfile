@@ -14,4 +14,11 @@ USER root
 COPY --from=validator /src/bids-validator /opt/bids-validator
 RUN  ln -s /opt/bids-validator/bin/bids-validator /usr/local/bin/bids-validator
 
+RUN apt update && apt install zip unzip -y
+
+COPY --chown=$MAMBA_USER:$MAMBA_USER assets /tapis/assets
+RUN chmod +x /tapis/assets/runner-template.sh
+
 USER $MAMBA_USER
+
+ENTRYPOINT ["/tapis/assets/runner-template.sh"]
