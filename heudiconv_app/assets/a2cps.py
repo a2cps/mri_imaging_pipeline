@@ -199,4 +199,13 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     ):
         exclude = True
 
+    # new WS scanner is like the other Siemens scanners -- it produces T1_MPRAGE[_ND]
+    # and DWI and DWI_ORIG
+    elif (
+        (dcmdata.get("DeviceSerialNumber") == "213020")
+        and (dcmdata.get("SoftwareVersions") in ["syngo MR XA61"])
+        and (dcmdata.get("SeriesDescription") in ["T1_MPRAGE", "DWI"])
+    ):
+        exclude = True
+
     return exclude

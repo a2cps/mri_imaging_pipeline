@@ -9,7 +9,7 @@ LOCAL_DICOM=/tmp/${LOCAL_DICOM%.*}
 unzip ${FILES} -d ${LOCAL_DICOM}
 
 case "${SITE}" in
-  SH | RU)
+  SH | RU | WS)
     echo micromamba run -n base \
       python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
