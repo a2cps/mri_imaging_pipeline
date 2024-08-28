@@ -179,6 +179,11 @@ def check_bvalsbvecs(
             f"{os.path.basename(scan)} appears truncated", post=post
         )
         ok = False
+    elif bval_observed.shape[0] > rb.shape[0]:
+        print_and_post(
+            f"{os.path.basename(scan)} appears atypically long", post=post
+        )
+        ok = False
     elif not (
         np.isclose(rb, bval_observed).all()
         and np.isclose(rv, bvec_observed).all()
