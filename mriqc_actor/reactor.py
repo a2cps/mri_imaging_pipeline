@@ -24,7 +24,7 @@ N_SUBS_PER_NODE = 20
 # for ls
 MAX_NODES_PER_JOB = 64
 
-# can be overridden by incoming message by specifying "MAXJOBS"
+# can change by incoming message by specifying "MAXJOBS"
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
 
 # amount of time required to copy one sub from /tmp -> /corral-secure
