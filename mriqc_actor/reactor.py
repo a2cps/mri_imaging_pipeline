@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ibis import _
 
-from mri_utils import actor, config, models
+from mri_actor_utils import config, models
 
 FAILUREBOT_ADDRESS_SECRET_NAME = "FAILUREBOT_ADDRESS_SECRET_NAME"
 FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
@@ -19,7 +19,7 @@ ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.
 
 # numbers for ls6; tested at
 # /corral-secure/projects/A2CPS/shared/psadil/jobs/mriqc-upgrade-cores
-N_SUBS_PER_NODE = 20
+N_SUBS_PER_NODE = 16
 
 # for ls
 MAX_NODES_PER_JOB = 64
@@ -35,6 +35,7 @@ N_SEC_TO_COPY_ONE_SUB = 10
 # NOTE: the job.json parameters --n-workers and --mem-mb are not modified
 #       so, best to set them according to the maximum number of subs
 #       that could be run on a single node
+
 
 class MRIQCReactor(models.Reactor):
 
@@ -64,8 +65,9 @@ class MRIQCReactor(models.Reactor):
                 rundef.INPUT_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
             )
         ]
-        return runlist[:self.context.message_dict.get("MAXJOBS", self.MAXJOBS)]
-
+        return runlist[
+            : self.context.message_dict.get("MAXJOBS", self.MAXJOBS)
+        ]
 
     def submit(self) -> None:
         print(json.dumps(self.context, indent=4))
@@ -76,71 +78,58 @@ class MRIQCReactor(models.Reactor):
             logging.warning("Did not find any jobs to submit")
             return
 
-        with open(self.JOB) as f:
-            job = json.load(f)
-
         n_nodes = self.get_node_count(n_jobs)
-        job = actor.set_app_arg(
-            job,
-            0,
+        self.set_app_arg(
             name="INPUT_DIRS",
-            arg="--input-dirs " + " ".join(x[0] for x in runlist),
+            value="--input-dirs " + " ".join(x[0] for x in runlist),
         )
-        job = actor.set_app_arg(
-            job,
-            1,
+        self.set_app_arg(
             name="OUTPUT_DIRS",
-            arg="--output-dirs " + " ".join(x[1] for x in runlist),
+            value="--output-dirs " + " ".join(x[1] for x in runlist),
         )
 
-        job = actor.set_env_var(
-            job,
-            arg_pos=0,
+        self.set_env_var(
             key="MIN_ARCHIVE_DURATION",
             value=str(n_jobs * self.N_SEC_TO_COPY_ONE_SUB),
         )
+        if max_minutes := self.context.message_dict.get("maxMinutes"):
+            self.job.maxMinutes = max_minutes
 
-        actor.set_key_value(
-            job, key="maxMinutes", value=self.context.message_dict.get("maxMinutes")
-        )
-        actor.set_key_value(
-            job,
-            key="name",
-            value=self.job_name,
-        )
+        self.job.name = self.job_name
 
-        image = self.client.apps.getApp(  # type: ignore
-            appId=job["appId"], appVersion=job["appVersion"]
-        ).containerImage
-
-        actor.set_key_value(
-            job,
-            key="cmdPrefix",
-            value=actor.get_cmd_prefix(n_jobs=n_jobs, image=image),
-        )
+        self.set_cmd_prefix(image=self.container_image, n_jobs=n_jobs)
 
         # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
-        actor.set_key_value(job, key="nodeCount", value=n_nodes)
+        self.job.nodeCount = n_nodes
 
         # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
         # all nodes will have all cores available, but this needs to be set for ibrun
-        actor.set_key_value(
-            job, key="coresPerNode", value=self.N_SUBS_PER_NODE
-        )
+        self.job.coresPerNode = self.N_SUBS_PER_NODE
 
         if self.context.message_dict.get("SKIP_FAILUREBOT", False):
-            job.pop("subscriptions", None)
+            self.job.subscriptions = None
         else:
-            job = actor.set_subscription_url(job, arg=self.failurebot_url)
+            self.set_subscription_url(url=self.failurebot_url)
 
-        print(json.dumps(job, indent=4))
+        if FAILURE_LOG_DST := self.context.message_dict.get("FAILURE_LOG_DST"):
+            self.set_env_var(
+                key="FAILURE_LOG_DST",
+                value=FAILURE_LOG_DST,
+            )
+
+        print(
+            self.job.model_dump_json(
+                indent=4, exclude_unset=True, exclude_none=True
+            )
+        )
 
         try:
-            submitted = self.client.jobs.submitJob(**job)  # type: ignore
+            submitted = self.client.jobs.submitJob(  # type: ignore
+                **self.job.model_dump(exclude_unset=True, exclude_none=True)
+            )
             print(submitted.uuid)
         except Exception as e:
             logging.exception(f"encountered while trying to submit job: {e}")
-
 
 
 def main() -> None:

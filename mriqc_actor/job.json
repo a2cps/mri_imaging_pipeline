@@ -2,7 +2,7 @@
   "appId": "psadil-mriqc_app",
   "appVersion": "3.0",
   "cmdPrefix": "ibrun -n 12",
-  "coresPerNode": 12,
+  "coresPerNode": 16,
   "maxMinutes": 120,
   "name": "mriqc",
   "nodeCount": 1,
@@ -17,11 +17,15 @@
         "name": "OUTPUT_DIRS"
       },
       {
-        "arg": "--n-workers 6",
+        "arg": "--n-workers 8",
         "name": "N_WORKERS"
       },
       {
-        "arg": "--mem-mb 12000",
+        "arg": "--n-threads 2",
+        "name": "N_THREADS"
+      },
+      {
+        "arg": "--mem-mb 16000",
         "name": "MEM_MB"
       }
     ],
@@ -29,6 +33,10 @@
       {
         "key": "MIN_ARCHIVE_DURATION",
         "value": "60"
+      },
+      {
+        "key": "FAILURE_LOG_DST",
+        "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/mriqc/"
       }
     ]
   },
