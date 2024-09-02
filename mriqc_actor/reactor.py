@@ -41,7 +41,14 @@ class MRIQCReactor(models.Reactor):
 
     def get_runlist(self) -> list[tuple[str, str]]:
         rundef = (
-            self.ilog.select("site", "subject_id", "visit", "bids", "mriqc")
+            self.ilog.select(
+                "site",
+                "subject_id",
+                "visit",
+                "bids",
+                "mriqc",
+                "acquisition_week",
+            )
             .filter(_.bids == 1)  # type: ignore
             .filter(_.mriqc == 0)  # type: ignore
             .mutate(
@@ -55,7 +62,9 @@ class MRIQCReactor(models.Reactor):
                 + "/bids/"
                 + x.sublong  # type: ignore
             )
-            .order_by(["visit", "subject_id"])  # ensure V1 run before V3
+            .order_by(
+                ["visit", "acquisition_week"]
+            )  # ensure V1 run before V3, and do oldest scans
             .execute()
         )
 
