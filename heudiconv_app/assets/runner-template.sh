@@ -6,7 +6,7 @@ LOCAL_DICOM=$(basename "${FILES}")
 #shellcheck disable=SC2086
 LOCAL_DICOM=/tmp/${LOCAL_DICOM%.*}
 #shellcheck disable=SC2086
-unzip ${FILES} -d ${LOCAL_DICOM}
+unzip -q ${FILES} -d ${LOCAL_DICOM}
 
 case "${SITE}" in
   SH | RU | WS)
