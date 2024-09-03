@@ -39,7 +39,7 @@ N_SEC_TO_COPY_ONE_SUB = 10
 
 class MRIQCReactor(models.Reactor):
 
-    def get_runlist(self) -> list[tuple[str, str]]:
+    def get_runlist(self) -> list[str]:
         rundef = (
             self.ilog.select(
                 "site",
@@ -55,7 +55,6 @@ class MRIQCReactor(models.Reactor):
                 sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
                 sitelong=_.site.cases(tuple(config.SITE_LONG.items())),  # type: ignore
             )
-            .mutate(OUTPUT_DIR=_.sitelong + "/mriqc/" + _.sublong)  # type: ignore
             .mutate(
                 INPUT_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
                 + x.sitelong
@@ -68,12 +67,7 @@ class MRIQCReactor(models.Reactor):
             .execute()
         )
 
-        runlist = [
-            (x, y)
-            for x, y in zip(
-                rundef.INPUT_DIR.to_list(), rundef.OUTPUT_DIR.to_list()
-            )
-        ]
+        runlist = rundef.INPUT_DIR.to_list()
         return runlist[
             : self.context.message_dict.get("MAXJOBS", self.MAXJOBS)
         ]
@@ -91,10 +85,6 @@ class MRIQCReactor(models.Reactor):
         self.set_app_arg(
             name="INPUT_DIRS",
             value="--input-dirs " + " ".join(x[0] for x in runlist),
-        )
-        self.set_app_arg(
-            name="OUTPUT_DIRS",
-            value="--output-dirs " + " ".join(x[1] for x in runlist),
         )
 
         self.set_env_var(
