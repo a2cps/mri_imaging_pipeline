@@ -111,9 +111,7 @@ def get_ilog(client: Tapis) -> Table:
     )
 
 
-def get_runlist(
-    ilog: Table, maxjobs: int = MAXJOBS
-) -> list[tuple[str, str, str]]:
+def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
     rundef = (
         ilog.select(
             "site",
@@ -141,7 +139,6 @@ def get_runlist(
             sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
             ANAT_ONLY=ibis.or_(_.CUFF1, _.CUFF2, _.REST1, _.REST2).negate(),
         )
-        .mutate(OUTPUT_DIR=_.sitelong + "/fmriprep/" + _.sublong)  # type: ignore
         .mutate(
             INPUT_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
             + x.sitelong
@@ -153,10 +150,9 @@ def get_runlist(
     )
 
     runlist = [
-        (x, y, str(z))
-        for x, y, z in zip(
+        (x, str(z))
+        for x, z in zip(
             rundef.INPUT_DIR.to_list(),
-            rundef.OUTPUT_DIR.to_list(),
             rundef.ANAT_ONLY.to_list(),
         )
     ]
@@ -243,14 +239,8 @@ def main() -> None:
     job = set_app_arg(
         job,
         1,
-        name="OUTPUT_DIRS",
-        arg="--output-dirs " + " ".join(x[1] for x in runlist),
-    )
-    job = set_app_arg(
-        job,
-        2,
         name="ANAT_ONLY",
-        arg="--anat-only " + " ".join(x[2] for x in runlist),
+        arg="--anat-only " + " ".join(x[1] for x in runlist),
     )
 
     job = set_env_var(
