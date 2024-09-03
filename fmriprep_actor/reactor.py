@@ -106,6 +106,7 @@ def get_ilog(client: Tapis) -> Table:
                 "1st Resting State Received": bool,
                 "2nd Resting State Received": bool,
             },
+            parse_dates=["acquisition_week"],
         )
     )
 
@@ -147,7 +148,7 @@ def get_runlist(
             + "/bids/"
             + x.sublong  # type: ignore
         )
-        .order_by(["visit", "subject_id"])  # ensure V1 run before V3
+        .order_by(["visit", "acquisition_week"])  # ensure V1 run before V3
         .execute()
     )
 
