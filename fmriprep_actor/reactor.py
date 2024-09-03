@@ -93,7 +93,7 @@ def actors_get_client() -> Tapis:
 
 def get_ilog(client: Tapis) -> Table:
     ilog: bytes = client.files.getContents(  # type: ignore
-        systemId="secure.corral", path=ILOG
+        systemId="secure.ls6", path=ILOG
     )
     return ibis.memtable(
         pd.read_csv(
