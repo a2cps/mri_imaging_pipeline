@@ -16,9 +16,7 @@ APP_STEPS = [
                 "bids", 
                 "fslanat",
                 "fmriprep", 
-                "mriqc_anat", 
-                "mriqc_rest", 
-                "mriqc_cuff", 
+                "mriqc", 
                 "qsiprep", 
                 "cat12",
                 "brainager",
@@ -313,27 +311,11 @@ def find_outputs(bids_path: str):
     else:
         print("no fmriprep", fmriprep_path)
         fmriprep = 0
-    try: 
-        mriqc_anat = glob.glob(mriqc_path+'/*nat/*')[0]
-        mriqc_anat = 1
-    except Exception as e:
-        print("no mriqc anat", mriqc_path)
-        mriqc_anat = 0
-        
-    try: 
-        mriqc_cuff = glob.glob(mriqc_path+'/*uff/*')[0]
-        mriqc_cuff = 1
-    except Exception as e:
-        print("no mriqc cuff", mriqc_path)
-        mriqc_cuff = 0
-
-    try: 
-        mriqc_rest = glob.glob(mriqc_path+'/*est/*')[0]
-        mriqc_rest = 1
-    except Exception as e:
-        print("no mriqc rest", mriqc_path)
-        mriqc_rest = 0
-
+    if len(glob.glob(mriqc_path+"/*out")):
+        mriqc = 1
+    else:
+        print("no mriqc", mriqc_path)
+        mriqc = 0
     try:
         qsiprep = glob.glob(qsiprep_path+'/qsiprep/*.html')[0]
         qsiprep = 1
@@ -354,7 +336,7 @@ def find_outputs(bids_path: str):
     brainager = 1 if len(glob.glob(f"{brainager_path}/*.out")) else 0
     gift_rest = 1 if len(glob.glob(f"{gift_rest_path}/*.out")) else 0
         
-    return dicom, bids, bids_present, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
+    return dicom, bids, bids_present, fmriprep, mriqc, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
 
 
 def find_heudiconv_outputs(bids_dir):
@@ -471,7 +453,7 @@ def main():
         try:
             site_id = row['site_id']
             bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, fmriprep, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
+            (dicom, bids, bids_present, fmriprep, mriqc, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -587,9 +569,7 @@ def main():
             scan_report['fcn'] = fcn
             scan_report['signatures'] = signatures
             scan_report['fmriprep'] = fmriprep
-            scan_report['mriqc_anat'] = mriqc_anat
-            scan_report['mriqc_cuff'] = mriqc_cuff
-            scan_report['mriqc_rest'] = mriqc_rest
+            scan_report['mriqc'] = mriqc
             scan_report['qsiprep'] = qsiprep
             scan_report['cat12'] = cat12
             scan_report['brainager'] = brainager
@@ -598,9 +578,6 @@ def main():
 
             # remove preprocessing if scans not indicated
             if scan_report["T1 Indicated"] == "0":
-                scan_report["mriqc_anat"] = "na"
-                scan_report["mriqc_cuff"] = "na"
-                scan_report["mriqc_rest"] = "na"
                 scan_report["cat12"] = "na"
                 scan_report["brainager"] = "na"
                 scan_report["fslanat"] = "na"
@@ -609,10 +586,6 @@ def main():
                 scan_report["qsiprep"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
-            if scan_report['1st Resting State Indicated'] == '0' and scan_report['2nd Resting State Indicated'] == '0':
-                scan_report['mriqc_rest'] = 'na'
-            if scan_report['fMRI Individualized Pressure Indicated'] == '0' and scan_report['fMRI Standard Pressure Indicated'] == '0':
-                scan_report['mriqc_cuff'] = 'na'
             if scan_report["fmriprep"] == "na":
                 scan_report['fcn'] = 'na'
                 scan_report['signatures'] = 'na'
@@ -655,9 +628,7 @@ def main():
     'fslanat',
     'fmriprep',
     'gift_rest',
-    'mriqc_anat',
-    'mriqc_cuff',
-    'mriqc_rest',
+    'mriqc',
     'qsiprep',
     'cat12',
     'brainager',
