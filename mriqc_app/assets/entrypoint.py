@@ -16,6 +16,7 @@ async def main(
     n_workers: int | None = None,
     mem_mb: int | None = None,
     n_threads: int | None = None,
+    verbose_reports: bool = True
 ) -> None:
     mem_gb = mem_mb // 1000 if mem_mb else None
     await mriqc.MRIQCEntrypoint(
@@ -27,6 +28,7 @@ async def main(
         stage_ignore_patterns=shutil.ignore_patterns(
             "*.heudiconv", "sourcedata"
         ),
+        verbose_reports=verbose_reports
     ).run()
 
 
@@ -37,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("--n-workers", type=int, default=None)
     parser.add_argument("--mem-mb", type=int, default=None)
     parser.add_argument("--n-threads", type=int, default=None)
+    parser.add_argument("--verbose-reports", action=argparse.BooleanOptionalAction, default=True)
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -75,5 +78,6 @@ if __name__ == "__main__":
             n_workers=args.n_workers,
             mem_mb=args.mem_mb,
             n_threads=args.n_threads,
+            verbose_reports=args.verbose_reports
         )
     )
