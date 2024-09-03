@@ -36,7 +36,7 @@ RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge --freeze-insta
         pydantic=2.8.2 \
     && micromamba run -n ${ENV_NAME} pip install \
         --no-deps \
-        git+https://github.com/a2cps/biomarker-extractor.git@75f963b5505d72d2905f21875fc6bd21ab04a53b \
+        git+https://github.com/a2cps/biomarker-extractor.git@476e59dc5e1bf54cf86028cbf55a9ef4d8b489ce \
     && micromamba clean --all --yes
 
 # files searched for in entrypoint.py
