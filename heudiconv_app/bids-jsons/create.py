@@ -58,7 +58,7 @@ keep_list = [
     "PixelBandwidth",
     "PixelSpacing",
     # "PrescanReuseString", # redundant with ShimSetting
-    "ProcedureStepDescription",
+    # "ProcedureStepDescription", # varies at SH, deemed unimportant (email exchange)
     "PulseSequenceDetails",
     "PulseSequenceName",
     "ReceiveCoilActiveElements",
