@@ -17,7 +17,7 @@
     "DeviceSerialNumber": "66022",
     "DiffusionScheme": "Monopolar",
     "DwellTime": 0.000002,
-    "EchoTime": 0.07,
+    "EchoTime": 0.08,
     "EchoTrainLength": 90,
     "EffectiveEchoSpacing": 0.000510012,
     "FlipAngle": 90,
