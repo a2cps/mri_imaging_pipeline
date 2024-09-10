@@ -1,6 +1,6 @@
 FROM bids/validator:v1.9.9 AS validator
 
-FROM mambaorg/micromamba:1.5.6-jammy
+FROM mambaorg/micromamba:1.5.9-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 
