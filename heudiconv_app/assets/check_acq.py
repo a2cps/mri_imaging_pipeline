@@ -21,9 +21,9 @@ FLOATING_PARAMS = {
         "EffectiveEchoSpacing",
         "RepetitionTime",
         "ImageOrientationPatientDICOM",
+        "EchoTime"
     ],
-    0.01: ["ImagingFrequency", "WaterFatShift"],
-    0.1: ["SliceTiming", "EchoTime"],
+    0.01: ["ImagingFrequency", "WaterFatShift", "SliceTiming"],
 }
 
 SIEMENS_W_64 = ["NS", "SH", "RU"]
@@ -179,6 +179,11 @@ def check_bvalsbvecs(
             f"{os.path.basename(scan)} appears truncated", post=post
         )
         ok = False
+    elif bval_observed.shape[0] > rb.shape[0]:
+        print_and_post(
+            f"{os.path.basename(scan)} appears atypically long", post=post
+        )
+        ok = False
     elif not (
         np.isclose(rb, bval_observed).all()
         and np.isclose(rv, bvec_observed).all()
@@ -318,7 +323,7 @@ def main(
             raise AssertionError("No scan jsons found")
 
     reference = pd.read_csv(
-        "acq-params.tsv",
+        "/tapis/assets/acq-params.tsv",
         low_memory=False,
         delimiter="\t",
         converters={

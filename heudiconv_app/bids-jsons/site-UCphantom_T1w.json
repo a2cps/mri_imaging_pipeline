@@ -258,10 +258,7 @@
             "SeriesNumber": 201,
             "SeriesTime": "155613.57000",
             "SliceThickness": 5.0,
-            "SoftwareVersions": [
-                "5.6.1",
-                "5.6.1.0"
-            ],
+            "SoftwareVersions": "5.6.1\\5.6.1.3",
             "SpacingBetweenSlices": 6.0,
             "SpecificCharacterSet": "ISO_IR 100",
             "StudyID": "757806862",

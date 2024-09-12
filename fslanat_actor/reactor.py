@@ -23,7 +23,7 @@ FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
 JOB = Path("/opt/job.json")
 # on TACC
 # ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+ILOG = "corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
 # can be overriden by incoming message
 _MAXJOBS = 80
@@ -45,18 +45,43 @@ PRECROP_SUBS = {
     "UC10119V1",
     "UC10147V1",
     "UC10153V1",
+    "UC10244V3",
+    "UC10315V3",
     "UC10335V1",
+    "UC10335V3",
     "UC10363V1",
     "UC10372V1",
-    "UI10390V1",
     "UC10411V1",
     "UC10416V1",
-    "UI10459V1",
     "UC10483V1",
+    "UC10506V3",
     "UC10513V1",
+    "UC10518V3",
     "UC10610V1",
+    "UC10610V3",
     "UC10643V1",
+    "UC10643V3",
+    "UC10757V1",
+    "UC10758V1",
+    "UC10766V1",
+    "UC10766V3",
+    "UC10785V3",
+    "UC10789V1",
+    "UC10789V3",
+    "UC10804V1",
+    "UC10810V1",
+    "UC10821V3",
+    "UC10828V3",
+    "UC10844V1",
+    "UC10864V1",
+    "UC10864V3",
+    "UC10867V1",
+    "UC10880V1",
+    "UC10926V1",
+    "UC10949V1",
 }
+
+MASK_HIGH_VOXELS_SUBS = {"UI10390V1", "UI10459V1"}
 
 
 @dataclasses.dataclass
@@ -127,17 +152,7 @@ def get_runlist(
             ANATS=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
             + x.sitelong
             + "/bids/"
-            + x.sublong
-            + "/sub-"
-            + x.subject_id
-            + "/ses-"
-            + x.visit
-            + "/anat"
-            + "/sub-"
-            + x.subject_id
-            + "_ses-"
-            + x.visit
-            + "_T1w.nii.gz"  # type: ignore
+            + x.sublong  # type: ignore
         )
         .execute()
     )
@@ -148,15 +163,15 @@ def get_runlist(
     return runlist[:maxjobs]
 
 
-def set_anat(job: dict, arg: str) -> dict:
+def set_inputdirs(job: dict, arg: str) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[0] = {"name": "ANATS", "arg": arg}  # type: ignore
+    job2.get("parameterSet").get("appArgs")[0] = {"name": "INPUT_DIRS", "arg": arg}  # type: ignore
     return job2
 
 
-def set_outputdir(job: dict, arg: str) -> dict:
+def set_outputdirs(job: dict, arg: str) -> dict:
     job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[1] = {"name": "OUTPUT_DIR", "arg": arg}  # type: ignore
+    job2.get("parameterSet").get("appArgs")[1] = {"name": "OUTPUT_DIRS", "arg": arg}  # type: ignore
     return job2
 
 
@@ -174,15 +189,7 @@ def set_name(job: dict) -> dict:
 
 
 def set_precrop(job: dict, outputdirs: Sequence[str]) -> dict:
-    """Determine whether participants will undergo manual robustfov
-
-    Args:
-        job: _description_
-        anats: _description_
-
-    Returns:
-        dict: _description_
-    """
+    """Determine whether participants will undergo manual robustfov"""
     precrop = [outputdir in PRECROP_SUBS for outputdir in outputdirs]
     job2 = copy.deepcopy(job)
     job2.get("parameterSet").get("appArgs").append(  # type: ignore
@@ -194,12 +201,32 @@ def set_precrop(job: dict, outputdirs: Sequence[str]) -> dict:
     return job2
 
 
+def set_mask_high_voxels(job: dict, outputdirs: Sequence[str]) -> dict:
+    """Determine whether participants will have high intensity voxels masked"""
+    mask_high_voxels = [
+        outputdir in MASK_HIGH_VOXELS_SUBS for outputdir in outputdirs
+    ]
+    job2 = copy.deepcopy(job)
+    job2.get("parameterSet").get("appArgs").append(  # type: ignore
+        {
+            "name": "MASK_HIGH_VOXELS",
+            "arg": "--mask-high-voxels "
+            + " ".join(str(x) for x in mask_high_voxels),
+        }
+    )
+    return job2
+
+
 def get_failurebot_url(client) -> str:
     token: TapisResult = client.sk.readSecret(  # type: ignore
         secretType="user",
         secretName=FAILUREBOT_ADDRESS_SECRET_NAME,
-        tenant=os.environ.get("_abaco_api_server").split('.')[0].split("/")[-1],
-        user=client.actors.get_actor(actor_id=os.environ.get("_abaco_actor_id")).owner,
+        tenant=os.environ.get("_abaco_api_server")
+        .split(".")[0]  # type: ignore
+        .split("/")[-1],
+        user=client.actors.get_actor(
+            actor_id=os.environ.get("_abaco_actor_id")
+        ).owner,
     )
     url: str | None = token.get("secretMap").get(FAILUREBOT_ADDRESS_SECRET_KEY)  # type: ignore
     if url is None:
@@ -234,11 +261,14 @@ def main() -> None:
     with open(JOB, "r") as f:
         job = json.load(f)
 
-    job = set_anat(job, "--anats " + " ".join(x[0] for x in runlist))
-    job = set_outputdir(job, "--output-dir " + " ".join(x[1] for x in runlist))
+    job = set_inputdirs(job, "--input-dirs " + " ".join(x[0] for x in runlist))
+    job = set_outputdirs(
+        job, "--output-dirs " + " ".join(x[1] for x in runlist)
+    )
     job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
     job = set_name(job)
     job = set_precrop(job, [Path(x[1]).name for x in runlist])
+    job = set_mask_high_voxels(job, [Path(x[1]).name for x in runlist])
     failurebot_url = get_failurebot_url(client=client)
     job = set_subscription_url(job, arg=failurebot_url)
 

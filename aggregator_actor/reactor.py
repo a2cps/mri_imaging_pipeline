@@ -83,13 +83,14 @@ def main() -> None:
     with open(JOB, "r") as f:
         job = json.load(f)
 
-    print(json.dumps(job, indent=4))
     client = actors_get_client()
     failurebot_url = get_failurebot_url(client=client)
     job = set_subscription_url(job, arg=failurebot_url)
+    print(json.dumps(job, indent=4))
 
     try:
-        client.jobs.submitJob(**job)  # type: ignore
+        submitted = client.jobs.submitJob(**job)  # type: ignore
+        print(submitted.uuid)
     except Exception as e:
         logging.error(f"encountered while trying to submit job: {e}")
 

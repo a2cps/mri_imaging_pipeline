@@ -62,7 +62,7 @@
     "PhaseEncodingSteps": 90,
     "PhaseResolution": 1,
     "PixelBandwidth": 2778,
-    "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
+    "ProcedureStepDescription": "Physicist A2CPS",
     "ProtocolName": "CUFF1",
     "PulseSequenceDetails": "%SiemensSeq%\\ep2d_bold",
     "PulseSequenceName": "*epfid2d1_90",
@@ -149,7 +149,7 @@
         0.7025,
         0.155
     ],
-    "SoftwareVersions": "syngo MR XA30",
+    "SoftwareVersions": "syngo MR XA60",
     "SpacingBetweenSlices": 2.4,
     "StationName": "AWP66022",
     "TaskName": "cuff",

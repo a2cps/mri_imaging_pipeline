@@ -59,7 +59,7 @@
     "PhaseEncodingSteps": 208,
     "PhaseResolution": 1,
     "PixelBandwidth": 238,
-    "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
+    "ProcedureStepDescription": "Physicist A2CPS",
     "ProtocolName": "anat-T1w_acq_GRE",
     "PulseSequenceDetails": "%SiemensSeq%\\gre",
     "PulseSequenceName": "*fl2d1r",
@@ -82,7 +82,7 @@
         47
     ],
     "SliceThickness": 5,
-    "SoftwareVersions": "syngo MR XA30",
+    "SoftwareVersions": "syngo MR XA60",
     "SpacingBetweenSlices": 5,
     "StationName": "AWP66022",
     "TxRefAmp": 156.936

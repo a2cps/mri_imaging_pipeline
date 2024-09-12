@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 import utils
 
@@ -16,5 +17,11 @@ def copy(outdir: Path, inroot: Path) -> None:
             "signature-cleaned",
             "signature-confounds",
             "signature-rawdata",
+            "signature-bold",
         ]:
-            utils.mergetree_overwrite(src / out, outdir / out)
+            to_ignore = utils.get_duplicated_parquet(src / out)
+            utils.mergetree_overwrite(
+                src / out,
+                outdir / out,
+                ignore=shutil.ignore_patterns(*to_ignore),
+            )

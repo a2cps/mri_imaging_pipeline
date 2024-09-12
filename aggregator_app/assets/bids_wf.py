@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import utils
+from biomarkers import utils as bu
 
 BIDS_IGNORE = """
 sub-*/ses-*/fmap/*.bval
@@ -14,8 +15,7 @@ README = "A2CPS dataset"
 
 
 def copy(outdir: Path, inroot: Path) -> None:
-    if not outdir.exists():
-        outdir.mkdir(parents=True)
+    bu.mkdir_recursive(outdir)
 
     # copy files over
     for bids in inroot.glob("bids/*"):
@@ -25,6 +25,7 @@ def copy(outdir: Path, inroot: Path) -> None:
 
 def make_toplevel(outdir: Path) -> None:
     # create top-level files
+    bu.mkdir_recursive(outdir)
     readme = outdir / "README"
     readme.touch()
     readme.write_text(README)

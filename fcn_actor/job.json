@@ -1,7 +1,7 @@
 {
     "name": "test_fcn",
     "appId": "functional-connectivity",
-    "appVersion": "0.6",
+    "appVersion": "0.7",
     "archiveSystemId": "secure.frontera",
     "archiveOnAppError": false,
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",

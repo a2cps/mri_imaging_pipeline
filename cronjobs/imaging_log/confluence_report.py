@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 import subprocess
 import os
 
+from output_check import APP_STEPS
+
 def run_bash(bashCommand):
     # #bashCommand = 'curl -H "Authorization: Bearer $TOKEN" https://confluence.a2cps.org/rest/api/content/15929269?expand=body.storage,version  > confluence_response.json'
     # process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
@@ -18,6 +20,7 @@ def main():
     #read secrets
     with open('secrets.json') as jsonfile:
         secrets = json.load(jsonfile)
+    response = run_bash('curl  --request GET --user "jurrutia@tacc.utexas.edu:" --url https://a2cps.atlassian.net/wiki/rest/api/content/5406795?expand=body.storage,version --header "Accept: application/json"  > confluence_response.json')
     response = run_bash('curl  --request GET --user "jurrutia@tacc.utexas.edu:{}" --url https://a2cps.atlassian.net/wiki/rest/api/content/5406795?expand=body.storage,version --header "Accept: application/json"  > confluence_response.json'.format(secrets['CONFLUENCE_TOKEN']))
     confluence_page_response = json.load(open('confluence_response.json'))
     html_string = confluence_page_response['body']['storage']['value']
@@ -45,6 +48,10 @@ def main():
     #df['fMRI T1 Tech Rating'] = pd.to_numeric(df['fMRI T1 Tech Rating'])
     df.replace('1','Y', inplace=True)
     df.replace('0','N', inplace=True)
+
+    for col in APP_STEPS:
+        df[col] = df[col].replace('2', 'Failed')
+
     df.drop_duplicates(inplace=True)
     updated_html = df.to_html(header=False,index=False, classes="wrapped relative-table")
     soup_updated_table = BeautifulSoup(updated_html, 'html.parser')
@@ -53,11 +60,11 @@ def main():
     updated_page = str(soup)
 
     confluence_push_json = {
-                            "id": "15929269",
+                            "id": "5406795",
                             "type": "page",
                             "title": "Imaging Log",
                             "space": {
-                                "id": 3670020,
+                                "id": 5406720,
                                 "key": "DOC",
                                 "name": "Imaging"
                             },

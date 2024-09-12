@@ -67,7 +67,7 @@
     "PhaseEncodingSteps": 140,
     "PhaseResolution": 1,
     "PixelBandwidth": 1701,
-    "ProcedureStepDescription": "Brain Spectrum non DOT Brain",
+    "ProcedureStepDescription": "Physicist A2CPS",
     "ProtocolName": "DWI_B0_AP",
     "PulseSequenceDetails": "%SiemensSeq%\\ep2d_diff",
     "PulseSequenceName": "*epse2d1_140",
@@ -174,7 +174,7 @@
         12.1275,
         6.0625
     ],
-    "SoftwareVersions": "syngo MR XA30",
+    "SoftwareVersions": "syngo MR XA60",
     "SpacingBetweenSlices": 1.7,
     "StationName": "AWP66022",
     "TotalReadoutTime": 0.0959097,

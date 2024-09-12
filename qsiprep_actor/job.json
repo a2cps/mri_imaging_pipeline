@@ -1,0 +1,53 @@
+{
+    "appId": "urrutia-qsiprep",
+    "appVersion": "3.2",
+    "cmdPrefix": "ibrun -n 1",
+    "coresPerNode": 1,
+    "archiveSystemId": "secure.ls6",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
+    "archiveOnAppError": false,
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 360,
+    "name": "qsiprep",
+    "nodeCount": 1,
+    "execSystemId": "secure.ls6",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--bidsdir /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 ",
+                "name": "BIDSDIR"
+            },
+            {
+                "arg": "--outdir NS_northshore/qsiprep/NStravel1 ",
+                "name": "OUTDIR"
+            },
+            {
+                "arg": "--nthreads 50",
+                "name": "NTHREADS"
+            },
+            {
+                "arg": "--mem-mb 96000",
+                "name": "MEM_MB"
+            }
+        ],
+        "logConfig": {
+            "stderrFilename": "${JobUUID}.err",
+            "stdoutFilename": "${JobUUID}.out"
+        }
+    },
+    "subscriptions": [
+        {
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
+            "deliveryTargets": [
+                {
+                    "deliveryMethod": "WEBHOOK",
+                    "deliveryAddress": ""
+                }
+            ]
+        }
+    ]
+}

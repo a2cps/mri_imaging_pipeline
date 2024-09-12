@@ -7,6 +7,8 @@ import subprocess
 import tempfile
 import typing
 from pathlib import Path
+from tapipy.tapis import Tapis
+
 
 import nibabel as nb
 import pandas as pd
@@ -502,7 +504,23 @@ def check_for_null(data: dict) -> bool:
 
 def post_notification(notification: str, post: bool = False):
     if post:
-        endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
+        with open('/home1/09910/a2cpsadmin/.tapis3/a2cpsadmin', 'r') as openfile:
+            client_data = json.load(openfile)
+        client = Tapis(base_url=client_data["base_url"],
+            tenant_id=client_data["tenant_id"],
+            access_token=client_data["access_token"],
+            refresh_token=client_data["refresh_token"],
+            client_id=client_data["client_id"],
+            client_key=client_data["client_key"],
+            verify=True)
+        client.get_tokens()
+        secretObj = client.sk.readSecret(  # type: ignore
+        secretType="user",
+        secretName="SLACKBOT_ADDRESS_SECRET_NAME",
+        tenant=client.access_token.claims['tapis/tenant_id'],
+        user=client.access_token.claims['tapis/username']
+        )
+        endpoint = secretObj.get("secretMap").get('SLACKBOT_ADDRESS_SECRET_KEY')
         content = requests.post(url=endpoint, json={"text": notification})
         data = content.json()
     else:
