@@ -9,6 +9,8 @@ import sys
 import pydicom
 import re
 import datetime
+from tapipy.tapis import Tapis
+import json
 
 SITE_CODES = {
     "UI": "UI_uic",
@@ -40,16 +42,40 @@ def yymmdd_to_mmddyy(day: str) -> str:
     tmp = datetime.datetime.strptime(day, "%y%m%d").date()
     return datetime.date.strftime(tmp, "%m%d%y")
 
+def get_client():
+    with open('/home1/09910/a2cpsadmin/.tapis3/a2cpsadmin', 'r') as openfile:
+        data = json.load(openfile)
+    t = Tapis(base_url=data["base_url"],
+           tenant_id=data["tenant_id"],
+           access_token=data["access_token"],
+           refresh_token=data["refresh_token"],
+           client_id=data["client_id"],
+           client_key=data["client_key"],
+           verify=True)
+    t.get_tokens()
+    return t 
 
-def post_notification(notification):
-    endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
+def post_notification(client,notification):
+    secretObj = client.sk.readSecret(  # type: ignore
+        secretType="user",
+        secretName="SLACKBOT_ADDRESS_SECRET_NAME",
+        tenant=client.access_token.claims['tapis/tenant_id'],
+        user=client.access_token.claims['tapis/username']
+        )
+    endpoint = secretObj.get("secretMap").get('SLACKBOT_ADDRESS_SECRET_KEY')
     content = requests.post(url=endpoint, json={"text": notification})
     data = content.json()
     return data
 
 
-def message_heudiconv(message):
-    endpoint = r"https://api.a2cps.org/actors/v2/heudiconv_router.prod/messages?x-nonce=A2CPS_WJBXjrPyBJpM"
+def message_heudiconv(client,message):
+    secretObj = client.sk.readSecret(  # type: ignore
+        secretType="user",
+        secretName="HEUDICONV_NONCE",
+        tenant=client.access_token.claims['tapis/tenant_id'],
+        user=client.access_token.claims['tapis/username']
+        )
+    endpoint = secretObj.get("secretMap").get('HEUDICONV_NONCE')
     content = requests.post(url=endpoint, json=message)
     data = content.json()
     return data
@@ -164,10 +190,10 @@ def determine_output_path(
     return output_path
 
 
-def write_outputs(filename, output_path, isZip):
+def write_outputs(filename, output_path, isZip, client):
     if os.path.exists(output_path) or os.path.exists(output_path + ".zip"):
         print("Output file exists already, will not overwrite")
-        data = post_notification(
+        data = post_notification(client,
             "Output file exists already, will not overwrite " + output_path
         )
         print(data)
@@ -209,20 +235,22 @@ def main(filename, predefined_subject_id):
             "(\d+)", predefined_subject_id
         )
         session_id = v + session_number
+        output_path = determine_output_path(site_id, subject_id, session_id, qc="")
     else:
         (site_id, subject_id, session_id, output_path) = read_dicom_metadata(
             dicom_file, pathlib.Path(filename)
         )
 
     print(output_path)
-    write_outputs(filename, output_path, isZip)
+    client = get_client()
+    write_outputs(filename, output_path, isZip, client)
     message = {
         "site_id": site_id,
         "subject_id": subject_id,
         "session_id": session_id,
         "dicoms": output_path + ".zip",
     }
-    message_heudiconv(message)
+    message_heudiconv(client, message)
     notification = (
         "Input file "
         + os.path.basename(filename)
@@ -231,7 +259,7 @@ def main(filename, predefined_subject_id):
         + " output under "
         + output_path
     )
-    post_notification(notification)
+    post_notification(client, notification)
     return
 
 
