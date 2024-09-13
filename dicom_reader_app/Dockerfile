@@ -10,4 +10,9 @@ ENV MAMBA_DOCKERFILE_ACTIVATE=1
 RUN micromamba install --name base --yes --file /tmp/env.yml  \
     && micromamba clean --yes --all
 
+RUN pip install tapipy
 
+COPY --chown=$MAMBA_USER:$MAMBA_USER assets /tapis/assets
+RUN chmod +x /tapis/assets/file_check.py
+
+ENTRYPOINT ["/opt/conda/bin/python", "/tapis/assets/file_check.py"]
