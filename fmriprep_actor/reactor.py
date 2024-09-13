@@ -31,7 +31,7 @@ ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.
 N_SUBS_PER_NODE = 6
 
 # for ls
-MAX_NODES_PER_JOB = 64
+MAX_NODES_PER_JOB = 32
 
 # can be overridden by incoming message
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
@@ -113,7 +113,7 @@ def get_ilog(client: Tapis) -> Table:
 
 def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
     rundef = (
-        ilog.select(
+    ilog.select(
             "site",
             "subject_id",
             "visit",
@@ -123,6 +123,7 @@ def get_runlist(ilog: Table, maxjobs: int = MAXJOBS) -> list[tuple[str, str]]:
             "fMRI Standard Pressure Received",
             "1st Resting State Received",
             "2nd Resting State Received",
+            "acquisition_week"
         )
         .rename(
             {

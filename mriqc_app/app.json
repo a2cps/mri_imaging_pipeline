@@ -1,8 +1,8 @@
 {
-  "containerImage": "docker://psadil/mriqc_app:3.0",
+  "containerImage": "docker://a2cps/mriqc_app:3.0.0",
   "description": "Run MRIQC",
   "enabled": true,
-  "id": "psadil-mriqc_app",
+  "id": "mriqc_app",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
