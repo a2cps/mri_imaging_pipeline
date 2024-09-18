@@ -84,7 +84,7 @@ class MRIQCReactor(models.Reactor):
         n_nodes = self.get_node_count(n_jobs)
         self.set_app_arg(
             name="INPUT_DIRS",
-            value="--input-dirs " + " ".join(x[0] for x in runlist),
+            value="--input-dirs " + " ".join(runlist),
         )
 
         self.set_env_var(
