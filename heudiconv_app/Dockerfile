@@ -1,6 +1,6 @@
 FROM bids/validator:v1.9.9 AS validator
 
-FROM mambaorg/micromamba:1.5.6-jammy
+FROM mambaorg/micromamba:1.5.9-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 
@@ -13,8 +13,6 @@ USER root
 
 COPY --from=validator /src/bids-validator /opt/bids-validator
 RUN  ln -s /opt/bids-validator/bin/bids-validator /usr/local/bin/bids-validator
-
-RUN apt update && apt install zip unzip -y
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets /tapis/assets
 RUN chmod +x /tapis/assets/runner-template.sh
