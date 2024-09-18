@@ -1,7 +1,7 @@
 FROM python:3.12.5-bullseye
 
 RUN pip install --no-cache-dir \
-    git+https://github.com/a2cps/mri-actor-utils.git@97a0e48d50daae8c39cc9b0ea619c79f22af2fe9
+    git+https://github.com/a2cps/mri-actor-utils.git@3d72f387af4148c7a0b18c074423067785c446f1
 
 
 COPY reactor.py /opt/reactor.py

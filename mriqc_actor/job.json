@@ -1,11 +1,12 @@
 {
-  "appId": "psadil-mriqc_app",
+  "appId": "mriqc-app",
   "appVersion": "3.0",
   "cmdPrefix": "ibrun -n 12",
   "coresPerNode": 16,
   "maxMinutes": 120,
   "name": "mriqc",
   "nodeCount": 1,
+  "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
   "parameterSet": {
     "appArgs": [
       {

@@ -2,7 +2,7 @@
   "containerImage": "docker://a2cps/mriqc_app:3.0.0",
   "description": "Run MRIQC",
   "enabled": true,
-  "id": "mriqc_app",
+  "id": "mriqc-app",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
