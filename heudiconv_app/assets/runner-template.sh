@@ -10,15 +10,11 @@ unzip -q ${FILES} -d ${LOCAL_DICOM}
 
 case "${SITE}" in
   SH | RU | WS)
-    echo micromamba run -n base \
-      python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
+    echo python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
-    micromamba run -n base \
-      python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
+    python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
-    #shellcheck disable=SC2086
-    echo micromamba run -n base \
-      bash -c "heudiconv \
+    echo bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -27,10 +23,8 @@ case "${SITE}" in
           ${HEURISTIC} \
           ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
           ${DATALAD} ${DCMCONFIG}"
-          
-    #shellcheck disable=SC2086
-    micromamba run -n base \
-      bash -c "heudiconv \
+              
+    bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -42,17 +36,14 @@ case "${SITE}" in
 
     # heudiconv is unable to find the acquisition datetime, so we fill them manually
     # note that this script does not currently add the exact time, just the acq_date
-    echo micromamba run -n base \
-      python /tapis/assets/add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
+    echo python /tapis/assets/add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
 
-    micromamba run -n base \
-      python /tapis/assets/add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
+    python /tapis/assets/add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
     ;;
 
   *)
     #shellcheck disable=SC2086
-    echo micromamba run -n base \
-      bash -c "heudiconv \
+    echo bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -63,8 +54,7 @@ case "${SITE}" in
           ${DATALAD} ${DCMCONFIG}"
 
     #shellcheck disable=SC2086
-    micromamba run -n base \
-      bash -c "heudiconv \
+    bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -90,8 +80,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   case "${SITE}" in
     NS) 
       # dcm2niix generates several extra scans, derivatives from NS.
-      micromamba run -n base \
-        python /tapis/assets/clean_nsphantom.py "${OUTDIR}"
+      python /tapis/assets/clean_nsphantom.py "${OUTDIR}"
       ;;
     UC)
       # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
@@ -101,8 +90,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       ;;
     WS)
       # heuristic can result in run-1 tag, unlike all other sites
-      micromamba run -n base \
-        python /tapis/assets/clean_wsphantom.py "${OUTDIR}"
+      python /tapis/assets/clean_wsphantom.py "${OUTDIR}"
       ;;
   esac
   else
@@ -126,8 +114,7 @@ if (( ${#dups[@]} > 1 )); then
   msg="duplicate scans found: ${dups[*]}"
 
   #shellcheck disable=SC2086
-  micromamba run -n base \
-      python /tapis/assets/log.py "${msg}" ${POST}
+  python /tapis/assets/log.py "${msg}" ${POST}
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
     # delete duplicte scans
     echo "removing duplicate scans" 
@@ -146,17 +133,13 @@ fi
 if [[ "${PHANTOM}" == "--no-phantom" ]]; then
   case "${SITE}" in
     UI | UM)
-      echo micromamba run -n base \
+      echo python /tapis/assets/create_fieldmaps_GE.py "${OUTDIR}"
+
       python /tapis/assets/create_fieldmaps_GE.py "${OUTDIR}"
 
-      micromamba run -n base \
-        python /tapis/assets/create_fieldmaps_GE.py "${OUTDIR}"
+      echo python /tapis/assets/handle_ge_bvalbvecs.py "${OUTDIR}"
 
-      echo micromamba run -n base \
-        python /tapis/assets/handle_ge_bvalbvecs.py "${OUTDIR}"
-
-      micromamba run -n base \
-        python /tapis/assets/handle_ge_bvalbvecs.py "${OUTDIR}"
+      python /tapis/assets/handle_ge_bvalbvecs.py "${OUTDIR}"
     ;;
   esac
 else
@@ -170,17 +153,14 @@ else
   case "${SITE}" in
     UM)
       echo "overwritting coil_QA with final volume"
-      micromamba run -n base \
-        python /tapis/assets/index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
+      python /tapis/assets/index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
     ;;
   esac
 fi
 
-echo micromamba run -n base \
-      python /tapis/assets/edit_json.py "${OUTDIR}"
+echo python /tapis/assets/edit_json.py "${OUTDIR}"
 
-micromamba run -n base \
-      python /tapis/assets/edit_json.py "${OUTDIR}"
+python /tapis/assets/edit_json.py "${OUTDIR}"
 
 
 # resting state scans do not require events files (there are no events)
@@ -193,25 +173,21 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
   # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
   # be divided by whether we're dealing with a phantom scan or not.
   #shellcheck disable=SC2086
-  micromamba run -n base \
-      python /tapis/assets/check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
+  python /tapis/assets/check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
 else
   echo "Skipping check of jsons"
 fi
 
 echo "cleaning *scans.tsv"
-micromamba run -n base \
-      python /tapis/assets/edit_scanstsv.py "${OUTDIR}"
+python /tapis/assets/edit_scanstsv.py "${OUTDIR}"
 
 
 echo "ensuring that dir-[dir] entities match PhaseEncodingDirection"
-micromamba run -n base \
-      python /tapis/assets/conform_dir.py "${OUTDIR}"
+python /tapis/assets/conform_dir.py "${OUTDIR}"
 
 echo "removing extra content generated by heudiconv"
 rm -vfr "${OUTDIR}"/sourcedata
 rm -vfr "${OUTDIR}"/__pycache__
 
 # end with check of newly created directory. if the output is not valid, the job will fail
-micromamba run -n base \
-      bash -c "bids-validator --ignoreWarnings ${OUTDIR}"
+bids-validator --ignoreWarnings "${OUTDIR}"

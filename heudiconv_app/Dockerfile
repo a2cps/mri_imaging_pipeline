@@ -19,4 +19,4 @@ RUN chmod +x /tapis/assets/runner-template.sh
 
 USER $MAMBA_USER
 
-ENTRYPOINT ["/tapis/assets/runner-template.sh"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "/tapis/assets/runner-template.sh"]
