@@ -3,8 +3,7 @@ import logging
 import json
 from pathlib import Path
 
-import ibis
-from ibis import _
+import polars as pl
 
 from mri_actor_utils import config, models
 
@@ -42,48 +41,47 @@ class FMRIPrepReactor(models.Reactor):
 
     def get_runlist(self) -> list[tuple[str, str]]:
         rundef = (
-            self.ilog.select(
-                "site",
-                "subject_id",
-                "visit",
-                "bids",
-                "fmriprep",
-                "acquisition_week",
-            )
-            .rename(
+            self.ilog.rename(
                 {
-                    "CUFF1": "fMRI Individualized Pressure Received",
-                    "CUFF2": "fMRI Standard Pressure Received",
-                    "REST1": "1st Resting State Received",
-                    "REST2": "2nd Resting State Received",
+                    "fMRI Individualized Pressure Received": "CUFF1",
+                    "fMRI Standard Pressure Received": "CUFF2",
+                    "1st Resting State Received": "REST1",
+                    "2nd Resting State Received": "REST2",
                 }
             )
-            .filter(_.bids == 1)  # type: ignore
-            .filter(_.fmriprep == 0)  # type: ignore
-            .mutate(
-                sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
-                sitelong=_.site.cases(tuple(config.SITE_LONG.items())),  # type: ignore
-                ANAT_ONLY=ibis.or_(
-                    _.CUFF1, _.CUFF2, _.REST1, _.REST2  # type: ignore
-                ).negate(),
+            .filter(pl.col("T1 Received") == 1)
+            .filter(pl.col("bids") == 1)
+            .filter(pl.col("fmriprep") == 0)
+            .with_columns(
+                sublong=pl.concat_str(
+                    pl.col("site"), pl.col("subject_id"), pl.col("visit")
+                ),
+                sitelong=pl.col("site").replace(config.SITE_LONG),
+                ANAT_ONLY=(
+                    (pl.col("CUFF1") == 0)
+                    & (pl.col("CUFF2") == 0)
+                    & (pl.col("REST1") == 0)
+                    & (pl.col("REST2") == 0)
+                ),
             )
-            .mutate(
-                INPUT_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
-                + x.sitelong
-                + "/bids/"
-                + x.sublong  # type: ignore
+            .with_columns(
+                INPUT_DIR=pl.concat_str(
+                    pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
+                    pl.col("sitelong"),
+                    pl.lit("/bids/"),
+                    pl.col("sublong"),
+                )
             )
-            .order_by(
-                ["visit", "acquisition_week"]
+            .sort(
+                "visit", "acquisition_week"
             )  # ensure V1 run before V3, and do oldest scans
-            .execute()
         )
 
         runlist = [
             (x, str(z))
             for x, z in zip(
-                rundef.INPUT_DIR.to_list(),
-                rundef.ANAT_ONLY.to_list(),
+                rundef.select(pl.col("INPUT_DIR")).to_series().to_list(),
+                rundef.select(pl.col("ANAT_ONLY")).to_series().to_list(),
             )
         ]
         return runlist[
