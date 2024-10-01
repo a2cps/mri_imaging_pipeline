@@ -1,5 +1,5 @@
 {
-  "containerImage": "docker://a2cps/fmriprep_app:3.1",
+  "containerImage": "docker://a2cps/fmriprep_app:3.2",
   "description": "Run fmriprep",
   "enabled": true,
   "id": "fmriprep-app",
@@ -125,5 +125,5 @@
     "SINGULARITY_RUN"
   ],
   "strictFileInputs": true,
-  "version": "3.1"
+  "version": "3.2"
 }
