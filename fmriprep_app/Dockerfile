@@ -29,17 +29,17 @@ SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
 ENV ENV_NAME=fmriprep
 
 RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge --freeze-installed \
-        impi_rt=2021.12 \
-        ucx=1.17.0 \
-        rdma-core=52.0 \
-        mpi4py=3.1.6 \
-        polars=1.0.0 \
-        pydantic=2.8.0 \
-        pytorch=2.3.1 \
+    impi_rt=2021.12 \
+    ucx=1.17.0 \
+    rdma-core=52.0 \
+    mpi4py=3.1.6 \
+    polars=1.0.0 \
+    pydantic=2.8.0 \
+    pytorch=2.3.1 \
     && micromamba run -n ${ENV_NAME} pip install \
-        --no-deps \
-        mriqc==24.0.0 \
-        git+https://github.com/a2cps/biomarker-extractor.git@2fb859247424a8a4d170188b48d1ebe890bb0f30 \
+    --no-deps \
+    mriqc==24.0.0 \
+    git+https://github.com/a2cps/biomarker-extractor.git@fb02069bd428ca24df51e0adec32ef1bdf90ed3c \
     && micromamba clean --all --yes
 
 COPY --from=fs --chown=$MAMBA_USER:$MAMBA_USER /freesurfer/models/synthstrip.1.pt /opt/synthstrip.1.pt
