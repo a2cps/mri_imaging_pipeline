@@ -9,10 +9,6 @@ from mpi4py import MPI
 
 tapismpi.configure_mpi_logger()
 
-# defined in Dockerfile
-SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
-FS_LICENSE = Path("/opt/fmriprep_app/license.txt")
-
 
 async def main(
     bids_directory: typing.Sequence[Path], outdirs: typing.Sequence[Path]
@@ -31,6 +27,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dirs", nargs="+", type=Path, required=True)
     parser.add_argument("--output-dirs", nargs="+", type=Path)
+    parser.add_argument("--project-dir", type=Path)
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -62,4 +59,14 @@ if __name__ == "__main__":
         msg = "Output directories must be unique"
         raise AssertionError(msg)
 
-    asyncio.run(main(bids_directory=args.input_dirs, outdirs=output_dirs))
+    if args.project_dir is not None:
+        input_dirs = [
+            args.project_dir / input_dir for input_dir in args.input_dirs
+        ]
+        output_dirs = [
+            args.project_dir / output_dir for output_dir in output_dirs
+        ]
+    else:
+        input_dirs = [input_dir for input_dir in args.input_dirs]
+
+    asyncio.run(main(bids_directory=input_dirs, outdirs=output_dirs))
