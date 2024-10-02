@@ -344,7 +344,15 @@ def find_heudiconv_outputs(bids_dir):
         scans_file = glob.glob(os.path.normpath(bids_dir) + '/sub-*/*/*.tsv')[0]
     except Exception as e:
         print("no scans file for ", bids_dir)
-        return 0
+        no_outputs = {
+            "T1 Received": 0,
+            "DWI Received": 0,
+            "fMRI Individualized Pressure Received": 0,
+            "fMRI Standard Pressure Received": 0,
+            "1st Resting State Received": 0,
+            "2nd Resting State Received": 0,
+        }
+        return no_outputs
     scans_df = pd.read_csv(scans_file, sep='\t')
     scan_list = scans_df['filename'].tolist()
     # Create a set of regexs to match filenames to scan names
