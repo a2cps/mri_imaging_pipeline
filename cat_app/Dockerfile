@@ -27,12 +27,15 @@ USER $MAMBA_USER
 SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
 ENV ENV_NAME=base
 
-RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge \
+COPY --chown=$MAMBA_USER:$MAMBA_USER  env.yml /tmp/
+
+RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge -f /tmp/env.yml \
+    && rm /tmp/env.yml \
     && micromamba clean --all --yes
 
 # files searched for in entrypoint.py
-COPY assets/entrypoint.py /opt/fslanat_app/
+COPY assets/entrypoint.py /opt/cat_app/
 ENV TZ=US/Central
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/fslanat_app/entrypoint.py"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/cat_app/entrypoint.py"]
 CMD [ "--help" ]
