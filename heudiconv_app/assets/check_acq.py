@@ -23,7 +23,8 @@ FLOATING_PARAMS = {
         "ImageOrientationPatientDICOM",
         "EchoTime"
     ],
-    0.01: ["ImagingFrequency", "WaterFatShift", "SliceTiming"],
+    0.03: ["SliceTiming"],
+    0.01: ["ImagingFrequency", "WaterFatShift"],
 }
 
 SIEMENS_W_64 = ["NS", "SH", "RU"]
@@ -179,6 +180,11 @@ def check_bvalsbvecs(
             f"{os.path.basename(scan)} appears truncated", post=post
         )
         ok = False
+    elif bval_observed.shape[0] > rb.shape[0]:
+        print_and_post(
+            f"{os.path.basename(scan)} appears atypically long", post=post
+        )
+        ok = False
     elif not (
         np.isclose(rb, bval_observed).all()
         and np.isclose(rv, bvec_observed).all()
@@ -303,6 +309,17 @@ def getUM(t1w_meta: dict) -> str:
     return site
 
 
+def getWS(t1w_meta: dict) -> str:
+    if t1w_meta.get("DeviceSerialNumber") == "40292":
+        site = "WS"
+    elif t1w_meta.get("DeviceSerialNumber") == "213020":
+        site = "WS2"
+    else:
+        raise AssertionError("Unsure which WS bids to compare against!")
+
+    return site
+
+
 def main(
     root: str, site: str, phantom: bool = False, post: bool = False
 ) -> None:
@@ -310,15 +327,18 @@ def main(
 
     layout = ancpbids.BIDSLayout(root, validate=False)
 
-    if site == "UM":
+    if site in ["UM", "WS"]:
         any_nii: list[str] = layout.get(extension="nii.gz", return_type="file") # type: ignore
-        if len(any_nii) > 0:
-            site = getUM(get_metadata(any_nii[0]))
-        else:
+        if len(any_nii) == 0:
             raise AssertionError("No scan jsons found")
+        if site == "UM":
+            site = getUM(get_metadata(any_nii[0]))
+        elif site == "WS":
+            site = getWS(get_metadata(any_nii[0]))
+        
 
     reference = pd.read_csv(
-        "acq-params.tsv",
+        "/tapis/assets/acq-params.tsv",
         low_memory=False,
         delimiter="\t",
         converters={

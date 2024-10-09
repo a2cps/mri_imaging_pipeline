@@ -1,242 +1,109 @@
 {
-  "name": "{{ agave.username }}-{{ app.name }}",
-  "version": "{{ app.version }}",
-  "executionType": "HPC",
-  "executionSystem": "{{ app.hpc_system}}",
-  "parallelism": "SERIAL",
-  "deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
-  "deploymentSystem": "{{ app.storage_system}}",
-  "defaultProcessorsPerNode": 1,
-  "defaultNodeCount": 1,
-  "defaultQueue": "{{ app.queue }}",
-  "label": "MRIQC",
-	"modules": ["load tacc-singularity", "unload xalt"],
-  "shortDescription": "{{ app.description }}",
-  "templatePath": "runner-template.sh",
-  "testPath": "tester.sh",
-  "inputs": [],
-  "parameters": [{
-      "id": "CONTAINER_IMAGE",
-      "value": {
-        "default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
-        "description": "Container Image. Do not edit.",
-        "type": "string",
-        "visible": false,
-        "required": true
-      }
-    },
-    {
-      "id": "BIDS_DIRECTORY",
-      "value": {
-        "default": "agave://a2cps.storage.public/a2cps_openneuro_testdata/",
-        "visible": true,
-        "type": "string",
-        "required": true
+  "containerImage": "docker://a2cps/mriqc_app:3.0.0",
+  "description": "Run MRIQC",
+  "enabled": true,
+  "id": "mriqc-app",
+  "jobAttributes": {
+    "archiveOnAppError": false,
+    "cmdPrefix": "ibrun -n 1",
+    "description": null,
+    "execSystemExecDir": "${JobWorkingDir}",
+    "execSystemId": "secure.ls6",
+    "execSystemInputDir": "${JobWorkingDir}",
+    "execSystemLogicalQueue": "corralextra",
+    "execSystemOutputDir": "${JobWorkingDir}",
+    "fileInputArrays": [],
+    "fileInputs": [],
+    "maxMinutes": 540,
+    "nodeCount": 1,
+    "parameterSet": {
+      "appArgs": [
+        {
+          "arg": null,
+          "inputMode": "REQUIRED",
+          "name": "INPUT_DIRS"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "OUTPUT_DIRS"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "N_WORKERS"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "MEM_MB"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "N_THREADS"
+        }
+      ],
+      "archiveFilter": {
+        "excludes": [
+          "tapisjob.sh",
+          "${JobUUID}.out",
+          "${JobUUID}.err",
+          "tapisjob.env"
+        ],
+        "includeLaunchFiles": false,
+        "includes": []
       },
-      "semantics": {
-        "ontology": [
-          "https://bids.neuroimaging.io/specification.html"
-        ]
+      "containerArgs": [
+        {
+          "arg": "--bind /corral-secure/projects/A2CPS",
+          "description": "Mount for TAP functions",
+          "inputMode": "FIXED",
+          "name": "Container Mounts"
+        }
+      ],
+      "envVariables": [
+        {
+          "key": "FAILURE_LOG_DST",
+          "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/mriqc/"
+        }
+      ],
+      "logConfig": {
+        "stderrFilename": "${JobUUID}.err",
+        "stdoutFilename": "${JobUUID}.out"
       },
-      "details": {
-        "label": "BIDS_DIRECTORY",
-        "description": "The root folder of a BIDS valid dataset (sub-XXXXX folders should be found at the top level in this folder)."
-      }
+      "schedulerOptions": [
+        {
+          "arg": "--tapis-profile ls6-mpi",
+          "description": "Scheduler profile for HPC clusters at TACC",
+          "inputMode": "FIXED",
+          "name": "TACC Scheduler Profile"
+        },
+        {
+          "arg": "--job-name ${JobName}",
+          "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+          "inputMode": "FIXED",
+          "name": "TAP Session Substring"
+        },
+        {
+          "arg": "-A A2CPS",
+          "description": "The TACC allocation associated with this job execution",
+          "inputMode": "FIXED",
+          "name": "TACC Allocation"
+        }
+      ]
     },
-    {
-      "id": "BIND_DIR",
-      "value": {
-        "default": "/corral-secure/projects/A2CPS/",
-        "visible": true,
-        "type": "string",
-        "required": true
-      },
-      "details": {
-        "label": "BIND_DIRECTORY",
-        "description": "Directory that is mounted into the container"
-      }
-    },
-    {
-      "id": "PARTICIPANT_LABEL",
-      "value": {
-        "default": "01",
-        "type": "string",
-        "visible": true,
-        "required": false
-      },
-      "details": {
-        "description": "A space delimited list of participant identifiers or a single identifier (the sub- prefix can be removed)",
-        "showArgument": false,
-        "argument": "participant --participant_label "
-      }
-    },
-
-
-    {
-      "id": "START_IDX",
-      "details": {
-        "argument": "--start-idx ",
-        "showArgument": true,
-        "description": "Initial volume that should be considered for preprocessing"
-      },
-      "value": {
-        "default": null,
-        "type": "number",
-        "visible": true,
-        "required": false
-      }
-    },
-
-    {
-      "id": "STOP_IDX",
-      "details": {
-        "argument": "--stop-idx ",
-        "showArgument": true,
-        "description": "Final volume that should be considered for preprocessing"
-      },
-      "value": {
-        "default": null,
-        "type": "number",
-        "visible": true,
-        "required": false
-      }
-    },
-
-
-    {
-      "id": "WRITE_GRAPH",
-      "details": {
-        "argument": "--write-graph ",
-        "showArgument": true,
-        "description": "Run ICA on the raw data and include the componentsin the individual reports (slow but potentially very insightful)"
-      },
-      "value": {
-        "default": true,
-        "description": "add ICA_AROMA to your preprocessing stream",
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-    {
-      "id": "ICA",
-      "details": {
-        "argument": "--ica ",
-        "showArgument": true,
-        "description": "Run ICA on the raw data and include the componentsin the individual reports (slow but potentially very insightful)"
-      },
-      "value": {
-        "default": true,
-        "description": "add ICA_AROMA to your preprocessing stream",
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-
-
-    {
-  "id": "FD_THRESHOLD",
-  "details": {
-    "argument": "--fd_thres ",
-    "showArgument": true,
-    "description": "motion threshold for FD computation"
+    "subscriptions": [],
+    "tags": []
   },
-  "value": {
-    "default": null,
-    "type": "number",
-    "visible": true,
-    "required": false
-  }
-
-},
-    {
-      "id": "FFT_SPIKES",
-      "details": {
-        "argument": "--fft-spikes-detector ",
-        "showArgument": true,
-        "description": "Turn on FFT based spike detector (slow)."
-      },
-      "value": {
-        "default": true,
-        "description": "Turn on FFT based spike detector (slow).",
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-
-    {
-      "id": "CORRECT_SLICE_TIMING",
-      "details": {
-        "argument": "--correct-slice-timing ",
-        "showArgument": true,
-        "description": "Perform slice timing correction"
-      },
-      "value": {
-        "default": true,
-        "description": "Perform slice timing correction",
-        "type": "flag",
-        "visible": true,
-        "required": false
-      }
-    },
-
-    {
-      "id": "MODALITIES",
-      "details": {
-        "argument": "--modalities ",
-        "showArgument": true,
-        "description": "filter input dataset by MRI type ('T1w', 'T2w', or 'bold')"
-      },
-      "value": {
-        "default": null,
-        "type": "enumeration",
-        "enumValues": ["T1w", "T2w", "bold", "T1w bold", "bold T1w"],
-        "visible": true,
-        "required": false
-      }
-    },
-
-    {
-      "id": "TASK_ID",
-      "details": {
-        "argument": "--task-id ",
-        "showArgument": true,
-        "description": "filter input dataset by task id"
-      },
-      "value": {
-        "default": null,
-        "type": "string",
-        "visible": true,
-        "required": false
-      }
-    },
-
-    {
-      "id": "WORK_DIR",
-      "details": {
-        "argument": "-w ",
-        "showArgument": true,
-        "description": "change the folder to store intermediate results"
-      },
-      "value": {
-        "default": "work",
-        "type": "string",
-        "visible": true,
-        "required": true
-      }
-    },
-
-    {
-      "id": "OUTPUT_DIR",
-      "value": {
-        "default": "outputs",
-        "description": "the output path for the outcomes of preprocessing and visual reports",
-        "type": "string",
-        "visible": true,
-        "required": true
-      }
-    }
-  ]
+  "jobType": "BATCH",
+  "maxJobs": -1,
+  "maxJobsPerUser": -1,
+  "owner": "${apiUserId}",
+  "runtime": "SINGULARITY",
+  "runtimeOptions": [
+    "SINGULARITY_RUN"
+  ],
+  "strictFileInputs": true,
+  "version": "3.0"
 }

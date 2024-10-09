@@ -58,7 +58,7 @@ keep_list = [
     "PixelBandwidth",
     "PixelSpacing",
     # "PrescanReuseString", # redundant with ShimSetting
-    "ProcedureStepDescription",
+    # "ProcedureStepDescription", # varies at SH, deemed unimportant (email exchange)
     "PulseSequenceDetails",
     "PulseSequenceName",
     "ReceiveCoilActiveElements",
@@ -103,7 +103,7 @@ for j in jsons:
             for i, row in enumerate(affine):
                 json_out["dcmmeta_affine"][i] = row[0:-1]
         d = pd.json_normalize(json_out)
-        scanner = re.findall("site-(NS|SH|WS|UM1|UM2|UI|UC|RU)", j)[0]
+        scanner = re.findall("site-(NS|SH|WS2|WS|UM1|UM2|UI|UC|RU)", j)[0]
         d["scanner"] = scanner
         phantom = len(re.findall("phantom_", j)) > 0
         d["phantom"] = phantom

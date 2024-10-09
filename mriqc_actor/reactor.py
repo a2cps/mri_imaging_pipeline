@@ -1,78 +1,149 @@
-from reactors.utils import Reactor, agaveutils
-import copy
+import datetime
+import logging
 import json
-import re
+from pathlib import Path
+
+from ibis import _
+
+from mri_actor_utils import config, models
+
+FAILUREBOT_ADDRESS_SECRET_NAME = "FAILUREBOT_ADDRESS_SECRET_NAME"
+FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
+
+# within docker container
+JOB = Path("/opt/job.json")
+
+# on TACC
+# can be changed from this default by specifying "ILOG" in actor message
+ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
+
+# numbers for ls6; tested at
+# /corral-secure/projects/A2CPS/shared/psadil/jobs/mriqc-upgrade-cores
+N_SUBS_PER_NODE = 16
+
+# for ls
+MAX_NODES_PER_JOB = 32
+
+# can change by incoming message by specifying "MAXJOBS"
+MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
+
+# amount of time required to copy one sub from /tmp -> /corral-secure
+# this will be used to terminate the job early in case of
+# prolonged runtime
+N_SEC_TO_COPY_ONE_SUB = 10
+
+# NOTE: the job.json parameters --n-workers and --mem-mb are not modified
+#       so, best to set them according to the maximum number of subs
+#       that could be run on a single node
 
 
-def submit(ag, job_def) -> None:
-    # Submit the job in a try/except block
-    try:
-        # Submit the job and get the job ID
-        job_id = ag.jobs.submit(body=job_def)['id']
-        print(job_id)
-        print(json.dumps(job_def, indent=4))
-    except Exception as e:
-        print(json.dumps(job_def, indent=4))
-        print("Error submitting job: {}".format(e))
-        print(e.response.content)
-        return
-    return
+class MRIQCReactor(models.Reactor):
 
+    def get_runlist(self) -> list[str]:
+        rundef = (
+            self.ilog.select(
+                "site",
+                "subject_id",
+                "visit",
+                "bids",
+                "mriqc",
+                "acquisition_week",
+            )
+            .filter(_.bids == 1)  # type: ignore
+            .filter(_.mriqc == 0)  # type: ignore
+            .mutate(
+                sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
+                sitelong=_.site.cases(tuple(config.SITE_LONG.items())),  # type: ignore
+            )
+            .mutate(
+                INPUT_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
+                + x.sitelong
+                + "/bids/"
+                + x.sublong  # type: ignore
+            )
+            .order_by(
+                ["visit", "acquisition_week"]
+            )  # ensure V1 run before V3, and do oldest scans
+            .execute()
+        )
 
-def specify_jobdef(job_def, job: str, subject_id: str, bids: str, filename: str):
-    # Define the input for the job as the file that
-    # was sent in the notificaton message
+        runlist = rundef.INPUT_DIR.to_list()
+        return runlist[
+            : self.context.message_dict.get("MAXJOBS", self.MAXJOBS)
+        ]
 
-    job_def.name = f'mriqc-{job}-{filename}'
-    parameters = job_def["parameters"]    
-    parameters["PARTICIPANT_LABEL"] = subject_id
-    parameters["BIDS_DIRECTORY"] = bids
-    #parameters["WORK_DIR"] = f'{parameters["WORK_DIR"]}-{job}'
+    def submit(self) -> None:
+        print(json.dumps(self.context, indent=4))
 
-    # if job == "cuff":
-    #     parameters["MODALITIES"] = "bold T1w"
-    # elif job == "anat":
-    #     parameters["MODALITIES"] = "bold"
+        runlist = self.get_runlist()
+        n_jobs = len(runlist)
+        if not n_jobs:
+            logging.warning("Did not find any jobs to submit")
+            return
 
-    job_def.parameters = parameters
-    job_def.archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1] + '/' + job
+        n_nodes = self.get_node_count(n_jobs)
+        self.set_app_arg(
+            name="INPUT_DIRS",
+            value="--input-dirs " + " ".join(runlist),
+        )
 
-    return job_def
+        self.set_env_var(
+            key="MIN_ARCHIVE_DURATION",
+            value=str(n_jobs * self.N_SEC_TO_COPY_ONE_SUB),
+        )
+        if max_minutes := self.context.message_dict.get("maxMinutes"):
+            self.job.maxMinutes = max_minutes
+
+        self.job.name = self.job_name
+
+        self.set_cmd_prefix(image=self.container_image, n_jobs=n_jobs)
+
+        # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
+        self.job.nodeCount = n_nodes
+
+        # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
+        # all nodes will have all cores available, but this needs to be set for ibrun
+        self.job.coresPerNode = self.N_SUBS_PER_NODE
+
+        if self.context.message_dict.get("SKIP_FAILUREBOT", False):
+            self.job.subscriptions = None
+        else:
+            self.set_subscription_url(url=self.failurebot_url)
+
+        if FAILURE_LOG_DST := self.context.message_dict.get("FAILURE_LOG_DST"):
+            self.set_env_var(
+                key="FAILURE_LOG_DST",
+                value=FAILURE_LOG_DST,
+            )
+
+        print(
+            self.job.model_dump_json(
+                indent=4, exclude_unset=True, exclude_none=True
+            )
+        )
+
+        try:
+            submitted = self.client.jobs.submitJob(  # type: ignore
+                **self.job.model_dump(exclude_unset=True, exclude_none=True)
+            )
+            print(submitted.uuid)
+        except Exception as e:
+            logging.exception(f"encountered while trying to submit job: {e}")
 
 
 def main() -> None:
-    """Main function"""
-    # create the reactor object
-    r = Reactor()
-    r.logger.info(f"Hello this is actor {r.uid}")
-    # pull in reactor context
-    context=r.context  # Actor context
-    print(json.dumps(context, indent=4))
-
-    if context.message_dict['status'] != "FINISHED":
-        exit(0)
-
-    for job in ['anat', 'cuff', 'rest']:
-        if job == 'anat':
-            job_basic = copy.copy(r.settings.anat)
-        if job == 'cuff':
-            job_basic = copy.copy(r.settings.cuff)
-        elif job == "rest":
-            job_basic = copy.copy(r.settings.rest)
-
-        job_def = specify_jobdef(
-            job_def=job_basic, 
-            job=job, 
-            subject_id=context.subject_id, 
-            bids=context.bids, 
-            filename=context.filename)
-
-        submit(
-            ag=r.client, 
-            job_def=job_def)
-
-    return
+    reactor = MRIQCReactor(
+        job_name=f"mriqc-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        FAILUREBOT_ADDRESS_SECRET_KEY=FAILUREBOT_ADDRESS_SECRET_KEY,
+        FAILUREBOT_ADDRESS_SECRET_NAME=FAILUREBOT_ADDRESS_SECRET_NAME,
+        N_SUBS_PER_NODE=N_SUBS_PER_NODE,
+        N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
+        ILOG=Path(ILOG),
+        JOB=JOB,
+        MAXJOBS=MAXJOBS,
+    )
+    reactor.submit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
