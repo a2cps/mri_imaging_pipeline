@@ -61,6 +61,7 @@ PRECROP_SUBS = {
     "UC10610V3",
     "UC10643V1",
     "UC10643V3",
+    "UC10732V3",
     "UC10757V1",
     "UC10758V1",
     "UC10766V1",
@@ -79,9 +80,33 @@ PRECROP_SUBS = {
     "UC10880V1",
     "UC10926V1",
     "UC10949V1",
+    "UC10965V1",
+    "UC10965V3",
+    "UC10972V1",
+    "UC10976V3",
+    "UC10983V1",
+    "UC10983V3",
+    "UC10990V3",
+    "UC11000V3",
+    "UC11001V1",
+    "UC11001V3",
+    "UC11006V1",
+    "UC11006V3",
+    "UC11022V1",
+    "UC11028V1",
+    "UC11058V1",
+    "UC15011V3",
+    "UC15032V1",
 }
 
-MASK_HIGH_VOXELS_SUBS = {"UI10390V1", "UI10459V1"}
+MASK_HIGH_VOXELS_SUBS = {
+    "UI10390V1",
+    "UI10459V1",
+    "UI10485V3",
+    "UI10667V3",
+    "UI10852V1",
+    "UM25299V1",
+}
 
 
 @dataclasses.dataclass
