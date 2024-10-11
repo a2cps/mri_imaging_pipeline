@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -euo pipefail
+
+extract_inplace() {
+  local src="$1"
+  local parent
+  parent=$(dirname "${src}")
+
+  tar --directory "${parent}" -xvf "${src}"
+}
+export -f extract_inplace
+
+mris=/corral-secure/projects/A2CPS/products/mris
+
+find ${mris} \
+    -mindepth 4 \
+    -maxdepth 4 \
+    -name "uuid*rank*tar" \
+    -exec bash -c 'extract_inplace "$@";' -- {} \;
+
