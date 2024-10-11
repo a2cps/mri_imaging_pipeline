@@ -1,5 +1,5 @@
 # bring in the micromamba image so we can copy files from it
-FROM mambaorg/micromamba:1.5.8 AS micromamba
+FROM mambaorg/micromamba:1.5 AS micromamba
 
 FROM nipreps/mriqc:24.0.2
 
@@ -28,19 +28,18 @@ SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
 ENV ENV_NAME=base
 
 RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge --freeze-installed \
-        impi_rt=2021.12 \
-        ucx=1.17.0 \
-        rdma-core=52.0 \
-        mpi4py=3.1.6 \
-        polars=1.2.1 \
-        pydantic=2.8.2 \
-    && micromamba run -n ${ENV_NAME} pip install \
-        --no-deps \
-        git+https://github.com/a2cps/biomarker-extractor.git@476e59dc5e1bf54cf86028cbf55a9ef4d8b489ce \
+    impi_rt=2021.12 \
+    ucx=1.17.0 \
+    rdma-core=52.0 \
+    mpi4py=3.1.6 \
+    polars=1.5.0 \
+    pydantic=2.8.2 \
+    && micromamba run -n ${ENV_NAME} pip install --no-deps \
+    git+https://github.com/a2cps/biomarker-extractor.git@55c6c1f957fe46d1f01dd7af5c9439fe1154d4c9 \
     && micromamba clean --all --yes
 
 # files searched for in entrypoint.py
-COPY assets/entrypoint.py /opt/mriqc_app/
+COPY --chown=${MAMBA_USER}:${MAMBA_USER} assets/entrypoint.py /opt/mriqc_app/
 ENV TZ=US/Central
 
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/mriqc_app/entrypoint.py"]
