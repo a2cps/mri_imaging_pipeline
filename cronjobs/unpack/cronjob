@@ -7,7 +7,8 @@ extract_inplace() {
   local parent
   parent=$(dirname "${src}")
 
-  tar --directory "${parent}" -xvf "${src}"
+  tar --directory "${parent}" -xvf "${src}" \
+    && rm -v "${src}"
 }
 export -f extract_inplace
 
