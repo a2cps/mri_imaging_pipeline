@@ -2,7 +2,7 @@
 FROM mambaorg/micromamba:1.5.8 AS micromamba
 FROM freesurfer/synthstrip:1.6 AS fs
 
-FROM nipreps/fmriprep:24.0.0
+FROM nipreps/fmriprep:24.1.1
 
 USER root
 
