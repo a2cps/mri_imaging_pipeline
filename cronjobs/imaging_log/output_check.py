@@ -85,8 +85,10 @@ def check_output_exists(bids_path: Path, job: str) -> int:
 
 def get_acq_datetime(bids_path: Path):
     for scans_file in bids_path.rglob("*scans.tsv"):
-        scans = pd.read_csv(scans_file, sep="\t", parse_dates=True)
-        return scans[scans["filename"].str.contains("T1w")]["acq_time"][0]
+        scans = pd.read_csv(scans_file, sep="\t", parse_dates=["acq_time"])
+        return scans[scans["acq_time"] == scans["acq_time"].min()][
+            "acq_time"
+        ].to_list()[0]
 
 
 def get_output_status(bids_path: Path):
@@ -101,6 +103,7 @@ def get_output_status(bids_path: Path):
 
 
 def find_heudiconv_outputs(bids_path: Path):
+    found_scans = dict()
     for scans_file in bids_path.rglob("*scans.tsv"):
         scan_list = pd.read_csv(scans_file, sep="\t", usecols=["filename"])[
             "filename"
@@ -114,11 +117,11 @@ def find_heudiconv_outputs(bids_path: Path):
             "rest1": re.compile(r"func/[\w\W]+rest_run-01_bold.nii.gz"),
             "rest2": re.compile(r"func/[\w\W]+rest_run-02_bold.nii.gz"),
         }
-        found_scans = dict()
         for scan_name, scan_pattern in search_scans.items():
-            # If the scan is in our file list set to 1
             if any(scan_pattern.match(ascan) for ascan in scan_list):
-                found_scans[f"{scan_name}_received"] = 1
+                found_scans[f"{scan_name}_received"] = True
+            else:
+                found_scans[f"{scan_name}_received"] = False
 
     return found_scans
 
@@ -127,30 +130,28 @@ def main():
     list_of_dict = []
 
     for site in SITES:
+        logging.info(f"{site=}")
         for bids_path in (MRIS / site / "bids").glob("*V[13]"):
+            logging.info(f"Considering {bids_path}")
             try:
                 job_status = get_output_status(bids_path)
 
-                scans_indicated = {
+                identifiers = {
                     "record_id": get_sub_from_sublong(bids_path.name),
-                    "protocol_id": get_ses_from_sublong(bids_path.name),
+                    "ses": get_ses_from_sublong(bids_path.name),
                     "acq_time": get_acq_datetime(bids_path),
                 }
 
-                processed_scans = find_heudiconv_outputs(bids_path)
+                found_scans = find_heudiconv_outputs(bids_path)
 
                 list_of_dict.append(
-                    {
-                        **job_status,
-                        **processed_scans,
-                        **scans_indicated,
-                    }
+                    {**identifiers, **found_scans, **job_status}
                 )
 
             except Exception:
                 logging.exception(bids_path)
 
-    pd.DataFrame(list_of_dict).drop_duplicates(inplace=True).to_csv(
+    pd.DataFrame(list_of_dict).drop_duplicates().to_csv(
         "report.csv", index=False, quoting=csv.QUOTE_MINIMAL
     )
 
