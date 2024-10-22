@@ -26,7 +26,7 @@ JOB = Path("/opt/job.json")
 ILOG = "corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
 # can be overriden by incoming message
-_MAXJOBS = 80
+_MAXJOBS = 20
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -150,7 +150,7 @@ def actors_get_client() -> Tapis:
 
 def get_ilog(client: Tapis) -> Table:
     ilog: bytes = client.files.getContents(  # type: ignore
-        systemId="secure.corral", path=str(ILOG)
+        systemId="secure.ls6", path=str(ILOG)
     )
     return ibis.memtable(
         pd.read_csv(
