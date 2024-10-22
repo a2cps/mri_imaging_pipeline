@@ -104,7 +104,7 @@ class FMRIPrepReactor(models.Reactor):
         )
         self.set_app_arg(
             name="ANAT_ONLY",
-            value="--input-dirs " + " ".join(x[1] for x in runlist),
+            value="--anat-only " + " ".join(x[1] for x in runlist),
         )
 
         self.set_env_var(
