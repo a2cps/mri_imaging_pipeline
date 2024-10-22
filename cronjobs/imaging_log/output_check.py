@@ -330,7 +330,7 @@ def find_outputs(bids_path: str):
         print("no cat12", cat12_path)
         cat12 = 0
     
-    fslanat = 1 if len(glob.glob(f"{fslanat_path}/*.out")) else 0
+    fslanat = 1 if len(glob.glob(f"{fslanat_path}/*.out")) or len(glob.glob(f"{fslanat_path}/*.log")) else 0
     fcn = 1 if len(glob.glob(f"{fcn_path}/*.out")) else 0
     signatures = 1 if len(glob.glob(f"{signatures_path}/*.out")) else 0
     brainager = 1 if len(glob.glob(f"{brainager_path}/*.out")) else 0
