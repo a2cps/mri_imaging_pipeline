@@ -15,8 +15,8 @@ logging.basicConfig(
 
 
 def main(
-    input_dirs: typing.Iterable[Path],
-    output_dirs: typing.Iterable[Path],
+    input_dirs: typing.Sequence[Path],
+    output_dirs: typing.Sequence[Path],
     n_workers: int = 1,
     precrop: typing.Sequence[bool] | None = None,
     mask_high_voxels: typing.Sequence[bool] | None = None,
