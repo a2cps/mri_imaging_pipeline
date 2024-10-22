@@ -2,7 +2,7 @@
 FROM mambaorg/micromamba:1.5.8 AS micromamba
 FROM freesurfer/synthstrip:1.6 AS fs
 
-FROM nipreps/fmriprep:24.0.0
+FROM nipreps/fmriprep:24.1.1
 
 USER root
 
@@ -39,7 +39,7 @@ RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge --freeze-insta
     && micromamba run -n ${ENV_NAME} pip install \
     --no-deps \
     mriqc==24.0.0 \
-    git+https://github.com/a2cps/biomarker-extractor.git@fb02069bd428ca24df51e0adec32ef1bdf90ed3c \
+    git+https://github.com/a2cps/biomarker-extractor.git@55c6c1f957fe46d1f01dd7af5c9439fe1154d4c9 \
     && micromamba clean --all --yes
 
 COPY --from=fs --chown=$MAMBA_USER:$MAMBA_USER /freesurfer/models/synthstrip.1.pt /opt/synthstrip.1.pt

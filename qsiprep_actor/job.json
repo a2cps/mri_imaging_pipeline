@@ -1,5 +1,5 @@
 {
-    "appId": "urrutia-qsiprep",
+    "appId": "qsiprep",
     "appVersion": "3.2",
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
