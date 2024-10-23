@@ -16,9 +16,7 @@ def copy(outdir: Path, inroot: Path) -> None:
                 outdir / f"qsiprep-{ses}" / src.name,
             )
         else:
-            utils.mergetree_overwrite(
-                src, outdir / f"qsiprep-{ses}" / src.name
-            )
+            utils.mergetree_overwrite(src, outdir / f"qsiprep-{ses}" / src.name)
 
     for src in inroot.glob("qsiprep/*/eddyqc"):
         sub = bu.get_sub_from_sublong(src)

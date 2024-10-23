@@ -1,24 +1,21 @@
 from pathlib import Path
 
+import utils
+from biomarkers import utils as bu
 from mriqc.reports.group import gen_html
 from mriqc.utils.misc import generate_tsv
-
-import utils
-
-from biomarkers import utils as bu
 
 
 def copy(outdir: Path, inroot: Path) -> None:
     if not outdir.exists():
         outdir.mkdir(parents=True)
 
-    for job in ["anat", "cuff", "rest"]:
-        # this glob grabs both sub-##### directories and sub*html files
-        for src in inroot.glob(f"mriqc/*/{job}/sub*"):
-            if src.is_file():
-                utils._copy_overwrite(src, outdir / src.name)
-            else:
-                utils.mergetree_overwrite(src, outdir / src.name)
+    # this glob grabs both sub-##### directories and sub*html files
+    for src in inroot.glob("mriqc/*/mriqc/sub*"):
+        if src.is_file():
+            utils._copy_overwrite(src, outdir / src.name)
+        else:
+            utils.mergetree_overwrite(src, outdir / src.name)
 
 
 def make_toplevel(outdir: Path) -> None:
