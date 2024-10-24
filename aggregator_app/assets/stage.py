@@ -43,14 +43,22 @@ ILOG = Path(
 )
 
 
-IGNORE_PATTERNS = shutil.ignore_patterns(
-    "work",
-    "*_wf",
+BIDS_IGNORE_PATTERNS = shutil.ignore_patterns(
     "sourcedata",
     "*007.out",
     "*007.err",
     "__pycache__",
     ".heudiconv",
+    ".agave.log",
+)
+
+
+DERIV_IGNORE_PATTERNS = shutil.ignore_patterns(
+    "work",
+    "*_wf",
+    "*007.out",
+    "*007.err",
+    "__pycache__",
     ".agave.log",
 )
 
@@ -70,13 +78,14 @@ def is_directory_ready(path: Path) -> bool:
 def is_fmriprep_aggregated(path: Path, row) -> bool:
     sub = row.subject_id
     ses = row.visit
+    all_ready = False
 
-    all_ready = (path / f"sub-{sub}" / f"ses-{ses}").exists() and (
-        path / f"sub-{sub}_ses-{ses}.html"
-    ).exists()
-
-    if not all_ready:
-        logging.info(f"{sub=}, {ses=} did not pass fmriprep validation")
+    target = path / f"sub-{sub}" / f"ses-{ses}"
+    if target.exists():
+        all_ready = (path / f"sub-{sub}_ses-{ses}.html").exists()
+        if not all_ready:
+            logging.error(f"{sub=}, {ses=} did not pass fmriprep validation")
+            shutil.rmtree(target)
 
     return all_ready
 
@@ -84,15 +93,24 @@ def is_fmriprep_aggregated(path: Path, row) -> bool:
 def is_qsiprep_aggregated(path: Path, row) -> bool:
     sub = row.subject_id
     ses = row.visit
+    all_ready = False
     qsiprep_dir = path / f"qsiprep-{ses}"
-    eddy_dir = path / "eddyqc"
-    all_ready = (
-        (qsiprep_dir / f"sub-{sub}" / f"ses-{ses}").exists()
-        and (qsiprep_dir / f"sub-{sub}.html").exists()
-        and (eddy_dir / f"sub-{sub}" / f"ses-{ses}").exists()
-    )
-    if not all_ready:
-        logging.info(f"{sub=}, {ses=} did not pass qsiprep validation")
+    qsiprep_target = qsiprep_dir / f"sub-{sub}" / f"ses-{ses}"
+    if qsiprep_target.exists():
+        all_ready = (qsiprep_dir / f"sub-{sub}.html").exists()
+        if not all_ready:
+            logging.error(f"{sub=}, {ses=} did not pass qsiprep validation")
+            shutil.rmtree(qsiprep_target)
+
+    eddy_target = path / "eddyqc" / f"sub-{sub}" / f"ses-{ses}"
+    if not all_ready and eddy_target.exists():
+        shutil.rmtree(eddy_target)
+    elif all_ready:
+        all_ready = eddy_target.exists()
+        if not all_ready:
+            logging.error(f"{sub=}, {ses=} did not pass eddyqc validation")
+            shutil.rmtree(eddy_target)
+            shutil.rmtree(qsiprep_target)
 
     return all_ready
 
@@ -100,36 +118,50 @@ def is_qsiprep_aggregated(path: Path, row) -> bool:
 def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
     sub = row.subject_id
     ses = row.visit
-    # The column names will be renamed to positional names if they
-    # are invalid Python identifiers, repeated, or start with
-    # an underscore.
-    t1_received = row._5
-    cuff1_received = row._9
-    cuff2_received = row._11
-    rest1_received = row._13
-    rest2_received = row._15
-    htmls = []
-    if t1_received == 1:
-        htmls.append((mriqc_root / f"sub-{sub}_ses-{ses}_T1w.html").exists())
-    if cuff1_received == 1:
-        htmls.append(
-            (mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-01_bold.html").exists()
-        )
-    if cuff2_received == 1:
-        htmls.append(
-            (mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-02_bold.html").exists()
-        )
-    if rest1_received == 1:
-        htmls.append(
-            (mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-01_bold.html").exists()
-        )
-    if rest2_received == 1:
-        htmls.append(
-            (mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-02_bold.html").exists()
-        )
-    all_ready = (mriqc_root / f"sub-{sub}" / f"ses-{ses}").exists() and all(htmls)
-    if not all_ready:
-        logging.info(f"{sub=}, {ses=} did not pass mriqc validation")
+
+    target = mriqc_root / f"sub-{sub}" / f"ses-{ses}"
+    all_ready = False
+    if target.exists():
+        # The column names will be renamed to positional names if they
+        # are invalid Python identifiers, repeated, or start with
+        # an underscore.
+        t1_received = row._5
+        cuff1_received = row._9
+        cuff2_received = row._11
+        rest1_received = row._13
+        rest2_received = row._15
+        htmls = []
+        if t1_received == 1:
+            htmls.append((mriqc_root / f"sub-{sub}_ses-{ses}_T1w.html").exists())
+        if cuff1_received == 1:
+            htmls.append(
+                (
+                    mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-01_bold.html"
+                ).exists()
+            )
+        if cuff2_received == 1:
+            htmls.append(
+                (
+                    mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-02_bold.html"
+                ).exists()
+            )
+        if rest1_received == 1:
+            htmls.append(
+                (
+                    mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-01_bold.html"
+                ).exists()
+            )
+        if rest2_received == 1:
+            htmls.append(
+                (
+                    mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-02_bold.html"
+                ).exists()
+            )
+
+        all_ready = all(htmls)
+        if not all_ready:
+            logging.info(f"{sub=}, {ses=} did not pass mriqc validation")
+            shutil.rmtree(target)
 
     return all_ready
 
@@ -194,11 +226,7 @@ def is_signatures_aggregated(path: Path, row) -> bool:
 def is_fcn_aggregated(path: Path, row) -> bool:
     all_ready = all(
         (path / fcn / f"sub={row.subject_id}" / f"ses={row.visit}").exists()
-        for fcn in [
-            "acompcor",
-            "connectivity",
-            "connectivity-confounds",
-        ]
+        for fcn in ["acompcor", "connectivity", "connectivity-confounds"]
     ) and _cleaned_niis_avail(path / "connectivity-cleaned", row)
     if not all_ready:
         logging.info(
@@ -215,29 +243,34 @@ def is_brainager_aggregated(path: Path, row) -> bool:
         / f"ses-{row.visit}"
         / f"sub-{row.subject_id}_ses-{row.visit}_T1w.nii"
     )
-    all_ready = (
-        target.with_name(f"{target.stem}_tissue_volumes.tsv").exists()
-        and target.with_suffix(".tsv").exists()
-        and target.with_name(f"slicesdir_{target.name}").exists()
-    )
-    if not all_ready:
-        logging.info(
-            f"sub={row.subject_id}, ses={row.visit} did not pass brainager validation"
+    all_ready = False
+    if target.exists():
+        all_ready = (
+            target.with_name(f"{target.stem}_tissue_volumes.tsv").exists()
+            and target.with_suffix(".tsv").exists()
+            and target.with_name(f"slicesdir_{target.name}").exists()
         )
+        if not all_ready:
+            logging.error(
+                f"sub={row.subject_id}, ses={row.visit} did not pass brainager validation"
+            )
+            shutil.rmtree(target.parent)
 
     return all_ready
 
 
 def is_fslanat_aggregated(path: Path, row) -> bool:
     target = path / "fslanat" / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
-    try:
-        fslanat.FSLAnatResult.from_root(target)
-        out = True
-    except Exception:
-        logging.info(f"{target} did not pass fslanat validation")
-        out = False
+    all_ready = False
+    if target.exists():
+        try:
+            fslanat.FSLAnatResult.from_root(target)
+            all_ready = True
+        except Exception:
+            logging.exception(f"{target} did not pass fslanat validation")
+            shutil.rmtree(target)
 
-    return out
+    return all_ready
 
 
 def _get_deriv_tocopy(
@@ -266,65 +299,64 @@ def _get_deriv_tocopy(
     for row in ready.itertuples():
         sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
         jobs = set()
-        already_aggregated = True
         # cannot rely on imaging log only, because imaging log will say that a job is
         # done even when there are no outputs
         if row.fmriprep == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "fmriprep"
         ):
-            already_aggregated &= is_fmriprep_aggregated(outroot / "fmriprep", row)
-            jobs.add("fmriprep")
+            if not is_fmriprep_aggregated(outroot / "fmriprep", row):
+                jobs.add("fmriprep")
         if row.qsiprep == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "qsiprep" / sublong
         ):
-            already_aggregated &= is_qsiprep_aggregated(outroot, row)
-            jobs.add("qsiprep")
+            if not is_qsiprep_aggregated(outroot, row):
+                jobs.add("qsiprep")
 
         if row.brainager == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "brainager" / sublong
         ):
-            already_aggregated &= is_brainager_aggregated(outroot, row)
-            jobs.add("brainager")
+            if not is_brainager_aggregated(outroot, row):
+                jobs.add("brainager")
 
         if row.cat12 == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "cat12" / sublong
         ):
-            already_aggregated &= (
+            if not (
                 outroot
                 / "cat12"
                 / "report"
                 / f"catreport_sub-{row.subject_id}_ses-{row.visit}_T1w.pdf"
-            ).exists()
-            jobs.add("cat12")
+            ).exists():
+                jobs.add("cat12")
         if row.mriqc == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "mriqc" / sublong / "mriqc"
         ):
-            already_aggregated &= is_mriqc_aggregated(outroot / "mriqc", row=row)
-            jobs.add("mriqc")
+            if not is_mriqc_aggregated(outroot / "mriqc", row=row):
+                jobs.add("mriqc")
         if row.fslanat == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fslanat" / sublong
         ):
-            already_aggregated &= is_fslanat_aggregated(outroot, row)
-            jobs.add("fslanat")
+            if not is_fslanat_aggregated(outroot, row):
+                jobs.add("fslanat")
         if row.fcn == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "fcn" / sublong
         ):
-            already_aggregated &= is_fcn_aggregated(outroot / "fcn", row)
-            jobs.add("fcn")
+            if not is_fcn_aggregated(outroot / "fcn", row):
+                jobs.add("fcn")
         if row.signatures == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "signatures" / sublong
         ):
-            already_aggregated &= is_signatures_aggregated(outroot / "signatures", row)
-            jobs.add("signatures")
+            if not is_signatures_aggregated(outroot / "signatures", row):
+                jobs.add("signatures")
         if row.gift_rest == 1 and is_directory_ready(
             inroot / SITE_LONG[site_code] / "gift_rest" / sublong
         ):
-            already_aggregated &= (
+            if not (
                 outroot / "gift_rest" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
-            ).exists()
-            jobs.add("gift_rest")
-        if not already_aggregated:
-            derivatives.update({sublong: list(jobs)})
+            ).exists():
+                jobs.add("gift_rest")
+        if len(to_agg := list(jobs)) >= 0:
+            derivatives.update({sublong: to_agg})
 
     return derivatives
 
@@ -444,14 +476,14 @@ def main(
                     inroot / site_long / "bids" / subsesd,
                     out_job_dir / subsesd,
                     copy_function=utils._symlink_if_needed,
-                    ignore=IGNORE_PATTERNS,
+                    ignore=BIDS_IGNORE_PATTERNS,
                 )
                 logging.info(f"Defacing anatomicals for {subsesd}")
                 for t1w in (out_job_dir / subsesd).rglob("*T1w.nii.gz"):
                     try:
                         _synthstrip(t1w, n_threads=n_threads)
                     except Exception:
-                        logging.error(f"Failed to deface {t1w}")
+                        logging.exception(f"Failed to deface {t1w}")
                         failed_skullstrip.add(subsesd)
 
             for subsesd in failed_skullstrip:
@@ -478,7 +510,7 @@ def main(
                         inroot / site_long / job / subsesd,
                         tmp_site / job / subsesd,
                         copy_function=utils._symlink_if_needed,
-                        ignore=IGNORE_PATTERNS,
+                        ignore=DERIV_IGNORE_PATTERNS,
                     )
 
                 # mask all images
@@ -487,9 +519,8 @@ def main(
                     utils.deface_all_derivatives(
                         subsesdir=Path(subsesd), tmp_site=tmp_site
                     )
-                except Exception as e:
-                    logging.error(e)
-                    logging.warning(
+                except Exception:
+                    logging.exception(
                         f"Unable to deface derivatives for {subsesd}, so not aggregating"
                     )
                     for d in tmp_site.glob(f"*/{subsesd}"):

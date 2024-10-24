@@ -16,7 +16,7 @@
             },
             {
                 "name": "MAXSUBS",
-                "arg": "--max-subs 5"
+                "arg": "--max-subs 2"
             }
         ]
     },

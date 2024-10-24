@@ -1,14 +1,12 @@
 import logging
+import os
 import shutil
 from pathlib import Path
-import os
 
 import nibabel as nb
 import numpy as np
-from nilearn import masking
-
 from biomarkers import utils as bu
-
+from nilearn import masking
 
 FSOUTPUTS = ("orig.mgz", "orig_nu.mgz", "T1.mgz")
 
@@ -53,9 +51,7 @@ def mergetree_overwrite(src: Path, dst: Path, ignore=None) -> None:
 
 def _symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
     if Path(dst).exists():
-        logging.info(
-            f"File {src} would overwrite {dst}. Leaving files unchanged."
-        )
+        logging.info(f"File {src} would overwrite {dst}. Leaving files unchanged.")
     else:
         Path(dst).symlink_to(Path(src).resolve())
     return dst
@@ -90,9 +86,7 @@ def _deface_qsiprep(subsesdir: Path, sub: str):
     for t1w in (subsesdir / f"sub-{sub}" / "anat").glob("*T1w.nii.gz"):
         _deface(
             t1w,
-            t1w.with_name(
-                t1w.name.replace("desc-preproc_T1w", "desc-brain_mask")
-            ),
+            t1w.with_name(t1w.name.replace("preproc_T1w", "brain_mask")),
         )
 
 
@@ -108,61 +102,45 @@ def _deface_freesurfer(subdir: Path, fmriprep_mask: Path):
             _deface(f, subdir / "mri" / "brainmask.mgz", make_mask=True)
 
 
-def _deface_fmriprep(subsesdir: Path, fmriprep_mask: Path, sub: str, ses: str):
-    for subjob in ["anat", "cuff", "rest"]:
-        for output in (subsesdir / subjob / "fmriprep" / f"sub-{sub}").glob(
-            "ses*"
-        ):
-            _deface(
-                output
-                / "anat"
-                / f"sub-{sub}_ses-{ses}_desc-preproc_T1w.nii.gz",
-                fmriprep_mask,
-            )
-            for space in ["MNI152NLin2009cAsym"]:
-                _deface(
-                    output
-                    / "anat"
-                    / f"sub-{sub}_ses-{ses}_space-{space}_desc-preproc_T1w.nii.gz",
-                    output
-                    / "anat"
-                    / f"sub-{sub}_ses-{ses}_space-{space}_desc-brain_mask.nii.gz",
-                )
+def _deface_fmriprep(
+    subsesdir: Path,
+    synthstrip_mask: Path,
+    sub: str,
+    ses: str,
+):
+    for output in (subsesdir / "fmriprep" / f"sub-{sub}").glob("ses*"):
+        _deface(
+            output / "anat" / f"sub-{sub}_ses-{ses}_desc-preproc_T1w.nii.gz",
+            synthstrip_mask,
+        )
+        for t1 in (output / "anat").glob("*space*desc-preproc_T1w.nii.gz"):
+            _deface(t1, t1.parent / t1.name.replace("preproc_T1w", "brain_mask"))
 
 
 def deface_all_derivatives(subsesdir: Path, tmp_site: Path):
-
     # NOTE: cannot assume that all standard files exist for all participants
     sub = bu.get_sub_from_sublong(subsesdir)
     ses = bu.get_ses_from_sublong(subsesdir)
     subses_fmriprep = tmp_site / "fmriprep" / subsesdir
     fmriprep_mask = (
         subses_fmriprep
-        / "anat"
-        / "fmriprep"
+        / "synthstrip"
         / f"sub-{sub}"
         / f"ses-{ses}"
         / "anat"
         / f"sub-{sub}_ses-{ses}_desc-brain_mask.nii.gz"
     )
     _deface_fmriprep(
-        subsesdir=subses_fmriprep,
-        fmriprep_mask=fmriprep_mask,
-        sub=sub,
-        ses=ses,
+        subsesdir=subses_fmriprep, synthstrip_mask=fmriprep_mask, sub=sub, ses=ses
     )
-    _deface_qsiprep(
-        subsesdir=tmp_site / "qsiprep" / subsesdir / "qsiprep", sub=sub
-    )
+    _deface_qsiprep(subsesdir=tmp_site / "qsiprep" / subsesdir / "qsiprep", sub=sub)
 
     _deface_freesurfer(
-        subdir=subses_fmriprep / "anat" / "freesurfer" / f"sub-{sub}",
+        subdir=subses_fmriprep / "sourcedata" / "freesurfer" / f"sub-{sub}",
         fmriprep_mask=fmriprep_mask,
     )
 
-    _deface_fslanat(
-        tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask
-    )
+    _deface_fslanat(tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask)
 
 
 def get_duplicated_parquet(root: Path) -> list[str]:
@@ -180,7 +158,5 @@ def get_duplicated_parquet(root: Path) -> list[str]:
                 if f.endswith(".parquet")
             }
             most_recent = max(ctimes, key=ctimes.get)  # type: ignore
-            to_ignore.extend(
-                [f"*{f}" for f in filenames if f is not most_recent]
-            )
+            to_ignore.extend([f"*{f}" for f in filenames if f is not most_recent])
     return to_ignore
