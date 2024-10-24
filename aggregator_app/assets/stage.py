@@ -248,8 +248,8 @@ def _get_deriv_tocopy(
         .query("site == @site_code")
         .query(
             """(fslanat == 1 | fslanat.isna()) \
-            and (fmriprep == 1 | fmriprep_anat.isna()) \
-            and (mriqc == 1 | mriqc_anat.isna()) \
+            and (fmriprep == 1 | fmriprep.isna()) \
+            and (mriqc == 1 | mriqc.isna()) \
             and (cat12  == 1 | cat12.isna()) \
             and (fcn  == 1 | fcn.isna()) \
             and (signatures == 1 | signatures.isna()) \
