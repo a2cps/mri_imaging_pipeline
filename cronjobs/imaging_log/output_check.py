@@ -268,11 +268,15 @@ def redcap_query():
 
 
 def get_acq_datetime(bids_path: Path):
+    acq_time = "na"
     for scans_file in bids_path.rglob("*scans.tsv"):
         scans = pd.read_csv(scans_file, sep="\t", parse_dates=["acq_time"])
-        return scans[scans["acq_time"] == scans["acq_time"].min()][
+        acq_day = scans[scans["acq_time"] == scans["acq_time"].min()][
             "acq_time"
         ].to_list()[0]
+        acq_time = acq_day - acq_day.weekday() * np.timedelta64(1, 'D')
+        acq_time = acq_time.strftime('%Y-%m-%d')
+    return acq_time
 
 
 def check_output_failed(sublong: str, job) -> bool:
@@ -282,13 +286,18 @@ def check_output_failed(sublong: str, job) -> bool:
 
 def check_output_exists(bids_path: Path, job: str) -> bool:
     to_check = Path(str(bids_path).replace("bids", job))
-    return len(list(to_check.glob("*out"))) > 0 or len(list(to_check.glob("*log"))) > 0
+    if job == "dicom":
+        out = to_check.with_stem(".zip").exists()
+    else:
+        out = len(list(to_check.glob("*out"))) > 0 or len(list(to_check.glob("*log"))) > 0
+    return out
 
 def check_output_tar_exists(bids_path: Path, job: str) -> bool:
     to_check = Path(str(bids_path).replace("bids", job))
     return len(list(to_check.glob("*tar"))) > 0
 
-def find_outputs(bids_path: Path):
+def find_outputs(bids: str):
+    bids_path = Path(bids)
     out = dict()
     for job in APP_STEPS:
         if check_output_failed(bids_path.name, job):
