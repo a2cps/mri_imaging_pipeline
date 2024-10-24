@@ -1,14 +1,13 @@
-import os
-import re
 import glob
 import json
-import sys
-import pandas as pd
+import os
+import re
 from pathlib import Path
+
 #'0.24.2'
 import numpy as np
+import pandas as pd
 import requests
-import xlsxwriter
 
 FAILURE_LOG_DST = Path(os.environ.get("FAILURE_LOG_DST", "/corral-secure/projects/A2CPS/products/development/mris/logs"))
 
@@ -209,14 +208,14 @@ def redcap_query():
         # add correct contraindicated
         try: 
             contra = [i['fmricuffcontrayn'] for i in all_mcc1 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-        except Exception as e:
+        except Exception:
             contra = ''
         updated_item['fmricuffcontrayn'] = contra
 
         if item['redcap_event_name'] == 'baseline_visit_arm_1':
             try: 
                 pressure = [i['fmricuffcalfpressure'] for i in all_mcc1 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-            except Exception as e:
+            except Exception:
                 pressure = ''
             updated_item['fmricuffcalfpressure'] = pressure
 
@@ -231,14 +230,14 @@ def redcap_query():
 
         try: 
             contra = [i['cuffpfmricontraindyn'] for i in all_mcc2 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-        except Exception as e:
+        except Exception:
             contra = ''
         updated_item['cuffpfmricontraindyn'] = contra
 
         if item['redcap_event_name'] == 'baseline_visit_arm_1':
             try: 
                 pressure = [i['cuffpfmripressure'] for i in all_mcc2 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-            except Exception as e:
+            except Exception:
                 pressure = ''
             updated_item['cuffpfmripressure'] = pressure
 
@@ -267,82 +266,50 @@ def redcap_query():
             print(e)
     return uploaded, date_dict
 
-def find_outputs(bids_path: str):
-    dicom_path = bids_path.replace('bids','dicoms')
-    fmriprep_path = bids_path.replace('bids','fmriprep')
-    mriqc_path = bids_path.replace('bids','mriqc')
-    qsiprep_path = bids_path.replace('bids','qsiprep')
-    cat12_path = bids_path.replace('bids','cat12')
-    fslanat_path = bids_path.replace('bids','fslanat')
-    fcn_path = bids_path.replace('bids','fcn')
-    signatures_path = bids_path.replace('bids','signatures')
-    brainager_path = bids_path.replace('bids','brainager')
-    gift_rest_path = bids_path.replace('bids','gift_rest')
-    print(bids_path)
 
-    try: 
-        bids_present = glob.glob(bids_path+'/*.out')[0]
-        bids_present = 1
-        bids = glob.glob(bids_path)[0]
-    except Exception as e:
-        print("no bids", bids_path)
-        bids = 0
-        bids_present = 0
+def get_acq_datetime(bids_path: Path):
+    for scans_file in bids_path.rglob("*scans.tsv"):
+        scans = pd.read_csv(scans_file, sep="\t", parse_dates=["acq_time"])
+        return scans[scans["acq_time"] == scans["acq_time"].min()][
+            "acq_time"
+        ].to_list()[0]
 
-    try:
-        scans_file = glob.glob(bids_path+'/sub-*/ses-*/*.tsv')[0]
-        #check t1 acquisition time and round to the nearest Friday
-        #acq_time = pd.to_datetime(pd.read_csv(scans_file, sep='\t')['acq_time'][0]).round('7d')
-        acq_day = pd.to_datetime(pd.read_csv(scans_file, sep='\t')['acq_time'][0])
-        acq_time = acq_day - acq_day.weekday() * np.timedelta64(1, 'D')
-        acq_time = acq_time.strftime('%Y-%m-%d')
-    except Exception as e:
-        acq_time = 'na'
+
+def check_output_failed(sublong: str, job) -> bool:
+    subdir = FAILURE_LOG_DST / job / sublong
+    return len(list(subdir.glob("*.out"))) > 0
+
+
+def check_output_exists(bids_path: Path, job: str) -> bool:
+    to_check = Path(str(bids_path).replace("bids", job))
+    return len(list(to_check.glob("*out"))) > 0 or len(list(to_check.glob("*log"))) > 0
+
+def check_output_tar_exists(bids_path: Path, job: str) -> bool:
+    to_check = Path(str(bids_path).replace("bids", job))
+    return len(list(to_check.glob("*tar"))) > 0
+
+def find_outputs(bids_path: Path):
+    out = dict()
+    for job in APP_STEPS:
+        if check_output_failed(bids_path.name, job):
+            out[job] = 2
+        elif check_output_tar_exists(bids_path, job):
+            out[job] = 3
+        elif check_output_exists(bids_path, job):            
+            out[job] = 1
+        else:
+            print(f"no {job} for {bids_path.name}")
+            out[job] = 0
     
-    try: 
-        dicom = glob.glob(dicom_path+'.zip')[0]
-        dicom = 1
-    except Exception as e:
-        print("no dicom", dicom_path)
-        dicom = 0
+    acq_time = get_acq_datetime(bids_path)
 
-    if len(glob.glob(f"{fmriprep_path}/*.out")):
-        fmriprep = 1
-    else:
-        print("no fmriprep", fmriprep_path)
-        fmriprep = 0
-    if len(glob.glob(mriqc_path+"/*out")):
-        mriqc = 1
-    else:
-        print("no mriqc", mriqc_path)
-        mriqc = 0
-    try:
-        qsiprep = glob.glob(qsiprep_path+'/qsiprep/*.html')[0]
-        qsiprep = 1
-    except Exception as e:
-        print("no qsiprep", qsiprep_path)
-        qsiprep = 0
-
-    try:
-        cat12 = glob.glob(cat12_path+'/*.out')[0]
-        cat12 = 1
-    except Exception as e:
-        print("no cat12", cat12_path)
-        cat12 = 0
-    
-    fslanat = 1 if len(glob.glob(f"{fslanat_path}/*.out")) or len(glob.glob(f"{fslanat_path}/*.log")) else 0
-    fcn = 1 if len(glob.glob(f"{fcn_path}/*.out")) else 0
-    signatures = 1 if len(glob.glob(f"{signatures_path}/*.out")) else 0
-    brainager = 1 if len(glob.glob(f"{brainager_path}/*.out")) else 0
-    gift_rest = 1 if len(glob.glob(f"{gift_rest_path}/*.out")) else 0
-        
-    return dicom, bids, bids_present, fmriprep, mriqc, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest
+    return out["dicom"], out["bids"], out["bids_present"], out["fmriprep"], out["mriqc"], out["qsiprep"], out["cat12"], acq_time, out["fslanat"], out["fcn"], out["signatures"], out["brainager"], out["gift_rest"]
 
 
 def find_heudiconv_outputs(bids_dir):
     try:
         scans_file = glob.glob(os.path.normpath(bids_dir) + '/sub-*/*/*.tsv')[0]
-    except Exception as e:
+    except Exception:
         print("no scans file for ", bids_dir)
         no_outputs = {
             "T1 Received": 0,
