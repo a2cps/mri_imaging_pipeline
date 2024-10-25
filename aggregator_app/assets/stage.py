@@ -206,8 +206,8 @@ def _cleaned_niis_avail(cleaned_root: Path, row) -> bool:
 
 
 def is_signatures_aggregated(path: Path, row) -> bool:
-    all_ready = all(
-        (path / sig / f"sub={row.subject_id}" / f"ses={row.visit}").exists()
+    all_dirs = [
+        (path / sig / f"sub={row.subject_id}" / f"ses={row.visit}")
         for sig in [
             "signature-by-part",
             "signature-by-run",
@@ -215,23 +215,35 @@ def is_signatures_aggregated(path: Path, row) -> bool:
             "signature-labels",
             "signature-rawdata",
         ]
-    ) and _cleaned_niis_avail(path / "signature-cleaned", row)
-    if not all_ready:
-        logging.info(
-            f"sub={row.subject_id}, ses={row.visit} did not pass signatures validation"
-        )
+    ]
+    all_ready = False
+    if all([d.exists() for d in all_dirs]):
+        all_ready = _cleaned_niis_avail(path / "signature-cleaned", row)
+        if not all_ready:
+            logging.error(
+                f"sub={row.subject_id}, ses={row.visit} did not pass signatures validation"
+            )
+            for d in all_dirs:
+                shutil.rmtree(d)
+
     return all_ready
 
 
 def is_fcn_aggregated(path: Path, row) -> bool:
-    all_ready = all(
-        (path / fcn / f"sub={row.subject_id}" / f"ses={row.visit}").exists()
+    all_dirs=(
+        (path / fcn / f"sub={row.subject_id}" / f"ses={row.visit}")
         for fcn in ["acompcor", "connectivity", "connectivity-confounds"]
-    ) and _cleaned_niis_avail(path / "connectivity-cleaned", row)
-    if not all_ready:
-        logging.info(
-            f"sub={row.subject_id}, ses={row.visit} did not pass fcn validation"
-        )
+    )
+    all_ready = False
+    if all([d.exists() for d in all_dirs]):
+        all_ready = _cleaned_niis_avail(path / "connectivity-cleaned", row) 
+        if not all_ready:
+            logging.error(
+                f"sub={row.subject_id}, ses={row.visit} did not pass fcn validation"
+            )
+            for d in all_dirs:
+                shutil.rmtree(d)
+
     return all_ready
 
 
