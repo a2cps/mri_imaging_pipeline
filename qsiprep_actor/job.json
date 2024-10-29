@@ -3,12 +3,8 @@
     "appVersion": "3.2",
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
-    "archiveSystemId": "secure.ls6",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "archiveOnAppError": false,
-    "hiddenOptions": [
-        "MEM"
-    ],
     "maxMinutes": 360,
     "name": "qsiprep",
     "nodeCount": 1,
@@ -24,18 +20,14 @@
                 "name": "OUTDIR"
             },
             {
-                "arg": "--nthreads 50",
+                "arg": "--nthreads 10",
                 "name": "NTHREADS"
             },
             {
-                "arg": "--mem-mb 96000",
+                "arg": "--mem-mb 21333",
                 "name": "MEM_MB"
             }
-        ],
-        "logConfig": {
-            "stderrFilename": "${JobUUID}.err",
-            "stdoutFilename": "${JobUUID}.out"
-        }
+        ]
     },
     "subscriptions": [
         {

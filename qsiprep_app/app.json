@@ -1,5 +1,5 @@
 {
-	"containerImage": "docker://a2cps/qsiprep_app:3.2",
+	"containerImage": "a2cps/qsiprep_app:3.2",
 	"description": "Run qsiprep",
 	"enabled": true,
 	"id": "qsiprep",
