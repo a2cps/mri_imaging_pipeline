@@ -1,0 +1,39 @@
+{
+    "appId": "psadil-fmriprep_app",
+    "appVersion": "0.1",
+    "cmdPrefix": "apptainer run docker://psadil/fmriprep_app:240926 --help && ibrun -n 2",
+    "coresPerNode": 2,
+    "maxMinutes": 360,
+    "name": "fmriprep",
+    "nodeCount": 1,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/products/mris/UM_umichigan/bids/UM20046V1",
+                "name": "INPUT_DIRS"
+            },
+            {
+                "arg": "--output-dirs NS_northshore/fmriprep/NStravel1 UM_umichigan/bids/UM20046V1",
+                "name": "OUTPUT_DIRS"
+            },
+            {
+                "arg": "--n-workers 60",
+                "name": "N_WORKERS"
+            },
+            {
+                "arg": "--mem-mb 128000",
+                "name": "MEM_MB"
+            },
+            {
+                "arg": "--dummy-scans 15",
+                "name": "DUMMY_SCANS"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "logs/fmriprep/"
+            }
+        ]
+    }
+}
