@@ -1,6 +1,6 @@
 {
     "appId": "fmriprep-app",
-    "appVersion": "3.4",
+    "appVersion": "3.5",
     "cmdPrefix": "ibrun -n 12",
     "coresPerNode": 6,
     "maxMinutes": 1200,

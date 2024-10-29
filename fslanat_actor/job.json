@@ -1,7 +1,7 @@
 {
     "name": "fslanat",
     "appId": "fslanat",
-    "appVersion": "0.8",
+    "appVersion": "0.9",
     "execSystemId": "secure.ls6",
     "archiveSystemId": "secure.frontera",
     "execSystemLogicalQueue": "corralextra",
