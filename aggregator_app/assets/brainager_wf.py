@@ -1,11 +1,9 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import pandas as pd
-
-from biomarkers import utils as bu
-
 import utils
+from biomarkers import utils as bu
 
 
 def copy(outdir: Path, inroot: Path) -> None:
