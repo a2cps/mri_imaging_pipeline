@@ -12,6 +12,7 @@ import requests
 FAILURE_LOG_DST = Path(os.environ.get("FAILURE_LOG_DST", "/corral-secure/projects/A2CPS/products/development/mris/logs"))
 
 APP_STEPS = [
+                "dicom",
                 "bids", 
                 "fslanat",
                 "fmriprep", 
@@ -23,6 +24,16 @@ APP_STEPS = [
                 "signatures",
                 "gift_rest"
             ]
+
+SITE_CODES = {
+                "UI": "UI_uic",
+                "NS": "NS_northshore",
+                "UC": "UC_uchicago",
+                "UM": "UM_umichigan",
+                "WS": "WS_wayne_state",
+                "SH": "SH_spectrum_health",
+                "RU": "RU_rush",
+                }
 
 # function to filter reponse object for highest record_id+visit repeat instance
 def filter_highest_value(data, identification_keys, key_to_compare):
@@ -284,11 +295,14 @@ def check_output_failed(sublong: str, job) -> bool:
     return len(list(subdir.glob("*.out"))) > 0
 
 
-def check_output_exists(bids_path: Path, job: str) -> bool:
+def check_output_exists(bids_path: Path, job: str) -> bool:    
     to_check = Path(str(bids_path).replace("bids", job))
     if job == "dicom":
-        out = to_check.with_stem(".zip").exists()
+        # note extra "s" (plural) in path to check
+        to_check = Path(str(bids_path).replace("bids", "dicoms"))
+        out = Path(f"{to_check}.zip").exists()
     else:
+        to_check = Path(str(bids_path).replace("bids", job))
         out = len(list(to_check.glob("*out"))) > 0 or len(list(to_check.glob("*log"))) > 0
     return out
 
@@ -301,18 +315,18 @@ def find_outputs(bids: str):
     out = dict()
     for job in APP_STEPS:
         if check_output_failed(bids_path.name, job):
-            out[job] = 2
+            out[job] = "2"
         elif check_output_tar_exists(bids_path, job):
-            out[job] = 3
+            out[job] = "3"
         elif check_output_exists(bids_path, job):            
-            out[job] = 1
+            out[job] = "1"
         else:
             print(f"no {job} for {bids_path.name}")
-            out[job] = 0
+            out[job] = "0"
     
-    acq_time = get_acq_datetime(bids_path)
+    out["acquisition_week"] = get_acq_datetime(bids_path)
 
-    return out["dicom"], out["bids"], out["bids_present"], out["fmriprep"], out["mriqc"], out["qsiprep"], out["cat12"], acq_time, out["fslanat"], out["fcn"], out["signatures"], out["brainager"], out["gift_rest"]
+    return out
 
 
 def find_heudiconv_outputs(bids_dir):
@@ -407,13 +421,6 @@ def write_excel(df):
     writer.save()
 
 
-def update_to_fail(d, col):
-    sublong = f"{d.get('site')}{d.get('subject_id')}{d.get('visit')}"
-    # the check for in [0,1,etc] is to avoid overwritting 'na' values
-    if len(list((FAILURE_LOG_DST / col / sublong).glob("*.out"))) and (d.get(col) in ["0", "1", 0, 1]):
-        d[col] = '2'
-
-
 def main():
     # scans_indicated = json.loads(sys.argv[1])
     # bids = sys.argv[2]
@@ -436,8 +443,8 @@ def main():
         #print(row['site'], row['subject_id'])
         try:
             site_id = row['site_id']
-            bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, fmriprep, mriqc, qsiprep, cat12, acq_time, fslanat, fcn, signatures, brainager, gift_rest) = find_outputs(bids_path)
+            bids_path = f"/corral-secure/projects/A2CPS/products/mris/{SITE_CODES[site_id]}/bids/" + site_id + str(row['subject_id']) + row['visit']
+            outputs = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -533,8 +540,8 @@ def main():
             #scans_indicated.update({k:1 for k,v in scans_indicated.items() if v == 'Y'})
             #scans_indicated.update({k:0 for k,v in scans_indicated.items() if v == 'N'})
             #pprint.pprint(scans_indicated)
-            if bids != 0:
-                processed_scans = find_heudiconv_outputs(bids)
+            if outputs["bids"] == "1":
+                processed_scans = find_heudiconv_outputs(bids_path)
             else:
                 processed_scans = {
                 "T1 Received": 0,
@@ -546,19 +553,7 @@ def main():
             }
             # if processed_scans == 0:
             #     continue
-            scan_report = {**scans_indicated, **processed_scans}
-            scan_report['dicom'] = dicom
-            scan_report['bids'] = bids_present
-            scan_report['fslanat'] = fslanat
-            scan_report['fcn'] = fcn
-            scan_report['signatures'] = signatures
-            scan_report['fmriprep'] = fmriprep
-            scan_report['mriqc'] = mriqc
-            scan_report['qsiprep'] = qsiprep
-            scan_report['cat12'] = cat12
-            scan_report['brainager'] = brainager
-            scan_report['gift_rest'] = gift_rest
-            scan_report['acquisition_week'] = acq_time
+            scan_report = {**scans_indicated, **processed_scans, **outputs}
 
             # remove preprocessing if scans not indicated
             if scan_report["T1 Indicated"] == "0":
@@ -580,9 +575,6 @@ def main():
                 scan_report['Cuff Leg'] = 'Right'
             if scan_report['Cuff Leg'] == '2':
                 scan_report['Cuff Leg'] = 'Left'
-
-            for col in APP_STEPS:
-                update_to_fail(scan_report, col)
 
             list_of_dict.append(scan_report)
         except Exception as e:
