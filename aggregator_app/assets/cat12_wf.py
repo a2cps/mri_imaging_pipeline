@@ -1,18 +1,15 @@
 from pathlib import Path
 
-import pandas as pd
-import numpy as np
 import nibabel as nb
-from nilearn import maskers
-from biomarkers import utils as bu
-
+import numpy as np
+import pandas as pd
 import utils
+from biomarkers import utils as bu
+from nilearn import maskers
 
 SMALLWOOD = (
     Path("/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz")
-    if Path(
-        "/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz"
-    ).exists()
+    if Path("/opt/tapis/tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz").exists()
     else Path("tpl-MNI152NLin2009cAsym_atlas-smallwood_dseg.nii.gz")
 )
 
@@ -53,18 +50,14 @@ def get_atlas_volumes(mridir: Path, atlas: Path) -> pd.DataFrame | None:
             "cluster": list(range(len(cluster_volume))),
             "volume": cluster_volume,
         }
-        out.append(
-            pd.DataFrame(volumes).set_index(["sub", "ses", "mri", "atlas"])
-        )
+        out.append(pd.DataFrame(volumes).set_index(["sub", "ses", "mri", "atlas"]))
 
     return pd.concat(out, axis=0) if len(out) else None
 
 
 def make_toplevel(outdir: Path) -> None:
     bu.mkdir_recursive(outdir)
-    smallwood_volumes = get_atlas_volumes(
-        mridir=outdir / "mri", atlas=SMALLWOOD
-    )
+    smallwood_volumes = get_atlas_volumes(mridir=outdir / "mri", atlas=SMALLWOOD)
     henn_volumes = get_atlas_volumes(mridir=outdir / "mri", atlas=HENN)
     if smallwood_volumes is not None and henn_volumes is not None:
         pd.concat([smallwood_volumes, henn_volumes]).to_csv(
