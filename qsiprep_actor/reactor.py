@@ -6,14 +6,8 @@ from pathlib import Path
 import polars as pl
 from mri_actor_utils import config, models
 
-FAILUREBOT_ADDRESS_SECRET_NAME = "FAILUREBOT_ADDRESS_SECRET_NAME"
-FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
-
-
 # within docker container
 JOB = Path("/opt/job.json")
-# on TACC
-ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
 N_SUBS_PER_NODE = 12
 
@@ -48,7 +42,7 @@ class QSIPrepReactor(models.Reactor):
                 )
             )
             .sort(
-                "visit", "acquisition_week"
+               "visit", "Surgery Week", "subject_id"
             )  # ensure V1 run before V3, and do oldest scans
         )
 
@@ -106,18 +100,15 @@ class QSIPrepReactor(models.Reactor):
                 **self.job.model_dump(exclude_unset=True, exclude_none=True)
             )
             print(submitted.uuid)
-        except Exception as e:
-            logging.exception(f"encountered while trying to submit job: {e}")
+        except Exception:
+            logging.exception("encountered while trying to submit job")
 
 
 def main() -> None:
     QSIPrepReactor(
         job_name=f"qsiprep-{datetime.datetime.today().strftime('%Y-%m-%d')}",
-        FAILUREBOT_ADDRESS_SECRET_KEY=FAILUREBOT_ADDRESS_SECRET_KEY,
-        FAILUREBOT_ADDRESS_SECRET_NAME=FAILUREBOT_ADDRESS_SECRET_NAME,
         N_SUBS_PER_NODE=N_SUBS_PER_NODE,
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
-        ILOG=Path(ILOG),
         JOB=JOB,
         MAXJOBS=MAXJOBS,
     ).submit()

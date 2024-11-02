@@ -1,5 +1,5 @@
 {
-    "appId": "qsiprep",
+    "appId": "qsiprep-app",
     "appVersion": "3.2",
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
@@ -14,10 +14,6 @@
             {
                 "arg": "--bidsdir /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 ",
                 "name": "BIDSDIR"
-            },
-            {
-                "arg": "--outdir NS_northshore/qsiprep/NStravel1 ",
-                "name": "OUTDIR"
             },
             {
                 "arg": "--nthreads 10",
