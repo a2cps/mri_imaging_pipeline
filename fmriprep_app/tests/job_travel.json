@@ -2,10 +2,10 @@
     "appId": "psadil-fmriprep_app",
     "appVersion": "0.1",
     "cmdPrefix": "ibrun -n 12",
-    "coresPerNode": 12,
+    "coresPerNode": 6,
     "maxMinutes": 360,
     "name": "fmriprep",
-    "nodeCount": 1,
+    "nodeCount": 2,
     "parameterSet": {
         "appArgs": [
             {

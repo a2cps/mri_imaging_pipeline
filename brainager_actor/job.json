@@ -1,11 +1,8 @@
 {
     "name": "test_brainager",
-    "appId": "urrutia-brainager",
+    "appId": "brainager-app",
     "appVersion": "0.3",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
-    "archiveSystemId": "secure.frontera",
-    "archiveOnAppError": false,
-    "execSystemId": "secure.ls6",
     "parameterSet": {
         "appArgs": [
             {

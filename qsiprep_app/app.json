@@ -1,5 +1,5 @@
 {
-	"containerImage": "a2cps/qsiprep_app:3.2",
+	"containerImage": "docker://a2cps/qsiprep_app:3.2",
 	"description": "Run qsiprep",
 	"enabled": true,
 	"id": "qsiprep-app",
@@ -59,12 +59,7 @@
 					"name": "Container Mounts"
 				}
 			],
-			"envVariables": [
-				{
-					"key": "FAILURE_LOG_DST",
-					"value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
-				}
-			],
+			"envVariables": [],
 			"logConfig": {
 				"stderrFilename": "${JobUUID}.err",
 				"stdoutFilename": "${JobUUID}.out"

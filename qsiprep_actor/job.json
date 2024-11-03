@@ -1,14 +1,12 @@
 {
     "appId": "qsiprep-app",
     "appVersion": "3.2",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
-    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
-    "archiveOnAppError": false,
     "maxMinutes": 360,
     "name": "qsiprep",
     "nodeCount": 1,
-    "execSystemId": "secure.ls6",
     "parameterSet": {
         "appArgs": [
             {
@@ -23,19 +21,25 @@
                 "arg": "--mem-mb 21333",
                 "name": "MEM_MB"
             }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
+            }
         ]
     },
     "subscriptions": [
         {
-            "description": "Message on Failure",
-            "enabled": true,
-            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
             "deliveryTargets": [
                 {
-                    "deliveryMethod": "WEBHOOK",
-                    "deliveryAddress": ""
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
                 }
-            ]
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
         }
     ]
 }

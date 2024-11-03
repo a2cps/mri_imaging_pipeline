@@ -1,6 +1,5 @@
 {
-  "containerImage": "a2cps/fmriprep_app:3.4",
-  "version": "3.4",
+  "containerImage": "docker://a2cps/fmriprep_app:3.4",
   "description": "Run fmriprep",
   "enabled": true,
   "id": "fmriprep-app",
@@ -60,9 +59,9 @@
           "name": "OUTPUT_SPACES"
         },
         {
-          "name": "ANAT_ONLY",
+          "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
-          "arg": null
+          "name": "ANAT_ONLY"
         }
       ],
       "archiveFilter": {
@@ -83,12 +82,7 @@
           "name": "Container Mounts"
         }
       ],
-      "envVariables": [
-        {
-          "key": "FAILURE_LOG_DST",
-          "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fmriprep/"
-        }
-      ],
+      "envVariables": [],
       "logConfig": {
         "stderrFilename": "${JobUUID}.err",
         "stdoutFilename": "${JobUUID}.out"
@@ -125,5 +119,6 @@
   "runtimeOptions": [
     "SINGULARITY_RUN"
   ],
-  "strictFileInputs": true
+  "strictFileInputs": true,
+  "version": "3.4"
 }
