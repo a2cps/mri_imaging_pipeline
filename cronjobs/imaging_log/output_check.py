@@ -22,7 +22,7 @@ APP_STEPS = [
                 "brainager",
                 "fcn",
                 "signatures",
-                "gift_rest"
+                "gift"
             ]
 
 SITE_CODES = {
@@ -561,14 +561,14 @@ def main():
                 scan_report["brainager"] = "na"
                 scan_report["fslanat"] = "na"
                 scan_report["fmriprep"] = "na"
-                scan_report["gift_rest"] = "na"
+                scan_report["gift"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
             if scan_report["fmriprep"] == "na":
                 scan_report['fcn'] = 'na'
                 scan_report['signatures'] = 'na'
-                scan_report['gift_rest'] = 'na'
+                scan_report['gift'] = 'na'
             if scan_report['DWI Indicated'] == '0':
                 scan_report['qsiprep'] = 'na'
             if scan_report['Cuff Leg'] == '1':
@@ -603,7 +603,7 @@ def main():
     'bids',
     'fslanat',
     'fmriprep',
-    'gift_rest',
+    'gift',
     'mriqc',
     'qsiprep',
     'cat12',
