@@ -1,7 +1,7 @@
 {
     "name": "aggregate_qc",
     "appId": "aggregator_qc_app",
-    "appVersion": "3.2",
+    "appVersion": "3.3",
     "parameterSet": {
         "appArgs": [
             {

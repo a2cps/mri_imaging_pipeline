@@ -1,5 +1,6 @@
 {
-  "containerImage": "docker://a2cps/mriqc_app:3.0.0",
+  "containerImage": "docker://a2cps/mriqc_app:3.0.1",
+  "version": "3.1",
   "description": "Run MRIQC",
   "enabled": true,
   "id": "mriqc-app",
@@ -99,6 +100,5 @@
   "runtimeOptions": [
     "SINGULARITY_RUN"
   ],
-  "strictFileInputs": true,
-  "version": "3.0"
+  "strictFileInputs": true
 }

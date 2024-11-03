@@ -1,6 +1,6 @@
 {
     "appId": "fslanat-app",
-    "appVersion": "0.8",
+    "appVersion": "0.9",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "maxMinutes": 240,
     "name": "fslanat",
