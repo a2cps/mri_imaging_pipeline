@@ -459,7 +459,7 @@ def main(
                 logging.info(f"Attempting to deface derivatives for {subsesd}")
                 try:
                     utils.deface_all_derivatives(
-                        subsesdir=Path(subsesd), tmp_site=tmp_site
+                        subsesdir=Path(subsesd), tmp_site=tmp_site, n_threads=n_threads
                     )
                 except Exception:
                     logging.exception(

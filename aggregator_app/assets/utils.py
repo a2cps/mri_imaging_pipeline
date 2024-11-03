@@ -98,7 +98,7 @@ def _deface(volume: Path, mask: Path, make_mask: bool = False):  # noqa: FBT002,
     nb.loadsave.save(masked, volume)
 
 
-def _deface_fslanat(subsesdir: Path):
+def _deface_fslanat(subsesdir: Path, n_threads: int = 1):
     for anatdir in subsesdir.glob("*anat"):
         for t1 in ("T1.nii.gz", "T1_biascorr.nii.gz"):
             if (f := anatdir / t1).exists():
@@ -108,7 +108,7 @@ def _deface_fslanat(subsesdir: Path):
                 _deface(f, anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz")
         for orig in ("T1_fullfov.nii.gz", "T1_orig.nii.gz"):
             if (f := anatdir / orig).exists():
-                synthstrip(f)
+                synthstrip(f, n_threads=n_threads)
 
 
 def _deface_qsiprep(subsesdir: Path, sub: str):
@@ -146,7 +146,7 @@ def _deface_fmriprep(
             _deface(t1, t1.parent / t1.name.replace("preproc_T1w", "brain_mask"))
 
 
-def deface_all_derivatives(subsesdir: Path, tmp_site: Path):
+def deface_all_derivatives(subsesdir: Path, tmp_site: Path, n_threads: int = 1):
     # NOTE: cannot assume that all standard files exist for all participants
     sub = bu.get_sub_from_sublong(subsesdir)
     ses = bu.get_ses_from_sublong(subsesdir)
@@ -169,7 +169,7 @@ def deface_all_derivatives(subsesdir: Path, tmp_site: Path):
         fmriprep_mask=fmriprep_mask,
     )
 
-    _deface_fslanat(tmp_site / "fslanat" / subsesdir)
+    _deface_fslanat(tmp_site / "fslanat" / subsesdir, n_threads=n_threads)
 
 
 def get_duplicated_parquet(root: Path) -> list[str]:
