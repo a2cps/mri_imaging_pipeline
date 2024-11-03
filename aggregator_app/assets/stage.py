@@ -2,7 +2,6 @@ import argparse
 import logging
 import os
 import shutil
-import subprocess
 import tempfile
 from pathlib import Path
 
@@ -24,8 +23,6 @@ from biomarkers.models import fslanat
 
 bu.configure_root_logger()
 
-
-SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -65,14 +62,6 @@ DERIV_IGNORE_PATTERNS = shutil.ignore_patterns(
 
 def _make_sublong(site: str, subject_id: str, visit: str) -> str:
     return f"{site}{subject_id}{visit}"
-
-
-def is_directory_ready(path: Path) -> bool:
-    return (
-        path.exists()
-        and (len(list(path.glob("*"))) > 0)
-        and (any(i.is_dir() for i in path.glob("*")))
-    )
 
 
 def is_fmriprep_aggregated(path: Path, row) -> bool:
@@ -230,13 +219,13 @@ def is_signatures_aggregated(path: Path, row) -> bool:
 
 
 def is_fcn_aggregated(path: Path, row) -> bool:
-    all_dirs=(
+    all_dirs = (
         (path / fcn / f"sub={row.subject_id}" / f"ses={row.visit}")
         for fcn in ["acompcor", "connectivity", "connectivity-confounds"]
     )
     all_ready = False
     if all([d.exists() for d in all_dirs]):
-        all_ready = _cleaned_niis_avail(path / "connectivity-cleaned", row) 
+        all_ready = _cleaned_niis_avail(path / "connectivity-cleaned", row)
         if not all_ready:
             logging.error(
                 f"sub={row.subject_id}, ses={row.visit} did not pass fcn validation"
@@ -285,24 +274,19 @@ def is_fslanat_aggregated(path: Path, row) -> bool:
     return all_ready
 
 
-def _get_deriv_tocopy(
-    outroot: Path, inroot: Path, site_code: str
-) -> dict[str, list[str]]:
-    ready: pd.DataFrame = (
-        pd.read_csv(ILOG, na_values=["", "na", "n/a"])
-        .query("site == @site_code")
-        .query(
-            """(fslanat == 1 | fslanat.isna()) \
-            and (fmriprep == 1 | fmriprep.isna()) \
-            and (mriqc == 1 | mriqc.isna()) \
-            and (cat12  == 1 | cat12.isna()) \
-            and (fcn  == 1 | fcn.isna()) \
-            and (signatures == 1 | signatures.isna()) \
-            and (qsiprep  == 1 | qsiprep.isna()) \
-            and (brainager  == 1 | brainager.isna()) \
-            and (gift_rest  == 1 | gift_rest.isna()) \
-            """
-        )
+def is_cat12_aggregated(path: Path, row) -> bool:
+    return (
+        path / "report" / f"catreport_sub-{row.subject_id}_ses-{row.visit}_T1w.pdf"
+    ).exists()
+
+
+def is_gift_aggregated(path: Path, row) -> bool:
+    return (path / f"sub-{row.subject_id}" / f"ses-{row.visit}").exists()
+
+
+def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
+    ready: pd.DataFrame = pd.read_csv(ILOG, na_values=["", "na", "n/a"]).query(
+        "site == @site_code"
     )
     # now, get list of jobs that will need to be copied over,
     # which can differ for each sub/ses (e.g., no dwi means no qsiprep)
@@ -311,61 +295,33 @@ def _get_deriv_tocopy(
     for row in ready.itertuples():
         sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
         jobs = set()
-        # cannot rely on imaging log only, because imaging log will say that a job is
-        # done even when there are no outputs
-        if row.fmriprep == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "fmriprep" / sublong / "fmriprep"
-        ):
+
+        if row.fmriprep == 1:
             if not is_fmriprep_aggregated(outroot / "fmriprep", row):
                 jobs.add("fmriprep")
-        if row.qsiprep == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "qsiprep" / sublong
-        ):
+        if row.qsiprep == 1:
             if not is_qsiprep_aggregated(outroot, row):
                 jobs.add("qsiprep")
-
-        if row.brainager == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "brainager" / sublong
-        ):
+        if row.brainager == 1:
             if not is_brainager_aggregated(outroot, row):
                 jobs.add("brainager")
-
-        if row.cat12 == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "cat12" / sublong
-        ):
-            if not (
-                outroot
-                / "cat12"
-                / "report"
-                / f"catreport_sub-{row.subject_id}_ses-{row.visit}_T1w.pdf"
-            ).exists():
+        if row.cat12 == 1:
+            if not is_cat12_aggregated(outroot / "cat12", row):
                 jobs.add("cat12")
-        if row.mriqc == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "mriqc" / sublong / "mriqc"
-        ):
+        if row.mriqc == 1:
             if not is_mriqc_aggregated(outroot / "mriqc", row=row):
                 jobs.add("mriqc")
-        if row.fslanat == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "fslanat" / sublong
-        ):
+        if row.fslanat == 1:
             if not is_fslanat_aggregated(outroot, row):
                 jobs.add("fslanat")
-        if row.fcn == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "fcn" / sublong
-        ):
+        if row.fcn == 1:
             if not is_fcn_aggregated(outroot / "fcn", row):
                 jobs.add("fcn")
-        if row.signatures == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "signatures" / sublong
-        ):
+        if row.signatures == 1:
             if not is_signatures_aggregated(outroot / "signatures", row):
                 jobs.add("signatures")
-        if row.gift_rest == 1 and is_directory_ready(
-            inroot / SITE_LONG[site_code] / "gift_rest" / sublong
-        ):
-            if not (
-                outroot / "gift_rest" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
-            ).exists():
+        if row.gift_rest == 1:
+            if not is_gift_aggregated(outroot / "gift_rest", row):
                 jobs.add("gift_rest")
         if len(to_agg := list(jobs)) >= 0:
             derivatives.update({sublong: to_agg})
@@ -434,30 +390,6 @@ def _get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
     return set(k for k, v in exists.items() if v)
 
 
-def _synthstrip(src: Path, n_threads: int = 1) -> Path:
-    with tempfile.NamedTemporaryFile(suffix=".nii.gz") as brain:
-        proc = subprocess.run(
-            [
-                "synthstrip",
-                "-i",
-                src,
-                "-o",
-                brain.name,
-                "-n",
-                str(n_threads),
-                "--model",
-                SYNTHSTRIP_MODEL,
-            ]
-        )
-        if proc.returncode > 0:
-            msg = f"Failed to synthstrip {src}"
-            raise RuntimeError(msg)
-        src.unlink()
-        shutil.copy2(brain.name, src)
-        os.chmod(src, 0o640)
-    return src
-
-
 def main(
     inroot: Path,
     outroot: Path,
@@ -493,7 +425,7 @@ def main(
                 logging.info(f"Defacing anatomicals for {subsesd}")
                 for t1w in (out_job_dir / subsesd).rglob("*T1w.nii.gz"):
                     try:
-                        _synthstrip(t1w, n_threads=n_threads)
+                        utils.synthstrip(t1w, n_threads=n_threads)
                     except Exception:
                         logging.exception(f"Failed to deface {t1w}")
                         failed_skullstrip.add(subsesd)
@@ -506,9 +438,7 @@ def main(
                 bids_wf.copy(inroot=tmp_site, outdir=outroot / "bids")
 
             # grab only sub/ses that do not already exist in output
-            subses_tocopy = _get_deriv_tocopy(
-                outroot=outroot, inroot=inroot, site_code=site_code
-            )
+            subses_tocopy = _get_deriv_tocopy(outroot=outroot, site_code=site_code)
 
             # then, get all available derivatives
             subses_toremove: set[str] = set()

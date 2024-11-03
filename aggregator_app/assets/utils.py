@@ -1,6 +1,8 @@
 import logging
 import os
 import shutil
+import subprocess
+import tempfile
 from pathlib import Path
 
 import nibabel as nb
@@ -9,6 +11,31 @@ from biomarkers import utils as bu
 from nilearn import masking
 
 FSOUTPUTS = ("orig.mgz", "orig_nu.mgz", "T1.mgz")
+SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
+
+
+def synthstrip(src: Path, n_threads: int = 1) -> Path:
+    with tempfile.NamedTemporaryFile(suffix=".nii.gz") as brain:
+        proc = subprocess.run(
+            [
+                "synthstrip",
+                "-i",
+                src,
+                "-o",
+                brain.name,
+                "-n",
+                str(n_threads),
+                "--model",
+                SYNTHSTRIP_MODEL,
+            ]
+        )
+        if proc.returncode > 0:
+            msg = f"Failed to synthstrip {src}"
+            raise RuntimeError(msg)
+        src.unlink()
+        shutil.copy2(brain.name, src)
+        os.chmod(src, 0o640)
+    return src
 
 
 def _copy_overwrite(src: str | Path, dst: str | Path) -> str:
@@ -57,19 +84,21 @@ def _symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
     return dst
 
 
-def _deface(volume: Path, mask: Path, make_mask: bool = False):  # type: ignore  # noqa: FBT002, FBT001
+def _deface(volume: Path, mask: Path, make_mask: bool = False):  # noqa: FBT002, FBT001
     if make_mask:
-        _mask = nb.load(mask)  # type: ignore
+        _mask = nb.nifti1.load(mask)
         mask_data = np.asarray(_mask.get_fdata() > 0, dtype=np.uint8)
-        mask: nb.Nifti1Image = nb.Nifti1Image(mask_data, affine=_mask.affine)
+        mask_to_use = nb.nifti1.Nifti1Image(mask_data, affine=_mask.affine)
+    else:
+        mask_to_use = mask
 
-    masked_data = masking.apply_mask(volume, mask)
-    masked: nb.Nifti1Image = masking.unmask(masked_data, mask)  # type: ignore
+    masked_data = masking.apply_mask(volume, mask_to_use)
+    masked: nb.Nifti1Image = masking.unmask(masked_data, mask_to_use)  # type: ignore
     volume.unlink()
-    nb.save(masked, volume)  # type: ignore
+    nb.loadsave.save(masked, volume)
 
 
-def _deface_fslanat(subsesdir: Path, fmriprep_mask: Path):
+def _deface_fslanat(subsesdir: Path):
     for anatdir in subsesdir.glob("*anat"):
         for t1 in ("T1.nii.gz", "T1_biascorr.nii.gz"):
             if (f := anatdir / t1).exists():
@@ -79,7 +108,7 @@ def _deface_fslanat(subsesdir: Path, fmriprep_mask: Path):
                 _deface(f, anatdir / "MNI152_T1_2mm_brain_mask_dil1.nii.gz")
         for orig in ("T1_fullfov.nii.gz", "T1_orig.nii.gz"):
             if (f := anatdir / orig).exists():
-                _deface(f, fmriprep_mask)
+                synthstrip(f)
 
 
 def _deface_qsiprep(subsesdir: Path, sub: str):
@@ -140,7 +169,7 @@ def deface_all_derivatives(subsesdir: Path, tmp_site: Path):
         fmriprep_mask=fmriprep_mask,
     )
 
-    _deface_fslanat(tmp_site / "fslanat" / subsesdir, fmriprep_mask=fmriprep_mask)
+    _deface_fslanat(tmp_site / "fslanat" / subsesdir)
 
 
 def get_duplicated_parquet(root: Path) -> list[str]:
