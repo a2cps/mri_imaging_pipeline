@@ -26,9 +26,6 @@
             ]
         }
     ],
-    "hiddenOptions": [
-        "MEM"
-    ],
     "maxMinutes": 60,
     "subscriptions": [
         {
