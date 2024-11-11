@@ -42,6 +42,7 @@ class GIFTReactor(models.Reactor):
                     pl.col("sitelong"),
                     pl.lit("/fmriprep/"),
                     pl.col("sublong"),
+                    pl.lit("/fmriprep"),
                 )
             )
             .sort(

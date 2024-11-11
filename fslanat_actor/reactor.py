@@ -105,25 +105,25 @@ class FSLAnatReactor(models.Reactor):
                 sitelong=pl.col("site").replace(config.SITE_LONG),
             )
             .with_columns(
-                INPUT_DIR=pl.concat_str(
+                INPUT_DIRS=pl.concat_str(
                     pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
                     pl.col("sitelong"),
                     pl.lit("/bids/"),
                     pl.col("sublong"),
                 ),
                 PRECROP=pl.when(pl.col("sublong").is_in(PRECROP_SUBS))
-                .then("True")
-                .otherwise("False"),
+                .then(pl.lit("True"))
+                .otherwise(pl.lit("False")),
                 MASK_HIGH_VOXELS=pl.when(pl.col("sublong").is_in(MASK_HIGH_VOXELS_SUBS))
-                .then("True")
-                .otherwise("False"),
+                .then(pl.lit("True"))
+                .otherwise(pl.lit("False")),
             )
             .sort(
                 "visit", "Surgery Week", "subject_id"
             )  # ensure V1 run before V3, and do oldest scans
         )
         runlist: dict[str, list[str]] = {
-            "INPUT_DIR": rundef.select(pl.col("INPUT_DIR")).to_series().to_list(),
+            "INPUT_DIRS": rundef.select(pl.col("INPUT_DIRS")).to_series().to_list(),
             "PRECROP": rundef.select(pl.col("PRECROP")).to_series().to_list(),
             "MASK_HIGH_VOXELS": rundef.select(pl.col("MASK_HIGH_VOXELS"))
             .to_series()

@@ -5,7 +5,6 @@
   "id": "fslanat",
   "jobAttributes": {
     "archiveOnAppError": false,
-    "archiveSystemId": "secure.frontera",
     "cmdPrefix": null,
     "description": null,
     "dynamicExecSystem": false,
@@ -30,7 +29,7 @@
         },
         {
           "arg": null,
-          "inputMode": "REQUIRED",
+          "inputMode": "INCLUDE_ON_DEMAND",
           "name": "OUTPUT_DIRS"
         },
         {

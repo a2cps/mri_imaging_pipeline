@@ -40,7 +40,7 @@ class AggregatorQCReactor(models.Reactor):
 
 def main() -> None:
     AggregatorQCReactor(
-        job_name=f"aggregate-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        job_name=f"aggregate-qc-{datetime.datetime.today().strftime('%Y-%m-%d')}",
         N_SUBS_PER_NODE=9999,
         N_SEC_TO_COPY_ONE_SUB=1,
         JOB=JOB,

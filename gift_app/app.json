@@ -5,7 +5,6 @@
     "id": "gift-app",
     "jobAttributes": {
         "archiveOnAppError": false,
-        "archiveSystemId": "secure.frontera",
         "cmdPrefix": "ibrun -n 1",
         "description": null,
         "dynamicExecSystem": false,

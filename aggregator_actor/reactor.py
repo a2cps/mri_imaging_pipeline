@@ -26,6 +26,18 @@ class AggregatorReactor(models.Reactor):
         else:
             self.set_subscription_url(url=self.failurebot_url)
 
+        if max_subs := self.context.message_dict.get("MAXSUBS", False):
+            self.set_app_arg(
+                name="MAXSUBS",
+                value=f"--max-subs {max_subs}",
+            )
+
+        if outroot := self.context.message_dict.get("OUTROOT", False):
+            self.set_app_arg(
+                name="OUTROOT",
+                value=outroot,
+            )
+
         print(self.job.model_dump_json(indent=4, exclude_unset=True, exclude_none=True))
 
         try:

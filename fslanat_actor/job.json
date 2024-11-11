@@ -1,7 +1,8 @@
 {
-    "appId": "fslanat-app",
+    "appId": "fslanat_app",
     "appVersion": "0.9",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.frontera",
     "maxMinutes": 240,
     "name": "fslanat",
     "parameterSet": {
@@ -11,18 +12,8 @@
                 "name": "INPUT_DIRS"
             },
             {
-                "arg": "--output-dir NS_northsthore/fslanat/travel1 NS_northsthore/fslanat/travel2",
-                "name": "OUTPUT_DIRS"
-            },
-            {
                 "arg": "--n-workers 100",
                 "name": "N_WORKERS"
-            }
-        ],
-        "envVariables": [
-            {
-                "key": "FAILURE_LOG_DST",
-                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fslanat/"
             }
         ]
     },
