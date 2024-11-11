@@ -2,7 +2,7 @@
 	"containerImage": "docker://a2cps/qsiprep_app:3.2",
 	"description": "Run qsiprep",
 	"enabled": true,
-	"id": "qsiprep-app",
+	"id": "qsiprep",
 	"jobAttributes": {
 		"archiveOnAppError": false,
 		"cmdPrefix": "ibrun -n 1",
