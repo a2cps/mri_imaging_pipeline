@@ -23,7 +23,7 @@
         "name": "N_THREADS"
       },
       {
-        "arg": "--mem-mb 16000",
+        "arg": "--mem-mb 12000",
         "name": "MEM_MB"
       }
     ],
