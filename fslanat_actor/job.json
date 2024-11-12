@@ -1,25 +1,19 @@
 {
-    "name": "fslanat",
     "appId": "fslanat",
     "appVersion": "0.9",
-    "execSystemId": "secure.ls6",
-    "archiveSystemId": "secure.frontera",
-    "execSystemLogicalQueue": "corralextra",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
-    "archiveOnAppError": false,
+    "archiveSystemId": "secure.frontera",
+    "maxMinutes": 240,
+    "name": "fslanat",
     "parameterSet": {
         "appArgs": [
             {
-                "name": "INPUT_DIRS",
-                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2"
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2",
+                "name": "INPUT_DIRS"
             },
             {
-                "name": "OUTPUT_DIRS",
-                "arg": "--output-dir NS_northsthore/fslanat/travel1 NS_northsthore/fslanat/travel2"
-            },
-            {
-                "name": "N_WORKERS",
-                "arg": "--n-workers 100"
+                "arg": "--n-workers 100",
+                "name": "N_WORKERS"
             }
         ],
         "envVariables": [
@@ -29,18 +23,17 @@
             }
         ]
     },
-    "maxMinutes": 240,
     "subscriptions": [
         {
-            "description": "Message on Failure",
-            "enabled": true,
-            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
             "deliveryTargets": [
                 {
-                    "deliveryMethod": "WEBHOOK",
-                    "deliveryAddress": ""
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
                 }
-            ]
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
         }
     ]
 }

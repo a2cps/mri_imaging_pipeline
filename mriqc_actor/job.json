@@ -1,12 +1,13 @@
 {
   "appId": "mriqc-app",
   "appVersion": "3.1",
+  "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+  "archiveSystemId": "secure.frontera",
   "cmdPrefix": "ibrun -n 12",
   "coresPerNode": 16,
   "maxMinutes": 120,
   "name": "mriqc",
   "nodeCount": 1,
-  "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
   "parameterSet": {
     "appArgs": [
       {
@@ -27,10 +28,6 @@
       }
     ],
     "envVariables": [
-      {
-        "key": "MIN_ARCHIVE_DURATION",
-        "value": "60"
-      },
       {
         "key": "FAILURE_LOG_DST",
         "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/mriqc/"

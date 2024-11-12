@@ -63,12 +63,7 @@
           "name": "Container Mounts"
         }
       ],
-      "envVariables": [
-        {
-          "key": "FAILURE_LOG_DST",
-          "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/mriqc/"
-        }
-      ],
+      "envVariables": [],
       "logConfig": {
         "stderrFilename": "${JobUUID}.err",
         "stdoutFilename": "${JobUUID}.out"

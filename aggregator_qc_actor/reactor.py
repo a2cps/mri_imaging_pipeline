@@ -1,102 +1,51 @@
-import copy
-import dataclasses
+import datetime
 import json
 import logging
-import os
 from pathlib import Path
-from typing import Any
 
-from tapipy import actors, errors, util
-from tapipy.tapis import Tapis, TapisResult
-
-# TODO
-FAILUREBOT_ADDRESS_SECRET_NAME = "FAILUREBOT_ADDRESS_SECRET_NAME"
-FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
-
+from mri_actor_utils import models
 
 # within docker container
 JOB = Path("/opt/job.json")
 
 
-@dataclasses.dataclass
-class Context(util.AttrDict):
-    raw_message: str
-    content_type: str
-    actor_repo: str
-    actor_name: str
-    actor_id: str
-    actor_dbid: str
-    execution_id: str
-    worker_id: str
-    username: str
-    state: str
-    raw_message_parse_log: str
-    message_dict: dict[str, Any]
+class AggregatorQCReactor(models.Reactor):
+    # need this concrete method
+    def get_runlist(self) -> None:
+        pass
 
+    def submit(self) -> None:
+        print(json.dumps(self.context, indent=4))
 
-def actors_get_client() -> Tapis:
-    """
-    Returns a pre-authenticated Tapis client using the abaco environment variables.
-    """
-    # if we have an access token, use that:
-    if token := os.environ.get("_abaco_access_token"):
-        tp = Tapis(
-            base_url=os.environ.get("_abaco_api_server", default="").strip(
-                "/"
-            ),
-            access_token=token,
-        )  # type: ignore
-    elif server := os.environ.get("_abaco_api_server"):
-        # otherwise, create a client with a fake JWT. this will only work if the actor
-        # supplies its own token to itself via a config object or the message, etc.
-        tp = Tapis(base_url=server.strip("/"), jwt="123")  # type: ignore
-    else:
-        raise errors.BaseTapyException(
-            "Unable to instantiate a Tapis client: no token found."
-        )
-    return tp
+        if max_minutes := self.context.message_dict.get("maxMinutes"):
+            self.job.maxMinutes = max_minutes
 
+        self.job.name = self.job_name
 
-def get_failurebot_url(client) -> str:
-    token: TapisResult = client.sk.readSecret(  # type: ignore
-        secretType="user",
-        secretName=FAILUREBOT_ADDRESS_SECRET_NAME,
-        tenant=os.environ.get("_abaco_api_server").split('.')[0].split("/")[-1],
-        user=client.actors.get_actor(actor_id=os.environ.get("_abaco_actor_id")).owner,
-    )
-    url: str | None = token.get("secretMap").get(FAILUREBOT_ADDRESS_SECRET_KEY)  # type: ignore
-    if url is None:
-        msg = f"unable to find {FAILUREBOT_ADDRESS_SECRET_KEY} in secretMap"
-        raise AssertionError(msg)
+        if self.context.message_dict.get("SKIP_FAILUREBOT", False):
+            self.job.subscriptions = None
+        else:
+            self.set_subscription_url(url=self.failurebot_url)
 
-    return url
+        print(self.job.model_dump_json(indent=4, exclude_unset=True, exclude_none=True))
 
-
-def set_subscription_url(job: dict, arg: str) -> dict:
-    job2 = copy.deepcopy(job)
-    job2.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
-        {"deliveryAddress": arg}
-    )
-    return job2
+        try:
+            submitted = self.client.jobs.submitJob(  # type: ignore
+                **self.job.model_dump(exclude_unset=True, exclude_none=True)
+            )
+            print(submitted.uuid)
+        except Exception:
+            logging.exception("encountered while trying to submit job")
 
 
 def main() -> None:
-    context: Context = actors.get_context()  # type: ignore
-    print(json.dumps(context, indent=4))
-    client = actors_get_client()
-
-    with open(JOB, "r") as f:
-        job = json.load(f)
-
-    failurebot_url = get_failurebot_url(client=client)
-    job = set_subscription_url(job, arg=failurebot_url)
-
-    print(json.dumps(job, indent=4))
-
-    try:
-        client.jobs.submitJob(**job)  # type: ignore
-    except Exception as e:
-        logging.error(f"encountered while trying to submit job: {e}")
+    AggregatorQCReactor(
+        job_name=f"aggregate-qc-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        N_SUBS_PER_NODE=9999,
+        N_SEC_TO_COPY_ONE_SUB=1,
+        JOB=JOB,
+        MAXJOBS=9999,
+    ).submit()
 
 
 if __name__ == "__main__":

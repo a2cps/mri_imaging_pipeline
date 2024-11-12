@@ -1,9 +1,9 @@
 import argparse
 import asyncio
+import logging
 import tempfile
 import typing
 from pathlib import Path
-import logging
 
 from biomarkers import utils
 from biomarkers.entrypoints import fslanat
@@ -36,7 +36,7 @@ def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dirs", nargs="+", type=Path, required=True)
-    parser.add_argument("--output-dirs", nargs="+", type=Path, required=True)
+    parser.add_argument("--output-dirs", nargs="+", type=Path)
     parser.add_argument("--n-workers", type=int, default=1)
     parser.add_argument("--precrop", nargs="*", choices=("True", "False"))
     parser.add_argument(
@@ -44,6 +44,22 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    if args.output_dirs is None:
+        output_dirs = []
+        for input_dir in args.input_dirs:
+            output_dirs.append(
+                Path(
+                    str(
+                        Path(input_dir).relative_to(
+                            "/corral-secure/projects/A2CPS/products/mris"
+                        )
+                    ).replace("/bids/", "/fslanat/")
+                )
+            )
+    else:
+        output_dirs = args.output_dirs
+
     precrop = utils.compare_arg_lengths(
         args.precrop, args.input_dirs, ("precrop", "input_dirs")
     )
@@ -55,7 +71,7 @@ if __name__ == "__main__":
 
     main(
         input_dirs=args.input_dirs,
-        output_dirs=args.output_dirs,
+        output_dirs=output_dirs,
         n_workers=args.n_workers,
         precrop=precrop,
         mask_high_voxels=mask_high_voxels,

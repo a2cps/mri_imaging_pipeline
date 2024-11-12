@@ -1,18 +1,13 @@
 {
     "appId": "qsiprep",
     "appVersion": "3.2",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
+    "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
-    "archiveSystemId": "secure.ls6",
-    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
-    "archiveOnAppError": false,
-    "hiddenOptions": [
-        "MEM"
-    ],
     "maxMinutes": 360,
     "name": "qsiprep",
     "nodeCount": 1,
-    "execSystemId": "secure.ls6",
     "parameterSet": {
         "appArgs": [
             {
@@ -20,34 +15,32 @@
                 "name": "BIDSDIR"
             },
             {
-                "arg": "--outdir NS_northshore/qsiprep/NStravel1 ",
-                "name": "OUTDIR"
-            },
-            {
-                "arg": "--nthreads 50",
+                "arg": "--nthreads 10",
                 "name": "NTHREADS"
             },
             {
-                "arg": "--mem-mb 96000",
+                "arg": "--mem-mb 21333",
                 "name": "MEM_MB"
             }
         ],
-        "logConfig": {
-            "stderrFilename": "${JobUUID}.err",
-            "stdoutFilename": "${JobUUID}.out"
-        }
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
+            }
+        ]
     },
     "subscriptions": [
         {
-            "description": "Message on Failure",
-            "enabled": true,
-            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
             "deliveryTargets": [
                 {
-                    "deliveryMethod": "WEBHOOK",
-                    "deliveryAddress": ""
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
                 }
-            ]
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
         }
     ]
 }

@@ -1,0 +1,36 @@
+{
+  "name": "aggregate_qc",
+  "appId": "psadil-aggregator_qc_app",
+  "appVersion": "3.2",
+  "execSystemId": "secure.ls6",
+  "execSystemLogicalQueue": "corralextra-dev",
+  "parameterSet": {
+    "appArgs": [
+      {
+        "name": "CACHED_CLIENT",
+        "arg": "--cached-client $HOME/.tapis3/client.json"
+      },
+      {
+        "name": "SECRET_NAME",
+        "arg": "--secret-name psadil-confluence-token"
+      },
+      {
+        "name": "CONFLUENCE_USERNAME",
+        "arg": "--confluence-username psadil1@jh.edu"
+      },
+      {
+        "name": "IMAGING_LOG",
+        "arg": "--imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
+      },
+      {
+        "name": "GROUP_T1W",
+        "arg": "--t1w_fname /corral-secure/projects/A2CPS/shared/psadil/jobs/863c18ad-4b4f-4378-88f8-a9ca4b3376af-007/all_sites/mriqc/group_T1w.tsv"
+      },
+      {
+        "name": "GROUP_BOLD",
+        "arg": "--bold_fname /corral-secure/projects/A2CPS/shared/psadil/jobs/863c18ad-4b4f-4378-88f8-a9ca4b3376af-007/all_sites/mriqc/group_bold.tsv"
+      }
+    ]
+  },
+  "maxMinutes": 60
+}

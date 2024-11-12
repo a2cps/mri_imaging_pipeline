@@ -1,42 +1,24 @@
-import copy
-import dataclasses
 import datetime
-import io
 import json
 import logging
-import os
 from pathlib import Path
-from typing import Any, Sequence
 
-import ibis
-import pandas as pd
-from ibis import _
-from ibis.expr.types.relations import Table
-from tapipy import actors, errors, util
-from tapipy.tapis import Tapis, TapisResult
-
-FAILUREBOT_ADDRESS_SECRET_NAME = "FAILUREBOT_ADDRESS_SECRET_NAME"
-FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
-
+import polars as pl
+from mri_actor_utils import config, models
 
 # within docker container
 JOB = Path("/opt/job.json")
-# on TACC
-# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-ILOG = "corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
-# can be overriden by incoming message
-_MAXJOBS = 20
+N_SUBS_PER_NODE = 20
 
-SITE_LONG = {
-    "NS": "NS_northshore",
-    "UI": "UI_uic",
-    "UC": "UC_uchicago",
-    "UM": "UM_umichigan",
-    "SH": "SH_spectrum_health",
-    "WS": "WS_wayne_state",
-    "RU": "RU_rush",
-}
+# for ls
+MAX_NODES_PER_JOB = 1
+
+# can change by incoming message by specifying "MAXJOBS"
+MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
+
+N_SEC_TO_COPY_ONE_SUB = 180
+
 
 # participants that cannot go through fslanat without
 # having images cropped manually

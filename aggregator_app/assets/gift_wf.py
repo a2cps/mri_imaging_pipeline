@@ -8,7 +8,7 @@ from biomarkers import utils as bu
 def copy(inroot: Path, outdir: Path) -> None:
     bu.mkdir_recursive(outdir)
 
-    for subsesd in (inroot / "gift_rest").glob("*"):
+    for subsesd in (inroot / "gift").glob("*"):
         utils.mergetree_overwrite(
             subsesd / "gift",
             outdir,

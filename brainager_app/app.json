@@ -1,51 +1,59 @@
 {
-    "id": "urrutia-brainager",
-    "version": "0.3",
-    "description": "Run brainager",
-    "owner": "${apiUserId}",
-    "enabled": true,
-    "runtime": "SINGULARITY",
-    "runtimeVersion": null,
-    "runtimeOptions": [
-        "SINGULARITY_RUN"
-    ],
     "containerImage": "docker://a2cps/brainager_app:0.3",
-    "jobType": "BATCH",
-    "maxJobs": -1,
-    "maxJobsPerUser": -1,
-    "strictFileInputs": true,
+    "description": "Run brainager",
+    "enabled": true,
+    "id": "brainager-app",
     "jobAttributes": {
+        "archiveOnAppError": false,
+        "cmdPrefix": "ibrun -n 1",
         "description": null,
         "dynamicExecSystem": false,
         "execSystemConstraints": null,
-        "execSystemId": "secure.frontera",
         "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemId": "secure.ls6",
         "execSystemInputDir": "${JobWorkingDir}",
-        "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
-        "archiveOnAppError": false,
-        "cmdPrefix": "ibrun -n 1",
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "fileInputArrays": [],
+        "fileInputs": [],
+        "maxMinutes": 60,
+        "nodeCount": 1,
         "parameterSet": {
             "appArgs": [
                 {
-                    "name": "INPUT_DIRS",
+                    "arg": null,
                     "inputMode": "REQUIRED",
-                    "arg": null
+                    "name": "INPUT_DIRS"
                 },
                 {
-                    "name": "OUTPUT_DIRS",
+                    "arg": null,
                     "inputMode": "INCLUDE_ON_DEMAND",
-                    "arg": null
+                    "name": "OUTPUT_DIRS"
                 }
             ],
+            "archiveFilter": {
+                "excludes": [
+                    "tapisjob.sh",
+                    "${JobUUID}.out",
+                    "${JobUUID}.err",
+                    "tapisjob.env"
+                ],
+                "includeLaunchFiles": false,
+                "includes": []
+            },
             "containerArgs": [
                 {
-                    "name": "Container Mounts",
+                    "arg": "--bind /corral-secure/projects/A2CPS",
                     "description": "Mount for TAP functions",
                     "inputMode": "FIXED",
-                    "arg": "--bind /corral-secure/projects/A2CPS"
+                    "name": "Container Mounts"
                 }
             ],
+            "envVariables": [],
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
+            },
             "schedulerOptions": [
                 {
                     "arg": "--tapis-profile ls6-mpi",
@@ -54,39 +62,31 @@
                     "name": "TACC Scheduler Profile"
                 },
                 {
-                    "name": "TAP Session Substring",
+                    "arg": "--job-name ${JobName}",
                     "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
                     "inputMode": "FIXED",
-                    "arg": "--job-name ${JobName}"
+                    "name": "TAP Session Substring"
                 },
                 {
-                    "name": "TACC Allocation",
+                    "arg": "-A A2CPS",
                     "description": "The TACC allocation associated with this job execution",
                     "inputMode": "FIXED",
-                    "arg": "-A A2CPS"
+                    "name": "TACC Allocation"
                 }
-            ],
-            "envVariables": [],
-            "archiveFilter": {
-                "includes": [],
-                "excludes": [
-                    "tapisjob.sh",
-                    "${JobUUID}.out",
-                    "${JobUUID}.err",
-                    "tapisjob.env"
-                ],
-                "includeLaunchFiles": false
-            },
-            "logConfig": {
-                "stdoutFilename": "${JobUUID}.out",
-                "stderrFilename": "${JobUUID}.err"
-            }
+            ]
         },
-        "fileInputs": [],
-        "fileInputArrays": [],
-        "nodeCount": 1,
-        "maxMinutes": 60,
         "subscriptions": [],
         "tags": []
-    }
+    },
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "owner": "${apiUserId}",
+    "runtime": "SINGULARITY",
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "runtimeVersion": null,
+    "strictFileInputs": true,
+    "version": "0.3"
 }
