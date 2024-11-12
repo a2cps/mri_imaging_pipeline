@@ -34,7 +34,7 @@ class GIFTReactor(models.Reactor):
                     "2nd Resting State Received": "REST2",
                 }
             )
-            .filter(pl.col("gift_rest") == 0)
+            .filter(pl.col("gift") == 0)
             .filter(pl.col("fmriprep") == 1)
             .filter(
                 (pl.col("CUFF1") == 1)

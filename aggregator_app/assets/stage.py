@@ -320,9 +320,9 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
         if row.signatures == 1:
             if not is_signatures_aggregated(outroot / "signatures", row):
                 jobs.add("signatures")
-        if row.gift_rest == 1:
-            if not is_gift_aggregated(outroot / "gift_rest", row):
-                jobs.add("gift_rest")
+        if row.gift == 1:
+            if not is_gift_aggregated(outroot / "gift", row):
+                jobs.add("gift")
         if len(to_agg := list(jobs)) >= 0:
             derivatives.update({sublong: to_agg})
 
@@ -486,7 +486,7 @@ def main(
                 fslanat_wf.copy(inroot=tmp_site, outdir=outroot / "fslanat")
                 fcn_wf.copy(inroot=tmp_site, outdir=outroot / "fcn")
                 signatures_wf.copy(inroot=tmp_site, outdir=outroot / "signatures")
-                gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift_rest")
+                gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift")
             if tmp_site.exists():
                 logging.info(f"Removing temporary directory for {site_long}")
                 shutil.rmtree(tmp_site)

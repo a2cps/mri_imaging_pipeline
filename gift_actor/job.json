@@ -5,7 +5,7 @@
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 1 apptainer run docker://psadil/gift_app:latest --help && ibrun -n 10",
     "coresPerNode": 20,
-    "maxMinutes": 180,
+    "maxMinutes": 360,
     "name": "gift",
     "nodeCount": 1,
     "parameterSet": {
