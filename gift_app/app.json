@@ -3,6 +3,7 @@
     "description": "Run gift",
     "enabled": true,
     "id": "gift-app",
+    "version": "0.1",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": "ibrun -n 1",
@@ -95,6 +96,5 @@
         "SINGULARITY_RUN"
     ],
     "runtimeVersion": "0.1",
-    "strictFileInputs": true,
-    "version": "0.1"
+    "strictFileInputs": true
 }
