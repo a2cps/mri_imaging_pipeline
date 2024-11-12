@@ -11,8 +11,8 @@
     "parameterSet": {
         "appArgs": [
             {
-                "arg": "--bidsdir /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 ",
-                "name": "BIDSDIR"
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 ",
+                "name": "INPUT_DIRS"
             },
             {
                 "arg": "--nthreads 10",
