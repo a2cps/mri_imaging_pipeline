@@ -575,6 +575,13 @@ def main():
                 scan_report['Cuff Leg'] = 'Right'
             if scan_report['Cuff Leg'] == '2':
                 scan_report['Cuff Leg'] = 'Left'
+            if (
+                scan_report['fMRI Individualized Pressure Indicated'] == '0' 
+                and scan_report['fMRI Standard Pressure Indicated'] == '0'
+                and scan_report['1st Resting State Indicated'] == '0'
+                and scan_report['2nd Resting State Indicated'] == '0'
+                ):
+                scan_report['gift'] = 'na'
 
             list_of_dict.append(scan_report)
         except Exception as e:
