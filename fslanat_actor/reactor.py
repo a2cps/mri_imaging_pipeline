@@ -102,6 +102,7 @@ PRECROP_SUBS = {
 }
 
 MASK_HIGH_VOXELS_SUBS = {
+    "NS10932V3",
     "UI10390V1",
     "UI10459V1",
     "UI10485V3",
@@ -134,9 +135,7 @@ def actors_get_client() -> Tapis:
     # if we have an access token, use that:
     if token := os.environ.get("_abaco_access_token"):
         tp = Tapis(
-            base_url=os.environ.get("_abaco_api_server", default="").strip(
-                "/"
-            ),
+            base_url=os.environ.get("_abaco_api_server", default="").strip("/"),
             access_token=token,
         )  # type: ignore
     elif server := os.environ.get("_abaco_api_server"):
@@ -163,9 +162,7 @@ def get_ilog(client: Tapis) -> Table:
     )
 
 
-def get_runlist(
-    ilog: Table, maxjobs: int | None = _MAXJOBS
-) -> list[tuple[str, str]]:
+def get_runlist(ilog: Table, maxjobs: int | None = _MAXJOBS) -> list[tuple[str, str]]:
     rundef: pd.DataFrame = (
         ilog.select("site", "subject_id", "visit", "bids", "fslanat")
         .filter(_.fslanat == 0)  # type: ignore
@@ -184,8 +181,7 @@ def get_runlist(
         .execute()
     )
     runlist = [
-        (x, y)
-        for x, y in zip(rundef.ANATS.to_list(), rundef.OUTPUT_DIR.to_list())
+        (x, y) for x, y in zip(rundef.ANATS.to_list(), rundef.OUTPUT_DIR.to_list())
     ]
     return runlist[:maxjobs]
 
@@ -230,15 +226,12 @@ def set_precrop(job: dict, outputdirs: Sequence[str]) -> dict:
 
 def set_mask_high_voxels(job: dict, outputdirs: Sequence[str]) -> dict:
     """Determine whether participants will have high intensity voxels masked"""
-    mask_high_voxels = [
-        outputdir in MASK_HIGH_VOXELS_SUBS for outputdir in outputdirs
-    ]
+    mask_high_voxels = [outputdir in MASK_HIGH_VOXELS_SUBS for outputdir in outputdirs]
     job2 = copy.deepcopy(job)
     job2.get("parameterSet").get("appArgs").append(  # type: ignore
         {
             "name": "MASK_HIGH_VOXELS",
-            "arg": "--mask-high-voxels "
-            + " ".join(str(x) for x in mask_high_voxels),
+            "arg": "--mask-high-voxels " + " ".join(str(x) for x in mask_high_voxels),
         }
     )
     return job2
@@ -251,9 +244,7 @@ def get_failurebot_url(client) -> str:
         tenant=os.environ.get("_abaco_api_server")
         .split(".")[0]  # type: ignore
         .split("/")[-1],
-        user=client.actors.get_actor(
-            actor_id=os.environ.get("_abaco_actor_id")
-        ).owner,
+        user=client.actors.get_actor(actor_id=os.environ.get("_abaco_actor_id")).owner,
     )
     url: str | None = token.get("secretMap").get(FAILUREBOT_ADDRESS_SECRET_KEY)  # type: ignore
     if url is None:
@@ -289,9 +280,7 @@ def main() -> None:
         job = json.load(f)
 
     job = set_inputdirs(job, "--input-dirs " + " ".join(x[0] for x in runlist))
-    job = set_outputdirs(
-        job, "--output-dirs " + " ".join(x[1] for x in runlist)
-    )
+    job = set_outputdirs(job, "--output-dirs " + " ".join(x[1] for x in runlist))
     job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
     job = set_name(job)
     job = set_precrop(job, [Path(x[1]).name for x in runlist])
