@@ -26,10 +26,22 @@ N_SEC_TO_COPY_ONE_SUB = 180
 class GIFTReactor(models.Reactor):
     def get_runlist(self) -> list[str]:
         rundef = (
-            self.ilog
-            # exclude rows that were already processed
+            self.ilog.rename(
+                {
+                    "fMRI Individualized Pressure Received": "CUFF1",
+                    "fMRI Standard Pressure Received": "CUFF2",
+                    "1st Resting State Received": "REST1",
+                    "2nd Resting State Received": "REST2",
+                }
+            )
             .filter(pl.col("gift_rest") == 0)
             .filter(pl.col("fmriprep") == 1)
+            .filter(
+                (pl.col("CUFF1") == 1)
+                | (pl.col("CUFF2") == 1)
+                | (pl.col("REST1") == 1)
+                | (pl.col("REST2") == 1)
+            )
             .with_columns(
                 sublong=pl.concat_str(
                     pl.col("site"), pl.col("subject_id"), pl.col("visit")
