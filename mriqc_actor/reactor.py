@@ -22,7 +22,7 @@ ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.
 N_SUBS_PER_NODE = 16
 
 # for ls
-MAX_NODES_PER_JOB = 12
+MAX_NODES_PER_JOB = 64
 
 # can change by incoming message by specifying "MAXJOBS"
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB

@@ -3,7 +3,7 @@
     "appVersion": "3.5",
     "cmdPrefix": "ibrun -n 12",
     "coresPerNode": 6,
-    "maxMinutes": 1200,
+    "maxMinutes": 2800,
     "name": "fmriprep",
     "nodeCount": 2,
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
