@@ -72,8 +72,8 @@ if __name__ == "__main__":
                         Path(input_dir).relative_to(
                             "/corral-secure/projects/A2CPS/products/mris"
                         )
-                    ).replace("fmriprep", "gift")
-                )
+                    ).replace("/fmriprep/", "gift")
+                ).parent
             )
     else:
         output_dirs = args.output_dirs
