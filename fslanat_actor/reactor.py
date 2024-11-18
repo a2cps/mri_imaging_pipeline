@@ -94,189 +94,121 @@ MASK_HIGH_VOXELS_SUBS = {
 }
 
 
-@dataclasses.dataclass
-class Context(util.AttrDict):
-    raw_message: str
-    content_type: str
-    actor_repo: str
-    actor_name: str
-    actor_id: str
-    actor_dbid: str
-    execution_id: str
-    worker_id: str
-    username: str
-    state: str
-    raw_message_parse_log: str
-    message_dict: dict[str, Any]
-
-
-def actors_get_client() -> Tapis:
-    """
-    Returns a pre-authenticated Tapis client using the abaco environment variables.
-    """
-    # if we have an access token, use that:
-    if token := os.environ.get("_abaco_access_token"):
-        tp = Tapis(
-            base_url=os.environ.get("_abaco_api_server", default="").strip("/"),
-            access_token=token,
-        )  # type: ignore
-    elif server := os.environ.get("_abaco_api_server"):
-        # otherwise, create a client with a fake JWT. this will only work if the actor
-        # supplies its own token to itself via a config object or the message, etc.
-        tp = Tapis(base_url=server.strip("/"), jwt="123")  # type: ignore
-    else:
-        raise errors.BaseTapyException(
-            "Unable to instantiate a Tapis client: no token found."
+class FSLAnatReactor(models.Reactor):
+    def get_runlist(self) -> dict[str, list[str]]:
+        rundef = (
+            self.ilog
+            # exclude rows that were already processed
+            .filter(pl.col("fslanat") == 0)
+            .filter(pl.col("bids") == 1)
+            .with_columns(
+                sublong=pl.concat_str(
+                    pl.col("site"), pl.col("subject_id"), pl.col("visit")
+                ),
+                sitelong=pl.col("site").replace(config.SITE_LONG),
+            )
+            .with_columns(
+                INPUT_DIRS=pl.concat_str(
+                    pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
+                    pl.col("sitelong"),
+                    pl.lit("/bids/"),
+                    pl.col("sublong"),
+                ),
+                PRECROP=pl.when(pl.col("sublong").is_in(PRECROP_SUBS))
+                .then(pl.lit("True"))
+                .otherwise(pl.lit("False")),
+                MASK_HIGH_VOXELS=pl.when(pl.col("sublong").is_in(MASK_HIGH_VOXELS_SUBS))
+                .then(pl.lit("True"))
+                .otherwise(pl.lit("False")),
+            )
+            .sort(
+                "visit", "Surgery Week", "subject_id"
+            )  # ensure V1 run before V3, and do oldest scans
         )
-    return tp
-
-
-def get_ilog(client: Tapis) -> Table:
-    ilog: bytes = client.files.getContents(  # type: ignore
-        systemId="secure.ls6", path=str(ILOG)
-    )
-    return ibis.memtable(
-        pd.read_csv(
-            io.BytesIO(ilog),
-            na_values="na",
-            dtype={"subject_id": str, "fslanat": pd.Int64Dtype()},
-        )
-    )
-
-
-def get_runlist(ilog: Table, maxjobs: int | None = _MAXJOBS) -> list[tuple[str, str]]:
-    rundef: pd.DataFrame = (
-        ilog.select("site", "subject_id", "visit", "bids", "fslanat")
-        .filter(_.fslanat == 0)  # type: ignore
-        .filter(_.bids == 1)  # type: ignore
-        .mutate(
-            sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
-            sitelong=_.site.cases(tuple(SITE_LONG.items())),  # type: ignore
-        )
-        .mutate(OUTPUT_DIR=_.sitelong + "/fslanat/" + _.sublong)  # type: ignore
-        .mutate(
-            ANATS=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
-            + x.sitelong
-            + "/bids/"
-            + x.sublong  # type: ignore
-        )
-        .execute()
-    )
-    runlist = [
-        (x, y) for x, y in zip(rundef.ANATS.to_list(), rundef.OUTPUT_DIR.to_list())
-    ]
-    return runlist[:maxjobs]
-
-
-def set_inputdirs(job: dict, arg: str) -> dict:
-    job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[0] = {"name": "INPUT_DIRS", "arg": arg}  # type: ignore
-    return job2
-
-
-def set_outputdirs(job: dict, arg: str) -> dict:
-    job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs")[1] = {"name": "OUTPUT_DIRS", "arg": arg}  # type: ignore
-    return job2
-
-
-def set_maxminutes(job: dict, maxminutes: int | None = None) -> dict:
-    job2 = copy.deepcopy(job)
-    if maxminutes:
-        job2["maxMinutes"] = maxminutes
-    return job2
-
-
-def set_name(job: dict) -> dict:
-    job2 = copy.deepcopy(job)
-    job2["name"] = f"fslanat-{datetime.datetime.today().strftime('%Y-%m-%d')}"
-    return job2
-
-
-def set_precrop(job: dict, outputdirs: Sequence[str]) -> dict:
-    """Determine whether participants will undergo manual robustfov"""
-    precrop = [outputdir in PRECROP_SUBS for outputdir in outputdirs]
-    job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs").append(  # type: ignore
-        {
-            "name": "PRECROP",
-            "arg": "--precrop " + " ".join(str(x) for x in precrop),
+        runlist: dict[str, list[str]] = {
+            "INPUT_DIRS": rundef.select(pl.col("INPUT_DIRS")).to_series().to_list(),
+            "PRECROP": rundef.select(pl.col("PRECROP")).to_series().to_list(),
+            "MASK_HIGH_VOXELS": rundef.select(pl.col("MASK_HIGH_VOXELS"))
+            .to_series()
+            .to_list(),
         }
-    )
-    return job2
 
-
-def set_mask_high_voxels(job: dict, outputdirs: Sequence[str]) -> dict:
-    """Determine whether participants will have high intensity voxels masked"""
-    mask_high_voxels = [outputdir in MASK_HIGH_VOXELS_SUBS for outputdir in outputdirs]
-    job2 = copy.deepcopy(job)
-    job2.get("parameterSet").get("appArgs").append(  # type: ignore
-        {
-            "name": "MASK_HIGH_VOXELS",
-            "arg": "--mask-high-voxels " + " ".join(str(x) for x in mask_high_voxels),
+        return {
+            k: v[: self.context.message_dict.get("MAXJOBS", self.MAXJOBS)]
+            for k, v in runlist.items()
         }
-    )
-    return job2
 
+    def submit(self) -> None:
+        print(json.dumps(self.context, indent=4))
 
-def get_failurebot_url(client) -> str:
-    token: TapisResult = client.sk.readSecret(  # type: ignore
-        secretType="user",
-        secretName=FAILUREBOT_ADDRESS_SECRET_NAME,
-        tenant=os.environ.get("_abaco_api_server")
-        .split(".")[0]  # type: ignore
-        .split("/")[-1],
-        user=client.actors.get_actor(actor_id=os.environ.get("_abaco_actor_id")).owner,
-    )
-    url: str | None = token.get("secretMap").get(FAILUREBOT_ADDRESS_SECRET_KEY)  # type: ignore
-    if url is None:
-        msg = f"unable to find {FAILUREBOT_ADDRESS_SECRET_KEY} in secretMap"
-        raise AssertionError(msg)
+        runlist = self.get_runlist()
+        n_jobs = len(runlist)
+        if not n_jobs:
+            logging.warning("Did not find any jobs to submit")
+            return
 
-    return url
+        n_nodes = self.get_node_count(n_jobs)
+        self.set_app_arg(
+            name="INPUT_DIRS",
+            value="--input-dirs " + " ".join(runlist["INPUT_DIRS"]),
+        )
+        self.set_app_arg(
+            name="PRECROP",
+            value="--precrop " + " ".join(runlist["PRECROP"]),
+        )
+        self.set_app_arg(
+            name="MASK_HIGH_VOXELS",
+            value="--mask-high-voxels " + " ".join(runlist["MASK_HIGH_VOXELS"]),
+        )
 
+        self.set_env_var(
+            key="MIN_ARCHIVE_DURATION",
+            value=str(n_jobs * self.N_SEC_TO_COPY_ONE_SUB),
+        )
+        if max_minutes := self.context.message_dict.get("maxMinutes"):
+            self.job.maxMinutes = max_minutes
 
-def set_subscription_url(job: dict, arg: str) -> dict:
-    job2 = copy.deepcopy(job)
-    job2.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
-        {"deliveryAddress": arg}
-    )
-    return job2
+        self.job.name = self.job_name
+
+        self.set_cmd_prefix(image=self.container_image, n_jobs=n_jobs)
+
+        # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
+        self.job.nodeCount = n_nodes
+
+        # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
+        # all nodes will have all cores available, but this needs to be set for ibrun
+        self.job.coresPerNode = self.N_SUBS_PER_NODE
+
+        if self.context.message_dict.get("SKIP_FAILUREBOT", False):
+            self.job.subscriptions = None
+        else:
+            self.set_subscription_url(url=self.failurebot_url)
+
+        if FAILURE_LOG_DST := self.context.message_dict.get("FAILURE_LOG_DST"):
+            self.set_env_var(
+                key="FAILURE_LOG_DST",
+                value=FAILURE_LOG_DST,
+            )
+
+        print(self.job.model_dump_json(indent=4, exclude_unset=True, exclude_none=True))
+
+        try:
+            submitted = self.client.jobs.submitJob(  # type: ignore
+                **self.job.model_dump(exclude_unset=True, exclude_none=True)
+            )
+            print(submitted.uuid)
+        except Exception:
+            logging.exception("encountered while trying to submit job")
 
 
 def main() -> None:
-    context: Context = actors.get_context()  # type: ignore
-    print(json.dumps(context, indent=4))
-    client = actors_get_client()
-
-    ilog = get_ilog(client=client)
-
-    runlist = get_runlist(
-        ilog=ilog, maxjobs=context.message_dict.get("maxjobs", _MAXJOBS)
-    )
-    if not len(runlist):
-        logging.warning("Did not find any jobs to submit")
-        return
-
-    with open(JOB, "r") as f:
-        job = json.load(f)
-
-    job = set_inputdirs(job, "--input-dirs " + " ".join(x[0] for x in runlist))
-    job = set_outputdirs(job, "--output-dirs " + " ".join(x[1] for x in runlist))
-    job = set_maxminutes(job, context.message_dict.get("maxMinutes"))
-    job = set_name(job)
-    job = set_precrop(job, [Path(x[1]).name for x in runlist])
-    job = set_mask_high_voxels(job, [Path(x[1]).name for x in runlist])
-    failurebot_url = get_failurebot_url(client=client)
-    job = set_subscription_url(job, arg=failurebot_url)
-
-    print(json.dumps(job, indent=4))
-
-    try:
-        submitted = client.jobs.submitJob(**job)  # type: ignore
-        print(submitted.uuid)
-    except Exception as e:
-        logging.error(f"encountered while trying to submit job: {e}")
+    FSLAnatReactor(
+        job_name=f"fslanat-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        N_SUBS_PER_NODE=N_SUBS_PER_NODE,
+        N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
+        JOB=JOB,
+        MAXJOBS=MAXJOBS,
+    ).submit()
 
 
 if __name__ == "__main__":
