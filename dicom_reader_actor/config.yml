@@ -7,7 +7,8 @@ dicom_reader:
   appVersion: 3.0.2
   name: dicom
   archive: true
-  archiveSystemId: secure.ls6
+  archiveSystemId: secure.frontera
+  execSystemId: secure.frontera
   archiveSystemDir: /corral-secure/projects/A2CPS/system/jobs/dicom_reader_v3
   maxMinutes: 140
   parameterSet:
