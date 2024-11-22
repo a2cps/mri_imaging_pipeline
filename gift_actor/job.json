@@ -1,11 +1,11 @@
 {
     "appId": "gift-app",
-    "appVersion": "0.1",
+    "appVersion": "0.2",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 1 apptainer run docker://psadil/gift_app:latest --help && ibrun -n 10",
     "coresPerNode": 20,
-    "maxMinutes": 1400,
+    "maxMinutes": 1580,
     "name": "gift",
     "nodeCount": 1,
     "parameterSet": {

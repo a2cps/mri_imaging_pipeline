@@ -1,11 +1,11 @@
 {
     "appId": "qsiprep",
-    "appVersion": "3.2",
+    "appVersion": "3.3",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
-    "maxMinutes": 360,
+    "maxMinutes": 1140,
     "name": "qsiprep",
     "nodeCount": 1,
     "parameterSet": {
