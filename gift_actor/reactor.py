@@ -104,10 +104,7 @@ class GIFTReactor(models.Reactor):
             self.set_subscription_url(url=self.failurebot_url)
 
         if FAILURE_LOG_DST := self.context.message_dict.get("FAILURE_LOG_DST"):
-            self.set_env_var(
-                key="FAILURE_LOG_DST",
-                value=FAILURE_LOG_DST,
-            )
+            self.set_env_var(key="FAILURE_LOG_DST", value=FAILURE_LOG_DST)
 
         print(self.job.model_dump_json(indent=4, exclude_unset=True, exclude_none=True))
 
