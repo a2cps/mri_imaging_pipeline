@@ -15,8 +15,8 @@
                 "name": "INPUT_DIRS"
             },
             {
-                "arg": "--nthreads 10",
-                "name": "NTHREADS"
+                "arg": "--n-workers 10",
+                "name": "N_WORKERS"
             },
             {
                 "arg": "--mem-mb 21333",
