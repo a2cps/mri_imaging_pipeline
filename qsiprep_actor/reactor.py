@@ -23,11 +23,12 @@ FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
 # within docker container
 JOB = Path("/opt/job.json")
 # on TACC
-# ILOG = "/corral-secure/projects/A2CPS/community/reports/imaging/imaging-log-latest.csv"
-ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
+#ILOG = "/corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
 
 # can be overridden by incoming message
-MAXJOBS = 768
+#MAXJOBS = 768
+MAXJOBS = 24
 
 # assume deployed on frontera
 # # https://docs.tacc.utexas.edu/hpc/frontera/#table1
@@ -95,7 +96,7 @@ def actors_get_client() -> Tapis:
 
 def get_ilog(client: Tapis) -> Table:
     ilog: bytes = client.files.getContents(  # type: ignore
-        systemId="secure.corral", path=str(ILOG)
+        systemId="secure.ls6", path=str(ILOG)
     )
     return ibis.memtable(
         pd.read_csv(

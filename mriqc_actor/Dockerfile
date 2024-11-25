@@ -1,4 +1,10 @@
-FROM sd2e/reactors:python3
+FROM python:3.12.5-bullseye
 
-# reactor.py, config.yml, and message.jsonschema will be automatically
-# added to the container when you run docker build or abaco deploy
+RUN pip install --no-cache-dir \
+    git+https://github.com/a2cps/mri-actor-utils.git@3d72f387af4148c7a0b18c074423067785c446f1
+
+
+COPY reactor.py /opt/reactor.py
+COPY job.json /opt/job.json
+
+ENTRYPOINT [ "python", "/opt/reactor.py" ]

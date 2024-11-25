@@ -1,12 +1,10 @@
 import json
-import requests
-import pandas as pd
-import numpy as np
-from bs4 import BeautifulSoup 
-import subprocess
 import os
 
+import pandas as pd
+from bs4 import BeautifulSoup
 from output_check import APP_STEPS
+
 
 def run_bash(bashCommand):
     # #bashCommand = 'curl -H "Authorization: Bearer $TOKEN" https://confluence.a2cps.org/rest/api/content/15929269?expand=body.storage,version  > confluence_response.json'
@@ -20,7 +18,6 @@ def main():
     #read secrets
     with open('secrets.json') as jsonfile:
         secrets = json.load(jsonfile)
-    response = run_bash('curl  --request GET --user "jurrutia@tacc.utexas.edu:" --url https://a2cps.atlassian.net/wiki/rest/api/content/5406795?expand=body.storage,version --header "Accept: application/json"  > confluence_response.json')
     response = run_bash('curl  --request GET --user "jurrutia@tacc.utexas.edu:{}" --url https://a2cps.atlassian.net/wiki/rest/api/content/5406795?expand=body.storage,version --header "Accept: application/json"  > confluence_response.json'.format(secrets['CONFLUENCE_TOKEN']))
     confluence_page_response = json.load(open('confluence_response.json'))
     html_string = confluence_page_response['body']['storage']['value']
@@ -51,6 +48,7 @@ def main():
 
     for col in APP_STEPS:
         df[col] = df[col].replace('2', 'Failed')
+        df[col] = df[col].replace('3', 'Tar')
 
     df.drop_duplicates(inplace=True)
     updated_html = df.to_html(header=False,index=False, classes="wrapped relative-table")

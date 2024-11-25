@@ -1,7 +1,7 @@
 {
     "name": "fslanat",
-    "appId": "urrutia-fslanat",
-    "appVersion": "0.7",
+    "appId": "fslanat",
+    "appVersion": "0.9",
     "execSystemId": "secure.ls6",
     "archiveSystemId": "secure.frontera",
     "execSystemLogicalQueue": "corralextra",

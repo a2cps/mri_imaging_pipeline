@@ -1,8 +1,9 @@
 {
-  "containerImage": "docker://psadil/fmriprep_app",
+  "containerImage": "docker://a2cps/fmriprep_app:3.5",
+  "version": "3.5", 
   "description": "Run fmriprep",
   "enabled": true,
-  "id": "urrutia-fmriprep_app",
+  "id": "fmriprep-app",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
@@ -57,6 +58,11 @@
           "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
           "name": "OUTPUT_SPACES"
+        },
+        {
+          "name": "ANAT_ONLY",
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "arg": null
         }
       ],
       "archiveFilter": {
@@ -119,7 +125,5 @@
   "runtimeOptions": [
     "SINGULARITY_RUN"
   ],
-  "runtimeVersion": "0.1",
-  "strictFileInputs": true,
-  "version": "0.1"
+  "strictFileInputs": true
 }

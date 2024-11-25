@@ -1,11 +1,10 @@
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import pandas as pd
-from biomarkers.models import fslanat
-from biomarkers import utils as bu
-
 import utils
+from biomarkers import utils as bu
+from biomarkers.models import fslanat
 
 
 def _get_fslanat_table(root: Path) -> pd.DataFrame:
@@ -34,14 +33,10 @@ def copy(outdir: Path, inroot: Path) -> None:
         utils.mergetree_overwrite(
             src,
             outdir,
-            ignore=shutil.ignore_patterns(
-                f"fslanat-sub-{sub}_ses-{ses}_T1w.log"
-            ),
+            ignore=shutil.ignore_patterns(f"fslanat-sub-{sub}_ses-{ses}_T1w.log"),
         )
 
 
 def make_toplevel(outdir: Path) -> None:
     bu.mkdir_recursive(outdir)
-    _get_all_volumes(outdir).to_csv(
-        outdir / "fslanat.tsv", sep="\t", index=False
-    )
+    _get_all_volumes(outdir).to_csv(outdir / "fslanat.tsv", sep="\t", index=False)

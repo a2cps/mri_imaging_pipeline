@@ -1,303 +1,162 @@
 {
-	"name": "{{ agave.username }}-{{ app.name }}",
-	"version": "{{ app.version }}",
-	"executionType": "HPC",
-	"executionSystem": "{{ app.hpc_system}}",
-	"parallelism": "SERIAL",
-	"deploymentPath": "system/apps/{{ app.name }}-{{ app.version }}",
-	"deploymentSystem": "{{ app.storage_system}}",
-	"defaultProcessorsPerNode": 1,
-	"defaultNodeCount": 1,
-	"defaultQueue": "{{ app.queue }}",
-	"label": "HeuDiConv",
-	"modules": ["load tacc-singularity", "unload xalt"],
-	"shortDescription": "{{ app.description }}",
-	"templatePath": "runner-template.sh",
-	"testPath": "tester.sh",
-	"inputs": [],
-	"parameters": [{
-			"id": "CONTAINER_IMAGE",
-			"value": {
-				"default": "{{ docker.organization }}/{{ docker.repo }}:{{ docker.tag }}",
-				"description": "Container Image. Do not edit.",
-				"type": "string",
-				"visible": false,
-				"required": true
-			}
-		},
-		{
-			"id": "CHECK_JSONS",
-			"details": {
-				"description": "Whether a difference in the BIDS jsons should cause the app to fail"
-			},
-			"value": {
-				"default": "1",
-				"type": "enumeration",
-				"enumValues": ["0", "1"],
-				"visible": true,
-				"required": true
-			}
-		},
-		{
-			"id": "DICOM_DIR_TEMPLATE",
-			"details": {
-				"argument": "--dicom_dir_template ",
-				"showArgument": true,
-				"description": "location of dicomdir that can be indexed with subject id {subject} and session {session}. Tarballs (can be compressed) are supported in addition to directory. All matching tarballs for a subject are extracted and their content processed in a single pass"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "BIND_DIR",
-			"details":{
-				"description": "root directory bound to singularity container",
-				"argument": "",
-				"showArgument": false
-			},
-			"value": {
-				"default": null,				
-				"type": "string",
-				"visible": true,
-				"required": true
-			}
-		},
-		{
-			"id": "FILES",
-			"details": {
-				"argument": "--files ",
-				"showArgument": false,
-				"description": "Files (tarballs, dicoms) or directories containing files to process. Cannot be provided if using –dicom_dir_template or –subjects, don't use if dicom directory is provided separate files"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "LIST_OF_SUBJECTS",
-			"details": {
-				"argument": "--subjects ",
-				"showArgument": true,
-				"description": "list of subjects - required for dicom template. If not provided, DICOMS would first be sorted and subject IDs deduced by the heuristic"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "CONVERTER",
-			"details": {
-				"description": "tool to use for DICOM conversion. Setting to “none” disables the actual conversion step – usefulfor testing heuristics.",
-				"argument": "--converter ",
-				"showArgument": true
-			},
-			"value": {
-				"default": "dcm2niix",
-				"type": "enumeration",
-				"enumValues": ["dcm2niix", "none"],
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "OUTDIR",
-			"value": {
-				"default": null,
-				"description": "output directory for conversion setup (for further customization and future reference. This directory will refer to non-anonymized subject IDs",
-				"type": "string",
-				"visible": true,
-				"required": true
-			}
-		},
-
-		{
-			"id": "LOCATOR",
-			"details": {
-				"argument": "--locator",
-				"showArgument": true,
-				"description": "study path under outdir. If provided, it overloads the value provided by the heuristic. If –datalad is enabled, every directory within locator becomes a super-dataset thus establishing a hierarchy. Setting to “unknown” will skip that dataset"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-
-
-		{
-			"id": "CONVERTED_OUTDIR",
-			"details": {
-				"argument": "--conv-outdir ",
-				"showArgument": true,
-				"description": "output directory for converted files. By default this is identical to –outdir. This option is most useful in combination with –anon-cmd"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "ANON_CMD",
-			"details": {
-				"argument": "--anon-cmd ",
-				"showArgument": true,
-				"description": "command to run to convert subject IDs used for DICOMs to anonymized IDs. Such command must take a single argument and return a single anonymized ID. Also see –conv-outdir"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "HEURISTIC",
-			"details": {
-				"argument": "--heuristic ",
-				"showArgument": true,
-				"description": "Name of a known heuristic or path to the Pythonscript containing heuristic"
-			},
-			"value": {
-				"default": "a2cps.py",
-				"description": "Name of a known heuristic or path to the Pythonscript containing heuristic",
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "SESSION_FOR_LONGITUDINAL",
-			"details": {
-				"argument": "--ses ",
-				"showArgument": true,
-				"description": "session for longitudinal study_sessions, default is none"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "BIDS",
-			"details": {
-				"argument": "--bids ",
-				"showArgument": true,
-				"description": "flag for output into BIDS structure"
-			},
-			"value": {
-				"default": 0,
-				"type": "flag",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "OVERWRITE",
-			"details": {
-				"argument": "--overwrite ",
-				"showArgument": true,
-				"description": "flag to allow overwriting existing converted files"
-			},
-			"value": {
-				"default": 0,
-				"type": "flag",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "DATALAD",
-			"details": {
-				"argument": "--datalad ",
-				"showArgument": true,
-				"description": "Store the entire collection as DataLad dataset(s). Small files will be committed directly to git, while large to annex. New version (6) of annex repositories will be used in a “thin” mode so it would look to mortals as just any other regular directory (i.e. no symlinks to under .git/annex). For now just for BIDS mode."
-			},
-			"value": {
-				"default": 0,
-				"type": "flag",
-				"visible": true,
-				"required": false
-			}
-		},
-
-		{
-			"id": "DCMCONFIG",
-			"details": {
-				"argument": "--dcmconfig ",
-				"showArgument": true,
-				"description": "JSON file for additional dcm2niix configuration"
-			},
-			"value": {
-				"default": "",
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "SITE",
-			"details": {
-				"argument": "",
-				"showArgument": false,
-				"description": "site where patient was imaged"
-			},
-			"value": {
-				"default": null,
-				"type": "string",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "DELETE_DUPLICATES",
-			"details": {
-				"argument": "",
-				"showArgument": false,
-				"description": "boolean flag to delete duplicate scans"
-			},
-			"value": {
-				"default": true,
-				"type": "bool",
-				"visible": true,
-				"required": false
-			}
-		},
-		{
-			"id": "POST",
-			"details": {
-				"argument": "",
-				"showArgument": false,
-				"description": "flag indicating whether unexpected acqusition parameters should be posted to slack"
-			},
-			"value": {
-				"default": "--no-post",
-				"type": "enumeration",
-				"enumValues": ["--post", "--no-post"],
-				"visible": true,
-				"required": false
-			}
-		}
-
-
-	]
+    "id": "heudiconv",
+    "version": "3.0.8",
+    "description": "HEUristic DIcom CONVerter, coverts dicoms into standardized BIDS format",
+    "owner": "urrutia",
+    "enabled": true,
+    "runtime": "SINGULARITY",
+    "runtimeVersion": null,
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "containerImage": "docker://a2cps/heudiconv:241101",
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "strictFileInputs": true,
+    "jobAttributes": {
+        "description": null,
+        "dynamicExecSystem": false,
+        "execSystemConstraints": null,
+        "execSystemId": "secure.ls6",
+        "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemInputDir": "${JobWorkingDir}",
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "execSystemLogicalQueue": "corralextra",
+        "archiveSystemId": "secure.ls6",
+        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/${JobOwner}/jobs/${JobCreateDate}/${JobName}-${JobUUID}",
+        "archiveOnAppError": false,
+        "isMpi": false,
+        "mpiCmd": null,
+        "cmdPrefix": null,
+        "parameterSet": {
+            "appArgs": [],
+            "containerArgs": [
+                {
+                    "name": "Container Mounts",
+                    "description": "Mount for TAP functions",
+                    "inputMode": "FIXED",
+                    "arg": "--bind /corral-secure/projects/A2CPS"
+                }
+            ],
+            "schedulerOptions": [
+                {
+                    "name": "TACC Scheduler Profile",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "arg": "--tapis-profile tacc-apptainer"
+                },
+                {
+                    "name": "TAP Session Substring",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "arg": "--job-name ${JobName}"
+                },
+                {
+                    "name": "TACC Allocation",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "arg": "-A A2CPS"
+                }
+            ],
+            "envVariables": [
+                {
+                    "key": "CHECK_JSONS",
+                    "value": "1"
+                },
+                {
+                    "key": "DICOM_DIR_TEMPLATE",
+                    "value": null
+                },
+                {
+                    "key": "FILES",
+                    "value": null
+                },
+                {
+                    "key": "LIST_OF_SUBJECTS",
+                    "value": "--subjects "
+                },
+                {
+                    "key": "CONVERTER",
+                    "value": "--converter dcm2niix"
+                },
+                {
+                    "key": "OUTDIR",
+                    "value": "."
+                },
+                {
+                    "key": "LOCATOR",
+                    "value": "--locator=''"
+                },
+                {
+                    "key": "CONVERTED_OUTDIR",
+                    "value": null
+                },
+                {
+                    "key": "ANON_CMD",
+                    "value": null
+                },
+                {
+                    "key": "HEURISTIC",
+                    "value": "--heuristic /tapis/assets/a2cps.py"
+                },
+                {
+                    "key": "SESSION_FOR_LONGITUDINAL",
+                    "value": "--ses "
+                },
+                {
+                    "key": "BIDS",
+                    "value": "--bids "
+                },
+                {
+                    "key": "OVERWRITE",
+                    "value": null
+                },
+                {
+                    "key": "DATALAD",
+                    "value": null
+                },
+                {
+                    "key": "DCMCONFIG",
+                    "value": null
+                },
+                {
+                    "key": "SITE",
+                    "value": null
+                },
+                {
+                    "key": "DELETE_DUPLICATES",
+                    "value": "1"
+                },
+                {
+                    "key": "POST",
+                    "value": "--post"
+                }
+            ],
+            "archiveFilter": {
+                "includes": [],
+                "excludes": [],
+                "includeLaunchFiles": true
+            },
+            "logConfig": {
+                "stdoutFilename": "${JobUUID}.out",
+                "stderrFilename": "${JobUUID}.err"
+            }
+        },
+        "fileInputs": [],
+        "fileInputArrays": [],
+        "nodeCount": 1,
+        "maxMinutes": 2880,
+        "subscriptions": [],
+        "tags": []
+    },
+    "tags": [],
+    "notes": {
+        "label": "Heudiconv is a flexible DICOM converter for organizing brain imaging data into structured directory layouts.",
+        "helpUrl": "",
+        "hideNodeCountAndCoresPerNode": false,
+        "isInteractive": false,
+        "icon": "",
+        "category": "Data Processing"
+    }
 }

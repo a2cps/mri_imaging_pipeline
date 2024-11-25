@@ -3,28 +3,31 @@ logs:
   level: DEBUG
   token: ~
 heudiconv:
-  appId: urrutia-heudiconv-0.12.11
-  batchQueue: corralextra
+  appId: heudiconv
+  appVersion: 3.0.8
   name: heudiconv_test
   archive: true
-  archivePath: testing/actor-heudiconv
-  maxRunTime: "9:00:00"
-  parameters:
-    FILES: norshore/bids/1
-    LIST_OF_SUBJECTS: sub-01
-    OUTDIR: "."
-    SESSION_FOR_LONGITUDINAL: session1
-    BIDS: true
-    BIND_DIR: /corral-secure/projects/A2CPS/
-    HEURISTIC: a2cps.py
-    LOCATOR: =''
-    SITE: ""
-    DELETE_DUPLICATES: true
-    POST: "--post"
-
-  notifications:
-    - event: FINISHED
-      url: a2cps-dirc-notify-ui@a2cps.org
+  archiveSystemDir: testing/actor-heudiconv
+  archiveSystemId: secure.frontera
+  execSystemId: secure.frontera
+  maxMinutes: 300
+  parameterSet:
+    envVariables:
+      - key: FILES
+        value: /scratch/05369/urrutia/a2cps_test/NS_northshore/dicoms/QC_NS030624QA.zip
+      - key: LIST_OF_SUBJECTS
+        value: --subjects nsphantom
+      - key: SESSION_FOR_LONGITUDINAL
+        value: --ses 240306
+      - key: SITE
+        value: WS
+  subscriptions:
+    - description: Message on Failure
+      enabled: true
+      eventCategoryFilter: JOB_ERROR_MESSAGE
+      deliveryTargets: 
+        - deliveryMethod: WEBHOOK
+          deliveryAddress: ~
 pipelines:
   fmriprep_alias: fmriprep.prod
   api_server: https://portals-api.tacc.utexas.edu

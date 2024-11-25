@@ -1,9 +1,7 @@
 import json
-import re
 from pathlib import Path
 
 import utils
-
 from biomarkers import utils as bu
 
 BIDS_IGNORE = """
@@ -57,14 +55,10 @@ APARCASEG = (
 def copy(outdir: Path, inroot: Path) -> None:
     # copy files over
 
-    _job = re.findall(r"(?<=fmriprep-)(anat|cuff|rest)", str(outdir))
-    if not _job:
-        raise ValueError
-    job = _job[0]
     bu.mkdir_recursive(outdir)
 
     # this grabs both sub-##### directories and sub*html files
-    for src in inroot.glob(f"fmriprep/*/{job}/fmriprep/sub*"):
+    for src in inroot.glob("fmriprep/*/fmriprep/sub*"):
         if src.is_file():
             sub = bu.get_sub_from_sublong(src)
             ses = bu.get_ses_from_sublong(src)

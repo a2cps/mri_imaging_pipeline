@@ -1,37 +1,20 @@
 #!/bin/bash
 
-# Import Agave runtime extensions
-# shellcheck disable=SC1091
-. _lib/extend-runtime.sh
-
 # Unzip dicoms locally 
 LOCAL_DICOM=$(basename "${FILES}")
 # remove zip suffix
 #shellcheck disable=SC2086
 LOCAL_DICOM=/tmp/${LOCAL_DICOM%.*}
 #shellcheck disable=SC2086
-unzip ${FILES} -d ${LOCAL_DICOM}
+unzip -q ${FILES} -d ${LOCAL_DICOM}
 
 case "${SITE}" in
-  SH | RU)
-    echo singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
+  SH | RU | WS)
+    echo python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
-    singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
+    python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
-    #shellcheck disable=SC2086
-    echo singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      heudiconv \
+    echo bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -39,14 +22,9 @@ case "${SITE}" in
           ${LOCATOR} ${ANON_CMD} \
           ${HEURISTIC} \
           ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-          ${DATALAD} ${DCMCONFIG}
-          
-    #shellcheck disable=SC2086
-    singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      heudiconv \
+          ${DATALAD} ${DCMCONFIG}"
+              
+    bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM}  --minmeta \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -54,30 +32,18 @@ case "${SITE}" in
           ${LOCATOR} ${ANON_CMD} \
           ${HEURISTIC} \
           ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-          ${DATALAD} ${DCMCONFIG}
+          ${DATALAD} ${DCMCONFIG}"
 
     # heudiconv is unable to find the acquisition datetime, so we fill them manually
     # note that this script does not currently add the exact time, just the acq_date
-    echo singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      python add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
+    echo python /tapis/assets/add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
 
-    singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      python add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
+    python /tapis/assets/add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
     ;;
 
   *)
     #shellcheck disable=SC2086
-    echo singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      heudiconv \
+    echo bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -85,14 +51,10 @@ case "${SITE}" in
           ${LOCATOR} ${ANON_CMD} \
           ${HEURISTIC} \
           ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-          ${DATALAD} ${DCMCONFIG}
+          ${DATALAD} ${DCMCONFIG}"
 
     #shellcheck disable=SC2086
-    singularity run \
-      --cleanenv \
-      -B "${BIND_DIR}":"${BIND_DIR}" \
-      docker://"${CONTAINER_IMAGE}" \
-      heudiconv \
+    bash -c "heudiconv \
           ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
           ${LIST_OF_SUBJECTS} \
           ${CONVERTER} \
@@ -100,7 +62,7 @@ case "${SITE}" in
           ${LOCATOR} ${ANON_CMD} \
           ${HEURISTIC} \
           ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-          ${DATALAD} ${DCMCONFIG}
+          ${DATALAD} ${DCMCONFIG}"
     ;;
 esac
 
@@ -110,7 +72,7 @@ esac
 rm -rf ${LOCAL_DICOM}
 
 # add bval, bvec, betc to .bidsignore
-cat bids_ignore >> "${OUTDIR}"/.bidsignore && cat .agave.archive >> "${OUTDIR}"/.bidsignore
+cat /tapis/assets/bids_ignore >> "${OUTDIR}"/.bidsignore
 
 # Phantom-specific post-processing
 if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
@@ -118,10 +80,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   case "${SITE}" in
     NS) 
       # dcm2niix generates several extra scans, derivatives from NS.
-      singularity run --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python clean_nsphantom.py "${OUTDIR}"
+      python /tapis/assets/clean_nsphantom.py "${OUTDIR}"
       ;;
     UC)
       # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
@@ -131,10 +90,7 @@ if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
       ;;
     WS)
       # heuristic can result in run-1 tag, unlike all other sites
-      singularity run --cleanenv  \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python clean_wsphantom.py "${OUTDIR}"
+      python /tapis/assets/clean_wsphantom.py "${OUTDIR}"
       ;;
   esac
   else
@@ -158,9 +114,7 @@ if (( ${#dups[@]} > 1 )); then
   msg="duplicate scans found: ${dups[*]}"
 
   #shellcheck disable=SC2086
-  singularity run \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" ${POST}
+  python /tapis/assets/log.py "${msg}" ${POST}
   if [[ ${DELETE_DUPLICATES} == 1 ]]; then
     # delete duplicte scans
     echo "removing duplicate scans" 
@@ -179,29 +133,13 @@ fi
 if [[ "${PHANTOM}" == "--no-phantom" ]]; then
   case "${SITE}" in
     UI | UM)
-      echo singularity run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python create_fieldmaps_GE.py "${OUTDIR}"
+      echo python /tapis/assets/create_fieldmaps_GE.py "${OUTDIR}"
 
-      singularity run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python create_fieldmaps_GE.py "${OUTDIR}"
+      python /tapis/assets/create_fieldmaps_GE.py "${OUTDIR}"
 
-      echo singularity run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python handle_ge_bvalbvecs.py "${OUTDIR}"
+      echo python /tapis/assets/handle_ge_bvalbvecs.py "${OUTDIR}"
 
-      singularity run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python handle_ge_bvalbvecs.py "${OUTDIR}"
+      python /tapis/assets/handle_ge_bvalbvecs.py "${OUTDIR}"
     ;;
   esac
 else
@@ -215,26 +153,14 @@ else
   case "${SITE}" in
     UM)
       echo "overwritting coil_QA with final volume"
-      singularity run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
+      python /tapis/assets/index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
     ;;
   esac
 fi
 
-echo singularity run \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://"${CONTAINER_IMAGE}" \
-  python edit_json.py "${OUTDIR}"
+echo python /tapis/assets/edit_json.py "${OUTDIR}"
 
-singularity run \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://"${CONTAINER_IMAGE}" \
-  python edit_json.py "${OUTDIR}"
+python /tapis/assets/edit_json.py "${OUTDIR}"
 
 
 # resting state scans do not require events files (there are no events)
@@ -247,31 +173,21 @@ if [[ ${CHECK_JSONS} == 1 ]]; then
   # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
   # be divided by whether we're dealing with a phantom scan or not.
   #shellcheck disable=SC2086
-  singularity run \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://"${CONTAINER_IMAGE}" \
-    python check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
+  python /tapis/assets/check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
 else
   echo "Skipping check of jsons"
 fi
 
 echo "cleaning *scans.tsv"
-singularity run \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://"${CONTAINER_IMAGE}" \
-  python edit_scanstsv.py "${OUTDIR}"
+python /tapis/assets/edit_scanstsv.py "${OUTDIR}"
 
 
 echo "ensuring that dir-[dir] entities match PhaseEncodingDirection"
-singularity run \
-  --cleanenv \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://"${CONTAINER_IMAGE}" \
-  python conform_dir.py "${OUTDIR}"
+python /tapis/assets/conform_dir.py "${OUTDIR}"
+
+echo "removing extra content generated by heudiconv"
+rm -vfr "${OUTDIR}"/sourcedata
+rm -vfr "${OUTDIR}"/__pycache__
 
 # end with check of newly created directory. if the output is not valid, the job will fail
-singularity run \
-  -B "${BIND_DIR}":"${BIND_DIR}" \
-  docker://"${CONTAINER_IMAGE}" bids-validator --ignoreWarnings "${OUTDIR}"
+bids-validator --ignoreWarnings "${OUTDIR}"

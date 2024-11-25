@@ -1,8 +1,9 @@
 FROM python:3.11.9-bullseye
 
 RUN pip install --no-cache-dir \
-    tapipy==1.6.3 \
-    ibis-framework[duckdb]==6.0.0 
+    git+https://github.com/a2cps/mri-actor-utils.git@cad55b31172009930423a39fa12f535a711e0c28 \
+    && pip uninstall -y polars \
+    && pip --no-cache-dir install polars-lts-cpu==1.8.2
 
 
 COPY reactor.py /opt/reactor.py

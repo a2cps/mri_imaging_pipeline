@@ -1,4 +1,4 @@
-FROM freesurfer/synthstrip:1.6 as fs
+FROM freesurfer/synthstrip:1.6 AS fs
 
 FROM mambaorg/micromamba:1.5.8-jammy
 

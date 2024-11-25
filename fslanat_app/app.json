@@ -1,6 +1,6 @@
 {
-  "id": "urrutia-fslanat",
-  "version": "0.7",
+  "id": "fslanat",
+  "version": "0.9",
   "description": "Run fsl_anat",
   "owner": "${apiUserId}",
   "enabled": true,
@@ -9,7 +9,7 @@
   "runtimeOptions": [
     "SINGULARITY_RUN"
   ],
-  "containerImage": "docker://a2cps/fslanat_app:0.6",
+  "containerImage": "docker://a2cps/fslanat_app:0.9",
   "jobType": "BATCH",
   "maxJobs": -1,
   "maxJobsPerUser": -1,
