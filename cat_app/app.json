@@ -1,6 +1,6 @@
 {
   "containerImage": "docker://a2cps/cat_app:3.0",
-  "description": "Run fmriprep",
+  "description": "Run cat12",
   "enabled": true,
   "id": "cat_app",
   "jobAttributes": {
@@ -47,12 +47,7 @@
           "name": "Container Mounts"
         }
       ],
-      "envVariables": [
-        {
-          "key": "FAILURE_LOG_DST",
-          "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/cat/"
-        }
-      ],
+      "envVariables": [],
       "logConfig": {
         "stderrFilename": "${JobUUID}.err",
         "stdoutFilename": "${JobUUID}.out"

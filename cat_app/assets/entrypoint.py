@@ -13,7 +13,6 @@ tapismpi.configure_mpi_logger()
 async def main(
     bids_directory: typing.Sequence[Path], outdirs: typing.Sequence[Path]
 ) -> None:
-
     await cat.CATEntrypoint(
         outs=outdirs,
         ins=bids_directory,
@@ -60,12 +59,8 @@ if __name__ == "__main__":
         raise AssertionError(msg)
 
     if args.project_dir is not None:
-        input_dirs = [
-            args.project_dir / input_dir for input_dir in args.input_dirs
-        ]
-        output_dirs = [
-            args.project_dir / output_dir for output_dir in output_dirs
-        ]
+        input_dirs = [args.project_dir / input_dir for input_dir in args.input_dirs]
+        output_dirs = [args.project_dir / output_dir for output_dir in output_dirs]
     else:
         input_dirs = [input_dir for input_dir in args.input_dirs]
 

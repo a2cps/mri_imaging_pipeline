@@ -1,69 +1,127 @@
+import datetime
 import json
-from reactors.utils import Reactor
+import logging
+from pathlib import Path
 
-"""
-default actor to print the message from user input
-"""
+import polars as pl
+from mri_actor_utils import config, models
 
-def submit(ag, job_def) -> None:
-    # Submit the job in a try/except block
-    try:
-        # Submit the job and get the job ID
-        job_id = ag.jobs.submit(body=job_def)['id']
-        print(job_id)
-        print(json.dumps(job_def, indent=4))
-    except Exception as e:
-        print(json.dumps(job_def, indent=4))
-        print("Error submitting job: {}".format(e))
-        print(e.response.content)
-        return
-    return
+# within docker container
+JOB = Path("/opt/job.json")
+
+# numbers for ls6
+N_SUBS_PER_NODE = 30
+
+# for ls
+MAX_NODES_PER_JOB = 32
+
+# can be overridden by incoming message
+MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
+
+# amount of time required to copy one sub from /tmp -> /corral-secure
+# this will be used to terminate the job early in case of
+# prolonged runtime
+N_SEC_TO_COPY_ONE_SUB = 60
+
+
+class CAT12Reactor(models.Reactor):
+    def get_runlist(self) -> list[str]:
+        rundef = (
+            self.ilog.filter(pl.col("T1 Received") == 1)
+            .filter(pl.col("bids") == 1)
+            .filter(pl.col("cat12") == 0)
+            .with_columns(
+                sublong=pl.concat_str(
+                    pl.col("site"), pl.col("subject_id"), pl.col("visit")
+                ),
+                sitelong=pl.col("site").replace(config.SITE_LONG),
+            )
+            .with_columns(
+                INPUT_DIR=pl.concat_str(
+                    pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
+                    pl.col("sitelong"),
+                    pl.lit("/bids/"),
+                    pl.col("sublong"),
+                )
+            )
+            .sort(
+                "visit", "Surgery Week", "subject_id"
+            )  # ensure V1 run before V3, and do oldest scans
+        )
+
+        runlist = [
+            x for x in rundef.select(pl.col("INPUT_DIR")).to_series().to_list()
+        ]
+        return runlist[
+            : self.context.message_dict.get("MAXJOBS", self.MAXJOBS)
+        ]
+
+    def submit(self) -> None:
+        print(json.dumps(self.context, indent=4))
+
+        runlist = self.get_runlist()
+        n_jobs = len(runlist)
+        if not n_jobs:
+            logging.warning("Did not find any jobs to submit")
+            return
+
+        n_nodes = self.get_node_count(n_jobs)
+        self.set_app_arg(
+            name="INPUT_DIRS",
+            value="--input-dirs " + " ".join(x for x in runlist),
+        )
+
+        self.set_env_var(
+            key="MIN_ARCHIVE_DURATION",
+            value=str(n_jobs * self.N_SEC_TO_COPY_ONE_SUB),
+        )
+        if max_minutes := self.context.message_dict.get("maxMinutes"):
+            self.job.maxMinutes = max_minutes
+
+        self.job.name = self.job_name
+
+        self.set_cmd_prefix(image=self.container_image, n_jobs=n_jobs)
+
+        # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
+        self.job.nodeCount = n_nodes
+
+        # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
+        # all nodes will have all cores available, but this needs to be set for ibrun
+        self.job.coresPerNode = self.N_SUBS_PER_NODE
+
+        if self.context.message_dict.get("SKIP_FAILUREBOT", False):
+            self.job.subscriptions = None
+        else:
+            self.set_subscription_url(url=self.failurebot_url)
+
+        if FAILURE_LOG_DST := self.context.message_dict.get("FAILURE_LOG_DST"):
+            self.set_env_var(key="FAILURE_LOG_DST", value=FAILURE_LOG_DST)
+
+        print(
+            self.job.model_dump_json(
+                indent=4, exclude_unset=True, exclude_none=True
+            )
+        )
+
+        try:
+            submitted = self.client.jobs.submitJob(  # type: ignore
+                **self.job.model_dump(exclude_unset=True, exclude_none=True)
+            )
+            print(submitted.uuid)
+        except Exception:
+            logging.exception("encountered while trying to submit job")
 
 
 def main() -> None:
-    """Main function"""
-    # create the reactor object
-    r = Reactor()
-    r.logger.info(f"Hello this is actor {r.uid}")
+    reactor = CAT12Reactor(
+        job_name=f"cat12-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        N_SUBS_PER_NODE=N_SUBS_PER_NODE,
+        N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
+        JOB=JOB,
+        MAXJOBS=MAXJOBS,
+    )
+    reactor.submit()
 
-    # pull in reactor context
-    context=r.context  # Actor context
-    print(json.dumps(context, indent=4))
-    # if job status not in finished state, exit cleanly 
-    if context.message_dict['status'] != "FINISHED":
-        exit(0)
 
-    #archivePath=context.archivePath
-    #subject_id=context.subject_id
-    filename=context.filename
-    bids=context.bids
-    message=context.message_dict
-    site=context.site
-
-    site_codes = \
-                {
-                    "UI": "UI_uic",
-                    "NS": "NS_northshore",
-                    "UC": "UC_uchicago",
-                    "UM": "UM_umichigan",
-                    "WS": "WS_wayne_state",
-                    "SH": "SH_spectrum_health",
-                    "RU": "RU_rush",
-                }
-    site_name = site_codes[site]
-
-    job_def=r.settings.main
-    job_def.name = 'cat12_' + filename
-    job_def.archivePath = 'products/mris/{}/cat12/'.format(site_name)
-    parameters = job_def["parameters"]
-    parameters['BIDS'] = bids
-    parameters['OUTDIR'] = filename
-
-    #print(json.dumps(job_def, indent=4))
-    submit(ag=r.client, job_def=job_def)
-
-    return
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-
