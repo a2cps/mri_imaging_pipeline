@@ -1,6 +1,6 @@
 {
     "appId": "gift-app",
-    "appVersion": "0.2",
+    "appVersion": "0.3",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 1 apptainer run docker://psadil/gift_app:latest --help && ibrun -n 10",

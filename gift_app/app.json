@@ -1,9 +1,9 @@
 {
-    "containerImage": "docker://a2cps/gift_app:0.2",
+    "containerImage": "docker://a2cps/gift_app:0.3",
     "description": "Run gift",
     "enabled": true,
     "id": "gift-app",
-    "version": "0.2",
+    "version": "0.3",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": "ibrun -n 1",
