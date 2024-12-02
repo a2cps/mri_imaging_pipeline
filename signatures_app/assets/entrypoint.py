@@ -23,7 +23,6 @@ async def main(fmriprep: list[Path], outdirs: list[Path]) -> None:
             "*MNI152NLin2009cAsym*",
             "*fsLR*",
             "*html",
-            "*anat*",
             "*MNI152NLin6Asym_desc-preproc_bold*",  # this is another form of "res-native"
             "*sourcedata*",  # to exclude freesurfer
             "*fmap*",
@@ -33,6 +32,8 @@ async def main(fmriprep: list[Path], outdirs: list[Path]) -> None:
         detrend=True,
         winsorize=True,
         compcor_label="WM+CSF",
+        baseline_list=["rest1", "rest2"],
+        active_list=["cuff1", "cuff2"],
     ).run()
 
 
