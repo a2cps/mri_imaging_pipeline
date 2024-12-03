@@ -1,8 +1,9 @@
 {
-    "containerImage": "docker://a2cps/aggregator_qc_app:3.3",
+    "containerImage": "docker://a2cps/aggregator_qc_app:3.4",
     "description": "Aggregate quality control metrics and run simple checks",
     "enabled": true,
     "id": "aggregator_qc_app",
+    "version": "3.4",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": null,
@@ -104,7 +105,5 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "runtimeVersion": "3.2",
-    "strictFileInputs": true,
-    "version": "3.2"
+    "strictFileInputs": true
 }

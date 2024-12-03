@@ -3,7 +3,7 @@
     "appId": "aggregator_qc_app",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",
     "archiveSystemId": "secure.frontera",
-    "appVersion": "3.3",
+    "appVersion": "3.4",
     "parameterSet": {
         "appArgs": [
             {
