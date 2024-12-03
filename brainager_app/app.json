@@ -1,5 +1,6 @@
 {
     "containerImage": "docker://a2cps/brainager_app:0.3",
+    "version": "0.4",
     "description": "Run brainager",
     "enabled": true,
     "id": "brainager-app",
@@ -87,6 +88,5 @@
         "SINGULARITY_RUN"
     ],
     "runtimeVersion": null,
-    "strictFileInputs": true,
-    "version": "0.3"
+    "strictFileInputs": true
 }

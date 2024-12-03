@@ -1,6 +1,6 @@
 {
     "appId": "brainager-app",
-    "appVersion": "0.3",
+    "appVersion": "0.4",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.frontera",
     "maxMinutes": 60,
