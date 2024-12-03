@@ -1,6 +1,6 @@
 {
   "containerImage": "docker://a2cps/fslanat_app:1.0",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Run fsl_anat",
   "enabled": true,
   "id": "fslanat",
