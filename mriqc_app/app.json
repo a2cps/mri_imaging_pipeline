@@ -1,6 +1,6 @@
 {
   "containerImage": "docker://a2cps/mriqc_app:3.0.1",
-  "version": "3.1",
+  "version": "3.2",
   "description": "Run MRIQC",
   "enabled": true,
   "id": "mriqc-app",
@@ -63,12 +63,7 @@
           "name": "Container Mounts"
         }
       ],
-      "envVariables": [
-        {
-          "key": "FAILURE_LOG_DST",
-          "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/mriqc/"
-        }
-      ],
+      "envVariables": [],
       "logConfig": {
         "stderrFilename": "${JobUUID}.err",
         "stdoutFilename": "${JobUUID}.out"

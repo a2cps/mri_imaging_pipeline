@@ -22,7 +22,7 @@ APP_STEPS = [
                 "brainager",
                 "fcn",
                 "signatures",
-                "gift_rest"
+                "gift"
             ]
 
 SITE_CODES = {
@@ -561,20 +561,27 @@ def main():
                 scan_report["brainager"] = "na"
                 scan_report["fslanat"] = "na"
                 scan_report["fmriprep"] = "na"
-                scan_report["gift_rest"] = "na"
+                scan_report["gift"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
             if scan_report["fmriprep"] == "na":
                 scan_report['fcn'] = 'na'
                 scan_report['signatures'] = 'na'
-                scan_report['gift_rest'] = 'na'
+                scan_report['gift'] = 'na'
             if scan_report['DWI Indicated'] == '0':
                 scan_report['qsiprep'] = 'na'
             if scan_report['Cuff Leg'] == '1':
                 scan_report['Cuff Leg'] = 'Right'
             if scan_report['Cuff Leg'] == '2':
                 scan_report['Cuff Leg'] = 'Left'
+            if (
+                scan_report['fMRI Individualized Pressure Indicated'] == '0' 
+                and scan_report['fMRI Standard Pressure Indicated'] == '0'
+                and scan_report['1st Resting State Indicated'] == '0'
+                and scan_report['2nd Resting State Indicated'] == '0'
+                ):
+                scan_report['gift'] = 'na'
 
             list_of_dict.append(scan_report)
         except Exception as e:
@@ -603,7 +610,7 @@ def main():
     'bids',
     'fslanat',
     'fmriprep',
-    'gift_rest',
+    'gift',
     'mriqc',
     'qsiprep',
     'cat12',

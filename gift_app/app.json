@@ -1,8 +1,9 @@
 {
-    "containerImage": "docker://a2cps/gift_app:0.1",
+    "containerImage": "docker://a2cps/gift_app:0.3",
     "description": "Run gift",
     "enabled": true,
-    "id": "urrutia-gift_app",
+    "id": "gift-app",
+    "version": "0.3",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": "ibrun -n 1",
@@ -16,7 +17,7 @@
         "execSystemOutputDir": "${JobWorkingDir}",
         "fileInputArrays": [],
         "fileInputs": [],
-        "maxMinutes": 90,
+        "maxMinutes": 240,
         "nodeCount": 1,
         "parameterSet": {
             "appArgs": [
@@ -35,7 +36,7 @@
                     "name": "SMOOTH_FWHM"
                 },
                 {
-                    "arg": "--voxel-size 2.4",
+                    "arg": "--voxel-size 2.0",
                     "name": "VOXEL_SIZE"
                 }
             ],
@@ -57,16 +58,7 @@
                     "name": "Container Mounts"
                 }
             ],
-            "envVariables": [
-                {
-                    "key": "FAILURE_LOG_DST",
-                    "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/gift_rest/"
-                },
-                {
-                    "key": "MIN_ARCHIVE_DURATION",
-                    "value": "1800"
-                }
-            ],
+            "envVariables": [],
             "logConfig": {
                 "stderrFilename": "${JobUUID}.err",
                 "stdoutFilename": "${JobUUID}.out"
@@ -104,6 +96,5 @@
         "SINGULARITY_RUN"
     ],
     "runtimeVersion": "0.1",
-    "strictFileInputs": true,
-    "version": "0.1"
+    "strictFileInputs": true
 }
