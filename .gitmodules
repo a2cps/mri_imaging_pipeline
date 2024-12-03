@@ -1,9 +1,6 @@
 [submodule "fcn_app/assets/functional_connectivity"]
 	path = fcn_app/assets/functional_connectivity
 	url = https://github.com/a2cps/functional_connectivity.git
-[submodule "signatures_app/assets/mri_signatures"]
-	path = signatures_app/assets/mri_signatures
-	url = https://github.com/a2cps/mri_signatures.git
 [submodule "snapshot_app/assets/snapshot"]
 	path = snapshot_app/assets/snapshot
 	url = https://github.com/a2cps/snapshot.git
