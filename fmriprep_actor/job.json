@@ -1,6 +1,6 @@
 {
     "appId": "fmriprep-app",
-    "appVersion": "3.5",
+    "appVersion": "3.6",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 12",
