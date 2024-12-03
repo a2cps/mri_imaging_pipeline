@@ -1,8 +1,9 @@
 {
-    "containerImage": "docker://psadil/signatures_app:0.4",
+    "containerImage": "docker://a2cps/signatures_app:4.0",
+    "version": "4.0",
     "description": "Multivariate Pattern Signatures",
     "enabled": true,
-    "id": "psadil-signatures",
+    "id": "signatures",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": "ibrun -n 1",
@@ -87,6 +88,5 @@
         "SINGULARITY_RUN"
     ],
     "runtimeVersion": null,
-    "strictFileInputs": true,
-    "version": "0.6"
+    "strictFileInputs": true
 }

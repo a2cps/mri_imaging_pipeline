@@ -1,6 +1,6 @@
 {
-    "appId": "psadil-signatures",
-    "appVersion": "0.6",
+    "appId": "signatures",
+    "appVersion": "4.0",
     "maxMinutes": 240,
     "name": "signatures",
     "parameterSet": {
