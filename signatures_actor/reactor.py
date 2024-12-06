@@ -9,7 +9,7 @@ from mri_actor_utils import config, models
 # within docker container
 JOB = Path("/opt/job.json")
 
-N_SUBS_PER_NODE = 9
+N_SUBS_PER_NODE = 6
 
 # for ls
 MAX_NODES_PER_JOB = 2
