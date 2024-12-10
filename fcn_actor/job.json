@@ -3,7 +3,7 @@
     "appVersion": "0.7",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
-    "maxMinutes": 240,
+    "maxMinutes": 720,
     "name": "fcn",
     "parameterSet": {
         "appArgs": [],
