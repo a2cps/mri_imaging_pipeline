@@ -1,5 +1,6 @@
 {
-    "containerImage": "docker://a2cps/fcn_app:0.6",
+    "containerImage": "docker://a2cps/fcn_app:0.7",
+    "version": "0.8",
     "description": "Run Functional Connectivity",
     "enabled": true,
     "id": "functional-connectivity",
@@ -87,6 +88,5 @@
         "SINGULARITY_RUN"
     ],
     "runtimeVersion": null,
-    "strictFileInputs": true,
-    "version": "0.7"
+    "strictFileInputs": true
 }
