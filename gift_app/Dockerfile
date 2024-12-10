@@ -1,5 +1,5 @@
 # bring in the micromamba image so we can copy files from it
-FROM mambaorg/micromamba:1.5.8 as micromamba
+FROM mambaorg/micromamba:1.5.8 AS micromamba
 
 FROM trends/gift-bids:v4.0.5.3
 

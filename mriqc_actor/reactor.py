@@ -1,21 +1,14 @@
 import datetime
-import logging
 import json
+import logging
 from pathlib import Path
 
-from ibis import _
-
+import polars as pl
 from mri_actor_utils import config, models
-
-FAILUREBOT_ADDRESS_SECRET_NAME = "FAILUREBOT_ADDRESS_SECRET_NAME"
-FAILUREBOT_ADDRESS_SECRET_KEY = "FAILUREBOT_ADDRESS_SECRET_KEY"
 
 # within docker container
 JOB = Path("/opt/job.json")
 
-# on TACC
-# can be changed from this default by specifying "ILOG" in actor message
-ILOG = "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv"
 
 # numbers for ls6; tested at
 # /corral-secure/projects/A2CPS/shared/psadil/jobs/mriqc-upgrade-cores
@@ -38,39 +31,31 @@ N_SEC_TO_COPY_ONE_SUB = 10
 
 
 class MRIQCReactor(models.Reactor):
-
     def get_runlist(self) -> list[str]:
         rundef = (
-            self.ilog.select(
-                "site",
-                "subject_id",
-                "visit",
-                "bids",
-                "mriqc",
-                "acquisition_week",
+            self.ilog.filter(pl.col("mriqc") == 0)
+            .filter(pl.col("bids") == 1)
+            .with_columns(
+                sublong=pl.concat_str(
+                    pl.col("site"), pl.col("subject_id"), pl.col("visit")
+                ),
+                sitelong=pl.col("site").replace(config.SITE_LONG),
             )
-            .filter(_.bids == 1)  # type: ignore
-            .filter(_.mriqc == 0)  # type: ignore
-            .mutate(
-                sublong=_.site.concat(_.subject_id, _.visit),  # type: ignore
-                sitelong=_.site.cases(tuple(config.SITE_LONG.items())),  # type: ignore
+            .with_columns(
+                INPUT_DIR=pl.concat_str(
+                    pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
+                    pl.col("sitelong"),
+                    pl.lit("/bids/"),
+                    pl.col("sublong"),
+                )
             )
-            .mutate(
-                INPUT_DIR=lambda x: "/corral-secure/projects/A2CPS/products/mris/"
-                + x.sitelong
-                + "/bids/"
-                + x.sublong  # type: ignore
-            )
-            .order_by(
-                ["visit", "acquisition_week"]
+            .sort(
+                "visit", "Surgery Week", "subject_id"
             )  # ensure V1 run before V3, and do oldest scans
-            .execute()
         )
 
-        runlist = rundef.INPUT_DIR.to_list()
-        return runlist[
-            : self.context.message_dict.get("MAXJOBS", self.MAXJOBS)
-        ]
+        runlist = rundef.select(pl.col("INPUT_DIR")).to_series().to_list()
+        return runlist[: self.context.message_dict.get("MAXJOBS", self.MAXJOBS)]
 
     def submit(self) -> None:
         print(json.dumps(self.context, indent=4))
@@ -116,29 +101,22 @@ class MRIQCReactor(models.Reactor):
                 value=FAILURE_LOG_DST,
             )
 
-        print(
-            self.job.model_dump_json(
-                indent=4, exclude_unset=True, exclude_none=True
-            )
-        )
+        print(self.job.model_dump_json(indent=4, exclude_unset=True, exclude_none=True))
 
         try:
             submitted = self.client.jobs.submitJob(  # type: ignore
                 **self.job.model_dump(exclude_unset=True, exclude_none=True)
             )
             print(submitted.uuid)
-        except Exception as e:
-            logging.exception(f"encountered while trying to submit job: {e}")
+        except Exception:
+            logging.exception("encountered while trying to submit job")
 
 
 def main() -> None:
     reactor = MRIQCReactor(
         job_name=f"mriqc-{datetime.datetime.today().strftime('%Y-%m-%d')}",
-        FAILUREBOT_ADDRESS_SECRET_KEY=FAILUREBOT_ADDRESS_SECRET_KEY,
-        FAILUREBOT_ADDRESS_SECRET_NAME=FAILUREBOT_ADDRESS_SECRET_NAME,
         N_SUBS_PER_NODE=N_SUBS_PER_NODE,
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
-        ILOG=Path(ILOG),
         JOB=JOB,
         MAXJOBS=MAXJOBS,
     )

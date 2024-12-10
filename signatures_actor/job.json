@@ -1,29 +1,10 @@
 {
-    "name": "test_signatures",
-    "appId": "urrutia-signatures",
-    "appVersion": "0.7",
-    "archiveSystemId": "secure.frontera",
-    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
-    "archiveOnAppError": false,
+    "appId": "signatures",
+    "appVersion": "4.0",
+    "maxMinutes": 240,
+    "name": "signatures",
     "parameterSet": {
-        "appArgs": [
-            {
-                "name": "FMRIPREP_DIR",
-                "arg": "--fmriprep-dir /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/fmriprep/NStravel1/rest/fmriprep /corral-secure/projects/A2CPS/shared/psadil/traveling/mris/NS_northshore/fmriprep/NStravel1/cuff/fmriprep"
-            },
-            {
-                "name": "OUTPUT_DIR",
-                "arg": "--output-dir NS_northsthore/fcn/travel1 NS_northsthore/fcn/travel1"
-            },
-            {
-                "name": "N_WORKERS",
-                "arg": "--n-workers 4"
-            },
-            {
-                "name": "STAGE_DIR",
-                "arg": "--stage-dir /tmp/input"
-            }
-        ],
+        "appArgs": [],
         "envVariables": [
             {
                 "key": "POLARS_MAX_THREADS",
@@ -31,29 +12,17 @@
             }
         ]
     },
-    "moduleLoads": [
-        {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
-            ]
-        }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
-    "maxMinutes": 240,
     "subscriptions": [
         {
-            "description": "Message on Failure",
-            "enabled": true,
-            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
             "deliveryTargets": [
                 {
-                    "deliveryMethod": "WEBHOOK",
-                    "deliveryAddress": ""
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
                 }
-            ]
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
         }
     ]
 }
