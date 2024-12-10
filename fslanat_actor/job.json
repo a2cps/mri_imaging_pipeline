@@ -2,7 +2,7 @@
     "appId": "fslanat",
     "appVersion": "1.1",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
-    "archiveSystemId": "secure.frontera",
+    "archiveSystemId": "secure.ls6",
     "maxMinutes": 240,
     "name": "fslanat",
     "parameterSet": {
