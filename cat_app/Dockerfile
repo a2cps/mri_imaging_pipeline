@@ -1,7 +1,7 @@
 # bring in the micromamba image so we can copy files from it
-FROM mambaorg/micromamba:1.5.8 AS micromamba
+FROM mambaorg/micromamba:1.5 AS micromamba
 
-FROM trends/gift-bids:v4.0.5.3
+FROM psadil/cat12:12.9
 
 USER root
 
@@ -25,19 +25,17 @@ RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh && \
 USER $MAMBA_USER
 
 SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
+ENV ENV_NAME=base
 
-ARG MAMBA_DOCKERFILE_ACTIVATE=1 
-COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
-RUN micromamba install -q --name base --yes --file /tmp/env.yml \
+COPY --chown=$MAMBA_USER:$MAMBA_USER  env.yml /tmp/
+
+RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge -f /tmp/env.yml \
     && rm /tmp/env.yml \
-    && micromamba clean --yes --all
+    && micromamba clean --all --yes
 
-# can't use "gift_app" as dst because that breaks gift
-ADD --chown=$MAMBA_USER:$MAMBA_USER https://github.com/trendscenter/gift/raw/b0adaf01441405156ffc37ef80a65154afc07d3f/GroupICAT/icatb/icatb_templates/Neuromark_fMRI_2.0_modelorder-175.nii /opt/gift/
-ADD --chown=$MAMBA_USER:$MAMBA_USER https://github.com/trendscenter/gift/raw/7312fad77273ae5a001285787586226d1238c07a/GroupICAT/icatb/icatb_templates/Neuromark_fMRI_2.1_modelorder-multi.nii /opt/gift/
-COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py assets/config*m /opt/gift/
+# files searched for in entrypoint.py
+COPY assets/entrypoint.py /opt/cat_app/
 ENV TZ=US/Central
-WORKDIR /tmp
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/gift/entrypoint.py"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/cat_app/entrypoint.py"]
 CMD [ "--help" ]

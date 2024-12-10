@@ -8,7 +8,8 @@ heudiconv:
   name: heudiconv_test
   archive: true
   archiveSystemDir: testing/actor-heudiconv
-  archiveSystemId: secure.ls6
+  archiveSystemId: secure.frontera
+  execSystemId: secure.frontera
   maxMinutes: 300
   parameterSet:
     envVariables:

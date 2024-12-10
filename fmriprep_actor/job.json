@@ -1,12 +1,13 @@
 {
     "appId": "fmriprep-app",
-    "appVersion": "3.5",
+    "appVersion": "3.6",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 12",
     "coresPerNode": 6,
-    "maxMinutes": 1200,
+    "maxMinutes": 2800,
     "name": "fmriprep",
     "nodeCount": 2,
-    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "parameterSet": {
         "appArgs": [
             {
@@ -32,8 +33,8 @@
         ],
         "envVariables": [
             {
-                "key": "MIN_ARCHIVE_DURATION",
-                "value": "2160"
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fmriprep/"
             }
         ]
     },

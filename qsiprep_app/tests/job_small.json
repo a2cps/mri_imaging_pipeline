@@ -1,0 +1,35 @@
+{
+    "appId": "psadil-qsiprep",
+    "appVersion": "0.3",
+    "cmdPrefix": "mkdir psadil && apptainer pull psadil/qsiprep_app:3.2 docker://psadil/qsiprep_app:3.2 && ibrun -n 6",
+    "coresPerNode": 6,
+    "maxMinutes": 540,
+    "name": "qsiprep-test",
+    "nodeCount": 1,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/RU_rush/bids/RUtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/SH_spectrum_health/bids/SHtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UC_uchicago/bids/UCtravel1",
+                "name": "INPUT_DIRS"
+            },
+            {
+                "arg": "--output-dirs NS_northshore/bids/NStravel1 NS_northshore/bids/NStravel2 RU_rush/bids/RUtravel1 RU_rush/bids/RUtravel2 SH_spectrum_health/bids/SHtravel2 UC_uchicago/bids/UCtravel1",
+                "name": "OUTPUT_DIRS"
+            },
+            {
+                "arg": "--n-workers 10",
+                "name": "N_WORKERS"
+            },
+            {
+                "arg": "--mem-mb 21333",
+                "name": "MEM_MB"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "logs"
+            }
+        ]
+    }
+}

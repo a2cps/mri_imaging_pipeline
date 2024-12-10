@@ -1,7 +1,9 @@
 {
     "name": "aggregate_qc",
     "appId": "aggregator_qc_app",
-    "appVersion": "3.3",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",
+    "archiveSystemId": "secure.frontera",
+    "appVersion": "3.4",
     "parameterSet": {
         "appArgs": [
             {
@@ -25,9 +27,6 @@
                 "tacc-apptainer"
             ]
         }
-    ],
-    "hiddenOptions": [
-        "MEM"
     ],
     "maxMinutes": 60,
     "subscriptions": [

@@ -1,5 +1,6 @@
 {
-	"containerImage": "docker://a2cps/qsiprep_app:3.2",
+	"containerImage": "docker://a2cps/qsiprep_app:3.3",
+	"version": "3.3",
 	"description": "Run qsiprep",
 	"enabled": true,
 	"id": "qsiprep",
@@ -10,7 +11,7 @@
 		"dynamicExecSystem": false,
 		"execSystemConstraints": null,
 		"execSystemExecDir": "${JobWorkingDir}",
-		"execSystemId": "secure.frontera",
+		"execSystemId": "secure.ls6",
 		"execSystemInputDir": "${JobWorkingDir}",
 		"execSystemLogicalQueue": "corralextra",
 		"execSystemOutputDir": "${JobWorkingDir}",
@@ -23,16 +24,17 @@
 				{
 					"arg": null,
 					"inputMode": "REQUIRED",
-					"name": "BIDSDIR"
+					"name": "INPUT_DIRS"
 				},
 				{
 					"arg": null,
-					"inputMode": "REQUIRED",
-					"name": "OUTDIR"
+					"inputMode": "INCLUDE_ON_DEMAND",
+					"name": "OUTPUT_DIRS"
 				},
 				{
-					"arg": "--nthreads 1",
-					"name": "NTHREADS"
+					"arg": null,
+					"inputMode": "INCLUDE_ON_DEMAND",
+					"name": "N_WORKERS"
 				},
 				{
 					"arg": null,
@@ -58,16 +60,7 @@
 					"name": "Container Mounts"
 				}
 			],
-			"envVariables": [
-				{
-					"key": "FAILURE_LOG_DST",
-					"value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
-				},
-				{
-					"key": "MIN_ARCHIVE_DURATION",
-					"value": "1800"
-				}
-			],
+			"envVariables": [],
 			"logConfig": {
 				"stderrFilename": "${JobUUID}.err",
 				"stdoutFilename": "${JobUUID}.out"
@@ -105,6 +98,5 @@
 		"SINGULARITY_RUN"
 	],
 	"runtimeVersion": null,
-	"strictFileInputs": true,
-	"version": "3.2"
+	"strictFileInputs": true
 }

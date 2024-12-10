@@ -22,7 +22,7 @@ CONFIGS = {
 async def main(
     fmriprep: list[Path],
     outdirs: list[Path],
-    voxel_size: float = 2.4,
+    voxel_size: float = 2.0,
     smooth_fwhm: float = 6.0,
 ) -> None:
     await gift.GIFTEntrypoint(
@@ -44,6 +44,9 @@ async def main(
             "*fsLR*",
             "*html",
             "*anat*",
+            "*MNI152NLin2009cAsym_desc-preproc_bold*",  # this is another form of "res-native"
+            "*sourcedata*",  # to exclude freesurfer
+            "*fmap*",
         ),
         voxel_size=voxel_size,
         smooth_fwhm=smooth_fwhm,
@@ -54,7 +57,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dirs", nargs="+", type=Path, required=True)
     parser.add_argument("--output-dirs", nargs="+", type=Path)
-    parser.add_argument("--voxel-size", type=float, default=2.4)
+    parser.add_argument("--voxel-size", type=float, default=2.0)
     parser.add_argument("--smooth-fwhm", type=float, default=6.0)
 
     args = parser.parse_args()
@@ -69,10 +72,8 @@ if __name__ == "__main__":
                         Path(input_dir).relative_to(
                             "/corral-secure/projects/A2CPS/products/mris"
                         )
-                    )
-                    .replace("/fmriprep/", "/gift_rest/")
-                    .replace("/rest/fmriprep", "")
-                )
+                    ).replace("/fmriprep/", "/gift/")
+                ).parent
             )
     else:
         output_dirs = args.output_dirs
