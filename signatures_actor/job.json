@@ -2,7 +2,7 @@
     "appId": "signatures",
     "appVersion": "4.0",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
-    "archiveSystemId": "secure.frontera",
+    "archiveSystemId": "secure.ls6",
     "maxMinutes": 360,
     "name": "signatures",
     "parameterSet": {
@@ -10,7 +10,7 @@
         "envVariables": [
             {
                 "key": "FAILURE_LOG_DST",
-                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/gift/"
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/signatures/"
             },
             {
                 "key": "POLARS_MAX_THREADS",
