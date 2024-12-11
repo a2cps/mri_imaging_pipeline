@@ -17,10 +17,6 @@ MAX_NODES_PER_JOB = 16
 # can change by incoming message by specifying "MAXJOBS"
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
 
-# up to this number of jobs will be submitted
-# can replaced by specifying N_SUBMISSIONS in message
-N_SUBMISSIONS = 1
-
 
 N_SEC_TO_COPY_ONE_SUB = 180
 
@@ -78,7 +74,6 @@ def main() -> None:
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
         JOB=JOB,
         MAXJOBS=MAXJOBS,
-        N_SUBMISSIONS=N_SUBMISSIONS,
     ).parse_and_submit()
 
 

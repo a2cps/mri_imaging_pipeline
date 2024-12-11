@@ -17,10 +17,6 @@ MAX_NODES_PER_JOB = 20
 # can change by incoming message by specifying "MAXJOBS"
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
 
-# up to this number of jobs will be submitted
-# can replaced by specifying N_SUBMISSIONS in message
-N_SUBMISSIONS = 1
-
 
 # amount of time required to copy one sub from /tmp -> /corral-secure
 # this will be used to terminate the job early in case of
@@ -94,7 +90,6 @@ def main() -> None:
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
         JOB=JOB,
         MAXJOBS=MAXJOBS,
-        N_SUBMISSIONS=N_SUBMISSIONS,
     ).parse_and_submit()
 
 

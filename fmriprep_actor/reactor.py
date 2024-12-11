@@ -19,9 +19,6 @@ MAX_NODES_PER_JOB = 32
 # can be overridden by incoming message
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
 
-# up to this number of jobs will be submitted
-# can replaced by specifying N_SUBMISSIONS in message
-N_SUBMISSIONS = 1
 
 # amount of time required to copy one sub from /tmp -> /corral-secure
 # this will be used to terminate the job early in case of
@@ -57,10 +54,10 @@ class FMRIPrepReactor(models.Reactor):
                     & (pl.col("CUFF2") == 0)
                     & (pl.col("REST1") == 0)
                     & (pl.col("REST2") == 0)
-                ),
+                ).cast(pl.Utf8),
             )
             .with_columns(
-                INPUT_DIR=pl.concat_str(
+                INPUT_DIRS=pl.concat_str(
                     pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
                     pl.col("sitelong"),
                     pl.lit("/bids/"),
@@ -87,7 +84,10 @@ class FMRIPrepReactor(models.Reactor):
 
         runlist = self.get_runlist()
         for r, (input_dirs, anat_only) in enumerate(
-            itertools.batched(runlist, self.maxjobs)
+            zip(
+                itertools.batched(runlist[0], self.maxjobs),
+                itertools.batched(runlist[1], self.maxjobs),
+            )
         ):
             n_jobs = len(input_dirs)
             self.set_app_arg(
@@ -109,7 +109,6 @@ def main() -> None:
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
         JOB=JOB,
         MAXJOBS=MAXJOBS,
-        N_SUBMISSIONS=N_SUBMISSIONS,
     ).parse_and_submit()
 
 

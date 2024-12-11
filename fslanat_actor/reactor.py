@@ -17,10 +17,6 @@ MAX_NODES_PER_JOB = 1
 # can change by incoming message by specifying "MAXJOBS"
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
 
-# up to this number of jobs will be submitted
-# can replaced by specifying N_SUBMISSIONS in message
-N_SUBMISSIONS = 1
-
 
 N_SEC_TO_COPY_ONE_SUB = 180
 
@@ -154,7 +150,11 @@ class FSLAnatReactor(models.Reactor):
         runlist = self.get_runlist()
 
         for r, (input_dirs, precrop, mask_high_voxels) in enumerate(
-            itertools.batched(runlist, self.maxjobs)
+            zip(
+                itertools.batched(runlist[0], self.maxjobs),
+                itertools.batched(runlist[1], self.maxjobs),
+                itertools.batched(runlist[2], self.maxjobs),
+            )
         ):
             n_jobs = len(input_dirs)
             self.set_app_arg(
@@ -178,7 +178,6 @@ def main() -> None:
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
         JOB=JOB,
         MAXJOBS=MAXJOBS,
-        N_SUBMISSIONS=N_SUBMISSIONS,
     ).parse_and_submit()
 
 
