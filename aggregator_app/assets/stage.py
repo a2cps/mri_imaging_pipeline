@@ -348,18 +348,6 @@ def _prep_staged_dir(outroot: Path) -> None:
             logging.warning(f"deleting isolated file: {to_del}")
             to_del.unlink()
 
-    # delete fcn directories that have multiple parquet files
-    # they are created during reruns without the products being cleared
-    # recent versions of the aggregator avoid copying duplicates
-    # but there may be some that lingered
-    for sub in (outroot / "fcn" / "connectivity").glob("sub=*"):
-        for ses in list(sub.glob("ses=*")):
-            # just delete the whole subject tree for simplicity
-            if len(list(ses.glob("*parquet"))) > 1:
-                logging.warning(f"found duplicates in {ses}, deleting")
-                shutil.rmtree(ses)
-                break
-
     # delete empty directories
     for target in os.walk(outroot, topdown=False):
         if (len(target[1] + target[2]) == 0) and (
