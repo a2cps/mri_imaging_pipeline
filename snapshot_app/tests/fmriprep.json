@@ -2,7 +2,7 @@
     "appId": "psadil-snapshot_app",
     "appVersion": "2.3",
     "execSystemId": "secure.ls6",
-    "execSystemLogicalQueue": "corralextra-dev",
+    "execSystemLogicalQueue": "corralextra",
     "maxMinutes": 1200,
     "name": "snapshot-fmriprep",
     "parameterSet": {
