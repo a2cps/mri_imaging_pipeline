@@ -1,6 +1,6 @@
 {
     "appId": "functional-connectivity",
-    "appVersion": "0.8",
+    "appVersion": "0.9",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
     "maxMinutes": 720,
