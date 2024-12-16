@@ -14,7 +14,7 @@
             },
             {
                 "key": "POLARS_MAX_THREADS",
-                "value": "14"
+                "value": "4"
             }
         ]
     },

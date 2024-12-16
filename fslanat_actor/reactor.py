@@ -1,6 +1,6 @@
 import datetime
+import itertools
 import json
-import logging
 from pathlib import Path
 
 import polars as pl
@@ -16,6 +16,7 @@ MAX_NODES_PER_JOB = 1
 
 # can change by incoming message by specifying "MAXJOBS"
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
+
 
 N_SEC_TO_COPY_ONE_SUB = 180
 
@@ -99,7 +100,7 @@ MASK_HIGH_VOXELS_SUBS = {
 
 
 class FSLAnatReactor(models.Reactor):
-    def get_runlist(self) -> dict[str, list[str]]:
+    def get_runlist(self) -> tuple[list[str], list[str], list[str]]:
         rundef = (
             self.ilog
             # exclude rows that were already processed
@@ -129,80 +130,45 @@ class FSLAnatReactor(models.Reactor):
                 "visit", "Surgery Week", "subject_id"
             )  # ensure V1 run before V3, and do oldest scans
         )
-        runlist: dict[str, list[str]] = {
-            "INPUT_DIRS": rundef.select(pl.col("INPUT_DIRS")).to_series().to_list(),
-            "PRECROP": rundef.select(pl.col("PRECROP")).to_series().to_list(),
-            "MASK_HIGH_VOXELS": rundef.select(pl.col("MASK_HIGH_VOXELS"))
+        runlist = (
+            rundef.select(pl.col("INPUT_DIRS"))
             .to_series()
-            .to_list(),
-        }
+            .to_list()[: self.maxjobs * self.n_submissions],
+            rundef.select(pl.col("PRECROP"))
+            .to_series()
+            .to_list()[: self.maxjobs * self.n_submissions],
+            rundef.select(pl.col("MASK_HIGH_VOXELS"))
+            .to_series()
+            .to_list()[: self.maxjobs * self.n_submissions],
+        )
 
-        return {
-            k: v[: self.context.message_dict.get("MAXJOBS", self.MAXJOBS)]
-            for k, v in runlist.items()
-        }
+        return runlist
 
-    def submit(self) -> None:
+    def parse_and_submit(self) -> None:
         print(json.dumps(self.context, indent=4))
 
         runlist = self.get_runlist()
-        n_jobs = len(runlist)
-        if not n_jobs:
-            logging.warning("Did not find any jobs to submit")
-            return
 
-        n_nodes = self.get_node_count(n_jobs)
-        self.set_app_arg(
-            name="INPUT_DIRS",
-            value="--input-dirs " + " ".join(runlist["INPUT_DIRS"]),
-        )
-        self.set_app_arg(
-            name="PRECROP",
-            value="--precrop " + " ".join(runlist["PRECROP"]),
-        )
-        self.set_app_arg(
-            name="MASK_HIGH_VOXELS",
-            value="--mask-high-voxels " + " ".join(runlist["MASK_HIGH_VOXELS"]),
-        )
-
-        self.set_env_var(
-            key="MIN_ARCHIVE_DURATION",
-            value=str(n_jobs * self.N_SEC_TO_COPY_ONE_SUB),
-        )
-        if max_minutes := self.context.message_dict.get("maxMinutes"):
-            self.job.maxMinutes = max_minutes
-
-        self.job.name = self.job_name
-
-        self.set_cmd_prefix(image=self.container_image, n_jobs=n_jobs)
-
-        # corresponds to SBATCH option -N,--nodes, SLURM_JOB_NUM_NODES
-        self.job.nodeCount = n_nodes
-
-        # corresponds to SBATCH option -n,--ntask, SLURM_NPROCS, SLURM_NTASKS
-        # all nodes will have all cores available, but this needs to be set for ibrun
-        self.job.coresPerNode = self.N_SUBS_PER_NODE
-
-        if self.context.message_dict.get("SKIP_FAILUREBOT", False):
-            self.job.subscriptions = None
-        else:
-            self.set_subscription_url(url=self.failurebot_url)
-
-        if FAILURE_LOG_DST := self.context.message_dict.get("FAILURE_LOG_DST"):
-            self.set_env_var(
-                key="FAILURE_LOG_DST",
-                value=FAILURE_LOG_DST,
+        for r, (input_dirs, precrop, mask_high_voxels) in enumerate(
+            zip(
+                itertools.batched(runlist[0], self.maxjobs),
+                itertools.batched(runlist[1], self.maxjobs),
+                itertools.batched(runlist[2], self.maxjobs),
             )
-
-        print(self.job.model_dump_json(indent=4, exclude_unset=True, exclude_none=True))
-
-        try:
-            submitted = self.client.jobs.submitJob(  # type: ignore
-                **self.job.model_dump(exclude_unset=True, exclude_none=True)
+        ):
+            n_jobs = len(input_dirs)
+            self.set_app_arg(
+                name="INPUT_DIRS", value="--input-dirs " + " ".join(input_dirs)
             )
-            print(submitted.uuid)
-        except Exception:
-            logging.exception("encountered while trying to submit job")
+            self.set_app_arg(name="PRECROP", value="--precrop " + " ".join(precrop))
+            self.set_app_arg(
+                name="MASK_HIGH_VOXELS",
+                value="--mask-high-voxels " + " ".join(mask_high_voxels),
+            )
+            self.job.name = f"{self.job_name}-{r}"
+
+            self.set_common(n_jobs=n_jobs)
+            self.submit()
 
 
 def main() -> None:
@@ -212,7 +178,7 @@ def main() -> None:
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
         JOB=JOB,
         MAXJOBS=MAXJOBS,
-    ).submit()
+    ).parse_and_submit()
 
 
 if __name__ == "__main__":

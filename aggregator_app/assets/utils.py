@@ -170,22 +170,3 @@ def deface_all_derivatives(subsesdir: Path, tmp_site: Path, n_threads: int = 1):
     )
 
     _deface_fslanat(tmp_site / "fslanat" / subsesdir, n_threads=n_threads)
-
-
-def get_duplicated_parquet(root: Path) -> list[str]:
-    # when there was an accidental rerun of a job, we
-    # could end up with duplicated parquet files
-    # this produces a list of files that should be ignored
-    # (e.g., for passing to shutil.ignore_pattern)
-    to_ignore = []
-    for parent, _, filenames in os.walk(root):
-        n_parquet = sum(f.endswith(".parquet") for f in filenames)
-        if n_parquet > 1:
-            ctimes = {
-                f: os.stat(Path(parent) / f).st_ctime
-                for f in filenames
-                if f.endswith(".parquet")
-            }
-            most_recent = max(ctimes, key=ctimes.get)  # type: ignore
-            to_ignore.extend([f"*{f}" for f in filenames if f is not most_recent])
-    return to_ignore
