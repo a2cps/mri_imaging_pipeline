@@ -1,9 +1,9 @@
 {
-    "containerImage": "docker://a2cps/aggregator_qc_app:3.4",
+    "containerImage": "docker://a2cps/aggregator_qc_app:3.5",
     "description": "Aggregate quality control metrics and run simple checks",
     "enabled": true,
     "id": "aggregator_qc_app",
-    "version": "3.4",
+    "version": "3.5",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": null,
@@ -59,10 +59,17 @@
             ],
             "archiveFilter": {
                 "excludes": [
-                    "*out"
+                    "tapisjob.sh",
+                    "${JobUUID}.out",
+                    "${JobUUID}.err",
+                    "tapisjob.env"
                 ],
                 "includeLaunchFiles": false,
                 "includes": []
+            },
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
             },
             "containerArgs": [
                 {

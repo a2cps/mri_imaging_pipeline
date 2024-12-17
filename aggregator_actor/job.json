@@ -1,6 +1,6 @@
 {
     "appId": "aggregator",
-    "appVersion": "2.3",
+    "appVersion": "2.4",
     "maxMinutes": 1440,
     "name": "aggregate",
     "parameterSet": {
