@@ -12,7 +12,7 @@
             },
             {
                 "name": "SECRET_NAME",
-                "arg": "--secret-name urrutia-confluence-token"
+                "arg": "--secret-name a2cpsadmin-confluence-token"
             },
             {
                 "name": "CONFLUENCE_USERNAME",
