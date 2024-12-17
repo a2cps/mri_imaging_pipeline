@@ -293,7 +293,9 @@ def build_cat_df(xml: Path) -> pd.DataFrame:
 def gather_cat(
     root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
 ):
-    return pd.concat([build_cat_df(x) for x in root.glob("*/cat12/*/report/*xml")])
+    return pd.concat(
+        [build_cat_df(x) for x in root.glob("*/cat12/*/cat12/report/*xml")]
+    )
 
 
 def get_task(src: Path) -> str:
