@@ -3,8 +3,8 @@
     "appVersion": "2.3",
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra",
-    "maxMinutes": 2880,
-    "name": "snapshot-qsiprep",
+    "maxMinutes": 360,
+    "name": "snapshot-eddyqc",
     "parameterSet": {
         "appArgs": [
             {
@@ -16,7 +16,7 @@
                 "name": "OUTROOT"
             },
             {
-                "arg": "--job qsiprep-V1",
+                "arg": "--job eddyqc",
                 "name": "JOB"
             },
             {

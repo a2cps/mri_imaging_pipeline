@@ -4,7 +4,7 @@
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra-dev",
     "maxMinutes": 120,
-    "name": "snapshot-2.2",
+    "name": "snapshot-mriqc",
     "parameterSet": {
         "appArgs": [
             {
