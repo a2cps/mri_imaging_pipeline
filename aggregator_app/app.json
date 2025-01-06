@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/aggregator:2.4",
-    "version": "2.4",
+    "containerImage": "docker://a2cps/aggregator:2.5",
+    "version": "2.5",
     "description": "Stage MRI Products for Release",
     "enabled": true,
     "id": "aggregator",
