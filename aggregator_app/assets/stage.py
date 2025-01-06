@@ -82,23 +82,19 @@ def is_fmriprep_aggregated(path: Path, row) -> bool:
 def is_qsiprep_aggregated(path: Path, row) -> bool:
     sub = row.subject_id
     ses = row.visit
-    all_ready = False
     qsiprep_dir = path / f"qsiprep-{ses}"
     qsiprep_target = qsiprep_dir / f"sub-{sub}" / f"ses-{ses}"
-    if qsiprep_target.exists():
-        all_ready = (qsiprep_dir / f"sub-{sub}.html").exists()
-        if not all_ready:
-            logging.error(f"{sub=}, {ses=} did not pass qsiprep validation")
-            shutil.rmtree(qsiprep_target)
-
     eddy_target = path / "eddyqc" / f"sub-{sub}" / f"ses-{ses}"
-    if not all_ready and eddy_target.exists():
-        shutil.rmtree(eddy_target)
-    elif all_ready:
-        all_ready = eddy_target.exists()
-        if not all_ready:
-            logging.error(f"{sub=}, {ses=} did not pass eddyqc validation")
+    all_ready = (
+        qsiprep_target.exists()
+        & (qsiprep_dir / f"sub-{sub}.html").exists()
+        & eddy_target.exists()
+    )
+
+    if not all_ready:
+        if eddy_target.exists():
             shutil.rmtree(eddy_target)
+        if qsiprep_target.exists():
             shutil.rmtree(qsiprep_target)
 
     return all_ready
