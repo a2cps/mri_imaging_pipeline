@@ -38,7 +38,7 @@ def get_atlas_volumes(mridir: Path, atlas: Path) -> pd.DataFrame | None:
     out = []
     masker = maskers.NiftiLabelsMasker(labels_img=atlas, strategy="sum")
     # https://neuro-jena.github.io/cat12-help/#naming
-    for p1 in mridir.glob("*wp1*nii"):
+    for p1 in mridir.rglob("*wp1*nii"):
         sub = bu.get_sub_from_sublong(p1)
         ses = bu.get_ses_from_sublong(p1)
         cluster_volume = get_volume(p1, masker)
@@ -57,8 +57,8 @@ def get_atlas_volumes(mridir: Path, atlas: Path) -> pd.DataFrame | None:
 
 def make_toplevel(outdir: Path) -> None:
     bu.mkdir_recursive(outdir)
-    smallwood_volumes = get_atlas_volumes(mridir=outdir / "mri", atlas=SMALLWOOD)
-    henn_volumes = get_atlas_volumes(mridir=outdir / "mri", atlas=HENN)
+    smallwood_volumes = get_atlas_volumes(mridir=outdir, atlas=SMALLWOOD)
+    henn_volumes = get_atlas_volumes(mridir=outdir, atlas=HENN)
     if smallwood_volumes is not None and henn_volumes is not None:
         pd.concat([smallwood_volumes, henn_volumes]).to_csv(
             outdir / "cluster_volumes.tsv", sep="\t"
