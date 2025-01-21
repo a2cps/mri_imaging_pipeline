@@ -34,10 +34,6 @@
           "name": "OUTPUT_DIRS"
         },
         {
-          "arg": "--n-workers 1",
-          "name": "N_WORKERS"
-        },
-        {
           "arg": null,
           "name": "PRECROP"
         },
@@ -72,7 +68,7 @@
       },
       "schedulerOptions": [
         {
-          "arg": "--tapis-profile tacc-apptainer",
+          "arg": "--tapis-profile ls6-mpi",
           "description": "Scheduler profile for HPC clusters at TACC",
           "inputMode": "FIXED",
           "name": "TACC Scheduler Profile"

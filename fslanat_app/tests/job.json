@@ -1,0 +1,30 @@
+{
+    "name": "fslanat-mpi",
+    "appId": "psadil-fslanat_app",
+    "appVersion": "1.0",
+    "execSystemLogicalQueue": "corralextra-dev",
+    "nodeCount": 1,
+    "coresPerNode": 23,
+    "cmdPrefix": "ibrun -n 1 apptainer run docker://psadil/fslanat_app:0.3 --help && ibrun -n 23",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "INPUT_DIRS",
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10732V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10804V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10965V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10965V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10972V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10976V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10983V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10983V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC10990V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11000V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11001V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11001V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11006V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11006V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11022V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11028V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC11058V1 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC15011V3 /corral-secure/projects/A2CPS/products/mris/UC_uchicago/bids/UC15032V1 /corral-secure/projects/A2CPS/products/mris/UI_uic/bids/UI10485V3 /corral-secure/projects/A2CPS/products/mris/UI_uic/bids/UI10667V3 /corral-secure/projects/A2CPS/products/mris/UI_uic/bids/UI10852V1 /corral-secure/projects/A2CPS/products/mris/UM_umichigan/bids/UM25299V1"
+            },
+            {
+                "name": "OUTPUT_DIRS",
+                "arg": "--output-dirs UC_uchicago/fslanat/UC10732V3 UC_uchicago/fslanat/UC10804V1 UC_uchicago/fslanat/UC10965V1 UC_uchicago/fslanat/UC10965V3 UC_uchicago/fslanat/UC10972V1 UC_uchicago/fslanat/UC10976V3 UC_uchicago/fslanat/UC10983V1 UC_uchicago/fslanat/UC10983V3 UC_uchicago/fslanat/UC10990V3 UC_uchicago/fslanat/UC11000V3 UC_uchicago/fslanat/UC11001V1 UC_uchicago/fslanat/UC11001V3 UC_uchicago/fslanat/UC11006V1 UC_uchicago/fslanat/UC11006V3 UC_uchicago/fslanat/UC11022V1 UC_uchicago/fslanat/UC11028V1 UC_uchicago/fslanat/UC11058V1 UC_uchicago/fslanat/UC15011V3 UC_uchicago/fslanat/UC15032V1 UI_uic/fslanat/UI10485V3 UI_uic/fslanat/UI10667V3 UI_uic/fslanat/UI10852V1 UM_umichigan/fslanat/UM25299V1"
+            },
+            {
+                "name": "MASK_HIGH_VOXELS",
+                "arg": "--mask-high-voxels False False False False False False False False False False False False False False False False False False False True True True True"
+            },
+            {
+                "name": "PRECROP",
+                "arg": "--precrop True True True True True True True True True True True True True True True True True True True False False False False"
+            }
+        ]
+    },
+    "maxMinutes": 120
+}
