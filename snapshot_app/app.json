@@ -18,7 +18,7 @@
         "description": null,
         "dynamicExecSystem": false,
         "execSystemConstraints": null,
-        "execSystemId": "secure.frontera",
+        "execSystemId": "secure.ls6",
         "execSystemExecDir": "${JobWorkingDir}",
         "execSystemInputDir": "${JobWorkingDir}",
         "execSystemOutputDir": "${JobWorkingDir}",
@@ -39,25 +39,13 @@
                     "arg": null
                 },
                 {
-                    "name": "RIADIR",
+                    "name": "JOB",
                     "inputMode": "REQUIRED",
                     "arg": null
                 },
                 {
                     "name": "N_WORKERS",
                     "arg": "--n-workers 1"
-                },
-                {
-                    "name": "COPY",
-                    "inputMode": "INCLUDE_ON_DEMAND"
-                },
-                {
-                    "name": "INIT_DATALAD",
-                    "inputMode": "INCLUDE_ON_DEMAND"
-                },
-                {
-                    "name": "ARCHIVE",
-                    "inputMode": "INCLUDE_ON_DEMAND"
                 }
             ],
             "containerArgs": [
