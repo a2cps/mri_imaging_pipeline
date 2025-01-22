@@ -1,0 +1,28 @@
+{
+    "appId": "psadil-snapshot_app",
+    "appVersion": "2.3",
+    "execSystemId": "secure.ls6",
+    "execSystemLogicalQueue": "corralextra-dev",
+    "maxMinutes": 120,
+    "name": "snapshot-brainager",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--inroot /corral-secure/projects/A2CPS/products/mris/all_sites",
+                "name": "INROOT"
+            },
+            {
+                "arg": "--outroot mris",
+                "name": "OUTROOT"
+            },
+            {
+                "arg": "--job brainager",
+                "name": "JOB"
+            },
+            {
+                "arg": "--n-workers 32",
+                "name": "N_WORKERS"
+            }
+        ]
+    }
+}
