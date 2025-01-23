@@ -1,6 +1,6 @@
 {
-    "appId": "psadil-snapshot_app",
-    "appVersion": "2.3",
+    "appId": "snapshot_app",
+    "appVersion": "3.0",
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra",
     "maxMinutes": 2880,
