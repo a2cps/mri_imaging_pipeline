@@ -7,6 +7,7 @@ main (){
     local LICENSE="${3}"
     local PARTICIPANT_LABEL="${4}"
 
+
         ## note: splitshellsdir should be: 
         ## /corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives/split_shells
 
