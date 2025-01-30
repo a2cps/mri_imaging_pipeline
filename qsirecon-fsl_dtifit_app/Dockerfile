@@ -1,4 +1,4 @@
-FROM pennbbl/qsiprep:0.20.0
+FROM pennlinc/qsirecon:1.0.0
 
 COPY assets/entrypoint.sh /opt/entrypoint.sh
 

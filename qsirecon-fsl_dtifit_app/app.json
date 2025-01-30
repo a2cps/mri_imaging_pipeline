@@ -1,6 +1,6 @@
 {
   "id": "maj-qsirecon-fsl_dtifit_app",
-  "version": "1.6",
+  "version": "3.0",
   "description": "Prepare QSIPrep outputs for FSL and run dtifit",
   "owner": "${apiUserId}",
   "enabled": true,
@@ -32,19 +32,9 @@
     "parameterSet": {
       "appArgs": [
         {
-          "name": "BIDSDIR",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2"
-        },
-        {
-          "name": "WORKDIR",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "./work"
-        },
-        {
           "name": "QSIPREPDIR",
           "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/derivatives/NS_northshore/NStravel2/qsiprep"
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/derivatives/WS_wayne_state/WS20064V1/qsiprep"
         },
         {
           "name": "OUTDIR",
@@ -52,24 +42,14 @@
           "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives"
         },
         {
-          "name": "PARTICIPANT_LABEL",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "sub-travel2"
-        },
-        {
-          "name": "NTHREADS",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "8"
-        },
-        {
-          "name": "MEMMB",
-          "inputMode": "INCLUDE_BY_DEFAULT",
-          "arg": "32000"
-        },
-        {
           "name": "LICENSE",
           "inputMode": "INCLUDE_BY_DEFAULT",
           "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/code/license.txt"
+        },
+        {
+          "name": "PARTICIPANT_LABEL",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "SUB-20064"
         }
       ],
       "containerArgs": [

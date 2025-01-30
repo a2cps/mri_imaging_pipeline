@@ -37,11 +37,11 @@ main (){
 
     ## define base filenames
 
-    local filename_dwi="${PARTICIPANT_LABEL}"_ses-V1_space-T1w_dwi
+    local in_filename_dwi="${PARTICIPANT_LABEL}"_ses-V1_space-T1w_dwi
 
-    local infile_dwi="${qsirecon_dir}"/"${filename_dwi}".nii.gz
-    local infile_bvals="${qsirecon_dir}"/"${filename_dwi}".bval
-    local infile_bvecs="${qsirecon_dir}"/"${filename_dwi}".bvec
+    local infile_dwi="${qsirecon_dir}"/"${in_filename_dwi}".nii.gz
+    local infile_bvals="${qsirecon_dir}"/"${in_filename_dwi}".bval
+    local infile_bvecs="${qsirecon_dir}"/"${in_filename_dwi}".bvec
 
     #########
     ## b=0 ##
@@ -51,13 +51,14 @@ main (){
     # Define the threshold
     threshold=25
 
-    local splitshells_dir="${OUTDIR}"/derivatives/split_shells/"${PARTICIPANT_LABEL}"/ses-V1/b${bval}
+    local splitshells_dir="${OUTDIR}"/derivatives/split_shells/"${PARTICIPANT_LABEL}"/ses-V1
     mkdir -p "${splitshells_dir}"
 
+    local out_filename_dwi="${PARTICIPANT_LABEL}"_ses-V1_acq-b"${bval}"_space-T1w_dwi
 
-    local outfile_b0_dwi="${splitshells_dir}"/"${filename_dwi}"_acq-b"${bval}".nii.gz
-    local outfile_b0_bvals="${splitshells_dir}"/"${filename_bvals}"_acq-b"${bval}".bval
-    local outfile_b0_bvecs="${splitshells_dir}"/"${filename_bvals}"_acq-b"${bval}".bvec
+    local outfile_b0_dwi="${splitshells_dir}"/"${out_filename_dwi}".nii.gz
+    local outfile_b0_bvals="${splitshells_dir}"/"${out_filename_dwi}".bval
+    local outfile_b0_bvecs="${splitshells_dir}"/"${out_filename_dwi}".bvec
 
 
 
@@ -75,8 +76,8 @@ main (){
 
     ## Extract from dwi data
     fslselectvols \
-    -i ${infile_dwi} \
-    -o ${outfile_b0_dwi} \
+    -i "${infile_dwi}" \
+    -o "${outfile_b0_dwi}" \
     --vols="${indices_b0}"
 
     ## Extract from bvals
@@ -154,12 +155,14 @@ main (){
     low=$((bval - 100))
     high=$((bval + 100))
 
-    local splitshells_dir="${OUTDIR}"/derivatives/split_shells/"${PARTICIPANT_LABEL}"/ses-V1/b${bval}
+    local splitshells_dir="${OUTDIR}"/derivatives/split_shells/"${PARTICIPANT_LABEL}"/ses-V1
     mkdir -p "${splitshells_dir}"
 
-    outfile_dwi="${splitshells_dir}"/"${filename_dwi}"_acq-b"${bval}".nii.gz
-    outfile_bvals="${splitshells_dir}"/"${filename_dwi}"_acq-b"${bval}".bval
-    outfile_bvecs="${splitshells_dir}"/"${filename_dwi}"_acq-b"${bval}".bvec
+    local out_filename_dwi="${PARTICIPANT_LABEL}"_ses-V1_acq-b"${bval}"_space-T1w_dwi
+
+    local outfile_dwi="${splitshells_dir}"/"${out_filename_dwi}".nii.gz
+    local outfile_bvals="${splitshells_dir}"/"${out_filename_dwi}".bval
+    local outfile_bvecs="${splitshells_dir}"/"${out_filename_dwi}".bvec
 
     ## Subselect indices for the current range
     indices=$(awk -v L="${low}" -v H="${high}" '
@@ -244,12 +247,6 @@ main (){
     }
     ' "${infile_bvecs}" > "${outfile_bvecs}"
 
-    ## Copy brain mask
-    filename_brainmask="${PARTICIPANT_LABEL}"_ses-V1_space-T1w_mask
-    infile_brainmask="${qsirecon_dir}"/"${filename_brainmask}".nii.gz
-    outfile_brainmask="${splitshells_dir}"/"${filename_brainmask}".nii.gz
-    cp "${infile_brainmask}" "${outfile_brainmask}"
-
     done
 
 
@@ -275,7 +272,7 @@ main (){
     ## define outputs ##
 
     local dtifit_dir="${OUTDIR}"/derivatives/dtifit/"${PARTICIPANT_LABEL}"/ses-V1/multishell
-    mkdir -p ${dtifit_dir}
+    mkdir -p "${dtifit_dir}"
 
     ## run dtifit ##
     dtifit -k "${data}" -o ${dtifit_dir}/"${filename_dwi}"_dtifit -m "${mask}" -r "${bvecs}" -b "${bvals}" --wls --sse --save_tensor
@@ -290,20 +287,20 @@ main (){
 
     local splitshells_dir="${OUTDIR}"/derivatives/split_shells/"${PARTICIPANT_LABEL}"/ses-V1
 
-    local filename_dwi="${PARTICIPANT_LABEL}"_ses-V1_space-T1w_dwi_acq-b"${bval}"
+    local filename_dwi="${PARTICIPANT_LABEL}"_ses-V1_acq-b"${bval}"_space-T1w_dwi
 
-    local data="${splitshells_dir}"/b"${bval}"/"${filename_dwi}".nii.gz
+    local data="${splitshells_dir}"/"${filename_dwi}".nii.gz
 
-    local bvals="${splitshells_dir}"/b"${bval}"/"${filename_dwi}".bval
+    local bvals="${splitshells_dir}"/"${filename_dwi}".bval
 
-    local bvecs="${splitshells_dir}"/b"${bval}"/"${filename_dwi}".bvec
+    local bvecs="${splitshells_dir}"/"${filename_dwi}".bvec
 
     local mask="${splitshells_dir}"/"${PARTICIPANT_LABEL}"_ses-V1_space-T1w_mask.nii.gz
 
     ## define outputs ##
 
     local dtifit_dir="${OUTDIR}"/dtifit/"${PARTICIPANT_LABEL}"/ses-V1/b${bval}
-    mkdir -p ${dtifit_dir}
+    mkdir -p "${dtifit_dir}"
 
     ## run dtifit ##
     dtifit -k "${data}" -o ${dtifit_dir}/"${filename_dwi}"_dtifit -m "${mask}" -r "${bvecs}" -b "${bvals}" --wls --sse --save_tensor
