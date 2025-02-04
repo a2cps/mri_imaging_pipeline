@@ -10,7 +10,7 @@
     "dynamicExecSystem": false,
     "execSystemConstraints": null,
     "execSystemExecDir": "${JobWorkingDir}",
-    "execSystemId": "secure.frontera",
+    "execSystemId": "secure.ls6",
     "execSystemInputDir": "${JobWorkingDir}",
     "execSystemLogicalQueue": "corralextra",
     "execSystemOutputDir": "${JobWorkingDir}",
