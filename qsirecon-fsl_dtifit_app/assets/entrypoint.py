@@ -42,7 +42,7 @@ if __name__ == "__main__":
                         Path(input_dir).relative_to(
                             "/corral-secure/projects/A2CPS/products/mris"
                         )
-                    ).replace("/qsiprep/", "/qsirecon/")
+                    ).replace("/qsiprep/", "/qsirecon-fsl-dtifit/")
                 ).parent
             )
     else:
@@ -54,6 +54,14 @@ if __name__ == "__main__":
 
     if not (n_output := len(output_dirs)) == usize:
         msg = f"Length of output_dirs must equal usize but found {n_output=}, {usize=}"
+        raise AssertionError(msg)
+
+    if not (n_sub := len(args.participant_labels)) == usize:
+        msg = f"Length of participant_labels must equal usize but found {n_sub=}, {usize=}"
+        raise AssertionError(msg)
+
+    if not (n_ses := len(args.ses_labels)) == usize:
+        msg = f"Length of ses_labels must equal usize but found {n_ses=}, {usize=}"
         raise AssertionError(msg)
 
     if not len(output_dirs) == len(set(output_dirs)):

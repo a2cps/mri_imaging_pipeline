@@ -25,11 +25,12 @@ main (){
     ## RUN QSIRECON
     local work
     work=$(mktemp -d)
-    qsirecon \
-        --recon-spec reorient_fslstd \
-        --fs-license-file "${LICENSE}" \
-        -w "${work}" \
-        "${QSIPREPDIR}" "${out_qsirecon}" participant 
+    micromamba run -n qsiprep \
+        qsirecon \
+            --recon-spec reorient_fslstd \
+            --fs-license-file "${LICENSE}" \
+            -w "${work}" \
+            "${QSIPREPDIR}" "${out_qsirecon}" participant 
     
     rm -r "${work}" 
     echo "qsiprep recon finished!"

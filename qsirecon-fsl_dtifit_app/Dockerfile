@@ -25,17 +25,22 @@ USER $MAMBA_USER
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
-ENV ENV_NAME=qsiprep
+ENV ENV_NAME=base
 RUN micromamba install -q --name ${ENV_NAME} --yes --file /tmp/env.yml \
     && rm /tmp/env.yml \
     && micromamba clean --yes --all
 
+USER root
+RUN rm -r /opt/3Tissue /opt/art /opt/dsi* /opt/freesurfer /opt/mrtrix3* /opt/workbench
+USER $MAMBA_USER
+
 # files searched for in entrypoint.py
 ENV TZ=US/Central \
     FSLOUTPUTTYPE=NIFTI_GZ \
-    FSLDIR=/opt/conda/envs/qsiprep
+    FSLDIR=/opt/conda
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py assets/license /opt/qsirecon_app/
-COPY --chmod=0775 --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.sh /opt/conda/envs/qsiprep/lib/python3.10/site-packages/biomarkers/data/dtifit_wrapper
+COPY --chmod=0775 --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint /usr/local/bin/dtifit_wrapper
+
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/qsirecon_app/entrypoint.py"]
 CMD [ "--help" ]
