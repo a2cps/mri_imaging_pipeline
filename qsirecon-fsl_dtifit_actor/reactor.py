@@ -24,11 +24,15 @@ N_SEC_TO_COPY_ONE_SUB = 30
 
 
 class QSIReconFSLReactor(models.Reactor):
-    def get_runlist(self) -> list[str]:
+    def get_runlist(self) -> tuple[list[str], list[str], list[str]]:
+        if "qsirecon_fsl_dtifit" not in self.ilog.columns:
+            ilog = self.ilog.with_columns(qsirecon_fsl_dtifit=0)
+        else:
+            ilog = self.ilog
         rundef = (
-            self.ilog
+            ilog
             # exclude rows that were already processed
-            .filter(pl.col("qsirecon-fsl-dtifit") == 0)
+            .filter(pl.col("qsirecon_fsl_dtifit") == 0)
             .filter(pl.col("qsiprep") == 1)
             .with_columns(
                 sublong=pl.concat_str(
@@ -40,8 +44,9 @@ class QSIReconFSLReactor(models.Reactor):
                 INPUT_DIR=pl.concat_str(
                     pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
                     pl.col("sitelong"),
-                    pl.lit("/bids/"),
+                    pl.lit("/qsiprep/"),
                     pl.col("sublong"),
+                    pl.lit("/qsiprep"),
                 )
             )
             .sort(
@@ -49,19 +54,40 @@ class QSIReconFSLReactor(models.Reactor):
             )  # ensure V1 run before V3, and do oldest scans
         )
 
-        runlist = rundef.select(pl.col("INPUT_DIR")).to_series().to_list()
-        return runlist[: self.maxjobs * self.n_submissions]
+        runlist = (
+            rundef.select(pl.col("INPUT_DIR"))
+            .to_series()
+            .to_list()[: self.maxjobs * self.n_submissions],
+            rundef.select(pl.col("subject_id"))
+            .to_series()
+            .to_list()[: self.maxjobs * self.n_submissions],
+            rundef.select(pl.col("visit"))
+            .to_series()
+            .to_list()[: self.maxjobs * self.n_submissions],
+        )
+        return runlist
 
     def parse_and_submit(self) -> None:
         print(json.dumps(self.context, indent=4))
 
         runlist = self.get_runlist()
-        for r, run in enumerate(itertools.batched(runlist, self.maxjobs)):
-            n_jobs = len(run)
+        for r, (input_dirs, participant_labels, ses_labels) in enumerate(
+            itertools.batched(runlist, self.maxjobs)
+        ):
+            n_jobs = len(input_dirs)
             if not n_jobs:
                 raise RuntimeError("Did not find any jobs to submit")
 
-            self.set_app_arg(name="INPUT_DIRS", value="--input-dirs " + " ".join(run))
+            self.set_app_arg(
+                name="INPUT_DIRS", value="--input-dirs " + " ".join(input_dirs)
+            )
+            self.set_app_arg(
+                name="PARTICIPANT_LABELS",
+                value="--participant-labels " + " ".join(participant_labels),
+            )
+            self.set_app_arg(
+                name="SES_LABELS", value="--ses-labels " + " ".join(ses_labels)
+            )
             self.job.name = f"{self.job_name}-{r}"
 
             self.set_common(n_jobs=n_jobs)
