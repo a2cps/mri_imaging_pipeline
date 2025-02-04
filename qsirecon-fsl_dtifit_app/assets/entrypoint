@@ -1,5 +1,42 @@
 #!/bin/bash
 
+# produces outputs like the following
+# $ tree -d out/
+# out/
+# ├── dtifit
+# │   ├── b1000
+# │   │   └── sub-10075
+# │   │       └── ses-V1
+# │   │           └── dwi
+# │   ├── b2000
+# │   │   └── sub-10075
+# │   │       └── ses-V1
+# │   │           └── dwi
+# │   ├── b3000
+# │   │   └── sub-10075
+# │   │       └── ses-V1
+# │   │           └── dwi
+# │   └── multishell
+# │       └── sub-10075
+# │           └── ses-V1
+# │               └── dwi
+# ├── qsirecon-fsl
+# │   ├── derivatives
+# │   │   └── qsirecon-FSL
+# │   │       ├── logs
+# │   │       └── sub-10075
+# │   │           └── ses-V1
+# │   │               ├── dwi
+# │   │               └── figures
+# │   ├── logs
+# │   └── sub-10075
+# │       └── log
+# │           └── 20250204-150714_319fe40d-cb1b-4800-8773-113c8009279e
+# └── split_shells
+#     └── sub-10075
+#         └── ses-V1
+#             └── dwi
+
 set -euo pipefail
 
 # used to determine whether bvals are equivalent
@@ -12,15 +49,8 @@ main (){
     local LICENSE="${3}"
     local PARTICIPANT_LABEL="sub-${4}"
     local SES_LABEL="ses-${5}"
-
-
-        ## note: splitshellsdir should be: 
-        ## /corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives/split_shells
-
-        ## note: DTIFITDIR should be: 
-        ## /corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives/dtifit
     
-    local -r out_qsirecon="${OUTDIR}"/qsirecon
+    local -r out_qsirecon="${OUTDIR}"/qsirecon-fsl
 
     ## RUN QSIRECON
     local work
@@ -258,13 +288,14 @@ main (){
     local -r mask="${qsirecon_dir}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-T1w_mask.nii.gz
 
     ## define outputs ##
-    local dtifit_dir="${OUTDIR}"/dtifit-multishell/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
-    mkdir -p "${dtifit_dir}"
+    local -r dtifit_dir="${OUTDIR}"/dtifit
+    local dtifit_subdir="${dtifit_dir}"/multishell/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
+    mkdir -p "${dtifit_subdir}"
 
     ## run dtifit ##
     dtifit \
         -k "${infile_dwi}" \
-        -o "${dtifit_dir}"/"${in_filename_dwi}" \
+        -o "${dtifit_subdir}"/"${in_filename_dwi}" \
         -m "${mask}" \
         -r "${infile_bvecs}" \
         -b "${infile_bvals}" \
@@ -278,13 +309,13 @@ main (){
         filename_dwi="${PARTICIPANT_LABEL}"_"${SES_LABEL}"_acq-b"${bval}"_space-T1w_dwi
 
         ## define outputs ##
-        dtifit_dir="${OUTDIR}"/dtifit-b${bval}/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
-        mkdir -p "${dtifit_dir}"
+        dtifit_subdir="${dtifit_dir}"/b${bval}/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
+        mkdir -p "${dtifit_subdir}"
 
         ## run dtifit ##
         dtifit \
             -k "${splitshells_dir}"/"${filename_dwi}".nii.gz \
-            -o "${dtifit_dir}"/"${filename_dwi}" \
+            -o "${dtifit_subdir}"/"${filename_dwi}" \
             -m "${mask}" \
             -r "${splitshells_dir}"/"${filename_dwi}".bvec \
             -b "${splitshells_dir}"/"${filename_dwi}".bval \
