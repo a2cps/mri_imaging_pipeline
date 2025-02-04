@@ -1,91 +1,61 @@
-from reactors.utils import Reactor, agaveutils
 import copy
 import sys
 import json
 import os
 import re
+import yaml
+from tapipy import actors, errors, util
+from tapipy.tapis import Tapis, TapisResult
 
 
-def submit_dicom(r, uploaded_file):
+def get_failurebot_url(client) -> str:
+    token: TapisResult = client.sk.readSecret(  # type: ignore
+        secretType="user",
+        secretName='FAILUREBOT_ADDRESS_SECRET_NAME',
+        tenant=os.environ.get("_abaco_api_server")
+        .split(".")[0]  # type: ignore
+        .split("/")[-1],
+        user=client.actors.get_actor(
+            actor_id=os.environ.get("_abaco_actor_id")
+        ).owner,
+    )
+    url: str | None = token.get("secretMap").get('FAILUREBOT_ADDRESS_SECRET_KEY')  # type: ignore
+    if url is None:
+        msg = f"unable to find {'FAILUREBOT_ADDRESS_SECRET_KEY'} in secretMap"
+        raise AssertionError(msg)
+
+    return url
+
+
+def set_subscription_url(job: dict, arg: str) -> None:
+    job.get("subscriptions")[0].get("deliveryTargets")[0].update(  # type: ignore
+        {"deliveryAddress": arg}
+    )
+    return job
+
+def submit_dicom(config, uploaded_file):
     # Create agave client from reactor object
-    ag = r.client
-    print(ag.systems.list())
+    client = actors.get_client()
     # copy our job.json from config.yml
-    job_def = copy.copy(r.settings.dicom_reader)
-    parameters = job_def["parameters"]
+    job_def = config['dicom_reader']
+    parameters = job_def["parameterSet"]['appArgs']
     # Define the input for the job as the file that
     # was sent in the notificaton message
-    parameters["FILENAME"] = uploaded_file
-    job_def.parameters = parameters
+    parameters[0]["arg"] = uploaded_file
     site_file = os.path.normpath(uploaded_file).split('corral-secure/projects/A2CPS/submissions/')[-1]
-    archivePath = job_def['archivePath'] + '/' + site_file.split('/')[0]
-    job_def.name = site_file
-    job_def.archivePath = archivePath
+    archiveSystemDir = job_def['archiveSystemDir'] + '/' + site_file.split('/')[0]
+    job_def['name'] = site_file
+    job_def['archiveSystemDir'] = archiveSystemDir
 
-    # try:
-    #     pipeline_config = copy.copy(r.settings.pipelines)
-    #     api_server = pipeline_config['api_server']
-
-        # fmriprep_nonce = os.getenv('_FMRIPREP_NONCE')
-        # fmriprep_alias = pipeline_config['fmriprep_alias']
-        # frmiprep_callback = api_server + '/actors/v2/' + fmriprep_alias + '/messages?x-nonce=' + fmriprep_nonce
-
-        # mriqc_nonce = os.getenv('_MRIQC_NONCE')
-        # mriqc_alias = pipeline_config['mriqc_alias']
-        # mriqc_callback = api_server + '/actors/v2/' + mriqc_alias + '/messages?x-nonce=' + mriqc_nonce
-
-        # bids_validator_nonce = os.getenv('_BIDS_VALIDATOR_NONCE')
-        # bids_validator_alias = pipeline_config['bids_validator_alias']
-        # bids_validator_callback = api_server + '/actors/v2/' + bids_validator_alias + '/messages?x-nonce=' + bids_validator_nonce
-        # heudiconv_nonce = os.getenv('_HEUDICONV_NONCE')
-        # heudiconv_alias = pipeline_config['heudiconv_alias']
-        # heudiconv_callback = api_server + '/actors/v2/' + heudiconv_alias + '/messages?x-nonce=' + heudiconv_nonce
-
-    # except Exception as e:
-    #     print(e)
-    #     r.logger.error("Unable to generate Audit callback")
-
-    # notif = [{'event': 'RUNNING',
-    #           "persistent": True,
-    #           'url': mpj.callback + '&status=${JOB_STATUS}'},
-    #          {'event': 'FAILED',
-    #           "persistent": False,
-    #           'url': mpj.callback + '&status=${JOB_STATUS}'},
-    #          {'event': 'FINISHED',
-    #           "persistent": False,
-    #           'url': mpj.callback + '&status=${JOB_STATUS}'},
-    #           {'event': 'FINISHED',
-    #            "persistent": False,
-    #            'url': frmiprep_callback + '&status=${JOB_STATUS}' +
-    #            '&analysis_type=preprocessing' +
-    #            '&subject_id=' + subject +
-    #            '&bids=' + archivePath +
-    #            '&filename='+ filename},
-    #            {'event': 'FINISHED',
-    #            "persistent": False,
-    #            'url': mriqc_callback + '&status=${JOB_STATUS}' +
-    #            '&subject_id=' + subject +
-    #            '&bids=' + archivePath +
-    #            '&filename='+ filename}]
-    notif = [
-                # {
-                # 'event': 'FINISHED',
-                # 'persistent': False,
-                # 'url': heudiconv_callback + '&status=${JOB_STATUS}' +
-                # '&subject_id=' + subject +
-                # '&bids=' + outdir + filename +
-                # '&filename='+ filename +
-                # '&site=' + site
-                # }
-            ]
-
-    job_def.notifications = notif
+    failurebot_url = get_failurebot_url(client=client)
+    job_def = set_subscription_url(job_def, arg=failurebot_url)
 
     # Submit the job in a try/except block
     try:
         # Submit the job and get the job ID
-        job_id = ag.jobs.submit(body=job_def)['id']
-        print(job_id)
+        submitted = client.jobs.submitJob(**job_def)
+        #job_id = client.jobs.submit(body=job_def)["id"]
+        print(submitted.uuid)
         print(json.dumps(job_def, indent=4))
     except Exception as e:
         print(json.dumps(job_def, indent=4))
@@ -94,11 +64,6 @@ def submit_dicom(r, uploaded_file):
         return
     return
 
-# def post_notification(notification):
-#     endpoint = r"https://api.a2cps.org/actors/v2/imaging-slackbot.prod/messages?x-nonce=A2CPS_w1r4M51bYemAQ"
-#     content = requests.post(url = endpoint, json = {"text": notification})
-#     data = content.json()
-#     return data
 
 def message_vbr(r,filename,site,subject,session,zipfile,outdir):
     pipeline_config = copy.copy(r.settings.pipelines)
@@ -116,17 +81,15 @@ def message_vbr(r,filename,site,subject,session,zipfile,outdir):
 
 def main():
     """Main function"""
-    # create the reactor object
-    r = Reactor()
-    r.logger.info("Hello this is actor {}".format(r.uid))
-    # pull in reactor context
-    context = r.context
-    #print(context)
-    # get the message that was sent to the actor
+    context = actors.get_context()  # type: ignore
     message = context.message_dict
+    print("Message: ", message)
+    with open('/opt/config.yml', 'r') as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
     uploaded_file = message['uploaded_file']
 
-    submit_dicom(r, uploaded_file)
+    submit_dicom(config, uploaded_file)
     #message_vbr(r,site,subject,session,dicoms,outdir)
     return
 

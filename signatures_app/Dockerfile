@@ -1,32 +1,17 @@
-FROM mambaorg/micromamba:1.5.6-jammy
+FROM mambaorg/micromamba:2.0-ubuntu24.10
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
-COPY --chown=$MAMBA_USER:$MAMBA_USER assets/mri_signatures /tmp/mri_signatures/
 
 ENV TZ=America/Chicago
 RUN micromamba install -q --name base --yes --file /tmp/env.yml \
-    && micromamba run -n base pip install --no-deps /tmp/mri_signatures/ \
-    && rm -rf /tmp/mri_signatures /tmp/env.yml \
+    && rm /tmp/env.yml \
     && micromamba clean --yes --all
-
-ENV PREFECT_HOME=/tmp/prefect
-ENV PREFECT_API_DATABASE_CONNECTION_TIMEOUT=1200
-ENV PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///${PREFECT_HOME}/prefect.db"
-ENV PREFECT_API_DATABASE_TIMEOUT=1200
-ENV PREFECT_API_REQUEST_TIMEOUT=2400
-ENV PREFECT_API_SERVICES_FLOW_RUN_NOTIFICATIONS_ENABLED=false
-ENV PREFECT_API_SERVICES_LATE_RUNS_ENABLED=false
-ENV PREFECT_API_SERVICES_PAUSE_EXPIRATIONS_ENABLED=false
-ENV PREFECT_API_SERVICES_SCHEDULER_ENABLED=false
-ENV PREFECT_LOGGING_TO_API_ENABLED=false
-ENV PREFECT_SERVER_ANALYTICS_ENABLED=false
-ENV PREFECT_UI_ENABLED=false
 
 ENV APPTAINER_SHELL=/usr/local/bin/_apptainer_shell.sh
 
+COPY --chown=$MAMBA_USER:$MAMBA_USER assets/2013_Wager_NEJM_NPS/*gz /opt/conda/lib/python3.12/site-packages/biomarkers/data/2013_Wager_NEJM_NPS/
+ADD --chown=$MAMBA_USER:$MAMBA_USER https://github.com/canlab/Neuroimaging_Pattern_Masks/raw/refs/heads/master/Multivariate_signature_patterns/2017_Woo_SIIPS1/nonnoc_v11_4_137subjmap_weighted_mean.nii.gz /opt/conda/lib/python3.12/site-packages/biomarkers/data/2017_Woo_SIIPS1/
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py /opt/entrypoint.py
-COPY --chown=$MAMBA_USER:$MAMBA_USER assets/2013_Wager_NEJM_NPS/*gz /opt/conda/lib/python3.12/site-packages/signatures/data/2013_Wager_NEJM_NPS
-COPY --chown=$MAMBA_USER:$MAMBA_USER dask.yml /opt/conda/etc/dask/dask.yml
 
 ENTRYPOINT [ "/usr/local/bin/_entrypoint.sh", "python", "/opt/entrypoint.py"]
 CMD [ "--help" ]

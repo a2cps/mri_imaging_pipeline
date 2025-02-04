@@ -10,14 +10,11 @@ indir="$topdir/submissions"
 #outdir="$topdir/data"
 submitted="/corral-secure/projects/A2CPS/system/cronjob/submitted.txt"
 
-#heudiconv_actorid=heudiconv_router.prod
 dicom_actor=dicom_router.prod
 notifications_id=imaging-slackbot.prod
 #$tapis auth tokens refresh 1> /dev/null
 $tapis actors list 1> /dev/null
 
-# refresh tokens
-# tapis auth tokens refresh
 
 function announce_error() {
 	echo TODO: possibly announce that this script failed
@@ -31,10 +28,22 @@ function skip_file() {
 	echo "TODO: tapis actors submit announce failed $msg"
 }
 
+# most received DICOMs follow this pattern
+#zips=("$indir"/*/*.zip)
+zips=()
+for site in NS_northshore UC_uchicago UM_umichigan SH_spectrum_health_grand_rapids WS_wayne_state RU_rush_imaging; do
+  zips+=("${indir}"/${site}/*zip)
+done
+# but WS sends two sets of phantom dicoms:
+#   $indir/Wayne_state/QA/DSV
+#   $indir/Wayne_state/QA/BIRD
+# we only want to process the DSV files. 
+zips+=("$indir"/WS_wayne_state/QA/DSV/*zip)
+zips+=("$indir"/a2dtn01/*)
 
 
 touch "$submitted"
-/usr/bin/find /corral-secure/projects/A2CPS/submissions/*/* -maxdepth 0 | while read uploaded_file; do
+for uploaded_file in "${zips[@]}"; do
 	if grep -q "^$uploaded_file\$" "$submitted"; then
 		#echo "$uploaded_file was submitted, skipping"
 		continue

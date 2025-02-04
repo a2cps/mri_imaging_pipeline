@@ -1,78 +1,89 @@
-from reactors.utils import Reactor, agaveutils
-import copy
+import datetime
+import itertools
 import json
-import re
+from pathlib import Path
+
+import polars as pl
+from mri_actor_utils import config, models
+
+# within docker container
+JOB = Path("/opt/job.json")
 
 
-def submit(ag, job_def) -> None:
-    # Submit the job in a try/except block
-    try:
-        # Submit the job and get the job ID
-        job_id = ag.jobs.submit(body=job_def)['id']
-        print(job_id)
-        print(json.dumps(job_def, indent=4))
-    except Exception as e:
-        print(json.dumps(job_def, indent=4))
-        print("Error submitting job: {}".format(e))
-        print(e.response.content)
-        return
-    return
+# numbers for ls6; tested at
+# /corral-secure/projects/A2CPS/shared/psadil/jobs/mriqc-upgrade-cores
+N_SUBS_PER_NODE = 16
+
+# for ls
+MAX_NODES_PER_JOB = 64
+
+# can change by incoming message by specifying "MAXJOBS"
+MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB
 
 
-def specify_jobdef(job_def, job: str, subject_id: str, bids: str, filename: str):
-    # Define the input for the job as the file that
-    # was sent in the notificaton message
+# amount of time required to copy one sub from /tmp -> /corral-secure
+# this will be used to terminate the job early in case of
+# prolonged runtime
+N_SEC_TO_COPY_ONE_SUB = 10
 
-    job_def.name = f'mriqc-{job}-{filename}'
-    parameters = job_def["parameters"]    
-    parameters["PARTICIPANT_LABEL"] = subject_id
-    parameters["BIDS_DIRECTORY"] = bids
-    #parameters["WORK_DIR"] = f'{parameters["WORK_DIR"]}-{job}'
+# NOTE: the job.json parameters --n-workers and --mem-mb are not modified
+#       so, best to set them according to the maximum number of subs
+#       that could be run on a single node
 
-    # if job == "cuff":
-    #     parameters["MODALITIES"] = "bold T1w"
-    # elif job == "anat":
-    #     parameters["MODALITIES"] = "bold"
 
-    job_def.parameters = parameters
-    job_def.archivePath = re.sub('bids', 'mriqc', bids).split('/corral-secure/projects/A2CPS')[1] + '/' + job
+class MRIQCReactor(models.Reactor):
+    def get_runlist(self) -> list[str]:
+        rundef = (
+            self.ilog.filter(pl.col("mriqc") == 0)
+            .filter(pl.col("bids") == 1)
+            .with_columns(
+                sublong=pl.concat_str(
+                    pl.col("site"), pl.col("subject_id"), pl.col("visit")
+                ),
+                sitelong=pl.col("site").replace(config.SITE_LONG),
+            )
+            .with_columns(
+                INPUT_DIR=pl.concat_str(
+                    pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
+                    pl.col("sitelong"),
+                    pl.lit("/bids/"),
+                    pl.col("sublong"),
+                )
+            )
+            .sort(
+                "visit", "Surgery Week", "subject_id"
+            )  # ensure V1 run before V3, and do oldest scans
+        )
 
-    return job_def
+        runlist = rundef.select(pl.col("INPUT_DIR")).to_series().to_list()
+        return runlist[: self.maxjobs * self.n_submissions]
+
+    def parse_and_submit(self) -> None:
+        print(json.dumps(self.context, indent=4))
+
+        runlist = self.get_runlist()
+        for r, run in enumerate(itertools.batched(runlist, self.maxjobs)):
+            n_jobs = len(run)
+            if not n_jobs:
+                raise RuntimeError("Did not find any jobs to submit")
+
+            self.set_app_arg(name="INPUT_DIRS", value="--input-dirs " + " ".join(run))
+
+            self.job.name = f"{self.job_name}-{r}"
+
+            self.set_common(n_jobs=n_jobs)
+            self.submit()
 
 
 def main() -> None:
-    """Main function"""
-    # create the reactor object
-    r = Reactor()
-    r.logger.info(f"Hello this is actor {r.uid}")
-    # pull in reactor context
-    context=r.context  # Actor context
-    print(json.dumps(context, indent=4))
-
-    if context.message_dict['status'] != "FINISHED":
-        exit(0)
-
-    for job in ['anat', 'cuff', 'rest']:
-        if job == 'anat':
-            job_basic = copy.copy(r.settings.anat)
-        if job == 'cuff':
-            job_basic = copy.copy(r.settings.cuff)
-        elif job == "rest":
-            job_basic = copy.copy(r.settings.rest)
-
-        job_def = specify_jobdef(
-            job_def=job_basic, 
-            job=job, 
-            subject_id=context.subject_id, 
-            bids=context.bids, 
-            filename=context.filename)
-
-        submit(
-            ag=r.client, 
-            job_def=job_def)
-
-    return
+    MRIQCReactor(
+        job_name=f"mriqc-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        N_SUBS_PER_NODE=N_SUBS_PER_NODE,
+        N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
+        JOB=JOB,
+        MAXJOBS=MAXJOBS,
+    ).parse_and_submit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

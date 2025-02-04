@@ -1,6 +1,6 @@
-FROM freesurfer/synthstrip:1.5 as fs
+FROM freesurfer/synthstrip:1.6 AS fs
 
-FROM mambaorg/micromamba:1.4.3-jammy
+FROM mambaorg/micromamba:1.5.8-jammy
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 
@@ -14,7 +14,6 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets /opt/tapis
 COPY --from=fs --chown=$MAMBA_USER:$MAMBA_USER /freesurfer/models/synthstrip.1.pt /opt/synthstrip.1.pt
 
-# ensure python print statements sent to log when executed
-ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT [ "/usr/local/bin/_entrypoint.sh", "python", "/opt/tapis/stage.py" ]
+CMD ["--help"]

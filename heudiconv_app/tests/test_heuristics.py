@@ -11,11 +11,22 @@ from a2cps import protocols2fix
 p2f: dict[str, list[tuple[str, str]]] = protocols2fix
 
 anatomical = {
-    "anat-T1w": ["T1_MPRAGE", "T1_MPRAGE_R1", "T1_MPRAGE R1", "Tra T1 MPRAGE orthog"]
+    "anat-T1w": [
+        "T1_MPRAGE",
+        "T1_MPRAGE_R1",
+        "T1_MPRAGE R1",
+        "Tra T1 MPRAGE orthog",
+        "anat-T1w_acq-MPRAGE",
+    ]
 }
-dwi = {"dwi": ["DWI", "dwi", "DTI", "ORIG: DTI"]}
+dwi = {"dwi": ["DWI", "dwi", "DTI", "ORIG: DTI", "dMRI"]}
 rest = {
-    "func_task-rest_run-1": ["Rest1", "REST1", "DelRec - REST1", "WIP DelRec - REST1"]
+    "func_task-rest_run-1": [
+        "Rest1",
+        "REST1",
+        "DelRec - REST1",
+        "WIP DelRec - REST1",
+    ]
 }
 cuff = {"func_task-cuff_run-1": ["Cuff1", "CUFF1", "CUFF1R2", "CUFF1R2"]}
 dwib0 = {"fmap-epi_acq-dwib0": ["DWI_B0"]}

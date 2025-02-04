@@ -1,0 +1,24 @@
+{
+    "appId": "psadil-signatures",
+    "appVersion": "0.6",
+    "maxMinutes": 240,
+    "name": "signatures",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/fmriprep/RUtravel2/fmriprep",
+                "name": "INPUT_DIRS"
+            },
+            {
+                "arg": "--output-dirs RU_rush/signatures/RUtravel2",
+                "name": "OUTPUT_DIRS"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "POLARS_MAX_THREADS",
+                "value": "14"
+            }
+        ]
+    }
+}

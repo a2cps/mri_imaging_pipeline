@@ -1,112 +1,116 @@
 {
-    "id": "aggregator_qc_app",
-    "version": "3.2",
+    "containerImage": "docker://a2cps/aggregator_qc_app:3.5",
     "description": "Aggregate quality control metrics and run simple checks",
-    "owner": "${apiUserId}",
     "enabled": true,
-    "runtime": "SINGULARITY",
-    "runtimeVersion": null,
-    "runtimeOptions": [
-        "SINGULARITY_RUN"
-    ],
-    "containerImage": "docker://a2cps/aggregator_qc_app:3.2",
-    "jobType": "BATCH",
-    "maxJobs": -1,
-    "maxJobsPerUser": -1,
-    "strictFileInputs": true,
+    "id": "aggregator_qc_app",
+    "version": "3.5",
     "jobAttributes": {
+        "archiveOnAppError": false,
+        "cmdPrefix": null,
         "description": null,
         "dynamicExecSystem": false,
         "execSystemConstraints": null,
-        "execSystemId": "secure.frontera",
         "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemId": "secure.frontera",
         "execSystemInputDir": "${JobWorkingDir}",
-        "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
-        "archiveSystemId": "secure.frontera",
-        "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",
-        "archiveOnAppError": false,
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "fileInputArrays": [],
+        "fileInputs": [],
         "isMpi": false,
+        "maxMinutes": 60,
         "mpiCmd": null,
-        "cmdPrefix": null,
+        "nodeCount": 1,
         "parameterSet": {
             "appArgs": [
                 {
-                    "name": "GROUP_T1W",
+                    "arg": "--t1w_fname /corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_T1w.tsv",
                     "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--t1w_fname /corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_T1w.tsv"
+                    "name": "GROUP_T1W"
                 },
                 {
-                    "name": "GROUP_BOLD",
+                    "arg": "--bold_fname /corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_bold.tsv",
                     "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--bold_fname /corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_bold.tsv"
+                    "name": "GROUP_BOLD"
                 },
                 {
-                    "name": "SECRET_NAME",
-                    "inputMode": "INCLUDE_ON_DEMAND"
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "name": "SECRET_NAME"
                 },
                 {
-                    "name": "CACHED_CLIENT",
+                    "arg": "--cached-client $HOME/.tapis3/client.json",
                     "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--cached-client $HOME/.tapis3/client.json"
+                    "name": "CACHED_CLIENT"
                 },
                 {
-                    "name": "JSON_DIR",
+                    "arg": "--json_dir /corral-secure/projects/A2CPS/shared/psadil/qclog/mriqc-reviews",
                     "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--json_dir /corral-secure/projects/A2CPS/shared/psadil/qclog/mriqc-reviews"
+                    "name": "JSON_DIR"
                 },
                 {
-                    "name": "IMAGING_LOG",
+                    "arg": "--imaging_log /corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
                     "inputMode": "INCLUDE_BY_DEFAULT",
-                    "arg": "--imaging_log /corral-secure/projects/A2CPS/system/cronjob/imaging_report/report.csv"
+                    "name": "IMAGING_LOG"
                 },
                 {
-                    "name": "CONFLUENCE_USERNAME",
-                    "inputMode": "INCLUDE_ON_DEMAND"
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "name": "CONFLUENCE_USERNAME"
                 }
             ],
+            "archiveFilter": {
+                "excludes": [
+                    "tapisjob.sh",
+                    "${JobUUID}.out",
+                    "${JobUUID}.err",
+                    "tapisjob.env"
+                ],
+                "includeLaunchFiles": false,
+                "includes": []
+            },
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
+            },
             "containerArgs": [
                 {
-                    "name": "Container Mounts",
+                    "arg": "--bind /corral-secure/projects/A2CPS",
                     "description": "Mount for TAP functions",
                     "inputMode": "FIXED",
-                    "arg": "--bind /corral-secure/projects/A2CPS"
-                }
-            ],
-            "schedulerOptions": [
-                {
-                    "name": "TACC Scheduler Profile",
-                    "description": "Scheduler profile for HPC clusters at TACC",
-                    "inputMode": "FIXED",
-                    "arg": "--tapis-profile tacc-apptainer"
-                },
-                {
-                    "name": "TAP Session Substring",
-                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
-                    "inputMode": "FIXED",
-                    "arg": "--job-name ${JobName}"
-                },
-                {
-                    "name": "TACC Allocation",
-                    "description": "The TACC allocation associated with this job execution",
-                    "inputMode": "FIXED",
-                    "arg": "-A A2CPS"
+                    "name": "Container Mounts"
                 }
             ],
             "envVariables": [],
-            "archiveFilter": {
-                "includes": [],
-                "excludes": [
-                    "*out"
-                ],
-                "includeLaunchFiles": false
-            }
+            "schedulerOptions": [
+                {
+                    "arg": "--tapis-profile tacc-apptainer",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "name": "TACC Scheduler Profile"
+                },
+                {
+                    "arg": "--job-name ${JobName}",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "name": "TAP Session Substring"
+                },
+                {
+                    "arg": "-A A2CPS",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "name": "TACC Allocation"
+                }
+            ]
         },
-        "fileInputs": [],
-        "fileInputArrays": [],
-        "nodeCount": 1,
-        "maxMinutes": 60,
         "subscriptions": [],
         "tags": []
-    }
+    },
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "owner": "${apiUserId}",
+    "runtime": "SINGULARITY",
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "strictFileInputs": true
 }

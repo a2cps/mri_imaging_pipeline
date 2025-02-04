@@ -1,13 +1,39 @@
-import os
-import re
 import glob
 import json
-import sys
-import pandas as pd
+import os
+import re
+from pathlib import Path
+
 #'0.24.2'
 import numpy as np
+import pandas as pd
 import requests
-import xlsxwriter
+
+FAILURE_LOG_DST = Path(os.environ.get("FAILURE_LOG_DST", "/corral-secure/projects/A2CPS/products/development/mris/logs"))
+
+APP_STEPS = [
+                "dicom",
+                "bids", 
+                "fslanat",
+                "fmriprep", 
+                "mriqc", 
+                "qsiprep", 
+                "cat12",
+                "brainager",
+                "fcn",
+                "signatures",
+                "gift"
+            ]
+
+SITE_CODES = {
+                "UI": "UI_uic",
+                "NS": "NS_northshore",
+                "UC": "UC_uchicago",
+                "UM": "UM_umichigan",
+                "WS": "WS_wayne_state",
+                "SH": "SH_spectrum_health",
+                "RU": "RU_rush",
+                }
 
 # function to filter reponse object for highest record_id+visit repeat instance
 def filter_highest_value(data, identification_keys, key_to_compare):
@@ -142,7 +168,8 @@ def redcap_query():
     'fmricuffcontrayn', #MCC1
     'cuffpfmricontraindyn', #MCC2
     'fmri_face_mask',
-    'fmri_magnet_name'
+    'fmri_magnet_name',
+    'fmricuffleg'
     ]
     all_mcc1 = mcc1_imaging.json() + mcc2_tka.json()
     all_mcc2 = mcc2_imaging.json() + mcc1_thoracic.json()
@@ -192,14 +219,14 @@ def redcap_query():
         # add correct contraindicated
         try: 
             contra = [i['fmricuffcontrayn'] for i in all_mcc1 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-        except Exception as e:
+        except Exception:
             contra = ''
         updated_item['fmricuffcontrayn'] = contra
 
         if item['redcap_event_name'] == 'baseline_visit_arm_1':
             try: 
                 pressure = [i['fmricuffcalfpressure'] for i in all_mcc1 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-            except Exception as e:
+            except Exception:
                 pressure = ''
             updated_item['fmricuffcalfpressure'] = pressure
 
@@ -214,14 +241,14 @@ def redcap_query():
 
         try: 
             contra = [i['cuffpfmricontraindyn'] for i in all_mcc2 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-        except Exception as e:
+        except Exception:
             contra = ''
         updated_item['cuffpfmricontraindyn'] = contra
 
         if item['redcap_event_name'] == 'baseline_visit_arm_1':
             try: 
                 pressure = [i['cuffpfmripressure'] for i in all_mcc2 if i['record_id'] == item['record_id'] and i['redcap_repeat_instrument'] == 'qst_mcc1_v03'][-1]
-            except Exception as e:
+            except Exception:
                 pressure = ''
             updated_item['cuffpfmripressure'] = pressure
 
@@ -250,127 +277,72 @@ def redcap_query():
             print(e)
     return uploaded, date_dict
 
-def find_outputs(bids_path: str):
-    dicom_path = bids_path.replace('bids','dicoms')
-    bids_validation_path = bids_path.replace('bids','bids_validation')
-    fmriprep_path = bids_path.replace('bids','fmriprep')
-    mriqc_path = bids_path.replace('bids','mriqc')
-    qsiprep_path = bids_path.replace('bids','qsiprep')
-    cat12_path = bids_path.replace('bids','cat12')
-    fslanat_path = bids_path.replace('bids','fslanat')
-    fcn_path = bids_path.replace('bids','fcn')
-    signatures_path = bids_path.replace('bids','signatures')
-    print(bids_path)
-    # for path in [bids_path, dicom_path, bids_validation_path, fmriprep_path, mriqc_path]
-    # outputs = {}
-    # for x in [bids_path, dicom_path, bids_validation_path, fmriprep_path, mriqc_path]:
-    #     #d["string{0}".format(x)] = "Hello"
-    #     d["{0}".format(x)] = "Hello"
-    #     outfile = glob.glob("".format(x)+'/*.out')[0]
 
-    try: 
-        bids_present = glob.glob(bids_path+'/*.out')[0]
-        bids_present = 1
-        bids = glob.glob(bids_path)[0]
-    except Exception as e:
-        print("no bids", bids_path)
-        bids = 0
-        bids_present = 0
-
-    try:
-        scans_file = glob.glob(bids_path+'/sub-*/ses-*/*.tsv')[0]
-        #check t1 acquisition time and round to the nearest Friday
-        #acq_time = pd.to_datetime(pd.read_csv(scans_file, sep='\t')['acq_time'][0]).round('7d')
-        acq_day = pd.to_datetime(pd.read_csv(scans_file, sep='\t')['acq_time'][0])
+def get_acq_datetime(bids_path: Path):
+    acq_time = "na"
+    for scans_file in bids_path.rglob("*scans.tsv"):
+        scans = pd.read_csv(scans_file, sep="\t", parse_dates=["acq_time"])
+        acq_day = scans[scans["acq_time"] == scans["acq_time"].min()][
+            "acq_time"
+        ].to_list()[0]
         acq_time = acq_day - acq_day.weekday() * np.timedelta64(1, 'D')
         acq_time = acq_time.strftime('%Y-%m-%d')
-    except Exception as e:
-        acq_time = 'na'
+    return acq_time
+
+
+def check_output_failed(sublong: str, job) -> bool:
+    subdir = FAILURE_LOG_DST / job / sublong
+    return len(list(subdir.glob("*.out"))) > 0
+
+
+def check_output_exists(bids_path: Path, job: str) -> bool:    
+    to_check = Path(str(bids_path).replace("bids", job))
+    if job == "dicom":
+        # note extra "s" (plural) in path to check
+        to_check = Path(str(bids_path).replace("bids", "dicoms"))
+        out = Path(f"{to_check}.zip").exists()
+    else:
+        to_check = Path(str(bids_path).replace("bids", job))
+        out = len(list(to_check.glob("*out"))) > 0 or len(list(to_check.glob("*log"))) > 0
+    return out
+
+def check_output_tar_exists(bids_path: Path, job: str) -> bool:
+    to_check = Path(str(bids_path).replace("bids", job))
+    return len(list(to_check.glob("*tar"))) > 0
+
+def find_outputs(bids: str):
+    bids_path = Path(bids)
+    out = dict()
+    for job in APP_STEPS:
+        if check_output_failed(bids_path.name, job):
+            out[job] = "2"
+        elif check_output_tar_exists(bids_path, job):
+            out[job] = "3"
+        elif check_output_exists(bids_path, job):            
+            out[job] = "1"
+        else:
+            print(f"no {job} for {bids_path.name}")
+            out[job] = "0"
     
-    try: 
-        duplicates = glob.glob(bids_path+'/sub-*/ses-*/*/*dup*')[0]
-        duplicates = 1
-    except Exception as e:
-        duplicates = 0
+    out["acquisition_week"] = get_acq_datetime(bids_path)
 
-    try: 
-        dicom = glob.glob(dicom_path+'.zip')[0]
-        dicom = 1
-    except Exception as e:
-        print("no dicom", dicom_path)
-        dicom = 0
-    try: 
-        bids_validation = glob.glob(bids_validation_path+'/*.out')[0]
-        bids_validation = 1
-    except Exception as e:
-        print("no bids_validation", bids_validation_path)
-        bids_validation = 0
-    try: 
-        fmriprep_anat = glob.glob(fmriprep_path+'/anat/*.out')[0]
-        fmriprep_anat = 1
-    except Exception as e:
-        print("no fmriprep anat", fmriprep_path)
-        fmriprep_anat = 0
-    try: 
-        fmriprep_cuff = glob.glob(fmriprep_path+'/cuff/*.out')[0]
-        fmriprep_cuff = 1
-    except Exception as e:
-        print("no fmriprep cuff", fmriprep_path)
-        fmriprep_cuff = 0
-    try: 
-        fmriprep_rest = glob.glob(fmriprep_path+'/rest/*.out')[0]
-        fmriprep_rest = 1
-    except Exception as e:
-        print("no fmriprep rest", fmriprep_path)
-        fmriprep_rest = 0
-    try: 
-        mriqc_anat = glob.glob(mriqc_path+'/*nat/*')[0]
-        mriqc_anat = 1
-    except Exception as e:
-        print("no mriqc anat", mriqc_path)
-        mriqc_anat = 0
-        
-    try: 
-        mriqc_cuff = glob.glob(mriqc_path+'/*uff/*')[0]
-        mriqc_cuff = 1
-    except Exception as e:
-        print("no mriqc cuff", mriqc_path)
-        mriqc_cuff = 0
-
-    try: 
-        mriqc_rest = glob.glob(mriqc_path+'/*est/*')[0]
-        mriqc_rest = 1
-    except Exception as e:
-        print("no mriqc rest", mriqc_path)
-        mriqc_rest = 0
-
-    try:
-        qsiprep = glob.glob(qsiprep_path+'/qsiprep/*.html')[0]
-        qsiprep = 1
-    except Exception as e:
-        print("no qsiprep", qsiprep_path)
-        qsiprep = 0
-
-    try:
-        cat12 = glob.glob(cat12_path+'/*.out')[0]
-        cat12 = 1
-    except Exception as e:
-        print("no cat12", cat12_path)
-        cat12 = 0
-    
-    fslanat = 1 if len(glob.glob(f"{fslanat_path}/*.out")) else 0
-    fcn = 1 if len(glob.glob(f"{fcn_path}/*.out")) else 0
-    signatures = 1 if len(glob.glob(f"{signatures_path}/*.out")) else 0
-        
-    return dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures
+    return out
 
 
 def find_heudiconv_outputs(bids_dir):
     try:
         scans_file = glob.glob(os.path.normpath(bids_dir) + '/sub-*/*/*.tsv')[0]
-    except Exception as e:
+    except Exception:
         print("no scans file for ", bids_dir)
-        return 0
+        no_outputs = {
+            "T1 Received": 0,
+            "DWI Received": 0,
+            "fMRI Individualized Pressure Received": 0,
+            "fMRI Standard Pressure Received": 0,
+            "1st Resting State Received": 0,
+            "2nd Resting State Received": 0,
+        }
+        return no_outputs
     scans_df = pd.read_csv(scans_file, sep='\t')
     scan_list = scans_df['filename'].tolist()
     # Create a set of regexs to match filenames to scan names
@@ -471,8 +443,8 @@ def main():
         #print(row['site'], row['subject_id'])
         try:
             site_id = row['site_id']
-            bids_path = "/corral-secure/projects/A2CPS/products/mris/*/bids/" + site_id + str(row['subject_id']) + row['visit']
-            (dicom, bids, bids_present, bids_validation, fmriprep_anat, fmriprep_cuff, fmriprep_rest, mriqc_anat, mriqc_cuff, mriqc_rest, qsiprep, cat12, acq_time, fslanat, fcn, signatures) = find_outputs(bids_path)
+            bids_path = f"/corral-secure/projects/A2CPS/products/mris/{SITE_CODES[site_id]}/bids/" + site_id + str(row['subject_id']) + row['visit']
+            outputs = find_outputs(bids_path)
 
             # patch for typo in redcap
             if "fmricuffcpyn" in row:
@@ -513,7 +485,9 @@ def main():
                 surg_day = ''
 
             # add column for applied pressure
-            if row['fmricuffcalfpressurerecal'] != '':
+            if row["fmricuffipyn"] == '0':
+                applied_pressure = 'na'
+            elif row['fmricuffcalfpressurerecal'] != '':
                 applied_pressure = row['fmricuffcalfpressurerecal']
             else:
                 applied_pressure = cuff1_pressure
@@ -558,15 +532,16 @@ def main():
                         "Surgery Week": surg_day,
                         "Face Mask": row['fmri_face_mask'],
                         "Magnet Name": row['fmri_magnet_name'],
-                        "Repeat instance": row['redcap_repeat_instance']
+                        "Repeat instance": row['redcap_repeat_instance'],
+                        "Cuff Leg": row['fmricuffleg']
                         #"comments": row['fmricuffnotes']
                         }
 
             #scans_indicated.update({k:1 for k,v in scans_indicated.items() if v == 'Y'})
             #scans_indicated.update({k:0 for k,v in scans_indicated.items() if v == 'N'})
             #pprint.pprint(scans_indicated)
-            if bids != 0:
-                processed_scans = find_heudiconv_outputs(bids)
+            if outputs["bids"] == "1":
+                processed_scans = find_heudiconv_outputs(bids_path)
             else:
                 processed_scans = {
                 "T1 Received": 0,
@@ -578,48 +553,35 @@ def main():
             }
             # if processed_scans == 0:
             #     continue
-            scan_report = {**scans_indicated, **processed_scans}
-            scan_report['dicom'] = dicom
-            scan_report['bids'] = bids_present
-            scan_report['bids_validation'] = bids_present
-            scan_report['fslanat'] = fslanat
-            scan_report['fcn'] = fcn
-            scan_report['signatures'] = signatures
-            scan_report['fmriprep_anat'] = fmriprep_anat
-            scan_report['fmriprep_cuff'] = fmriprep_cuff
-            scan_report['fmriprep_rest'] = fmriprep_rest
-            scan_report['mriqc_anat'] = mriqc_anat
-            scan_report['mriqc_cuff'] = mriqc_cuff
-            scan_report['mriqc_rest'] = mriqc_rest
-            scan_report['qsiprep'] = qsiprep
-            scan_report['cat12'] = cat12
-            scan_report['acquisition_week'] = acq_time
+            scan_report = {**scans_indicated, **processed_scans, **outputs}
 
             # remove preprocessing if scans not indicated
             if scan_report["T1 Indicated"] == "0":
-                scan_report["mriqc_anat"] = "na"
-                scan_report["mriqc_cuff"] = "na"
-                scan_report["mriqc_rest"] = "na"
                 scan_report["cat12"] = "na"
+                scan_report["brainager"] = "na"
                 scan_report["fslanat"] = "na"
-                scan_report["fmriprep_anat"] = "na"
-                scan_report["fmriprep_rest"] = "na"
-                scan_report["fmriprep_cuff"] = "na"
+                scan_report["fmriprep"] = "na"
+                scan_report["gift"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
-            if scan_report['1st Resting State Indicated'] == '0' and scan_report['2nd Resting State Indicated'] == '0':
-                scan_report['fmriprep_rest'] = 'na'
-                scan_report['mriqc_rest'] = 'na'
-            if scan_report['fMRI Individualized Pressure Indicated'] == '0' and scan_report['fMRI Standard Pressure Indicated'] == '0':
-                scan_report['fmriprep_cuff'] = 'na'
-                scan_report['mriqc_cuff'] = 'na'
-            if scan_report["fmriprep_rest"] == "na" and scan_report["fmriprep_cuff"] == "na":
+            if scan_report["fmriprep"] == "na":
                 scan_report['fcn'] = 'na'
                 scan_report['signatures'] = 'na'
+                scan_report['gift'] = 'na'
             if scan_report['DWI Indicated'] == '0':
-                scan_report['qsiprep'] = 'na'            
-
+                scan_report['qsiprep'] = 'na'
+            if scan_report['Cuff Leg'] == '1':
+                scan_report['Cuff Leg'] = 'Right'
+            if scan_report['Cuff Leg'] == '2':
+                scan_report['Cuff Leg'] = 'Left'
+            if (
+                scan_report['fMRI Individualized Pressure Indicated'] == '0' 
+                and scan_report['fMRI Standard Pressure Indicated'] == '0'
+                and scan_report['1st Resting State Indicated'] == '0'
+                and scan_report['2nd Resting State Indicated'] == '0'
+                ):
+                scan_report['gift'] = 'na'
 
             list_of_dict.append(scan_report)
         except Exception as e:
@@ -646,16 +608,13 @@ def main():
     'Cuff1 Applied Pressure',
     'dicom',
     'bids',
-    'bids_validation',
     'fslanat',
-    'fmriprep_anat',
-    'fmriprep_cuff',
-    'fmriprep_rest',
-    'mriqc_anat',
-    'mriqc_cuff',
-    'mriqc_rest',
+    'fmriprep',
+    'gift',
+    'mriqc',
     'qsiprep',
     'cat12',
+    'brainager',
     'fcn',
     'signatures',
     'acquisition_week',
@@ -679,7 +638,8 @@ def main():
     "Surgery Week",
     "Face Mask",
     "Magnet Name",
-    "Repeat instance"
+    "Repeat instance",
+    "Cuff Leg"
     #'comments'
     ]]
     df.drop_duplicates(inplace=True)
@@ -691,5 +651,3 @@ def main():
 
 if __name__ == '__main__':
     main() 
-
-

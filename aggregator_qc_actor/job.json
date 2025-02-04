@@ -1,7 +1,9 @@
 {
     "name": "aggregate_qc",
     "appId": "aggregator_qc_app",
-    "appVersion": "3.2",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report",
+    "archiveSystemId": "secure.frontera",
+    "appVersion": "3.5",
     "parameterSet": {
         "appArgs": [
             {
@@ -10,7 +12,7 @@
             },
             {
                 "name": "SECRET_NAME",
-                "arg": "--secret-name urrutia-confluence-token"
+                "arg": "--secret-name a2cpsadmin-confluence-token"
             },
             {
                 "name": "CONFLUENCE_USERNAME",
@@ -25,9 +27,6 @@
                 "tacc-apptainer"
             ]
         }
-    ],
-    "hiddenOptions": [
-        "MEM"
     ],
     "maxMinutes": 60,
     "subscriptions": [

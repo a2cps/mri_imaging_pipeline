@@ -1,0 +1,55 @@
+# bring in the micromamba image so we can copy files from it
+FROM mambaorg/micromamba:1.5.8 AS micromamba
+
+FROM pennbbl/qsiprep:0.21.4
+
+USER root
+
+ARG MAMBA_USER=mambauser
+ARG MAMBA_USER_ID=57439
+ARG MAMBA_USER_GID=57439
+ENV MAMBA_USER=$MAMBA_USER
+ENV MAMBA_ROOT_PREFIX="/opt/conda"
+ENV MAMBA_EXE="/bin/micromamba"
+
+COPY --link=true --from=micromamba "$MAMBA_EXE" "$MAMBA_EXE"
+COPY --link=true --from=micromamba /usr/local/bin/_activate_current_env.sh /usr/local/bin/_activate_current_env.sh
+COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_shell.sh /usr/local/bin/_dockerfile_shell.sh
+COPY --link=true --from=micromamba /usr/local/bin/_entrypoint.sh /usr/local/bin/_entrypoint.sh
+COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
+COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
+
+RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh && \
+    /usr/local/bin/_dockerfile_setup_root_prefix.sh
+
+USER $MAMBA_USER
+
+SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
+
+RUN micromamba install -q --name qsiprep --yes -c conda-forge --freeze-installed \
+    impi_rt=2021.12 \
+    ucx=1.17.0 \
+    rdma-core=52.0 \
+    mpi4py=3.1.6 \
+    polars \
+    pydantic=2.8.0 \
+    && micromamba install --name qsiprep -c conda-forge --no-deps --yes openssl=3.0.7 \
+    && micromamba install -n fslqsiprep \
+    -c https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public/ \
+    -c conda-forge \
+    fsl-miscvis \
+    && micromamba run -n qsiprep pip install \
+    --no-deps \
+    mriqc==24.0.0 \
+    git+https://github.com/a2cps/biomarker-extractor.git@42d6eb0b6d48778e382690d4de4bffcd7c14d5a0 \
+    && micromamba clean --all --yes
+
+# files searched for in entrypoint.py
+COPY --link=true assets/entrypoint.py assets/license.txt assets/eddy_params.json /opt/qsiprep_app/
+ENV TZ=US/Central
+ENV ENV_NAME=qsiprep
+
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/qsiprep_app/entrypoint.py"]
+
+CMD [ "--help" ]
+
