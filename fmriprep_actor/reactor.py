@@ -54,7 +54,9 @@ class FMRIPrepReactor(models.Reactor):
                     & (pl.col("CUFF2") == 0)
                     & (pl.col("REST1") == 0)
                     & (pl.col("REST2") == 0)
-                ).cast(pl.Utf8),
+                )
+                .cast(pl.Utf8)
+                .str.to_titlecase(),
             )
             .with_columns(
                 INPUT_DIRS=pl.concat_str(

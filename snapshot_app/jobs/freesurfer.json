@@ -1,0 +1,28 @@
+{
+    "appId": "psadil-snapshot_app",
+    "appVersion": "2.3",
+    "execSystemId": "secure.ls6",
+    "execSystemLogicalQueue": "corralextra",
+    "maxMinutes": 1200,
+    "name": "snapshot-freesurfer",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--inroot /corral-secure/projects/A2CPS/products/mris/all_sites",
+                "name": "INROOT"
+            },
+            {
+                "arg": "--outroot mris",
+                "name": "OUTROOT"
+            },
+            {
+                "arg": "--job freesurfer",
+                "name": "JOB"
+            },
+            {
+                "arg": "--n-workers 32",
+                "name": "N_WORKERS"
+            }
+        ]
+    }
+}

@@ -1,6 +1,6 @@
 {
-  "containerImage": "docker://a2cps/fslanat_app:1.0",
-  "version": "1.1",
+  "containerImage": "docker://a2cps/fslanat_app:1.1",
+  "version": "1.2",
   "description": "Run fsl_anat",
   "enabled": true,
   "id": "fslanat",
@@ -32,10 +32,6 @@
           "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
           "name": "OUTPUT_DIRS"
-        },
-        {
-          "arg": "--n-workers 1",
-          "name": "N_WORKERS"
         },
         {
           "arg": null,
@@ -72,7 +68,7 @@
       },
       "schedulerOptions": [
         {
-          "arg": "--tapis-profile tacc-apptainer",
+          "arg": "--tapis-profile ls6-mpi",
           "description": "Scheduler profile for HPC clusters at TACC",
           "inputMode": "FIXED",
           "name": "TACC Scheduler Profile"

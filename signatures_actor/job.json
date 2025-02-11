@@ -1,6 +1,6 @@
 {
     "appId": "signatures",
-    "appVersion": "4.0",
+    "appVersion": "4.2",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
     "maxMinutes": 360,

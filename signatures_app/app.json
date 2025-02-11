@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/signatures_app:4.1",
-    "version": "4.1",
+    "containerImage": "docker://a2cps/signatures_app:4.3",
+    "version": "4.2",
     "description": "Multivariate Pattern Signatures",
     "enabled": true,
     "id": "signatures",

@@ -8,7 +8,7 @@ def copy(outdir: Path, inroot: Path) -> None:
         outdir.mkdir(parents=True)
 
     for src in inroot.glob("signatures/*"):
-        for out in [
+        for subfolder in [
             "cleaned",
             "confounds",
             "signatures-by-part",
@@ -18,4 +18,5 @@ def copy(outdir: Path, inroot: Path) -> None:
             "signatures-by-tr",
             "signatures-by-tr-diff",
         ]:
-            utils.mergetree_overwrite(src / out, outdir / out)
+            if (out := src / subfolder).exists():
+                utils.mergetree_overwrite(out, outdir / subfolder)

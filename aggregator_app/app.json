@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/aggregator:2.3",
-    "version": "2.3",
+    "containerImage": "docker://a2cps/aggregator:2.7",
+    "version": "2.7",
     "description": "Stage MRI Products for Release",
     "enabled": true,
     "id": "aggregator",
@@ -53,9 +53,18 @@
                 }
             ],
             "archiveFilter": {
-                "excludes": [],
+                "excludes": [
+                    "tapisjob.sh",
+                    "${JobUUID}.out",
+                    "${JobUUID}.err",
+                    "tapisjob.env"
+                ],
                 "includeLaunchFiles": false,
                 "includes": []
+            },
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
             },
             "containerArgs": [
                 {

@@ -1,4 +1,4 @@
-FROM mambaorg/micromamba:1.5.8-jammy
+FROM mambaorg/micromamba:2.0-ubuntu24.10
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/snapshot /tmp/snapshot/
