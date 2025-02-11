@@ -1,7 +1,7 @@
 {
-    "appId": "psadil-snapshot_app",
-    "appVersion": "2.3",
-    "execSystemId": "secure.ls6",
+    "appId": "snapshot_app",
+    "appVersion": "3.0",
+    "execSystemId": "secure.frontera",
     "execSystemLogicalQueue": "corralextra",
     "maxMinutes": 2880,
     "name": "snapshot-signatures",
@@ -12,7 +12,7 @@
                 "name": "INROOT"
             },
             {
-                "arg": "--outroot mris",
+                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery-release-2-0-0/mris",
                 "name": "OUTROOT"
             },
             {
