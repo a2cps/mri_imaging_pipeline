@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -euo pipefail
+
+for j in *json; do
+    mv "${j}" "${j}".bak 
+    # remove fields that can change from scan to scan (and so aren't checked)
+    # the awk line deletes any trailing endlines
+    #   https://unix.stackexchange.com/questions/140727/how-can-i-delete-a-trailing-newline-in-bash/140729#140729
+    jq --indent 4 --sort-keys "del(.time, .global.slices)" "${j}".bak \
+        | grep -v '"AcquisitionTime": "' \
+        | awk 'NR>1{print PREV} {PREV=$0} END{printf("%s",$0)}' \
+        > "${j}" 
+done
+
+# Also, RU references need to be updated based on values from first scan
+# - DWI RepetitionTime
+# - T1w DwellTime, EchoTime, and PixelBandwidth
+# https://a2cps-pain.slack.com/archives/C02JP3G763X/p1709737714740369

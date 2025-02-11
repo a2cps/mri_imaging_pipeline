@@ -88,6 +88,9 @@ protocols2fix.update(
             # after SH upgrade
             ("Tra T1 MPRAGE orthog", "anat-T1w"),
             ("^T1_MPRAGE_ND$", "anat-T1w"),
+            # SH Traveling Human
+            ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
+            ("^dMRI$", "dwi"),
         ],
     }
 )
@@ -108,10 +111,16 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # want."
     # For T1w, we get both a modified "T1_MPRAGE" and "ORIG T1_MPRAGE". This
     # prevents the modifed one from going through conversion
-    elif dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX" and (
-        dcmdata.SeriesDescription == "DTI"
-        or dcmdata.SeriesDescription == "DWI"
-        or dcmdata.SeriesDescription == "T1_MPRAGE"
+    elif (
+        dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX"
+        and (
+            dcmdata.SeriesDescription == "DTI"
+            or dcmdata.SeriesDescription == "DWI"
+            or dcmdata.SeriesDescription == "T1_MPRAGE"
+        )
+        and (
+            dcmdata.get("PatientName") not in ["UM070121"]
+        )  # patients without "ORIG"
     ):
         exclude = True
     # similar issue for UI phantom scans
@@ -154,11 +163,11 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # T1_MPRAGE_ND ("No Distortion Correction"), but also always a derived scan called T1_MPRAGE
     elif (
         dcmdata.get("DeviceSerialNumber") == "66022"
-        and dcmdata.SoftwareVersions == "syngo MR XA30"
+        and dcmdata.SoftwareVersions in ["syngo MR XA30", "syngo MR XA60"]
         and (dcmdata.SeriesDescription == "T1_MPRAGE")
         # During or around collection of SH20149V3, the SH scanner crashed, causing most
         # files in this session to be deleted. There is a T1w, but it is not the raw
-        # image, that we typically want. This keeps that derived image, since it is the
+        # image that we typically want. This keeps that derived image, since it is the
         # only one available
         # https://a2cps-pain.slack.com/archives/C02JP3G763X/p1689344497466429
         and not (
@@ -170,8 +179,32 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     # RU sends both T1_MPRAGE (with NonlinearGradientCorrection: true) and T1_MPRAGE_ND
     # (with NonlinearGradientCorrection: false). Both are sent to anat (as duplicates),
     # but we only want to store T1_MPRAGE_ND (same as with SH after conversion to XA30)
-    elif (dcmdata.get("DeviceSerialNumber") == "166295") and (
-        dcmdata.SeriesDescription == "T1_MPRAGE"
+    # except, there is at least one case where the T1_MPRAGE is the only scan that was sent,
+    # and so we make an exception in order to have at least 1 anatomical image
+    elif (
+        (dcmdata.get("DeviceSerialNumber") == "166295")
+        and (dcmdata.get("SeriesDescription") == "T1_MPRAGE")
+        and (
+            dcmdata.get("SeriesInstanceUID")
+            not in [
+                "1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"
+            ]
+        )
+    ):
+        exclude = True
+
+    # test scan from SH (TE of 80 vs 70), late May 2024
+    elif (dcmdata.get("DeviceSerialNumber") == "66022") and (
+        dcmdata.get("SeriesDescription") == "fMRI_B0_PA_80"
+    ):
+        exclude = True
+
+    # new WS scanner is like the other Siemens scanners -- it produces T1_MPRAGE[_ND]
+    # and DWI and DWI_ORIG
+    elif (
+        (dcmdata.get("DeviceSerialNumber") == "213020")
+        and (dcmdata.get("SoftwareVersions") in ["syngo MR XA61"])
+        and (dcmdata.get("SeriesDescription") in ["T1_MPRAGE", "DWI"])
     ):
         exclude = True
 

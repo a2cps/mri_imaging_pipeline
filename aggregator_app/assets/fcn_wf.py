@@ -8,10 +8,5 @@ def copy(outdir: Path, inroot: Path) -> None:
         outdir.mkdir(parents=True)
 
     for src in inroot.glob("fcn/*"):
-        for out in [
-            "connectivity",
-            "connectivity-cleaned",
-            "connectivity-confounds",
-            "acompcor",
-        ]:
+        for out in ["cleaned", "confounds", "connectivity", "timeseries"]:
             utils.mergetree_overwrite(src / out, outdir / out)

@@ -81,9 +81,7 @@ def get_client(
     return t
 
 
-def get_confluence_token(
-    secret_name: str, cached_client: Path | None = None
-) -> str:
+def get_confluence_token(secret_name: str, cached_client: Path | None = None) -> str:
     if cached_client is None:
         client = get_client()
     else:
@@ -178,9 +176,7 @@ def build_bids_name(d: pd.DataFrame, suffix: str) -> pd.DataFrame:
             for x in d.itertuples()
         ]
     elif suffix in ["T1w", "dwi"]:
-        d["bids_name"] = [
-            f"sub-{x.sub}_ses-{x.ses}_{suffix}" for x in d.itertuples()
-        ]
+        d["bids_name"] = [f"sub-{x.sub}_ses-{x.ses}_{suffix}" for x in d.itertuples()]
 
     return d
 
@@ -188,7 +184,6 @@ def build_bids_name(d: pd.DataFrame, suffix: str) -> pd.DataFrame:
 def get_outliers(
     d: pd.DataFrame,
     groups,
-    url_root: str = "https://a2cps.org/workbench/data/tapis/community/secure.corral/corral-secure/projects/A2CPS/products/mris",
     imaging_log: Path = Path(
         "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
     ),
@@ -204,16 +199,12 @@ def get_outliers(
         .drop_duplicates()
     )
     dind = d[["bids_name"]].copy()
-    dind["sub"] = [int(re.findall("\d{5}", x)[0]) for x in dind["bids_name"]]
-    dind["ses"] = [
-        re.findall("ses-([a-zA-Z0-9]+)", x)[0] for x in dind["bids_name"]
-    ]
+    dind["sub"] = [int(re.findall(r"\d{5}", x)[0]) for x in dind["bids_name"]]
+    dind["ses"] = [re.findall("ses-([a-zA-Z0-9]+)", x)[0] for x in dind["bids_name"]]
 
     if "task" in groups:
         indices = ["site", "sub", "task", "ses", "bids_name"]
-        dind["task"] = [
-            re.findall("task-(\w+)_", x)[0] for x in dind["bids_name"]
-        ]
+        dind["task"] = [re.findall(r"task-(\w+)_", x)[0] for x in dind["bids_name"]]
     else:
         indices = ["site", "sub", "ses", "bids_name"]
 
@@ -228,15 +219,6 @@ def get_outliers(
         .dropna(how="all")
         .round(1)
     )
-    outliers["url"] = [
-        f"{url_root}/{SITE_CODES[site]}/mriqc/{site}{sub}{ses}"
-        for site, sub, ses in zip(
-            outliers.index.get_level_values("site"),
-            outliers.index.get_level_values("sub"),
-            outliers.index.get_level_values("ses"),
-        )
-    ]
-    outliers["url"] = outliers.apply(lambda x: _format_url(x.url), axis=1)
 
     return outliers
 
@@ -296,7 +278,7 @@ def build_cat_df(xml: Path) -> pd.DataFrame:
     d = pd.DataFrame(
         [
             {
-                "sub": int(re.findall("\d{5}", str(xml))[0]),
+                "sub": int(re.findall(r"\d{5}", str(xml))[0]),
                 "ses": re.findall("(?<=ses-)[Vv][13]", str(xml))[0],
                 "scan": "T1w",
                 "rating": rating,
@@ -312,8 +294,16 @@ def gather_cat(
     root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
 ):
     return pd.concat(
-        [build_cat_df(x) for x in root.glob("*/cat12/*/report/*xml")]
+        [build_cat_df(x) for x in root.glob("*/cat12/*/cat12/report/*xml")]
     )
+
+
+def get_task(src: Path) -> str:
+    maybe_task = re.findall("rest|cuff", src.name)
+    if not len(maybe_task):
+        msg = f"Unable to find task id in {src}"
+        raise RuntimeError(msg)
+    return maybe_task[0]
 
 
 def gather_motion(
@@ -321,35 +311,25 @@ def gather_motion(
 ) -> pd.DataFrame:
     confounds = []
     for s in SITE_CODES.values():
-        for task in ["rest", "cuff"]:
-            for tsv in (root / s / "fmriprep").glob(
-                f"{s[0:2]}*/{task}/fmriprep/sub*/ses*/func/*confounds_timeseries.tsv"
-            ):
-                rmsd = pd.read_csv(
-                    tsv, sep="\t", usecols=["rmsd"], dtype={"rmsd": np.float64}
+        for tsv in (root / s / "fmriprep").glob(
+            f"{s[0:2]}*/fmriprep/sub*/ses*/func/*confounds_timeseries.tsv"
+        ):
+            rmsd = pd.read_csv(
+                tsv, sep="\t", usecols=["rmsd"], dtype={"rmsd": np.float64}
+            )
+            bids_name = tsv.name.replace("desc-confounds_timeseries.tsv", "bold")
+            task = get_task(tsv)
+            confounds.append(
+                pd.DataFrame(
+                    {
+                        "bids_name": bids_name,
+                        "fd_mean": rmsd.mean(),
+                        "fd_max": rmsd.max(),
+                        "fd_perc": np.mean(rmsd.to_numpy() > TASK_THRESH[task]),
+                        "n_trs": len(rmsd),
+                    }
                 )
-                # current version of fmriprep strips leading 0, so for matching later need to add it back
-                bids_name_raw = re.search(
-                    r"sub-\w+_ses-\w+_task-\w+_run-\d+", str(tsv)
-                ).group(  # type: ignore
-                    0
-                )
-                confounds.append(
-                    pd.DataFrame(
-                        {
-                            "bids_name": bids_name_raw[0:-1]
-                            + "0"
-                            + bids_name_raw[-1]
-                            + "_bold",
-                            "fd_mean": rmsd.mean(),
-                            "fd_max": rmsd.max(),
-                            "fd_perc": np.mean(
-                                rmsd.to_numpy() > TASK_THRESH[task]  # type: ignore
-                            ),
-                            "n_trs": len(rmsd),
-                        }
-                    )
-                )
+            )
 
     return pd.concat(confounds, ignore_index=True)
 
@@ -393,9 +373,9 @@ def rate_rest2_wo_cuff(d: pd.DataFrame) -> pd.DataFrame:
 def auto_rate_bold(d: pd.DataFrame) -> pd.DataFrame:
     bold_iqm = gather_motion()
     bold_iqm["rating"] = [rate_motion(x) for x in bold_iqm.itertuples()]
-    rated = d.merge(
-        bold_iqm[["bids_name", "rating"]], on="bids_name", how="left"
-    ).drop(["bids_name"], axis=1)
+    rated = d.merge(bold_iqm[["bids_name", "rating"]], on="bids_name", how="left").drop(
+        ["bids_name"], axis=1
+    )
     rated["source"] = "auto"
     # fmriprep processing often lags. default assumes scan is okay
     rated["rating"] = rated["rating"].fillna("green")
@@ -463,9 +443,7 @@ def rate_dwi(
         re.findall("|".join(DWI_LENGTHS.keys()), str(x))[0] for x in bvals["f"]
     ]
     bvals = bvals.merge(
-        pd.DataFrame.from_dict(
-            DWI_LENGTHS, orient="index", columns=["expected"]
-        )
+        pd.DataFrame.from_dict(DWI_LENGTHS, orient="index", columns=["expected"])
         .reset_index()
         .rename(columns={"index": "site"})
     )
@@ -474,16 +452,12 @@ def rate_dwi(
         axis=1,
     )
     bvals["sublong"] = bvals.apply(
-        lambda x: re.findall("[A-Z]{2}\d{5}V[13]", str(x["f"]))[0],
+        lambda x: re.findall(r"[A-Z]{2}\d{5}V[13]", str(x["f"]))[0],
         axis=1,
     )
-    d["sublong"] = d.apply(
-        lambda row: f'{row["site"]}{row["sub"]}{row["ses"]}', axis=1
-    )
+    d["sublong"] = d.apply(lambda row: f'{row["site"]}{row["sub"]}{row["ses"]}', axis=1)
     d["source"] = "auto"
-    return d.merge(bvals[["rating", "sublong"]], on="sublong").drop(
-        ["sublong"], axis=1
-    )
+    return d.merge(bvals[["rating", "sublong"]], on="sublong").drop(["sublong"], axis=1)
 
 
 def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
@@ -501,15 +475,9 @@ def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
 
     single_rating = (
         d.groupby(["site", "sub", "ses", "scan"], as_index=False)
-        .apply(
-            lambda x: x[x["source_code"] == x["source_code"].max(skipna=False)]
-        )
+        .apply(lambda x: x[x["source_code"] == x["source_code"].max(skipna=False)])
         .groupby(["site", "sub", "ses", "scan"], as_index=False)
-        .apply(
-            lambda x: x[
-                x["rating_grade"] == x["rating_grade"].min(skipna=False)
-            ]
-        )
+        .apply(lambda x: x[x["rating_grade"] == x["rating_grade"].min(skipna=False)])
         .groupby(["site", "sub", "ses", "scan"], as_index=False)
         .apply(lambda x: x[x["date"] == x["date"].max(skipna=False)])
         .drop(["source_code", "rating_grade"], axis=1)
@@ -555,8 +523,7 @@ def update_qclog(
         .drop(["value"], axis=1)
     )
     log["scan"] = [
-        LOG_KEYS[re.findall("|".join(LOG_KEYS.keys()), x)[0]]
-        for x in log["scan"]
+        LOG_KEYS[re.findall("|".join(LOG_KEYS.keys()), x)[0]] for x in log["scan"]
     ]
     log["rating"].fillna(0, inplace=True)
     log["rating"] = log.apply(
@@ -572,9 +539,9 @@ def update_qclog(
         log.query("scan in ['DWI']").copy().drop(["rating", "source"], axis=1)
     )
     log_bold = auto_rate_bold(
-        d=build_bids_name(
-            log.query("not scan in ['DWI','T1w']").copy(), "bold"
-        ).drop(["rating", "source", "task", "run"], axis=1)
+        d=build_bids_name(log.query("not scan in ['DWI','T1w']").copy(), "bold").drop(
+            ["rating", "source", "task", "run"], axis=1
+        )
     )
     log_short = log_t1w[["site", "sub"]].drop_duplicates()
 
@@ -587,13 +554,10 @@ def update_qclog(
     d2 = (
         d.assign(
             notes=[", ".join(x) for x in d["artifacts"]],
-            sub=[int(re.findall("\d{5}", x)[0]) for x in d["subject"]],
+            sub=[int(re.findall(r"\d{5}", x)[0]) for x in d["subject"]],
             ses=[re.findall("(?<=ses-)[Vv][13]", x)[0] for x in d["subject"]],
             rating=[RATING[str(x)] for x in d["rating"]],
-            scan=[
-                SCAN[re.findall("|".join(SCAN.keys()), x)[0]]
-                for x in d["subject"]
-            ],
+            scan=[SCAN[re.findall("|".join(SCAN.keys()), x)[0]] for x in d["subject"]],
         )
         .drop(["subject", "artifacts"], axis=1)
         .merge(log_short)
@@ -738,9 +702,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--secret-name", type=str)
     parser.add_argument("--confluence-username", type=str)
-    parser.add_argument(
-        "--cached-client", type=Path, default=DEFAULT_CACHED_CLIENT
-    )
+    parser.add_argument("--cached-client", type=Path, default=DEFAULT_CACHED_CLIENT)
 
     args = parser.parse_args()
 

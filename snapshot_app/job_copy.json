@@ -1,7 +1,8 @@
 {
-    "name": "snapshot-2.0",
+    "name": "snapshot-2.2",
     "appId": "urrutia-snapshot_app",
-    "appVersion": "2.0",
+    "appVersion": "2.2",
+    "execSystemId": "secure.ls6",
     "parameterSet": {
         "appArgs": [
             {
@@ -10,15 +11,15 @@
             },
             {
                 "name": "OUTROOT",
-                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri"
+                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mris"
             },
             {
                 "name": "RIADIR",
-                "arg": "--riadir /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mri/ria"
+                "arg": "--riadir /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery/mris/ria"
             },
             {
                 "name": "N_WORKERS",
-                "arg": "--n-workers 20"
+                "arg": "--n-workers 32"
             },
             {
                 "name": "COPY",
@@ -26,16 +27,29 @@
             }
         ]
     },
-    "moduleLoads": [
+    "maxMinutes": 2880,
+    "subscriptions": [
         {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
+          "description": "Message on Failure",
+          "enabled": true,
+          "eventCategoryFilter": "JOB_ERROR_MESSAGE",
+          "deliveryTargets": [
+            {
+              "deliveryMethod": "WEBHOOK",
+              "deliveryAddress": "https://a2cps.tapis.io/v3/actors/8Oew8AweyRE6/messages?x-nonce=a2cps_AKR10wG0GeVGr"
+            }
+          ]
+        },
+        {
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_NEW_STATUS",
+            "deliveryTargets": [
+              {
+                "deliveryMethod": "WEBHOOK",
+                "deliveryAddress": "https://a2cps.tapis.io/v3/actors/8Oew8AweyRE6/messages?x-nonce=a2cps_AKR10wG0GeVGr"
+              }
             ]
-        }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
-    "maxMinutes": 2880
+          }
+      ]
 }

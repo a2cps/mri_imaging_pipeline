@@ -1,0 +1,112 @@
+#!/bin/bash
+#SBATCH -J heudiconv-traveling
+#SBATCH -o heudiconv-traveling.out
+#SBATCH -e heudiconv-traveling.err
+#SBATCH -t 4:00:00
+#SBATCH -p corralextra-dev
+#SBATCH -N 1 -n 1
+#SBATCH -A A2CPS
+
+# module load tacc-apptainer
+module unload xalt
+
+BIND_DIR=/corral-secure/projects/A2CPS
+CONTAINER_IMAGE=psadil/heudiconv_app
+# shellcheck disable=SC2089
+LOCATOR="--locator='' "
+HEURISTIC="--heuristic a2cps.py "
+BIDS="--bids "
+DELETE_DUPLICATES=1
+POST="--no-post "
+CHECK_JSONS=1
+project=/corral-secure/projects/A2CPS/community/resources/imaging/traveling
+DICOMS=(
+    "${project}"/NS_northshore/dicoms/1.3.12.2.1107.5.2.42.70032.30000020100520532859700000004.zip
+    "${project}"/NS_northshore/dicoms/NSTravel2.zip
+    "${project}"/RU_rush/dicoms/RU011724DEV.zip
+    "${project}"/RU_rush/dicoms/RU031424DEV.zip
+    "${project}"/SH_spectrum_health/dicoms/A2CPS-Travel-220301.zip
+    "${project}"/UC_uchicago/dicoms/UC0001V1_A2CPS.zip
+    "${project}"/UC_uchicago/dicoms/UCtravel2.zip
+    "${project}"/UI_uic/dicoms/UI8186V1.zip
+    "${project}"/UI_uic/dicoms/EXAM9552.zip
+    "${project}"/UM_umichigan/dicoms/UM62121DEV.zip
+    "${project}"/UM_umichigan/dicoms/UM070121.zip
+    "${project}"/WS_wayne_state/dicoms/WS06302021DEV.zip
+    "${project}"/WS_wayne_state/dicoms/WS082324DEVQA.zip
+    )
+SUBJECTS=( travel1  travel2  travel1  travel2  travel2  travel1  travel2  travel1  travel2  travel2   travel2   travel2  travel2)
+SITES=(    NS NS RU RU SH UC UC UI UI UM  UM  WS WS)
+SES=(      NS NS RU RU SH UC UC UI UI UM1 UM2 WS WS2)
+
+declare -A SITE_LONG=(
+    [NS]=NS_northshore
+    [RU]=RU_rush
+    [SH]=SH_spectrum_health 
+    [UC]=UC_uchicago 
+    [UI]=UI_uic 
+    [UM]=UM_umichigan 
+    [WS]=WS_wayne_state
+    )
+
+# do this once to cache before parallelism
+apptainer exec docker://"${CONTAINER_IMAGE}" ls
+
+
+for i in "${!SUBJECTS[@]}"; do
+    sublong="${SES[${i}]}${SUBJECTS[${i}]}"
+    apptainer run \
+        --env ANON_CMD="",BIDS="${BIDS}",CHECK_JSONS="${CHECK_JSONS}",CONVERTED_OUTDIR="",CONVERTER="--converter dcm2niix",DATALAD="",DCMCONFIG="",DELETE_DUPLICATES="${DELETE_DUPLICATES}",DICOM_DIR_TEMPLATE="",FILES="${DICOMS[${i}]}",HEURISTIC="${HEURISTIC}",LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}",LOCATOR="${LOCATOR}",OUTDIR="${SITE_LONG[${SITE}]}/bids/${sublong}",OVERWRITE="",POST="${POST}",SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}",SITE="${SITES[${i}]}" \
+        --bind ${BIND_DIR} \
+        docker://${CONTAINER_IMAGE} \
+            1> "${sublong}".out \
+            2> "${sublong}".err &
+            
+    # starting to hit memory issues with this many traveling human scans
+    if (( i == 6 )); then
+        wait
+    fi
+done
+
+wait
+
+# files can only be copied over after dsts have been created
+for i in "${!SUBJECTS[@]}"; do
+    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
+    site_long="${SITE_LONG[${SITES[${i}]}]}"
+    dst="${site_long}"/bids
+    cp "${sublong}".{err,out} "${dst}/${sublong}"
+    cp run "${dst}/${sublong}"
+done
+
+NEW_DIR="."
+OUT_DIR=json_comparisons
+mkdir -p ${OUT_DIR}
+for i in "${!SUBJECTS[@]}"; do
+    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
+    printf '#### %s ####\n' "${sublong}"
+
+    site_long="${SITE_LONG[${SITES[${i}]}]}"
+
+    for json in "${NEW_DIR}"/"${site_long}"/bids/"${sublong}"/sub-travel"${SUBJECTS[${i}]}"/ses-"${SES[${i}]}"/*/*json; do
+        json_name=$(basename "${json}")
+        common_path=$(realpath --relative-to ${NEW_DIR} "${json}")
+        printf '## %s ##\n' "${json_name}"
+        diff \
+            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' ${project}/"${common_path}") \
+            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' "${json}") \
+            &> "${OUT_DIR}"/"${json_name%.*}"
+        
+        tmpd=/tmp/"${sublong}"
+        mkdir -p "${tmpd}"/new \
+            && mkdir -p "${tmpd}"/orig \
+            && cp "${json%.*}.nii.gz" "${tmpd}"/new/ \
+            && cp ${project}/"${common_path%.*}.nii.gz" "${tmpd}"/orig/ \
+            && gzip -d "${tmpd}"/new/*gz \
+            && gzip -d "${tmpd}"/orig/*gz \
+            && cmp \
+                "${tmpd}/orig/${json_name%.*}.nii" \
+                "${tmpd}/new/${json_name%.*}.nii" \
+                &>> "${OUT_DIR}"/"${json_name%.*}" 
+    done
+done

@@ -1,42 +1,31 @@
 {
+    "appId": "aggregator",
+    "appVersion": "2.7",
+    "maxMinutes": 1440,
     "name": "aggregate",
-    "appId": "urrutia-aggregator",
-    "appVersion": "0.6",
     "parameterSet": {
         "appArgs": [
             {
-                "name": "INROOT",
-                "arg": "/corral-secure/projects/A2CPS/products/mris"
+                "arg": "/corral-secure/projects/A2CPS/products/mris",
+                "name": "INROOT"
             },
             {
-                "name": "OUTROOT",
-                "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites"
+                "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites",
+                "name": "OUTROOT"
             }
         ]
     },
-    "moduleLoads": [
-        {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
-            ]
-        }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
-    "maxMinutes": 1440,
     "subscriptions": [
         {
-            "description": "Message on Failure",
-            "enabled": true,
-            "eventCategoryFilter": "JOB_ERROR_MESSAGE",
             "deliveryTargets": [
                 {
-                    "deliveryMethod": "WEBHOOK",
-                    "deliveryAddress": ""
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
                 }
-            ]
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
         }
     ]
 }

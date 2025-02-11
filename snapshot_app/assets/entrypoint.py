@@ -1,7 +1,7 @@
 import argparse
-import asyncio
 import logging
 from pathlib import Path
+import socket
 
 from snapshot.flows import (
     add_ria_wf,
@@ -10,8 +10,11 @@ from snapshot.flows import (
     init_datalad_wf,
 )
 
+host = socket.gethostname()
 logging.basicConfig(
-    format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO
+    format=f"%(asctime)s | %(levelname)-8s | {host=} | %(message)s",
+    level=logging.INFO,
+    force=True,
 )
 
 
@@ -26,10 +29,8 @@ def main(
 ) -> None:
     if copy:
         logging.info("making initial copy")
-        asyncio.run(
-            copy_v1_to_dst_wf.main(
-                inroot=inroot, outroot=outroot, max_workers=n_workers
-            )
+        copy_v1_to_dst_wf.main(
+            inroot=inroot, outroot=outroot, max_workers=n_workers
         )
 
     if init_datalad:
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--inroot", type=Path, required=True)
     parser.add_argument("--outroot", type=Path, required=True)
-    parser.add_argument("--riadir", type=Path, required=True)
+    parser.add_argument("--riadir", type=Path)
     parser.add_argument(
         "--copy", action=argparse.BooleanOptionalAction, default=False
     )

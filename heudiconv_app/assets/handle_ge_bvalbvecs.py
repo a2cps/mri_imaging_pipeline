@@ -1,13 +1,12 @@
 import argparse
 import json
 import logging
-from pathlib import Path
 import shutil
 import typing
+from pathlib import Path
 
-
-CORRECT_BVAL = Path("correct_bval_GE")
-CORRECT_BVEC = Path("correct_bvec_GE")
+CORRECT_BVAL = Path("/tapis/assets/correct_bval_GE")
+CORRECT_BVEC = Path("/tapis/assets/correct_bvec_GE")
 
 
 def replace_niigz(orig: Path, suffix: str) -> Path:
@@ -40,13 +39,17 @@ def main(outdir: Path) -> None:
             sidecar: dict[str, typing.Any] = json.load(f)
         version = sidecar.get("SoftwareVersions")
 
-        assert not (version is None)
+        assert version is not None
+
+        version_prefix = int(version[:2])
 
         # Issues with bvals and bvecs in dicom header only fixed in version >=28
         # At least, have only seen that up to 29 is correct
-        # https://confluence.a2cps.org/display/DOC/GE+V26+%28UIC%29+DWI+Incorrect+DICOM+Headers
-        if not (("28" in version) or ("29" in version)):
-            logging.warning("Overwriting bval and bvec files produced by dcm2niix")
+        # https://a2cps.atlassian.net/wiki/spaces/DOC/pages/5406753/GE+V26+UIC+DWI+Incorrect+DICOM+Headers
+        if version_prefix < 28:
+            logging.warning(
+                "Overwriting bval and bvec files produced by dcm2niix"
+            )
             write_expected(outdir=outdir)
         else:
             # if not those cases, leave bval/bvec untouched because

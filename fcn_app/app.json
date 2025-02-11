@@ -1,96 +1,92 @@
 {
-    "id": "functional-connectivity",
-    "version": "0.6",
+    "containerImage": "docker://a2cps/fcn_app:0.8",
+    "version": "0.9",
     "description": "Run Functional Connectivity",
-    "owner": "${apiUserId}",
     "enabled": true,
-    "runtime": "SINGULARITY",
-    "runtimeVersion": null,
-    "runtimeOptions": [
-        "SINGULARITY_RUN"
-    ],
-    "containerImage": "docker://a2cps/fcn_app:0.6",
-    "jobType": "BATCH",
-    "maxJobs": -1,
-    "maxJobsPerUser": -1,
-    "strictFileInputs": true,
+    "id": "functional-connectivity",
     "jobAttributes": {
+        "archiveOnAppError": false,
+        "cmdPrefix": "ibrun -n 1",
         "description": null,
         "dynamicExecSystem": false,
         "execSystemConstraints": null,
-        "execSystemId": "secure.frontera",
         "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemId": "secure.ls6",
         "execSystemInputDir": "${JobWorkingDir}",
-        "execSystemOutputDir": "${JobWorkingDir}",
         "execSystemLogicalQueue": "corralextra",
-        "isMpi": false,
-        "mpiCmd": null,
-        "cmdPrefix": null,
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "fileInputArrays": [],
+        "fileInputs": [],
+        "maxMinutes": 120,
+        "nodeCount": 1,
         "parameterSet": {
             "appArgs": [
                 {
-                    "name": "FMRIPREP_DIR",
+                    "arg": null,
                     "inputMode": "REQUIRED",
-                    "arg": null
+                    "name": "INPUT_DIRS"
                 },
                 {
-                    "name": "OUTPUT_DIR",
-                    "inputMode": "REQUIRED",
-                    "arg": null
-                },
-                {
-                    "name": "N_WORKERS",
-                    "arg": "--n-workers 1"
-                },
-                {
-                    "name": "STAGE_DIR",
-                    "arg": "--stage-dir /tmp/input"
+                    "arg": null,
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "name": "OUTPUT_DIRS"
                 }
             ],
+            "archiveFilter": {
+                "excludes": [
+                    "tapisjob.sh",
+                    "${JobUUID}.out",
+                    "${JobUUID}.err",
+                    "tapisjob.env"
+                ],
+                "includeLaunchFiles": false,
+                "includes": []
+            },
             "containerArgs": [
                 {
-                    "name": "Container Mounts",
+                    "arg": "--bind /corral-secure/projects/A2CPS",
                     "description": "Mount for TAP functions",
                     "inputMode": "FIXED",
-                    "arg": "--bind /corral-secure/projects/A2CPS"
-                }
-            ],
-            "schedulerOptions": [
-                {
-                    "name": "TACC Scheduler Profile",
-                    "description": "Scheduler profile for HPC clusters at TACC",
-                    "inputMode": "FIXED",
-                    "arg": "--tapis-profile tacc-apptainer"
-                },
-                {
-                    "name": "TAP Session Substring",
-                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
-                    "inputMode": "FIXED",
-                    "arg": "--job-name ${JobName}"
-                },
-                {
-                    "name": "TACC Allocation",
-                    "description": "The TACC allocation associated with this job execution",
-                    "inputMode": "FIXED",
-                    "arg": "-A A2CPS"
+                    "name": "Container Mounts"
                 }
             ],
             "envVariables": [],
-            "archiveFilter": {
-                "includes": [],
-                "excludes": [
-                    "tapisjob.sh",
-                    "tapisjob.out",
-                    "tapisjob.env"
-                ],
-                "includeLaunchFiles": false
-            }
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
+            },
+            "schedulerOptions": [
+                {
+                    "arg": "--tapis-profile ls6-mpi",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "name": "TACC Scheduler Profile"
+                },
+                {
+                    "arg": "--job-name ${JobName}",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "name": "TAP Session Substring"
+                },
+                {
+                    "arg": "-A A2CPS",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "name": "TACC Allocation"
+                }
+            ]
         },
-        "fileInputs": [],
-        "fileInputArrays": [],
-        "nodeCount": 1,
-        "maxMinutes": 120,
         "subscriptions": [],
         "tags": []
-    }
+    },
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "owner": "${apiUserId}",
+    "runtime": "SINGULARITY",
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "runtimeVersion": null,
+    "strictFileInputs": true
 }

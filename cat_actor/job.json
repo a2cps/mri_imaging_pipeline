@@ -1,0 +1,38 @@
+{
+    "appId": "cat12_app",
+    "appVersion": "3.0",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.ls6",
+    "cmdPrefix": "ibrun -n 12",
+    "coresPerNode": 6,
+    "maxMinutes": 1440,
+    "name": "cat12",
+    "nodeCount": 2,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/RU_rush/bids/RUtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/SH_spectrum_health/bids/SHtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UC_uchicago/bids/UCtravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UC_uchicago/bids/UCtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UI_uic/bids/UItravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UI_uic/bids/UItravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UM_umichigan/bids/UM1travel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/UM_umichigan/bids/UM2travel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/WS_wayne_state/bids/WStravel2",
+                "name": "INPUT_DIRS"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/cat12/"
+            }
+        ]
+    },
+    "subscriptions": [
+        {
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
+        }
+    ]
+}

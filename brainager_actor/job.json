@@ -1,0 +1,35 @@
+{
+    "appId": "brainager-app",
+    "appVersion": "0.4",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.ls6",
+    "maxMinutes": 60,
+    "name": "test_brainager",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/NS_northshore/bids/NStravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/RU_rush/bids/RUtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/SH_spectrum_health/bids/SHtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/bids/UCtravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UC_uchicago/bids/UCtravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/bids/UItravel1 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UI_uic/bids/UItravel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/bids/UM1travel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/UM_umichigan/bids/UM2travel2 /corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/bids/WStravel2 ",
+                "name": "INPUT_DIRS"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/brainager/"
+            }
+        ]
+    },
+    "subscriptions": [
+        {
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
+        }
+    ]
+}

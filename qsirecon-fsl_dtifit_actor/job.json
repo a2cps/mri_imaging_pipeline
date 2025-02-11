@@ -1,39 +1,10 @@
 {
-    "name": "qsirecon-fsl_dtifit",
-    "appId": "maj-qsirecon-fsl_dtifit_app",
-    "appVersion": "3.0",
+    "appId": "psadil-qsirecon-fsl-dtifit-app",
+    "appVersion": "1.0",
+    "name": "qsirecon-fsl",
     "parameterSet": {
-        "appArgs": [
-            {
-                "name": "PARTICIPANT_LABEL",
-                "arg": "sub-20064"
-            },
-            {
-                "name": "QSIPREPDIR",
-                "arg": "/corral-secure/projects/A2CPS/products/mris/WS_wayne_state/qsiprep/WS20064V1/qsiprep"
-            },
-            {
-                "name": "OUTDIR",
-                "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app"
-            }
-        ]
+        "appArgs": [],
+        "envVariables": []
     },
-    "moduleLoads": [
-        {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
-            ]
-        },
-        {
-            "moduleLoadCommand": "module unload",
-            "modulesToLoad": [
-                "xalt"
-            ]
-        }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
-    "maxMinutes": 120
+    "subscriptions": []
 }
