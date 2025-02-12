@@ -178,38 +178,6 @@ main (){
 
 
     ###########################################################################################################
-    ## STEP 3: Bedpostx (prep dwi for tractography)
-
-    ## 3a: Prepare bedpostx input
-
-    ## Create input dir
-    local dir_bedpostx_input="${OUTDIR}"/bedpostx/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/bedpostx_input
-    mkdir -p "${dir_bedpostx_input}"
-
-    ## Copy input files (qsirecon-FSL) into input dir
-
-    cp "${qsireconFSL_bvals}" "${dir_bedpostx_input}"/bvals
-    cp "${qsireconFSL_bvecs}" "${dir_bedpostx_input}"/bvecs
-    cp "${qsireconFSL_dwi}" "${dir_bedpostx_input}"/data.nii.gz
-    cp "${qsireconFSL_mask}" "${dir_bedpostx_input}"/nodif_brain_mask.nii.gz
-
-    ## 3b: Run bedpostx
-
-    bedpostx_gpu "${dir_bedpostx_input}" -n 3 -b 1000 -j 1250 -s 25 -model 2 --rician --f0 --ardf0
-
-    ## NOTES
-
-        ## note, ideal to use _gpu version (if run on rtx-corralextra), ~10-20x faster
-        ## alternatively, use "bedpostx"
-
-        ## model: use model 1 if only one non-zero bval is present (default is model 2)
-        ## rician: replaces assumption of Gausian noise distribution with Rician distribution
-        ## --f0 --ardf0: models noise floor
-
-        ## note, bedpostx automatically creates output dir: "${dir_bedpostx_input}".bedpostX
-
-
-    ###########################################################################################################
     ## STEP 4: Probtrackx (tractography, voxelwise seeds)
 
     ## Define input dir

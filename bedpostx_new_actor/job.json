@@ -1,0 +1,43 @@
+{
+    "name": "bedpostx",
+    "appId": "maj-bedpostx_new_app",
+    "appVersion": "3.0",
+    "parameterSet": {
+        "appArgs": [
+            {
+            "name": "PARTICIPANT_LABEL",
+            "arg": "sub-20064"
+            },
+            {
+            "name": "SESSION_LABEL",
+            "arg": "ses-V1"
+            },
+            {
+            "name": "QSIRECONDIR",
+            "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives/qsirecon-FSL"
+            },
+            {
+            "name": "OUTDIR",
+            "arg": "/corral-secure/projects/A2CPS/shared/maj/bedpostx_new_app/derivatives"
+            }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        },
+        {
+            "moduleLoadCommand": "module unload",
+            "modulesToLoad": [
+                "xalt"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 180
+}
