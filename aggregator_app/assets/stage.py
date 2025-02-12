@@ -104,7 +104,7 @@ def is_qsiprep_aggregated(path: Path, row) -> bool:
 def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
     sub = row.subject_id
     ses = row.visit
-    qsirecon_dir = path / "qsirecon"
+    qsirecon_dir = path / "qsirecon-fsl"
     qsirecon_target = (
         qsirecon_dir
         / "derivatives"

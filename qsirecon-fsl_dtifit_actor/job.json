@@ -4,19 +4,24 @@
     "name": "qsirecon-fsl",
     "parameterSet": {
         "appArgs": [],
-        "envVariables": []
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsirecon_fsl_dtifit/"
+            }
+        ]
     },
     "subscriptions": [
         {
-        "deliveryTargets": [
-            {
-                "deliveryAddress": "",
-                "deliveryMethod": "WEBHOOK"
-            }
-        ],
-        "description": "Message on Failure",
-        "enabled": true,
-        "eventCategoryFilter": "JOB_ERROR_MESSAGE"
-    }
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
+        }
     ]
 }
