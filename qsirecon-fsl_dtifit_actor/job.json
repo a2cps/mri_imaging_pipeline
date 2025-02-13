@@ -1,0 +1,27 @@
+{
+    "appId": "qsirecon-fsl-dtifit-app",
+    "appVersion": "1.0",
+    "name": "qsirecon-fsl",
+    "parameterSet": {
+        "appArgs": [],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsirecon_fsl_dtifit/"
+            }
+        ]
+    },
+    "subscriptions": [
+        {
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
+        }
+    ]
+}
