@@ -1,9 +1,9 @@
 {
-  "containerImage": "docker://a2cps/qsirecon_fsl_dtifit_app:1.0.0",
+  "containerImage": "docker://a2cps/qsirecon_fsl_dtifit_app:1.0.1",
   "description": "Prepare QSIPrep outputs for FSL and run dtifit",
   "enabled": true,
   "id": "qsirecon-fsl-dtifit-app",
-  "version": "1.0",
+  "version": "1.1",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
