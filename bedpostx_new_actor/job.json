@@ -1,7 +1,7 @@
 {
     "name": "bedpostx",
-    "appId": "maj-bedpostx_new_app",
-    "appVersion": "3.0",
+    "appId": "bedpostx_new_app",
+    "appVersion": "3.3",
     "parameterSet": {
         "appArgs": [
             {

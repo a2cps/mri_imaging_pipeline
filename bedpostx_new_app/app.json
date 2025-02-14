@@ -1,6 +1,6 @@
 {
-  "id": "maj-bedpostx_new_app",
-  "version": "3.0",
+  "id": "bedpostx_new_app",
+  "version": "3.3",
   "description": "Modeling diffusion profile prior to tractography",
   "owner": "${apiUserId}",
   "enabled": true,
