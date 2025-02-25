@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+main (){
+
+    local PARTICIPANT_LABEL="${1}"
+    local SESSION_LABEL="${2}"
+    local QSIRECONDIR="${3}"
+    local OUTDIR="${4}"
+
+    ###########################################################################################################
+    ## Define paths/files (qsiprep and qsirecon-FSL)
+
+    ## Define qsireconFSL files
+    local dir_qsirecon="${QSIRECONDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi
+    local fname_qsireconFSL_mask="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_mask
+    local fname_qsireconFSL_dwi="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwi
+    local qsireconFSL_mask="${dir_qsirecon}"/"${fname_qsireconFSL_mask}".nii.gz
+    local qsireconFSL_dwi="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".nii.gz
+    local qsireconFSL_bvals="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bval
+    local qsireconFSL_bvecs="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bvec
+
+    
+    ###########################################################################################################
+    ## Bedpostx (prep dwi for tractography)
+
+    ## Prepare bedpostx input
+
+    ## Create input dir
+    local dir_bedpostx_input="${OUTDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/bedpostx
+    mkdir -p "${dir_bedpostx_input}"
+
+    ## Copy input files (from qsirecon-FSL) into input dir
+
+    cp "${qsireconFSL_bvals}" "${dir_bedpostx_input}"/bvals
+    cp "${qsireconFSL_bvecs}" "${dir_bedpostx_input}"/bvecs
+    cp "${qsireconFSL_dwi}" "${dir_bedpostx_input}"/data.nii.gz
+    cp "${qsireconFSL_mask}" "${dir_bedpostx_input}"/nodif_brain_mask.nii.gz
+
+    ## Run bedpostx
+
+    bedpostx_gpu "${dir_bedpostx_input}" -n 3 -b 1000 -j 1250 -s 25 -model 2 --rician --f0 --ardf0
+
+    ## NOTES
+
+        ## note, bedpostx automatically creates output dir: "${dir_bedpostx_input}".bedpostX
+
+        ## note, ideal to use _gpu version (if run on rtx-corralextra), ~10-20x faster
+        ## alternatively, use "bedpostx"
+
+        ## model: use model 1 if only one non-zero bval is present (default is model 2)
+        ## rician: replaces assumption of Gausian noise distribution with Rician distribution
+        ## --f0 --ardf0: models noise floor
+
+}
+
+export -f main
+
+main "$@"
