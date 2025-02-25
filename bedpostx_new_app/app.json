@@ -1,6 +1,6 @@
 {
   "id": "bedpostx_new_app",
-  "version": "3.3",
+  "version": "3.5",
   "description": "Modeling diffusion profile prior to tractography",
   "owner": "${apiUserId}",
   "enabled": true,
@@ -24,7 +24,7 @@
     "execSystemOutputDir": "${JobWorkingDir}",
     "execSystemLogicalQueue": "rtx-corralextra",
     "archiveSystemId": "secure.frontera",
-    "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/maj/bedpostx_new_app",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/maj/bedpostx_new_app/derivatives",
     "archiveOnAppError": false,
     "isMpi": false,
     "mpiCmd": null,

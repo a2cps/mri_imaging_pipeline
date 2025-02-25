@@ -1,7 +1,7 @@
 {
     "name": "bedpostx",
     "appId": "bedpostx_new_app",
-    "appVersion": "3.3",
+    "appVersion": "3.5",
     "parameterSet": {
         "appArgs": [
             {
