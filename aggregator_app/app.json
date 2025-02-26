@@ -40,12 +40,6 @@
                     "name": "MAXSUBS"
                 },
                 {
-                    "arg": "--n-threads 16",
-                    "description": "Number of threads used during synthstrip",
-                    "inputMode": "INCLUDE_BY_DEFAULT",
-                    "name": "NTHREADS"
-                },
-                {
                     "arg": "--tidy",
                     "description": "Whether to tidy output directory (from previous archive)",
                     "inputMode": "INCLUDE_ON_DEMAND",

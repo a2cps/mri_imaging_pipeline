@@ -418,7 +418,6 @@ def main(
     inroot: Path,
     outroot: Path,
     max_subs: float | int = float("inf"),
-    n_threads: int = 1,
     tidy: bool = True,
 ) -> None:
     if tidy:
@@ -504,7 +503,6 @@ if __name__ == "__main__":
     parser.add_argument("inroot", type=Path)
     parser.add_argument("outroot", type=Path)
     parser.add_argument("--max-subs", type=float, default=float("inf"))
-    parser.add_argument("--n-threads", type=int, default=1)
     parser.add_argument("--tidy", action=argparse.BooleanOptionalAction, default=True)
 
     args = parser.parse_args()
@@ -513,6 +511,5 @@ if __name__ == "__main__":
         inroot=args.inroot,
         outroot=args.outroot,
         max_subs=args.max_subs,
-        n_threads=args.n_threads,
         tidy=args.tidy,
     )
