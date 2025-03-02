@@ -1,6 +1,5 @@
 import datetime
 import itertools
-import json
 from pathlib import Path
 
 import polars as pl
@@ -68,12 +67,14 @@ class QSIReconFSLReactor(models.Reactor):
         return runlist
 
     def parse_and_submit(self) -> None:
-        print(json.dumps(self.context, indent=4))
-
         runlist = self.get_runlist()
-        for r, (input_dirs, participant_labels, ses_labels) in enumerate(
-            itertools.batched(runlist, self.maxjobs)
+        for r, run in enumerate(
+            itertools.batched(zip(runlist[0], runlist[1], runlist[2]), self.maxjobs)
         ):
+            input_dirs = [x[0] for x in run]
+            participant_labels = [x[1] for x in run]
+            ses_labels = [x[2] for x in run]
+
             n_jobs = len(input_dirs)
             if not n_jobs:
                 raise RuntimeError("Did not find any jobs to submit")
