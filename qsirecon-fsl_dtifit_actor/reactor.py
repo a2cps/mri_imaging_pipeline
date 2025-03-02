@@ -1,5 +1,6 @@
 import datetime
 import itertools
+import json
 from pathlib import Path
 
 import polars as pl
@@ -67,6 +68,8 @@ class QSIReconFSLReactor(models.Reactor):
         return runlist
 
     def parse_and_submit(self) -> None:
+        print(json.dumps(self.context, indent=4))
+
         runlist = self.get_runlist()
         for r, run in enumerate(
             itertools.batched(zip(runlist[0], runlist[1], runlist[2]), self.maxjobs)
