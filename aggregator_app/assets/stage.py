@@ -17,6 +17,7 @@ import mriqc_wf
 import pandas as pd
 import qsiprep_wf
 import signatures_wf
+import qsirecon_fsl_dtifit_wf
 import utils
 from biomarkers import utils as bu
 from biomarkers.models import fslanat
@@ -100,6 +101,42 @@ def is_qsiprep_aggregated(path: Path, row) -> bool:
     return all_ready
 
 
+def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
+    sub = row.subject_id
+    ses = row.visit
+    qsirecon_dir = path / "qsirecon-fsl"
+    qsirecon_target = (
+        qsirecon_dir
+        / "derivatives"
+        / "qsirecon-FSL"
+        / f"sub-{sub}"
+        / f"ses-{ses}"
+        / "dwi"
+    )
+    split_shells_target = (
+        path / "split_shells" / f"sub-{sub}" / f"ses-{ses}" / "dwi"
+    )
+    dtifit_dir = path / "dtifit"
+    all_ready = (
+        qsirecon_target.exists()
+        & split_shells_target.exists()
+        & all(
+            (dtifit_dir / bval).exists()
+            for bval in ["b1000", "b2000", "b3000", "multishell"]
+        )
+    )
+
+    if not all_ready:
+        if qsirecon_target.exists():
+            shutil.rmtree(qsirecon_target)
+        if split_shells_target.exists():
+            shutil.rmtree(split_shells_target)
+        if dtifit_dir.exists():
+            shutil.rmtree(dtifit_dir)
+
+    return all_ready
+
+
 def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
     sub = row.subject_id
     ses = row.visit
@@ -117,29 +154,35 @@ def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
         rest2_received = row._15
         htmls = []
         if t1_received == 1:
-            htmls.append((mriqc_root / f"sub-{sub}_ses-{ses}_T1w.html").exists())
+            htmls.append(
+                (mriqc_root / f"sub-{sub}_ses-{ses}_T1w.html").exists()
+            )
         if cuff1_received == 1:
             htmls.append(
                 (
-                    mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-01_bold.html"
+                    mriqc_root
+                    / f"sub-{sub}_ses-{ses}_task-cuff_run-01_bold.html"
                 ).exists()
             )
         if cuff2_received == 1:
             htmls.append(
                 (
-                    mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-02_bold.html"
+                    mriqc_root
+                    / f"sub-{sub}_ses-{ses}_task-cuff_run-02_bold.html"
                 ).exists()
             )
         if rest1_received == 1:
             htmls.append(
                 (
-                    mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-01_bold.html"
+                    mriqc_root
+                    / f"sub-{sub}_ses-{ses}_task-rest_run-01_bold.html"
                 ).exists()
             )
         if rest2_received == 1:
             htmls.append(
                 (
-                    mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-02_bold.html"
+                    mriqc_root
+                    / f"sub-{sub}_ses-{ses}_task-rest_run-02_bold.html"
                 ).exists()
             )
 
@@ -257,7 +300,9 @@ def is_brainager_aggregated(path: Path, row) -> bool:
 
 
 def is_fslanat_aggregated(path: Path, row) -> bool:
-    target = path / "fslanat" / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
+    target = (
+        path / "fslanat" / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
+    )
     all_ready = False
     if target.exists():
         try:
@@ -272,7 +317,9 @@ def is_fslanat_aggregated(path: Path, row) -> bool:
 
 def is_cat12_aggregated(path: Path, row) -> bool:
     return (
-        path / "report" / f"catreport_sub-{row.subject_id}_ses-{row.visit}_T1w.pdf"
+        path
+        / "report"
+        / f"catreport_sub-{row.subject_id}_ses-{row.visit}_T1w.pdf"
     ).exists()
 
 
@@ -319,6 +366,11 @@ def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
         if row.gift == 1:
             if not is_gift_aggregated(outroot / "gift", row):
                 jobs.add("gift")
+        if row.qsirecon_fsl_dtifit == 1:
+            if not is_qsirecon_fsl_dtifit_aggregated(
+                outroot / "qsirecon_fsl_dtifit", row
+            ):
+                jobs.add("qsirecon_fsl_dtifit")
         if len(to_agg := list(jobs)) >= 0:
             derivatives.update({sublong: to_agg})
 
@@ -338,7 +390,9 @@ def _prep_staged_dir(outroot: Path) -> None:
         # is a holdover and should also be deleted
         if (
             len(target[2]) == 1
-            and str(to_del := (Path(target[0]) / target[2][0])).endswith(".nii.gz")
+            and str(to_del := (Path(target[0]) / target[2][0])).endswith(
+                ".nii.gz"
+            )
             and not to_del.is_symlink()
         ):
             logging.warning(f"deleting isolated file: {to_del}")
@@ -366,7 +420,13 @@ def _get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
     for row in bids_avail.itertuples():
         sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
         exists[sublong] = (
-            len(list((inroot / SITE_LONG[site_code] / "bids" / sublong).glob("*out")))
+            len(
+                list(
+                    (inroot / SITE_LONG[site_code] / "bids" / sublong).glob(
+                        "*out"
+                    )
+                )
+            )
             > 0
         ) and not (
             outroot / "bids" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
@@ -422,14 +482,18 @@ def main(
                 bids_wf.copy(inroot=tmp_site, outdir=outroot / "bids")
 
             # grab only sub/ses that do not already exist in output
-            subses_tocopy = _get_deriv_tocopy(outroot=outroot, site_code=site_code)
+            subses_tocopy = _get_deriv_tocopy(
+                outroot=outroot, site_code=site_code
+            )
 
             # then, get all available derivatives
             subses_toremove: set[str] = set()
             for i, (subsesd, jobs) in enumerate(subses_tocopy.items()):
                 if i >= max_subs:
                     break
-                logging.info(f"Making initial symlinks for {subsesd} derivatives")
+                logging.info(
+                    f"Making initial symlinks for {subsesd} derivatives"
+                )
                 for job in jobs:
                     logging.info(f"Making links for {job}")
                     shutil.copytree(
@@ -443,7 +507,9 @@ def main(
                 logging.info(f"Attempting to deface derivatives for {subsesd}")
                 try:
                     utils.deface_all_derivatives(
-                        subsesdir=Path(subsesd), tmp_site=tmp_site, n_threads=n_threads
+                        subsesdir=Path(subsesd),
+                        tmp_site=tmp_site,
+                        n_threads=n_threads,
                     )
                 except Exception:
                     logging.exception(
@@ -463,13 +529,20 @@ def main(
                 logging.info("Storing derivatives in final location")
                 cat12_wf.copy(inroot=tmp_site, outdir=outroot / "cat12")
                 qsiprep_wf.copy(inroot=tmp_site, outdir=outroot)
-                brainager_wf.copy(inroot=tmp_site, outdir=outroot / "brainager")
+                qsirecon_fsl_dtifit_wf.copy(inroot=tmp_site, outdir=outroot)
+                brainager_wf.copy(
+                    inroot=tmp_site, outdir=outroot / "brainager"
+                )
                 mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
                 fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep")
-                freesurfer_wf.copy(inroot=tmp_site, outdir=outroot / "freesurfer")
+                freesurfer_wf.copy(
+                    inroot=tmp_site, outdir=outroot / "freesurfer"
+                )
                 fslanat_wf.copy(inroot=tmp_site, outdir=outroot / "fslanat")
                 fcn_wf.copy(inroot=tmp_site, outdir=outroot / "fcn")
-                signatures_wf.copy(inroot=tmp_site, outdir=outroot / "signatures")
+                signatures_wf.copy(
+                    inroot=tmp_site, outdir=outroot / "signatures"
+                )
                 gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift")
             if tmp_site.exists():
                 logging.info(f"Removing temporary directory for {site_long}")
@@ -493,7 +566,9 @@ if __name__ == "__main__":
     parser.add_argument("outroot", type=Path)
     parser.add_argument("--max-subs", type=float, default=float("inf"))
     parser.add_argument("--n-threads", type=int, default=1)
-    parser.add_argument("--tidy", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument(
+        "--tidy", action=argparse.BooleanOptionalAction, default=True
+    )
 
     args = parser.parse_args()
 

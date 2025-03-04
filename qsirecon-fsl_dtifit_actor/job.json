@@ -1,17 +1,15 @@
 {
-    "appId": "aggregator",
-    "appVersion": "2.8",
-    "maxMinutes": 1440,
-    "name": "aggregate",
+    "appId": "qsirecon-fsl-dtifit-app",
+    "appVersion": "1.1",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.ls6",
+    "name": "qsirecon-fsl",
     "parameterSet": {
-        "appArgs": [
+        "appArgs": [],
+        "envVariables": [
             {
-                "arg": "/corral-secure/projects/A2CPS/products/mris",
-                "name": "INROOT"
-            },
-            {
-                "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites",
-                "name": "OUTROOT"
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsirecon_fsl_dtifit/"
             }
         ]
     },

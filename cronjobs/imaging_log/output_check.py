@@ -22,7 +22,8 @@ APP_STEPS = [
                 "brainager",
                 "fcn",
                 "signatures",
-                "gift"
+                "gift",
+                "qsirecon_fsl_dtifit",
             ]
 
 SITE_CODES = {
@@ -571,6 +572,8 @@ def main():
                 scan_report['gift'] = 'na'
             if scan_report['DWI Indicated'] == '0':
                 scan_report['qsiprep'] = 'na'
+            if scan_report['qsiprep'] == 'na':
+                scan_report['qsirecon_fsl_dtifit'] = 'na'
             if scan_report['Cuff Leg'] == '1':
                 scan_report['Cuff Leg'] = 'Right'
             if scan_report['Cuff Leg'] == '2':
@@ -613,6 +616,7 @@ def main():
     'gift',
     'mriqc',
     'qsiprep',
+    'qsirecon_fsl_dtifit',
     'cat12',
     'brainager',
     'fcn',
