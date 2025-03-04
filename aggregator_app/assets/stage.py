@@ -18,6 +18,7 @@ import pandas as pd
 import qsiprep_wf
 import qsirecon_fsl_dtifit_wf
 import signatures_wf
+import synthstrip_wf
 import utils
 from biomarkers import utils as bu
 from biomarkers.models import fslanat
@@ -441,7 +442,7 @@ def main(
                 shutil.copytree(
                     inroot / site_long / "bids" / subsesd,
                     out_job_dir / subsesd,
-                    copy_function=utils._symlink_if_needed,
+                    copy_function=utils.symlink_if_needed,
                     ignore=BIDS_IGNORE_PATTERNS,
                 )
 
@@ -462,7 +463,7 @@ def main(
                     shutil.copytree(
                         inroot / site_long / job / subsesd,
                         tmp_site / job / subsesd,
-                        copy_function=utils._symlink_if_needed,
+                        copy_function=utils.symlink_if_needed,
                         ignore=DERIV_IGNORE_PATTERNS,
                     )
 
@@ -477,6 +478,11 @@ def main(
                 brainager_wf.copy(inroot=tmp_site, outdir=outroot / "brainager")
                 mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
                 fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep")
+                synthstrip_wf.copy(
+                    inroot=tmp_site,
+                    outdir=outroot / "synthstrip",
+                    bidsdir=outroot / "bids",
+                )
                 freesurfer_wf.copy(inroot=tmp_site, outdir=outroot / "freesurfer")
                 fslanat_wf.copy(inroot=tmp_site, outdir=outroot / "fslanat")
                 fcn_wf.copy(inroot=tmp_site, outdir=outroot / "fcn")

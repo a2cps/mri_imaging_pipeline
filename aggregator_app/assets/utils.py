@@ -41,7 +41,7 @@ def mergetree_overwrite(src: Path, dst: Path, ignore=None) -> None:
     )
 
 
-def _symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
+def symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
     if Path(dst).exists():
         logging.info(f"File {src} would overwrite {dst}. Leaving files unchanged.")
     else:
