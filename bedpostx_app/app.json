@@ -1,8 +1,8 @@
 {
-  "containerImage": "docker://psadil/bedpostx_app",
+  "containerImage": "docker://a2cps/bedpostx_app",
   "description": "Modeling diffusion profile prior to tractography",
   "enabled": true,
-  "id": "psadil-bedpostx-app",
+  "id": "bedpostx-app",
   "version": "0.1",
   "jobAttributes": {
     "archiveOnAppError": false,
