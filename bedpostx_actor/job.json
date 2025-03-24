@@ -1,0 +1,34 @@
+{
+    "appId": "bedpostx-app",
+    "appVersion": "0.1",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.ls6",
+    "maxMinutes": 480,
+    "name": "bedpostx",
+    "parameterSet": {
+        "appArgs": [],
+        "envVariables": [
+            {
+                "key": "FSLSUB_PARALLEL",
+                "value": "20"
+            },
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/bedpostx/"
+            }
+        ]
+    },
+    "subscriptions": [
+        {
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
+        }
+    ]
+}
