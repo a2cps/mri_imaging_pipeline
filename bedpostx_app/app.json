@@ -1,5 +1,5 @@
 {
-  "containerImage": "docker://a2cps/bedpostx_app",
+  "containerImage": "docker://a2cps/bedpostx_app:1.0",
   "description": "Modeling diffusion profile prior to tractography",
   "enabled": true,
   "id": "bedpostx-app",
