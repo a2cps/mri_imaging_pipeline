@@ -4,6 +4,7 @@
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
     "name": "qsirecon-fsl",
+    "maxMinutes": 480,
     "parameterSet": {
         "appArgs": [],
         "envVariables": [
