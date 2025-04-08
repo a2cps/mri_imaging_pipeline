@@ -1,6 +1,5 @@
 # Provide mapping into reproin heuristic names
 import pydicom
-from heudiconv.heuristics import reproin
 from heudiconv.heuristics.reproin import *
 
 protocols2fix.update(
@@ -118,9 +117,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
             or dcmdata.SeriesDescription == "DWI"
             or dcmdata.SeriesDescription == "T1_MPRAGE"
         )
-        and (
-            dcmdata.get("PatientName") not in ["UM070121"]
-        )  # patients without "ORIG"
+        and (dcmdata.get("PatientName") not in ["UM070121"])  # patients without "ORIG"
     ):
         exclude = True
     # similar issue for UI phantom scans
@@ -154,9 +151,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     elif dcmdata.__contains__("ImageType") and "MPR" in dcmdata.ImageType:
         exclude = True
     # SH sends derived dwi phantom scans. the following excludes those
-    elif any(
-        suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]
-    ):
+    elif any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]):
         exclude = True
 
     # after the SH upgrade, (i.e., software "syngo MR XA30"), SH sends the raw anatomical as
@@ -186,9 +181,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         and (dcmdata.get("SeriesDescription") == "T1_MPRAGE")
         and (
             dcmdata.get("SeriesInstanceUID")
-            not in [
-                "1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"
-            ]
+            not in ["1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"]
         )
     ):
         exclude = True
@@ -206,6 +199,14 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         and (dcmdata.get("SoftwareVersions") in ["syngo MR XA61"])
         and (dcmdata.get("SeriesDescription") in ["T1_MPRAGE", "DWI"])
     ):
+        exclude = True
+
+    # https://a2cps.atlassian.net/wiki/spaces/DOC/pages/517439490/GE+UM25132V3+Missing+Slice+on+DWI_B0
+    # this nifti was created manually
+    elif dcmdata.get("SeriesInstanceUID") in [
+        "1.2.840.113619.2.475.11565861.620651.23559.1692723865.930",
+        "1.2.840.113619.2.156.8323329.54158.1697548545.889646",
+    ]:
         exclude = True
 
     return exclude

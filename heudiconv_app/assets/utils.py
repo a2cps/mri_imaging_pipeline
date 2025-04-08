@@ -7,13 +7,19 @@ import subprocess
 import tempfile
 import typing
 from pathlib import Path
-from tapipy.tapis import Tapis
-
 
 import nibabel as nb
 import pandas as pd
 import requests
 from nilearn.image import index_img, load_img
+from tapipy.tapis import Tapis
+
+UM25132V3_DWI_B0_NII = (
+    Path("/tapis") / "assets" / "sub-25132_ses-V3_acq-dwib0_dir-AP_epi.nii.gz"
+)
+UM25132V3_DWI_B0_JSON = (
+    Path("/tapis") / "assets" / "sub-25132_ses-V3_acq-dwib0_dir-AP_epi.json"
+)
 
 # Hardcoded slice timings to be added to fmri json file. Used only for Philips scanner
 # From Xiaodong: The fMRI sequence in phantom QA is the same as that for subjects scan (June 7th, 2022):
@@ -149,9 +155,7 @@ def rename_fmri_b0(
                 f"PhaseEncodingDirection set to {phaseencoding}! Don't know what to do with this."
             )
 
-        name_translations.update(
-            {re.findall(r"epi\d", str(filename))[0]: epi_dir}
-        )
+        name_translations.update({re.findall(r"epi\d", str(filename))[0]: epi_dir})
 
     for src in fmri_b0_nifti + fmri_b0_json:
         dst = (
@@ -213,11 +217,7 @@ def create_fieldmaps(dirs: Path) -> None:
             dwi_file = tuple(ses_dir.glob("dwi/*dwi*.nii.gz"))
             dwi_b0_json_file = tuple(ses_dir.glob("fmap/*dwib0*.json"))
 
-            if (
-                len(dwi_b0_file) > 1
-                or len(dwi_file) > 1
-                or len(dwi_b0_json_file) > 1
-            ):
+            if len(dwi_b0_file) > 1 or len(dwi_file) > 1 or len(dwi_b0_json_file) > 1:
                 raise AssertionError(
                     f"found too many files related to DWI in {ses_dir}. Not sure how to proceed."
                 )
@@ -240,15 +240,33 @@ def create_fieldmaps(dirs: Path) -> None:
                     only_dwi_b0_json_file,
                     output_AP_fname_dwi.with_suffix("").with_suffix(".json"),
                 )
-                PA_json_fname = output_PA_fname_dwi.with_suffix(
-                    ""
-                ).with_suffix(".json")
+                PA_json_fname = output_PA_fname_dwi.with_suffix("").with_suffix(".json")
                 shutil.copyfile(only_dwi_b0_json_file, PA_json_fname)
-                set_jsonfield(
-                    PA_json_fname, key="PhaseEncodingDirection", value="j"
-                )
+                set_jsonfield(PA_json_fname, key="PhaseEncodingDirection", value="j")
                 only_dwi_b0_json_file.unlink()
                 only_dwi_b0_file.unlink()
+
+            elif "V3" in ses_dir.name and "25132" in sub_dir.name:
+                print("Creating DWI fieldmaps for special case UM25132V3")
+                only_dwi_file: Path = dwi_file[0]  # type: ignore
+                shutil.copy2(
+                    UM25132V3_DWI_B0_NII, ses_dir / "fmap" / UM25132V3_DWI_B0_NII.name
+                )
+                shutil.copy2(
+                    UM25132V3_DWI_B0_JSON, ses_dir / "fmap" / UM25132V3_DWI_B0_JSON.name
+                )
+                index_img(only_dwi_file, 0).to_filename(
+                    ses_dir
+                    / "fmap"
+                    / UM25132V3_DWI_B0_NII.name.replace("dir-AP", "dir-PA")
+                )
+                PA_json_fname = (
+                    ses_dir
+                    / "fmap"
+                    / UM25132V3_DWI_B0_JSON.name.replace("dir-AP", "dir-PA")
+                )
+                shutil.copy2(UM25132V3_DWI_B0_JSON, PA_json_fname)
+                set_jsonfield(PA_json_fname, key="PhaseEncodingDirection", value="j")
 
             else:
                 logging.warning("missing inputs needed for creating fieldmaps")
@@ -316,17 +334,13 @@ def write_dummy_fields(filename: typing.Union[str, Path]):
     with open(filename) as f:
         json_data = json.load(f)
         json_data["TotalReadoutTime"] = json_data["EstimatedTotalReadoutTime"]
-        json_data["EffectiveEchoSpacing"] = json_data[
-            "EstimatedEffectiveEchoSpacing"
-        ]
+        json_data["EffectiveEchoSpacing"] = json_data["EstimatedEffectiveEchoSpacing"]
 
     save_as_json(json_data, filename)
     print(f"Added dummy TotalReadoutTime,EffectiveEchoSpacing to {filename}")
 
 
-def add_intendedfor(
-    meta: pathlib.Path, dirs: pathlib.Path, modality: str
-) -> None:
+def add_intendedfor(meta: pathlib.Path, dirs: pathlib.Path, modality: str) -> None:
     # add each fmri or dwi to the fmap intendedfor, but only if the phase encoding axes match
     intendedfor = []
     json_data = json.loads(meta.read_text())
@@ -418,9 +432,7 @@ def edit_json(data_path):
     #
     # personal communication indicates that newer versions
     # may also be affected
-    manufacturer_model_name = get_field_from_first_json(
-        dirs, "ManufacturersModelName"
-    )
+    manufacturer_model_name = get_field_from_first_json(dirs, "ManufacturersModelName")
     if "uhp" in manufacturer_model_name:
         software_versions = get_field_from_first_json(dirs, "SoftwareVersions")
         if software_versions in [
@@ -460,16 +472,12 @@ def add_slicetiming_to_uhp_dwi(dirs: Path) -> None:
                 if not len(jsons) == 1:
                     msg = "Unexpected number of jsons produced during dcm2niix rerun"
                     raise RuntimeError(msg)
-                new_json: dict[str, typing.Any] = json.loads(
-                    jsons[0].read_text()
-                )
+                new_json: dict[str, typing.Any] = json.loads(jsons[0].read_text())
                 new_slice_timing = new_json.get("SliceTiming")
                 if not new_slice_timing:
                     msg = "No slicetiming info found during dcm2niix rerun"
 
-                set_jsonfield(
-                    old_json, key="SliceTiming", value=new_slice_timing
-                )
+                set_jsonfield(old_json, key="SliceTiming", value=new_slice_timing)
 
 
 def remove_key_inplace(d, remove_key: str) -> bool:
@@ -504,23 +512,25 @@ def check_for_null(data: dict) -> bool:
 
 def post_notification(notification: str, post: bool = False):
     if post:
-        with open('/home1/09910/a2cpsadmin/.tapis3/a2cpsadmin', 'r') as openfile:
+        with open("/home1/09910/a2cpsadmin/.tapis3/a2cpsadmin", "r") as openfile:
             client_data = json.load(openfile)
-        client = Tapis(base_url=client_data["base_url"],
+        client = Tapis(
+            base_url=client_data["base_url"],
             tenant_id=client_data["tenant_id"],
             access_token=client_data["access_token"],
             refresh_token=client_data["refresh_token"],
             client_id=client_data["client_id"],
             client_key=client_data["client_key"],
-            verify=True)
+            verify=True,
+        )
         client.get_tokens()
         secretObj = client.sk.readSecret(  # type: ignore
-        secretType="user",
-        secretName="SLACKBOT_ADDRESS_SECRET_NAME",
-        tenant=client.access_token.claims['tapis/tenant_id'],
-        user=client.access_token.claims['tapis/username']
+            secretType="user",
+            secretName="SLACKBOT_ADDRESS_SECRET_NAME",
+            tenant=client.access_token.claims["tapis/tenant_id"],
+            user=client.access_token.claims["tapis/username"],
         )
-        endpoint = secretObj.get("secretMap").get('SLACKBOT_ADDRESS_SECRET_KEY')
+        endpoint = secretObj.get("secretMap").get("SLACKBOT_ADDRESS_SECRET_KEY")
         content = requests.post(url=endpoint, json={"text": notification})
         data = content.json()
     else:
