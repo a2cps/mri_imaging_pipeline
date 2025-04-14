@@ -8,8 +8,8 @@ LOCAL_DICOM=/tmp/${LOCAL_DICOM%.*}
 #shellcheck disable=SC2086
 unzip -q ${FILES} -d ${LOCAL_DICOM}
 
-case "${SITE}" in
-  SH | RU | WS)
+case "${DEVICE_SERIAL_NUMBER}" in
+  66022 | 166295 | 213020)
     echo python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
 
     python /tapis/assets/exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
@@ -77,18 +77,18 @@ cat /tapis/assets/bids_ignore >> "${OUTDIR}"/.bidsignore
 # Phantom-specific post-processing
 if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
   PHANTOM="--phantom"
-  case "${SITE}" in
-    NS) 
+  case "${DEVICE_SERIAL_NUMBER}" in
+    70032) 
       # dcm2niix generates several extra scans, derivatives from NS.
       python /tapis/assets/clean_nsphantom.py "${OUTDIR}"
       ;;
-    UC)
+    71399)
       # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
       # avoided by using the -i y flag, except that flag would also cause dcm2niix to skip the anat 
       # scans from NS
       find "${OUTDIR}" -name "*ADC*" -delete
       ;;
-    WS)
+    213020 | 40292)
       # heuristic can result in run-1 tag, unlike all other sites
       python /tapis/assets/clean_wsphantom.py "${OUTDIR}"
       ;;
@@ -131,8 +131,8 @@ if (( ${#dups[@]} > 1 )); then
 fi
 
 if [[ "${PHANTOM}" == "--no-phantom" ]]; then
-  case "${SITE}" in
-    UI | UM)
+  case "${DEVICE_SERIAL_NUMBER}" in
+    000000312996MR3T | 000000000UM750MR | 0007347633TMRFIX)
       echo python /tapis/assets/create_fieldmaps_GE.py "${OUTDIR}"
 
       python /tapis/assets/create_fieldmaps_GE.py "${OUTDIR}"
@@ -143,15 +143,15 @@ if [[ "${PHANTOM}" == "--no-phantom" ]]; then
     ;;
   esac
 else
-  case "${SITE}" in
-    UI | UM)
+  case "${DEVICE_SERIAL_NUMBER}" in
+    000000312996MR3T | 000000000UM750MR | 0007347633TMRFIX)
       echo "INFO: phantom scan detected. not creating fieldmaps and not replacing bvals/bvecs"
       # NOTE: not replacing bvals/bvecs for phantom scans because we don't know what they 
       # should be (and it's not clear that these values will be helpful)
     ;;    
   esac
-  case "${SITE}" in
-    UM)
+  case "${DEVICE_SERIAL_NUMBER}" in
+    000000000UM750MR | 0007347633TMRFIX)
       echo "overwritting coil_QA with final volume"
       python /tapis/assets/index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
     ;;
@@ -169,11 +169,10 @@ find "${OUTDIR}" -type f -name '*task-rest*events.tsv' -delete
 
 set -x
 if [[ ${CHECK_JSONS} == 1 ]]; then
-  # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
-  # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
+  # Sites have both a patient protocol and a phantom protocol, which always differ. So, the checks must
   # be divided by whether we're dealing with a phantom scan or not.
   #shellcheck disable=SC2086
-  python /tapis/assets/check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
+  python /tapis/assets/check_acq.py "${OUTDIR}" ${PHANTOM} ${POST}
 else
   echo "Skipping check of jsons"
 fi

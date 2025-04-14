@@ -38,6 +38,7 @@ DICOMS=(
 SUBJECTS=( travel1  travel2  travel1  travel2  travel2  travel1  travel2  travel1  travel2  travel2   travel2   travel2  travel2)
 SITES=(    NS NS RU RU SH UC UC UI UI UM  UM  WS WS)
 SES=(      NS NS RU RU SH UC UC UI UI UM1 UM2 WS WS2)
+DEVICE_SERIAL_NUMBER=(70032 70032 166295 166295 66022 71399 71399 000000312996MR3T 000000312996MR3T 000000000UM750MR  0007347633TMRFIX  40292 213020)
 
 declare -A SITE_LONG=(
     [NS]=NS_northshore
@@ -56,7 +57,7 @@ apptainer exec docker://"${CONTAINER_IMAGE}" ls
 for i in "${!SUBJECTS[@]}"; do
     sublong="${SES[${i}]}${SUBJECTS[${i}]}"
     apptainer run \
-        --env ANON_CMD="",BIDS="${BIDS}",CHECK_JSONS="${CHECK_JSONS}",CONVERTED_OUTDIR="",CONVERTER="--converter dcm2niix",DATALAD="",DCMCONFIG="",DELETE_DUPLICATES="${DELETE_DUPLICATES}",DICOM_DIR_TEMPLATE="",FILES="${DICOMS[${i}]}",HEURISTIC="${HEURISTIC}",LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}",LOCATOR="${LOCATOR}",OUTDIR="${SITE_LONG[${SITE}]}/bids/${sublong}",OVERWRITE="",POST="${POST}",SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}",SITE="${SITES[${i}]}" \
+        --env ANON_CMD="",BIDS="${BIDS}",CHECK_JSONS="${CHECK_JSONS}",CONVERTED_OUTDIR="",CONVERTER="--converter dcm2niix",DATALAD="",DCMCONFIG="",DELETE_DUPLICATES="${DELETE_DUPLICATES}",DICOM_DIR_TEMPLATE="",FILES="${DICOMS[${i}]}",HEURISTIC="${HEURISTIC}",LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}",LOCATOR="${LOCATOR}",OUTDIR="${SITE_LONG[${SITE}]}/bids/${sublong}",OVERWRITE="",POST="${POST}",SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}",DEVICE_SERIAL_NUMBER="${DEVICE_SERIAL_NUMBER[${i}]}" \
         --bind ${BIND_DIR} \
         docker://${CONTAINER_IMAGE} \
             1> "${sublong}".out \

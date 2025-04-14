@@ -2,7 +2,7 @@
 #SBATCH -J heudiconv-ref
 #SBATCH -o heudiconv-ref.out
 #SBATCH -e heudiconv-ref.err
-#SBATCH -t 3:00:00
+#SBATCH -t 6:00:00
 #SBATCH -p corralextra
 #SBATCH -N 1 -n 1
 #SBATCH -A A2CPS
@@ -15,7 +15,7 @@ module load tacc-apptainer
 module unload xalt
 
 BIND_DIR=/corral-secure/projects/A2CPS
-CONTAINER_IMAGE=psadil/heudiconv_app:240510
+CONTAINER_IMAGE=psadil/heudiconv_app
 # shellcheck disable=SC2089
 LOCATOR='--locator="" '
 HEURISTIC="--heuristic a2cps.py "
@@ -29,7 +29,7 @@ DICOMS=(
     "${project}"/NS_northshore/dicoms/QC_NS012324QA.zip
     "${project}"/RU_rush/dicoms/RU10945V1.zip
     "${project}"/RU_rush/dicoms/QC_RU022324QA.zip
-    "${project}"/SH_spectrum_health/dicoms/SH20246V1.zip
+    "${project}"/SH_spectrum_health/dicoms/SH25441V1.zip
     "${project}"/SH_spectrum_health/dicoms/QC_SH050224QA.zip
     "${project}"/UC_uchicago/dicoms/UC10885V1.zip
     "${project}"/UC_uchicago/dicoms/QC_UC011024QA.zip
@@ -42,9 +42,10 @@ DICOMS=(
     "${project}"/WS_wayne_state/dicoms/QC_WS010824QA.zip
     "${project}"/UM_umichigan/dicoms/UM20340V3.zip  # scan with variable ShimSetting
     )
-SUBJECTS=( 10920 nsphantom  10945 ruphantom  20246 shphantom  10885 ucphantom  10910  uiphantom 20369 25245 umphantom 25225 wsphantom 20340)
-SITES=(    NS    NS         RU      RU         SH    SH         UC    UC         UI     UI        UM    UM    UM        WS    WS      UM)
-SES=(      V1    240123     V1      240223     V1    240502     V1    240110     V1     230831    V1    V1    220813    V1    240108  V3)
+SUBJECTS=(            10920 nsphantom 10945  ruphantom 25441 shphantom 10885 ucphantom 10910            uiphantom        20369            25245             umphantom        25225 wsphantom 20340)
+SITES=(               NS    NS        RU     RU        SH    SH        UC    UC        UI               UI               UM               UM                UM               WS    WS        UM)
+SES=(                 V1    012324    V1     041125    V1    050224    V1    011024    V1               083123           V1               V1                081322           V1    010824    V3)
+DEVICE_SERIAL_NUMBER=(70032 70032     166295 166295    66022 66022     71399 71399     000000312996MR3T 000000312996MR3T 000000000UM750MR 0007347633TMRFIX  0007347633TMRFIX 40292 40292     0007347633TMRFIX)
 
 declare -A SITE_LONG=(
     [NS]=NS_northshore
@@ -59,284 +60,24 @@ declare -A SITE_LONG=(
 # do this once to cache before parallelism
 apptainer run docker://"${CONTAINER_IMAGE}" ls
 
-main() {
-
-    local FILES="$1"
-    local LIST_OF_SUBJECTS="--subjects $2 "
-    local SITE="$3"
-    local SESSION_FOR_LONGITUDINAL="--ses ${4} "
-    local OUTDIR="${SITE_LONG[${SITE}]}/bids/${SITE}${2}${4}"
-
-    # Unzip dicoms locally 
-    local LOCAL_DICOM
-    LOCAL_DICOM=$(basename "${FILES}")
-    # remove zip suffix
-    #shellcheck disable=SC2086
-    LOCAL_DICOM=/tmp/${LOCAL_DICOM%.*}
-    #shellcheck disable=SC2086
-    unzip ${FILES} -d ${LOCAL_DICOM}
-
-    case "${SITE}" in
-    SH | RU)
-        echo apptainer run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
-
-        apptainer run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python exclude_derived-dwi_xa30.py "${LOCAL_DICOM}"
-
-        #shellcheck disable=SC2086,SC2090
-        echo apptainer run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        heudiconv \
-            ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-            ${LIST_OF_SUBJECTS} \
-            ${CONVERTER} \
-            --outdir ${OUTDIR} \
-            ${LOCATOR} ${ANON_CMD} \
-            ${HEURISTIC} \
-            ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-            ${DATALAD} ${DCMCONFIG} --minmeta
-        
-        #shellcheck disable=SC2086,SC2090
-        apptainer run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        heudiconv \
-            ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-            ${LIST_OF_SUBJECTS} \
-            ${CONVERTER} \
-            --outdir ${OUTDIR} \
-            ${LOCATOR} ${ANON_CMD} \
-            ${HEURISTIC} \
-            ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-            ${DATALAD} ${DCMCONFIG} --minmeta
-
-        echo apptainer run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
-
-        apptainer run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python add_date_to_xa30.py "${LOCAL_DICOM}" "${OUTDIR}"
-
-    ;;
-    *)
-        #shellcheck disable=SC2086,SC2090
-        echo apptainer run \
-            --cleanenv \
-            -B "${BIND_DIR}":"${BIND_DIR}" \
-            docker://"${CONTAINER_IMAGE}" \
-            heudiconv \
-                ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-                ${LIST_OF_SUBJECTS} \
-                ${CONVERTER} \
-                --outdir ${OUTDIR} \
-                ${LOCATOR} ${ANON_CMD} \
-                ${HEURISTIC} \
-                ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-                ${DATALAD} ${DCMCONFIG}
-    
-        #shellcheck disable=SC2086,SC2090
-        apptainer run \
-            --cleanenv \
-            -B "${BIND_DIR}":"${BIND_DIR}" \
-            docker://"${CONTAINER_IMAGE}" \
-            heudiconv \
-                ${DICOM_DIR_TEMPLATE} --files ${LOCAL_DICOM} \
-                ${LIST_OF_SUBJECTS} \
-                ${CONVERTER} \
-                --outdir ${OUTDIR} \
-                ${LOCATOR} ${ANON_CMD} \
-                ${HEURISTIC} \
-                ${SESSION_FOR_LONGITUDINAL} ${BIDS} ${OVERWRITE} \
-                ${DATALAD} ${DCMCONFIG}
-    ;;
-    esac
-
-    # Remove local dicom directory
-    #shellcheck disable=SC2086
-    rm -rf ${LOCAL_DICOM}
-
-    # add bval, bvec, betc to .bidsignore
-    cat bids_ignore >> "${OUTDIR}"/.bidsignore && cat .agave.archive >> "${OUTDIR}"/.bidsignore
-
-    # Phantom-specific post-processing
-    if [[ "${LIST_OF_SUBJECTS}" == *phantom* ]]; then
-        PHANTOM="--phantom"
-        case "${SITE}" in
-            NS) 
-            # dcm2niix generates several extra scans, derivatives from NS.
-            apptainer run --cleanenv \
-                -B "${BIND_DIR}":"${BIND_DIR}" \
-                docker://"${CONTAINER_IMAGE}" \
-                python clean_nsphantom.py "${OUTDIR}"
-            ;;
-            UC)
-            # For UC, dcm2niix generates extra "ADC" scans, which are derived volumes. They could be 
-            # avoided by using the -i y flag, except that flag would also cause dcm2niix to skip the anat 
-            # scans from NS
-            find "${OUTDIR}" -name "*ADC*" -delete
-            ;;
-            WS)
-            # heuristic can result in run-1 tag, unlike all other sites
-            apptainer run --cleanenv \
-                -B "${BIND_DIR}":"${BIND_DIR}" \
-                docker://"${CONTAINER_IMAGE}" \
-                python clean_wsphantom.py "${OUTDIR}"
-            ;;
-        esac
-    else
-        PHANTOM="--no-phantom"
-    fi
-
-    # The UM2 traveling scan has these ADC files
-    find "${OUTDIR}" -name "*ADC*" -delete
-
-    # Need to inject IntendedFor field into some jsons, and in the case of GE images
-    # generate the AP/PA fieldmaps. Heudiconv outputs them as readonly, so temporarily
-    # give write access to user, read to group
-    chmod +640 "${OUTDIR}"/sub-*/ses-*/*/*
-
-    # Delete duplicate scans if flag is set
-    echo "delete duplicates flag set to: ${DELETE_DUPLICATES}"
-
-    mapfile -t dups < <(find "${OUTDIR}" -type f -name "*dup*")
-    if (( ${#dups[@]} > 1 )); then
-    # post about found duplicates to slack channel
-    msg="duplicate scans found: ${dups[*]}"
-
-    #shellcheck disable=SC2086
-    apptainer run \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        --cleanenv docker://"${CONTAINER_IMAGE}" python log.py "${msg}" ${POST}
-    if [[ ${DELETE_DUPLICATES} == 1 ]]; then
-        # delete duplicte scans
-        echo "removing duplicate scans" 
-        rm -rf "${dups[@]}"
-    else
-        echo "adding duplicate scans to bids ignore"
-        # otherwise add to bids ignore
-        echo "${OUTDIR}/sub-*/ses-*/*/*_dup*" >> .bidsignore
-    fi
-    # remove duplicate scans from scans.tsv
-    sed -i '/_dup/d' "${OUTDIR}"/sub-*/ses-*/*scans.tsv
-    else
-        echo "no duplicate scans found"
-    fi
-
-    if [[ "${PHANTOM}" == "--no-phantom" ]]; then
-        case "${SITE}" in
-            UI | UM)
-            echo apptainer run \
-                --cleanenv \
-                -B "${BIND_DIR}":"${BIND_DIR}" \
-                docker://"${CONTAINER_IMAGE}" \
-                python create_fieldmaps_GE.py "${OUTDIR}"
-
-            apptainer run \
-                --cleanenv \
-                -B "${BIND_DIR}":"${BIND_DIR}" \
-                docker://"${CONTAINER_IMAGE}" \
-                python create_fieldmaps_GE.py "${OUTDIR}"
-
-            echo apptainer run \
-                --cleanenv \
-                -B "${BIND_DIR}":"${BIND_DIR}" \
-                docker://"${CONTAINER_IMAGE}" \
-                python handle_ge_bvalbvecs.py "${OUTDIR}"
-
-            apptainer run \
-                --cleanenv \
-                -B "${BIND_DIR}":"${BIND_DIR}" \
-                docker://"${CONTAINER_IMAGE}" \
-                python handle_ge_bvalbvecs.py "${OUTDIR}"
-            ;;
-        esac
-    else
-        case "${SITE}" in
-            UI | UM)
-            echo "INFO: phantom scan detected. not creating fieldmaps and not replacing bvals/bvecs"
-            # NOTE: not replacing bvals/bvecs for phantom scans because we don't know what they 
-            # should be (and it's not clear that these values will be helpful)
-            ;;    
-        esac
-        case "${SITE}" in
-            UM)
-            echo "overwritting coil_QA with final volume"
-            apptainer run \
-                --cleanenv \
-                -B "${BIND_DIR}":"${BIND_DIR}" \
-                docker://"${CONTAINER_IMAGE}" \
-                python index_coilqa.py "${OUTDIR}"/sub-umphantom/ses*/anat/*T1w.nii.gz
-            ;;
-        esac
-    fi
-
-    echo apptainer run \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://"${CONTAINER_IMAGE}" \
-        python edit_json.py "${OUTDIR}"
-
-    apptainer run \
-    --cleanenv \
-    -B "${BIND_DIR}":"${BIND_DIR}" \
-    docker://"${CONTAINER_IMAGE}" \
-        python edit_json.py "${OUTDIR}"
-
-
-    # resting state scans do not require events files (there are no events)
-    # so delete any that are found
-    find "${OUTDIR}" -type f -name '*task-rest*events.tsv' -delete
-
-    set -x
-    if [[ ${CHECK_JSONS} == 1 ]]; then
-        # the check is a bit messy. Previously, $SITE could reliably distinguish acquisition protocol. Now, sites
-        # have both a patient protocol and a phantom protocol, which always differ. So, the checks must
-        # be divided by whether we're dealing with a phantom scan or not.
-        #shellcheck disable=SC2086
-        apptainer run \
-            --cleanenv \
-            -B "${BIND_DIR}":"${BIND_DIR}" \
-            docker://"${CONTAINER_IMAGE}" \
-            python check_acq.py "${OUTDIR}" "${SITE}" ${PHANTOM} ${POST}
-    else
-        echo "Skipping check of jsons"
-    fi
-
-    echo "cleaning *scans.tsv"
-    apptainer run \
-        --cleanenv \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" \
-        python edit_scanstsv.py "${OUTDIR}"
-
-    # end with check of newly created directory. if the output is not valid, the job will fail
-    apptainer run \
-        -B "${BIND_DIR}":"${BIND_DIR}" \
-        docker://"${CONTAINER_IMAGE}" bids-validator --ignoreWarnings "${OUTDIR}"
-  
-}
-
 
 for i in "${!SUBJECTS[@]}"; do
-    sublong="${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
-    main "${DICOMS[${i}]}" "${SUBJECTS[${i}]}" "${SITES[${i}]}" "${SES[${i}]}" \
-        1> "${sublong}".out \
-        2> "${sublong}".err &
+    if [[ "${SUBJECTS[${i}]}" == *phantom* ]]; then
+        sublong="QC_${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}QA"
+    else
+        sublong="${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
+    fi
+    apptainer run \
+        --env ANON_CMD="",BIDS="${BIDS}",CHECK_JSONS="${CHECK_JSONS}",CONVERTED_OUTDIR="",CONVERTER="--converter dcm2niix",DATALAD="",DCMCONFIG="",DELETE_DUPLICATES="${DELETE_DUPLICATES}",DICOM_DIR_TEMPLATE="",FILES="${DICOMS[${i}]}",HEURISTIC="${HEURISTIC}",LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}",LOCATOR="${LOCATOR}",OUTDIR="${SITE_LONG[${SITE}]}/bids/${sublong}",OVERWRITE="",POST="${POST}",SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}",DEVICE_SERIAL_NUMBER="${DEVICE_SERIAL_NUMBER[${i}]}" \
+        --bind ${BIND_DIR} \
+        docker://${CONTAINER_IMAGE} \
+            1> "${sublong}".out \
+            2> "${sublong}".err &
+            
+    # starting to hit memory issues with this many scans
+    if (( i == 6 )); then
+        wait
+    fi
 done
 
 wait
@@ -345,16 +86,18 @@ NEW_DIR="."
 OUT_DIR=json_comparisons
 mkdir -p ${OUT_DIR}
 for i in "${!SUBJECTS[@]}"; do
-    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
-    if [[  "${sublong}" == *"phantom"*  ]]; then
+    if [[ "${SUBJECTS[${i}]}" == *phantom* ]]; then
         printf 'skipping %s \n' "${sublong}"
         continue
+    else
+        sublong="${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
     fi
+
     printf '#### %s ####\n' "${sublong}"
 
     site_long="${SITE_LONG[${SITES[${i}]}]}"
 
-    for json in "${NEW_DIR}"/"${site_long}"/bids/"${SITES[${i}]}""${SUBJECTS[${i}]}""${SES[${i}]}"/sub-*/ses-"${SES[${i}]}"/*/*json; do
+    for json in "${NEW_DIR}"/"${site_long}"/bids/"${sublong}"/sub-*/ses-"${SES[${i}]}"/*/*json; do
         json_name=$(basename "${json}")
         common_path=$(realpath --relative-to ${NEW_DIR} "${json}")
         printf '## %s ##\n' "${json_name}"
