@@ -218,7 +218,7 @@ def compare(
 
     meta = get_metadata(js_observed)
 
-    if reference.scanner.unique()[0] in SIEMENS_W_64:
+    if reference.DeviceSerialNumber.unique()[0] in SIEMENS_W_64:
         if check_receivecoil(meta, reference):
             reference.drop(["ReceiveCoilActiveElements"], axis=1, inplace=True)
         else:
@@ -231,7 +231,7 @@ def compare(
     # these columns will not be found in any of the jsons. they are mainly indicies used to
     # locate rows in the reference table
     reference.drop(
-        ["task", "suffix", "acq", "dir", "scanner", "phantom", "bval", "bvec"],
+        ["task", "suffix", "acq", "dir", "phantom", "bval", "bvec"],
         axis=1,
         inplace=True,
     )
@@ -298,16 +298,14 @@ def compare(
 
 
 def get_device_serial_number(layout: ancpbids.BIDSLayout) -> DEVICE_SERIAL_NUMBER:
-    any_nii: list[str] = layout.get(extension="nii.gz", return_type="file")  # type: ignore
+    any_nii: list[str] = layout.get(extension="json", return_type="file", suffix="T1w")  # type: ignore
     if len(any_nii) == 0:
         raise AssertionError("No scan jsons found")
     sidecar_path = pathlib.Path(any_nii[0])
     sidecar: dict[str, typing.Any] = json.loads(sidecar_path.read_text())
     device_serial_number = sidecar.get("DeviceSerialNumber")
-    if not isinstance(device_serial_number, DEVICE_SERIAL_NUMBER):
-        raise AssertionError("Unable to find DeviceSerialNumber")
 
-    return device_serial_number
+    return device_serial_number  # type: ignore
 
 
 def main(root: str, phantom: bool = False, post: bool = False) -> None:
@@ -322,7 +320,7 @@ def main(root: str, phantom: bool = False, post: bool = False) -> None:
         low_memory=False,
         delimiter="\t",
         converters={"ImageOrientationPatientDICOM": pd.eval, "ImageType": pd.eval},
-    ).query("device_serial_number == @device_serial_number & phantom == @phantom")
+    ).query("DeviceSerialNumber == @device_serial_number & phantom == @phantom")
 
     # T1w is easy and _should_ always be present by now. But if it isn't we still don't want the app to
     # fail, so this does a check only if one can be found
