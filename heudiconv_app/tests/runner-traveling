@@ -94,8 +94,8 @@ for i in "${!SUBJECTS[@]}"; do
         common_path=$(realpath --relative-to ${NEW_DIR} "${json}")
         printf '## %s ##\n' "${json_name}"
         diff \
-            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' ${project}/"${common_path}") \
-            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time)' "${json}") \
+            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time, .BidsGuess)' ${project}/"${common_path}") \
+            <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time, .BidsGuess)' "${json}") \
             &> "${OUT_DIR}"/"${json_name%.*}"
         
         tmpd=/tmp/"${sublong}"

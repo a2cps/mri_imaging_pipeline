@@ -11,18 +11,24 @@
 # with real participants for generating the reference
 # bids jsons with phantoms
 
-module load tacc-apptainer
 module unload xalt
 
 BIND_DIR=/corral-secure/projects/A2CPS
 CONTAINER_IMAGE=psadil/heudiconv_app
 # shellcheck disable=SC2089
-LOCATOR='--locator="" '
-HEURISTIC="--heuristic /tapis/assets/a2cps.py "
-BIDS="--bids "
-DELETE_DUPLICATES=1
-POST="--no-post "
-CHECK_JSONS=1
+export APPTAINERENV_LOCATOR='--locator="" '
+export APPTAINERENV_HEURISTIC="--heuristic /tapis/assets/a2cps.py "
+export APPTAINERENV_BIDS="--bids "
+export APPTAINERENV_ANON_CMD=""
+export APPTAINERENV_DELETE_DUPLICATES=1
+export APPTAINERENV_POST="--no-post "
+export APPTAINERENV_CHECK_JSONS=1
+export APPTAINERENV_CONVERTED_OUTDIR=""
+export APPTAINERENV_CONVERTER="--converter dcm2niix"
+export APPTAINERENV_DATALAD=""
+export APPTAINERENV_DCMCONFIG=""
+export APPTAINERENV_DICOM_DIR_TEMPLATE=""
+export APPTAINERENV_OVERWRITE=""
 project=/corral-secure/projects/A2CPS/products/mris
 DICOMS=(
     "${project}"/NS_northshore/dicoms/NS10920V1.zip
@@ -58,7 +64,7 @@ declare -A SITE_LONG=(
     )
 
 # do this once to cache before parallelism
-apptainer run docker://"${CONTAINER_IMAGE}" ls
+apptainer exec docker://"${CONTAINER_IMAGE}" ls
 
 
 for i in "${!SUBJECTS[@]}"; do
@@ -67,8 +73,12 @@ for i in "${!SUBJECTS[@]}"; do
     else
         sublong="${SITE[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
     fi
+    export APPTAINERENV_FILES="${DICOMS[${i}]}"
+    export APPTAINERENV_LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}"
+    export APPTAINERENV_OUTDIR="${SITE_LONG[${SITE[${i}]}]}/bids/${sublong}"
+    export APPTAINERENV_SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}"
+    export APPTAINERENV_DEVICE_SERIAL_NUMBER="${DEVICE_SERIAL_NUMBER[${i}]}"
     apptainer run \
-        --env ANON_CMD="",BIDS="${BIDS}",CHECK_JSONS="${CHECK_JSONS}",CONVERTED_OUTDIR="",CONVERTER="--converter dcm2niix",DATALAD="",DCMCONFIG="",DELETE_DUPLICATES="${DELETE_DUPLICATES}",DICOM_DIR_TEMPLATE="",FILES="${DICOMS[${i}]}",HEURISTIC="${HEURISTIC}",LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}",LOCATOR="${LOCATOR}",OUTDIR="${SITE_LONG[${SITE[${i}]}]}/bids/${sublong}",OVERWRITE="",POST="${POST}",SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}",DEVICE_SERIAL_NUMBER="${DEVICE_SERIAL_NUMBER[${i}]}" \
         --bind ${BIND_DIR} \
         docker://${CONTAINER_IMAGE} \
             1> "${sublong}".out \
@@ -105,6 +115,17 @@ for i in "${!SUBJECTS[@]}"; do
             <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time, .BidsGuess)' ${project}/"${common_path}") \
             <( jq --sort-keys 'del(.ConversionSoftwareVersion, .global, .time, .BidsGuess)' "${json}") \
             &> "${OUT_DIR}"/"${json_name%.*}"
-        
+
+        tmpd=/tmp/"${sublong}"
+        mkdir -p "${tmpd}"/new \
+            && mkdir -p "${tmpd}"/orig \
+            && cp "${json%.*}.nii.gz" "${tmpd}"/new/ \
+            && cp ${project}/"${common_path%.*}.nii.gz" "${tmpd}"/orig/ \
+            && gzip -d "${tmpd}"/new/*gz \
+            && gzip -d "${tmpd}"/orig/*gz \
+            && cmp \
+                "${tmpd}/orig/${json_name%.*}.nii" \
+                "${tmpd}/new/${json_name%.*}.nii" \
+                &>> "${OUT_DIR}"/"${json_name%.*}" 
     done
 done
