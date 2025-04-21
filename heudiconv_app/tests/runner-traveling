@@ -3,7 +3,7 @@
 #SBATCH -o heudiconv-traveling.out
 #SBATCH -e heudiconv-traveling.err
 #SBATCH -t 4:00:00
-#SBATCH -p corralextra-dev
+#SBATCH -p corralextra
 #SBATCH -N 1 -n 1
 #SBATCH -A A2CPS
 
@@ -73,8 +73,8 @@ wait
 
 # files can only be copied over after dsts have been created
 for i in "${!SUBJECTS[@]}"; do
-    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
-    site_long="${SITE_LONG[${SITES[${i}]}]}"
+    sublong="${SES[${i}]}${SUBJECTS[${i}]}"
+    site_long="${SITE_LONG[${SITE[${i}]}]}"
     dst="${site_long}"/bids
     cp "${sublong}".{err,out} "${dst}/${sublong}"
     cp run "${dst}/${sublong}"
@@ -84,12 +84,12 @@ NEW_DIR="."
 OUT_DIR=json_comparisons
 mkdir -p ${OUT_DIR}
 for i in "${!SUBJECTS[@]}"; do
-    sublong="${SES[${i}]}travel${SUBJECTS[${i}]}"
+    sublong="${SES[${i}]}${SUBJECTS[${i}]}"
     printf '#### %s ####\n' "${sublong}"
 
-    site_long="${SITE_LONG[${SITES[${i}]}]}"
+    site_long="${SITE_LONG[${SITE[${i}]}]}"
 
-    for json in "${NEW_DIR}"/"${site_long}"/bids/"${sublong}"/sub-travel"${SUBJECTS[${i}]}"/ses-"${SES[${i}]}"/*/*json; do
+    for json in "${NEW_DIR}"/"${site_long}"/bids/"${sublong}"/sub-"${SUBJECTS[${i}]}"/ses-"${SES[${i}]}"/*/*json; do
         json_name=$(basename "${json}")
         common_path=$(realpath --relative-to ${NEW_DIR} "${json}")
         printf '## %s ##\n' "${json_name}"

@@ -18,7 +18,7 @@ BIND_DIR=/corral-secure/projects/A2CPS
 CONTAINER_IMAGE=psadil/heudiconv_app
 # shellcheck disable=SC2089
 LOCATOR='--locator="" '
-HEURISTIC="--heuristic a2cps.py "
+HEURISTIC="--heuristic /tapis/assets/a2cps.py "
 BIDS="--bids "
 DELETE_DUPLICATES=1
 POST="--no-post "
@@ -43,7 +43,7 @@ DICOMS=(
     "${project}"/UM_umichigan/dicoms/UM20340V3.zip  # scan with variable ShimSetting
     )
 SUBJECTS=(            10920 nsphantom 10945  ruphantom 25441 shphantom 10885 ucphantom 10910            uiphantom        20369            25245             umphantom        25225 wsphantom 20340)
-SITES=(               NS    NS        RU     RU        SH    SH        UC    UC        UI               UI               UM               UM                UM               WS    WS        UM)
+SITE=(               NS    NS        RU     RU        SH    SH        UC    UC        UI               UI               UM               UM                UM               WS    WS        UM)
 SES=(                 V1    012324    V1     041125    V1    050224    V1    011024    V1               083123           V1               V1                081322           V1    010824    V3)
 DEVICE_SERIAL_NUMBER=(70032 70032     166295 166295    66022 66022     71399 71399     000000312996MR3T 000000312996MR3T 000000000UM750MR 0007347633TMRFIX  0007347633TMRFIX 40292 40292     0007347633TMRFIX)
 
@@ -63,12 +63,12 @@ apptainer run docker://"${CONTAINER_IMAGE}" ls
 
 for i in "${!SUBJECTS[@]}"; do
     if [[ "${SUBJECTS[${i}]}" == *phantom* ]]; then
-        sublong="QC_${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}QA"
+        sublong="QC_${SITE[${i}]}${SUBJECTS[${i}]}${SES[${i}]}QA"
     else
-        sublong="${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
+        sublong="${SITE[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
     fi
     apptainer run \
-        --env ANON_CMD="",BIDS="${BIDS}",CHECK_JSONS="${CHECK_JSONS}",CONVERTED_OUTDIR="",CONVERTER="--converter dcm2niix",DATALAD="",DCMCONFIG="",DELETE_DUPLICATES="${DELETE_DUPLICATES}",DICOM_DIR_TEMPLATE="",FILES="${DICOMS[${i}]}",HEURISTIC="${HEURISTIC}",LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}",LOCATOR="${LOCATOR}",OUTDIR="${SITE_LONG[${SITE}]}/bids/${sublong}",OVERWRITE="",POST="${POST}",SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}",DEVICE_SERIAL_NUMBER="${DEVICE_SERIAL_NUMBER[${i}]}" \
+        --env ANON_CMD="",BIDS="${BIDS}",CHECK_JSONS="${CHECK_JSONS}",CONVERTED_OUTDIR="",CONVERTER="--converter dcm2niix",DATALAD="",DCMCONFIG="",DELETE_DUPLICATES="${DELETE_DUPLICATES}",DICOM_DIR_TEMPLATE="",FILES="${DICOMS[${i}]}",HEURISTIC="${HEURISTIC}",LIST_OF_SUBJECTS="--subjects ${SUBJECTS[${i}]}",LOCATOR="${LOCATOR}",OUTDIR="${SITE_LONG[${SITE[${i}]}]}/bids/${sublong}",OVERWRITE="",POST="${POST}",SESSION_FOR_LONGITUDINAL="--ses ${SES[${i}]}",DEVICE_SERIAL_NUMBER="${DEVICE_SERIAL_NUMBER[${i}]}" \
         --bind ${BIND_DIR} \
         docker://${CONTAINER_IMAGE} \
             1> "${sublong}".out \
@@ -90,12 +90,12 @@ for i in "${!SUBJECTS[@]}"; do
         printf 'skipping %s \n' "${sublong}"
         continue
     else
-        sublong="${SITES[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
+        sublong="${SITE[${i}]}${SUBJECTS[${i}]}${SES[${i}]}"
     fi
 
     printf '#### %s ####\n' "${sublong}"
 
-    site_long="${SITE_LONG[${SITES[${i}]}]}"
+    site_long="${SITE_LONG[${SITE[${i}]}]}"
 
     for json in "${NEW_DIR}"/"${site_long}"/bids/"${sublong}"/sub-*/ses-"${SES[${i}]}"/*/*json; do
         json_name=$(basename "${json}")
