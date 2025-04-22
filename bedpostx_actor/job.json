@@ -1,16 +1,20 @@
 {
-    "appId": "qsirecon-fsl-dtifit-app",
-    "appVersion": "1.1",
+    "appId": "bedpostx-app",
+    "appVersion": "0.1",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
-    "name": "qsirecon-fsl",
     "maxMinutes": 480,
+    "name": "bedpostx",
     "parameterSet": {
         "appArgs": [],
         "envVariables": [
             {
+                "key": "FSLSUB_PARALLEL",
+                "value": "20"
+            },
+            {
                 "key": "FAILURE_LOG_DST",
-                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsirecon_fsl_dtifit/"
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/bedpostx/"
             }
         ]
     },

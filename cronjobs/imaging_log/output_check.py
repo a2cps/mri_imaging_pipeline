@@ -24,6 +24,7 @@ APP_STEPS = [
                 "signatures",
                 "gift",
                 "qsirecon_fsl_dtifit",
+                "bedpostx"
             ]
 
 SITE_CODES = {
@@ -574,6 +575,7 @@ def main():
                 scan_report['qsiprep'] = 'na'
             if scan_report['qsiprep'] == 'na':
                 scan_report['qsirecon_fsl_dtifit'] = 'na'
+                scan_report['bedpostx'] = 'na'
             if scan_report['Cuff Leg'] == '1':
                 scan_report['Cuff Leg'] = 'Right'
             if scan_report['Cuff Leg'] == '2':
@@ -617,6 +619,7 @@ def main():
     'mriqc',
     'qsiprep',
     'qsirecon_fsl_dtifit',
+    'bedpostx',
     'cat12',
     'brainager',
     'fcn',

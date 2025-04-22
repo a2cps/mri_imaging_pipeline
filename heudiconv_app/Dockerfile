@@ -1,6 +1,6 @@
 FROM bids/validator:v1.9.9 AS validator
 
-FROM mambaorg/micromamba:1.5.9-jammy
+FROM mambaorg/micromamba:2.0-ubuntu24.10
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 
@@ -18,5 +18,6 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER assets /tapis/assets
 RUN chmod +x /tapis/assets/runner-template.sh
 
 USER $MAMBA_USER
+ENV TZ=America/Chicago
 
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "/tapis/assets/runner-template.sh"]
