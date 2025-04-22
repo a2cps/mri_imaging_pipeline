@@ -7,7 +7,7 @@
             {
             "name": "PARTICIPANT_LABEL",
             "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "sub-20064"
+            "arg": "sub-10042"
             },
             {
             "name": "SESSION_LABEL",
@@ -17,12 +17,17 @@
             {
             "name": "QSIPREPDIR",
             "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "/corral-secure/projects/A2CPS/products/mris/WS_wayne_state/qsiprep/WS20064V1/qsiprep"
+            "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsiprep/NS10042V1/qsiprep"
+            },
+            {
+            "name": "BEDPOSTXDIR",
+            "inputMode": "INCLUDE_BY_DEFAULT",
+            "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/bedpostx/NS10042V1/bedpostx/sub-10042/ses-V1/dwi.bedpostx"
             },
             {
             "name": "QSIRECONDIR",
             "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives/qsirecon-FSL"
+            "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsirecon_fsl_dtifit/NS10042V1/qsirecon-fsl/derivatives/qsirecon-FSL"
             },
             {
             "name": "ROIPREPDIR",

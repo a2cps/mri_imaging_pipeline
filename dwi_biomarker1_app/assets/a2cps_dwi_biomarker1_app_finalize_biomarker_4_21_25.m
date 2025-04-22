@@ -4,15 +4,15 @@ clear all
 
 %% Set paths
 
-roi.subj.path = fullfile(OUTDIR, "move_masks", PARTICIPANT_LABEL);
-tract.subj.path = fullfile(OUTDIR, "probtrackx", PARTICIPANT_LABEL, SESSION_LABEL, "modules_all_voxseeds");
+roi.subj.path = fullfile(OUTDIR, "move_masks", PARTICIPANT_LABEL, SESSION_LABEL);
+tract.subj.path = fullfile(OUTDIR, "probtrackx", PARTICIPANT_LABEL, SESSION_LABEL, "DWIbiomarker1_modules_all_voxseeds");
 
 %% Step 1: Get voxels and coords for the mask
 
 % Define file/path of mask in native dwi (fslstd)
-roi_filename = sprintf("modules_all_index_in_%s_DWI_fslstd.nii.gz", PARTICIPANT_LABEL);
+roi_filename = sprintf("%s_%s_desc-mask_modules_all_index_space-dwi-fslstd.nii.gz", PARTICIPANT_LABEL, SESSION_LABEL);
 roi_filepath = fullfile(roi.subj.path, roi_filename);
-    % seed/target mask in native DWI (used for probtrackx)
+    % seed/target mask in native DWI (split up and used for probtrackx)
     % voxel values are the module # to which each voxel belongs
 
 % Mask in native dwi (fslstd) - convert the string scalar to a character vector
@@ -64,18 +64,11 @@ end
 idx_roi_all(1, :) = [];
 coor_roi(1, :) = [];
 
-% Save coordinates of mask clusters in native dwi (fslstd)
-    % note, don't save to save space
-    %coor_roi_filename = 'coor_masks_modules_all_index.txt';
-    %coor_roi_filepath = fullfile(roi.subj.path, coor_roi_filename);
-    %coor_roi_filepath = char(coor_roi_filepath); % Convert the string scalar to a character vector
-    %save(coor_roi_filepath, 'coor_roi', '-ascii', '-tabs');
-
 
 %% Step 2: Prepare matrix of path lengths (to be used for distance correction)
 
 % load the fdt lengths data (probtrack output spatial mask of streamline distances)
-lengths_filename = sprintf("%s_%s_probtrackx_voxseeds_fdtlengths_all.nii.gz", PARTICIPANT_LABEL, SESSION_LABEL);
+lengths_filename = sprintf("%s_%s_DWIbiomarker1_fdtlengths_all.nii.gz", PARTICIPANT_LABEL, SESSION_LABEL);
 lengths_filepath = fullfile(tract.subj.path, lengths_filename);
 lengths_filepath = char(lengths_filepath); % Convert the string scalar to a character vector
 lengths_nii = load_untouch_nii(lengths_filepath);
@@ -121,13 +114,6 @@ dist_mat_sym = (dist_mat + dist_mat')/2;
 dist_mat_sym = double(dist_mat_sym);
 dist_mat_sym(eye(size(dist_mat_sym))~=0)=0;
 
-% Save matrix of lengths in native dwi (fslstd)
-    % note, don't save to save space
-    %dist_mat_sym_filename = 'distance_matrix.txt';
-    %dist_mat_sym_filepath = fullfile(tract.subj.path, dist_mat_sym_filename);
-    %dist_mat_sym_filepath = char(dist_mat_sym_filepath); % Convert the string scalar to a character vector
-    %save(dist_mat_sym_filepath, 'dist_mat_sym', '-ascii', '-tabs');
-
 
 %% Step 3: Finalize the connectivity matrix
 
@@ -142,7 +128,7 @@ dist_mat=dist_mat_sym
     %dist_mat=load(filepath_temp);
 
 % load the fdt data (probtrack output spatial mask of streamline counts)
-tracts_filename = sprintf("%s_%s_probtrackx_voxseeds_fdtpaths_all.nii.gz", PARTICIPANT_LABEL, SESSION_LABEL); % (probtrack output spatial mask of streamline counts)
+tracts_filename = sprintf("%s_%s_DWIbiomarker1_fdtpaths_all.nii.gz", PARTICIPANT_LABEL, SESSION_LABEL); % (probtrack output spatial mask of streamline counts)
 tracts_filepath = fullfile(tract.subj.path, tract_filename);
 tracts_filepath = char(tracts_filepath); % Convert the string scalar to a character vector
 tracts_nii = load_untouch_nii(tracts_filepath);
@@ -179,13 +165,6 @@ for i = 1:length(idx_roi_all) % loops through all voxels of the coords matrix ("
             % connectivity matrix
 end
 
-% save tracts matrix (unsymmetric, not distance corrected, not normalized)
-    % don't save to save space
-    %tracts_mat_filename = 'tracts_matrix.txt';
-    %tracts_mat_filepath = fullfile(tract.subj.path, tracts_mat_filename);
-    %tracts_mat_filepath = char(tracts_mat_filepath); % Convert the string scalar to a character vector
-    %save(tracts_mat_filepath, 'tracts_mat', '-ascii', '-tabs');
-
 % Create symmetric matrix
 tracts_mat_sym = (tracts_mat + tracts_mat')/2;
 tracts_mat_sym = double(tracts_mat_sym);
@@ -193,37 +172,16 @@ tracts_mat_sym = double(tracts_mat_sym);
     % identical values from dti_all above (e.g., dti_all vox 1 = 5675 same
     % as dti_all2 vox1 <-> vox1 = 5675)
 
-% Save tract matrix (symmetric, not distance corrected, not normalized)
-    % don't save to save space
-    %tracts_mat_sym_filename = 'tracts_matrix_sym.txt';
-    %tracts_mat_sym_filepath = fullfile(tract.subj.path, tracts_mat_sym_filename);
-    %tracts_mat_sym_filepath = char(tracts_mat_sym_filepath); % Convert the string scalar to a character vector
-    %save(tracts_mat_sym_filepath, 'tracts_mat_sym', '-ascii', '-tabs');
-
 % Distance correction
 tracts_mat_sym_distcorr = tracts_mat_sym.*dist_mat;
 tracts_mat_sym_distcorr(eye(size(tracts_mat_sym_distcorr))~=0)=0; % forces diagonal = 0
     % tracts_mat_sym_distcorr created by multiplying the streamline counts (tracts_mat_sym, 1466
     % x 1466 matrix) with the distances (dist_mat, 1466 x 1466 matrix)
 
-% Save tract matrix (symmetric, distance corrected, not normalized)
-    % note, don't save to save space
-    %tracts_mat_sym_distcorr_filename = 'tracts_matrix_sym_distcorr.txt';
-    %tracts_mat_sym_distcorr_filepath = fullfile(tract.subj.path, tracts_mat_sym_distcorr_filename);
-    %tracts_mat_sym_distcorr_filepath = char(tracts_mat_sym_distcorr_filepath); % Convert the string scalar to a character vector
-    %save(tracts_mat_sym_distcorr_filepath, 'tracts_mat_sym_distcorr', '-ascii', '-tabs');
-
 % Normalize (weight) the matrix
 tracts_mat_sym_distcorr_norm = weight_conversion(tracts_mat_sym_distcorr,'normalize'); % normalize
     % weight_conversion (download from here: https://github.com/fieldtrip/fieldtrip/blob/master/external/bct/weight_conversion.m)
     % tracts_mat_sym_distcorr_norm created by normalizing the streamline x distance matrix
-
-% Save tract matrix (symmetric, distance corrected, normalized)
-    % note, don't save to save space
-    %tracts_mat_sym_distcorr_norm_filename = 'tracts_matrix_sym_distcorr_norm.txt';
-    %tracts_mat_sym_distcorr_norm_filepath = fullfile(tract.subj.path, tracts_mat_sym_distcorr_norm_filename);
-    %tracts_mat_sym_distcorr_norm_filepath = char(tracts_mat_sym_distcorr_norm_filepath); % Convert the string scalar to a character vector
-    %save(tracts_mat_sym_distcorr_norm_filepath, 'tracts_mat_sym_distcorr_norm', '-ascii', '-tabs');
 
 
 
@@ -231,13 +189,14 @@ tracts_mat_sym_distcorr_norm = weight_conversion(tracts_mat_sym_distcorr,'normal
 
 target_density = 0.1;  % desired final graph density
 
-% Step 1: Get initial binary matrix (no thresholding)
+% Step 4a: Get initial binary matrix (no thresholding)
 initial_bin_mat = im2bw(tracts_mat_sym_distcorr_norm, 0);  % binarize with thresh = 0
 initial_bin_mat = double(initial_bin_mat);
 initial_density = density_und(initial_bin_mat);  % compute initial density
 
-% Step 2: Check if thresholding is needed
+% Step 4b: Check if thresholding is needed
 if initial_density <= target_density
+
     % If initial density is already below or equal to target, keep unthresholded
     fprintf('Initial density (%.4f) <= target (%.4f), skipping thresholding.\n', ...
         initial_density, target_density);
@@ -245,8 +204,15 @@ if initial_density <= target_density
     tracts_mat_sym_distcorr_norm_bin = initial_bin_mat;
     tracts_mat_sym_distcorr_norm_bin = double(tracts_mat_sym_distcorr_norm_bin);
 
+    % Save final connectivity matrix (symmetric, distance corrected, normalized)
+    tracts_mat_sym_distcorr_norm_bin_filename = 'DWIbiomarker1_matrix_sym_distcorr_norm_bin.txt';
+    tracts_mat_sym_distcorr_norm_bin_filepath = fullfile(tract.subj.path, tracts_mat_sym_distcorr_norm_bin_filename);
+    tracts_mat_sym_distcorr_norm_bin_filepath = char(tracts_mat_sym_distcorr_norm_bin_filepath); % Convert the string scalar to a character vector
+    save(tracts_mat_sym_distcorr_norm_bin_filepath, 'tracts_mat_sym_distcorr_norm_bin', '-ascii', '-tabs');
+
 else
-    % Step 3: Perform thresholding loop to find best threshold
+
+    % Perform thresholding loop to find best threshold
     fprintf('Initial density (%.4f) > target (%.4f), performing thresholding.\n', ...
         initial_density, target_density);
     
@@ -269,12 +235,22 @@ else
 
     fprintf('Applied threshold: %.4f (resulting density: %.4f)\n', ...
         thr_final, D(I));
+    
+    % Save final connectivity matrix (symmetric, distance corrected, normalized)
+    tracts_mat_sym_distcorr_norm_bin_filename = 'DWIbiomarker1_matrix_sym_distcorr_norm_bin.txt';
+    tracts_mat_sym_distcorr_norm_bin_filepath = fullfile(tract.subj.path, tracts_mat_sym_distcorr_norm_bin_filename);
+    tracts_mat_sym_distcorr_norm_bin_filepath = char(tracts_mat_sym_distcorr_norm_bin_filepath); % Convert the string scalar to a character vector
+    save(tracts_mat_sym_distcorr_norm_bin_filepath, 'tracts_mat_sym_distcorr_norm_bin', '-ascii', '-tabs');
+
 end
 
 
 
 
-%% Step 5: calculate summary connectome measures (of all modules)
+%% Step 5: calculate summary connectome measures (of all modules and whole network)
+
+%%%%%%%%%%%%%%%%%%%%%%%
+% Step 5a (all modules)
 
 % Define module names and biomarker status
 module_info = {
@@ -347,6 +323,8 @@ summary_table = cell2table(summary_results, ...
 disp(summary_table);
 
 
+%%%%%%%%%%%%%%%%%%%%%%%
+% Step 5b (whole network)
 
 % === Append whole-network summary ===
 
@@ -399,163 +377,3 @@ summary_table = cell2table(summary_results, ...
 
 % Display full summary
 disp(summary_table);
-
-
-
-
-
-
-%% OUTDATED (as of 4-16-25)
-
-
-%% Step 4: Threshold the network matrix based on target density
-
-% Note, tries to find a threshold that brings a certain density measure D as close as possible to a target_density.
-% Note, if observed density < target density at thresh = 0, then the matrix remains unthresholded
-
-% desired density of final graph
-target_density = 0.1;
-
-% initialize matrix
-D = [];
-
-% threshold range
-thr_rang = (0.0:0.0001:0.3);
-
-% test thresholds
-for i = 1:length(thr_rang);
-
-   tracts_mat_sym_distcorr_norm_bin=im2bw(tracts_mat_sym_distcorr_norm,thr_rang(i)); % binarize with current threshold
-   tracts_mat_sym_distcorr_norm_bin=double(tracts_mat_sym_distcorr_norm_bin); % ensures double matrix
-   d = density_und(tracts_mat_sym_distcorr_norm_bin); % calculates density of threshed/binarized graph
-   D = [D;d]; % adds density (d) from current thresh to array of densities across all thresholds
-
-end
-
-% initialize empty arrays
-I =[]; J=[]; DD=[]; 
-
-% calculates the absolute difference between the density D and the target_density.
-DD = abs(D - target_density);
-
-% finds the indices of the elements in DD that are equal to the minimum value of DD
-[I,J] = find(DD(:) == min(DD));
-
-% select final threshold
-thr_final = thr_rang(I(1));
-    % This line selects the threshold value corresponding to the first index in I. 
-    % It uses I(1) to get the index of the first occurrence of the minimum difference and then uses this index 
-    % to select the corresponding threshold from the thr_rang array.
-
-
-% threshold the matrix based on this final threshold (if thr_final = 0, then no change)
-tracts_mat_sym_distcorr_norm_bin=im2bw(tracts_mat_sym_distcorr_norm,thr); % binarize with current threshold
-tracts_mat_sym_distcorr_norm_bin=double(tracts_mat_sym_distcorr_norm_bin); % ensures double matrix
-
-
-%% Step 5: calculate summary connectome measures (of whole network)
-
-% calculate various connectome measures
-
-Eglob_network = efficiency_bin(tracts_mat_sym_distcorr_norm_bin); %computing global efficiency
-
-Ccoef_all_network = clustering_coef_bu(tracts_mat_sym_distcorr_norm_bin);
-Ccoef_network = mean(Ccoef_all_network); % mean (global)  clustering coef
-
-Betw_all_network = betweenness_bin(tracts_mat_sym_distcorr_norm_bin);
-Betw_network = mean(Betw_all_network); % computing the in betweeness
-
-Dist_network = 1/Eglob_network; % estimating the mean distance of the network
-
-Mod_all_network = modularity_und(tracts_mat_sym_distcorr_norm_bin);
-Mod_network = max(Mod_all_network); % computing the modularity
-
-% calculates all degrees
-Deg_vox_network = degrees_und(tracts_mat_sym_distcorr_norm_bin);  
-    % calculate the degree of each node in an undirected graph. The degree of a node is the number of edges connected to it
-    % note, this counts bidirections twice! (since it's computed on the
-    % whole matrix instead of the upper or lower half)
-
-% calculates average degree
-Deg_mean_network = mean(Deg_vox_network);
-    % note, Deg_vox = mean(Degree_vox); was not part of original code but
-    % I added it because it provides an average degree (single value) for
-    % each subject (to be used as the biomarker), instead of a separate
-    % degree for each voxel (produced by degrees_und)
-
-% calculates density
-density_network = density_und(tracts_mat_sym_distcorr_norm_bin);
-    % num edges (in upper triangle of matrix, since it's symmetric) / N(N-1)/2
-
-% print summary measures (of whole network)
-Eglob_network
-Ccoef_network
-Betw_network
-Dist_network
-Mod_network
-Deg_vox_network
-Deg_mean_network
-density_network
-
-
-
-
-%% Step 6: calculate summary connectome measures (of biomarker module)
-
-% identify the biomarker module
-biomarker_module_indices = find(coor_roi(:, 4) == 3); % Rows where the 4th column equals 3
-
-% Extract rows and columns corresponding to biomarker module
-biomarker_module_mat = tracts_mat_sym_distcorr_norm_bin(biomarker_module_indices, biomarker_module_indices);
-
-% calculate various connectome measures
-
-Eglob_biomarker = efficiency_bin(biomarker_module_mat); %computing global efficiency
-
-Ccoef_all_biomarker = clustering_coef_bu(biomarker_module_mat);
-Ccoef_biomarker = mean(Ccoef_all_biomarker); % mean (global)  clustering coef
-
-Betw_all_biomarker = betweenness_bin(biomarker_module_mat);
-Betw_biomarker = mean(Betw_all_biomarker); % computing the in betweeness
-
-Dist_biomarker = 1/Eglob_biomarker; % estimating the mean distance of the network
-
-Mod_all_biomarker = modularity_und(biomarker_module_mat);
-Mod_biomarker = max(Mod_all_biomarker); % computing the modularity
-
-% calculates all degrees
-Deg_vox_biomarker = degrees_und(biomarker_module_mat);  
-    % calculate the degree of each node in an undirected graph. The degree of a node is the number of edges connected to it
-    % note, this counts bidirections twice! (since it's computed on the
-    % whole matrix instead of the upper or lower half)
-
-% calculates average degree
-Deg_mean_biomarker = mean(Deg_vox_biomarker);
-    % note, Deg_vox = mean(Degree_vox); was not part of original code but
-    % I added it because it provides an average degree (single value) for
-    % each subject (to be used as the biomarker), instead of a separate
-    % degree for each voxel (produced by degrees_und)
-
-% calculates density
-density_biomarker = density_und(biomarker_module_mat);
-    % num edges (in upper triangle of matrix, since its symmetric) / N(N-1)/2
-
-% calculate biomarker final metric (WM connections in Vachon-Presseau et al. 2016)
-Deg_vox_sum_biomarker = sum(Deg_vox_biomarker); % total of edges
-num_vox_biomarker = size(biomarker_module_mat, 1);
-max_edges_biomarker = num_vox_biomarker*(num_vox_biomarker-1)/2;
-WM_connections_biomarker = Deg_vox_sum_biomarker / max_edges_biomarker;
-
-% print summary measures (of module)
-Eglob_biomarker
-Ccoef_biomarker
-Betw_biomarker
-Dist_biomarker
-Mod_biomarker
-Deg_vox_biomarker
-Deg_mean_biomarker
-density_biomarker
-WM_connections_biomarker
-
-
-
