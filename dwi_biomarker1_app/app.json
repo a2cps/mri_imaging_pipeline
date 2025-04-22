@@ -1,6 +1,6 @@
 {
   "id": "maj-dwi_biomarker1_app",
-  "version": "0.1",
+  "version": "1.2",
   "description": "Tractography and biomarker estimation",
   "owner": "${apiUserId}",
   "enabled": true,

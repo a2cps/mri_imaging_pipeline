@@ -1,47 +1,39 @@
 {
     "name": "dwi_biomarker1",
     "appId": "maj-dwi_biomarker1_app",
-    "appVersion": "0.1",
+    "appVersion": "1.2",
     "parameterSet": {
         "appArgs": [
             {
             "name": "PARTICIPANT_LABEL",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "sub-10042"
             },
             {
             "name": "SESSION_LABEL",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "ses-V1"
             },
             {
             "name": "QSIPREPDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsiprep/NS10042V1/qsiprep"
             },
             {
             "name": "BEDPOSTXDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/bedpostx/NS10042V1/bedpostx/sub-10042/ses-V1/dwi.bedpostx"
             },
             {
             "name": "QSIRECONDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsirecon_fsl_dtifit/NS10042V1/qsirecon-fsl/derivatives/qsirecon-FSL"
             },
             {
             "name": "ROIPREPDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "/corral-secure/projects/A2CPS/shared/maj/DWI_Biomarker-1/prepare_ROIs-VP"
             },
             {
             "name": "OUTDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "/corral-secure/projects/A2CPS/shared/maj/dwi_biomarker1_app/derivatives"
             },
             {
             "name": "LICENSE",
-            "inputMode": "INCLUDE_BY_DEFAULT",
             "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/code/license.txt"
             }
         ]
