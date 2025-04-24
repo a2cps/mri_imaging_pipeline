@@ -5,6 +5,7 @@ import pathlib
 import re
 import sys
 import zipfile
+import tempfile
 from shutil import copyfile, copytree, make_archive, rmtree
 from typing import Literal, Tuple
 
@@ -40,11 +41,15 @@ def extract_phantom_date(dicom_file: str) -> str:
     """
     header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
 
-    if (day := header.get("SeriesDate")) or (day := header.get("AcquisitionDate")):
+    if (day := header.get("SeriesDate")) or (
+        day := header.get("AcquisitionDate")
+    ):
         tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
         return datetime.date.strftime(tmp, "%y%m%d")
 
-    raise AssertionError("AcquisitionDate not found in dicom. Incorrect file unzipped?")
+    raise AssertionError(
+        "AcquisitionDate not found in dicom. Incorrect file unzipped?"
+    )
 
 
 def yymmdd_to_mmddyy(day: str) -> str:
@@ -103,17 +108,32 @@ def test_zip(filename: str) -> bool:
         return False
 
 
+def is_device_serial_number_in_header(file: str) -> bool:
+    header = pydicom.dcmread(file, stop_before_pixels=True)
+    return "DeviceSerialNumber" in header
+
+
 def find_dicom(filename: str, isZip: bool) -> str:
     # Find first zip dicom
     if isZip:
         site_zip = zipfile.ZipFile(filename)
         for listing in site_zip.infolist():
-            if (not listing.is_dir()) and ("DICOMDIR" not in listing.orig_filename):
+            if (not listing.is_dir()) and (
+                "DICOMDIR" not in listing.orig_filename
+            ):
+                # confirm that device_serial_number is in this dicom
+                # (missing from some RU files)
+                with tempfile.TemporaryDirectory() as tmpd:
+                    dicom_file = site_zip.extract(listing, tmpd)
+                    if not (is_device_serial_number_in_header(dicom_file)):
+                        continue
                 return site_zip.extract(listing)
     # Find first unzipped dicom
     for root, _, files in os.walk(filename):
         if files != []:
             dicom_file = root + "/" + files[0]
+            if not (is_device_serial_number_in_header(dicom_file)):
+                continue
             print(dicom_file)
             return dicom_file
 
@@ -136,7 +156,11 @@ def get_site_from_zipfile(
     }
 
     return SUBMISSION_SITE.get(
-        [key for key in SUBMISSION_SITE.keys() if key in str(zipfile.absolute())][0]
+        [
+            key
+            for key in SUBMISSION_SITE.keys()
+            if key in str(zipfile.absolute())
+        ][0]
     )  # type: ignore
 
 
@@ -172,15 +196,24 @@ def read_dicom_metadata(
         subject_id = f"{site_id.lower()}phantom"
         session_id = extract_phantom_date(dicom_file)
         output_path = determine_output_path(
-            site_id, subject_id=yymmdd_to_mmddyy(session_id), session_id="QA", qc="QC_"
+            site_id,
+            subject_id=yymmdd_to_mmddyy(session_id),
+            session_id="QA",
+            qc="QC_",
         )
     else:
         std_name = re.search(
             "(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)", patientname.upper()
-        ).group(0)  # type: ignore
-        (site_id, subject_id, v, session_number, _) = re.split("(\d+)", std_name)
+        ).group(
+            0
+        )  # type: ignore
+        (site_id, subject_id, v, session_number, _) = re.split(
+            "(\d+)", std_name
+        )
         session_id = v + session_number
-        output_path = determine_output_path(site_id, subject_id, session_id, qc="")
+        output_path = determine_output_path(
+            site_id, subject_id, session_id, qc=""
+        )
 
     return site_id, subject_id, session_id, output_path
 
@@ -206,7 +239,8 @@ def write_outputs(filename, output_path, isZip, client):
     if os.path.exists(output_path) or os.path.exists(output_path + ".zip"):
         print("Output file exists already, will not overwrite")
         data = post_notification(
-            client, "Output file exists already, will not overwrite " + output_path
+            client,
+            "Output file exists already, will not overwrite " + output_path,
         )
         print(data)
         exit(1)
@@ -247,7 +281,9 @@ def main(filename, predefined_subject_id):
             "(\d+)", predefined_subject_id
         )
         session_id = v + session_number
-        output_path = determine_output_path(site_id, subject_id, session_id, qc="")
+        output_path = determine_output_path(
+            site_id, subject_id, session_id, qc=""
+        )
     else:
         (site_id, subject_id, session_id, output_path) = read_dicom_metadata(
             dicom_file, pathlib.Path(filename)
