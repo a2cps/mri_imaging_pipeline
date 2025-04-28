@@ -1,7 +1,7 @@
 {
     "name": "dwi_biomarker1",
     "appId": "maj-dwi_biomarker1_app",
-    "appVersion": "1.2",
+    "appVersion": "2.1",
     "parameterSet": {
         "appArgs": [
             {
@@ -55,5 +55,5 @@
     "hiddenOptions": [
         "MEM"
     ],
-    "maxMinutes": 360
+    "maxMinutes": 2880
 }

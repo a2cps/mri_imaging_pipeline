@@ -30,7 +30,7 @@ main (){
 
     antsApplyTransforms -d 3 \
     -i "${input}".nii.gz \
-    --interpolation "${transform}" \
+    --interpolation "${interp}" \
     -t "${transform}" \
     -r "${ref}" \
     -o "${output}".nii.gz
@@ -92,7 +92,7 @@ main (){
     local ref="${qsiprep_anat}"
     local transform="${qsiprep_xfm_mni2dwi}"
     local mask="${mask_bin_MNI1mm}"
-    local output_T1w="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_pref}"_space-T1w
+    local output_T1w="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_bin_pref}"_space-T1w
     local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
     antsApplyTransforms -d 3 \
@@ -126,7 +126,7 @@ main (){
     local ref="${qsiprep_anat}"
     local transform="${qsiprep_xfm_mni2dwi}"
     local mask="${mask_index_MNI1mm}"
-    local output_T1w="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_pref}"_space-T1w
+    local output_T1w="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_index_pref}"_space-T1w
     local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
     antsApplyTransforms -d 3 \
@@ -187,7 +187,7 @@ main (){
 
     # Extract each voxel into a separate nii file (indexed output)
 
-    fslmaths "${mask_pref}"_voxindex.nii.gz -thr "${i}" -uthr "${i}" "${dir_split_masks}"/"${mask_pref}"_voxindex_vox-"${i}"_index.nii.gz
+    fslmaths "${dir_move_masks}"/"${mask_pref}"_voxindex.nii.gz -thr "${i}" -uthr "${i}" "${dir_split_masks}"/"${mask_pref}"_voxindex_vox-"${i}"_index.nii.gz
 
     done
 
@@ -195,12 +195,12 @@ main (){
     ###########################################################################################################
     ## STEP 4: Probtrackx (tractography, voxelwise seeds)
 
-    ## Define input dir
-    local dir_probtrackx_input="${BEDPOSTXDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi.bedpostx
-
     ## Define output dir
     local dir_probtrackx_output="${OUTDIR}"/probtrackx/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/DWIbiomarker1_modules_all_voxseeds
     mkdir -p "${dir_probtrackx_output}"
+
+    ## define binary mask in native DWI fslstd
+    local mask_pref="${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi-fslstd
 
 
     ## Run voxelwise tractography
@@ -209,7 +209,7 @@ main (){
     echo "running voxel " "${i}"
 
     # Define mask
-    local mask="${dir_probtrackx_input}"/nodif_brain_mask.nii.gz
+    local mask="${BEDPOSTXDIR}"/nodif_brain_mask.nii.gz
 
     # Define seed
     local seed="${dir_split_masks}"/"${mask_pref}"_voxindex_vox-"${i}"_bin.nii.gz
@@ -219,7 +219,7 @@ main (){
         mkdir -p "${tractdir}"
 
     # Run tractography
-    probtrackx2 -x ${seed} -l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --ompl -s "${dir_probtrackx_input}"/merged -m "${mask}" --dir="${tractdir}" --modeuler
+    probtrackx2 -x ${seed} -l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --ompl -s "${BEDPOSTXDIR}"/merged -m "${mask}" --dir="${tractdir}" --modeuler
         ## not including distance correction (would be --pd), doing in matlab instead
         
     done
@@ -234,24 +234,23 @@ main (){
 
     ## merge all (fdt_paths)
     output="${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtpaths_all.nii.gz
-    fslmerge -t ${output}.nii.gz $(ls -d -v "${dir_probtrackx_output}"/vox-*/fdt_paths.nii.gz)
+    fslmerge -t ${output} $(ls -d -v "${dir_probtrackx_output}"/vox-*/fdt_paths.nii.gz)
 
     ## merge all (fdt_lengths)
     output="${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtlengths_all.nii.gz
-    fslmerge -t "${output}" "${dir_probtrackx_output}"/vox-*/fdt_paths_lengths.nii.gz
+    fslmerge -t ${output} $(ls -d -v "${dir_probtrackx_output}"/vox-*/fdt_paths_lengths.nii.gz)
 
 
     ###########################################################################################################
     ## STEP 6: Cleanup files
 
     # Remove seed voxels (>10k per subj)
-    rm -R "${dir_split_masks}"
+    #rm -R "${dir_split_masks}"
 
     # Remove voxelwise probtrackx outputs (>10k per subj)
-    rm -R ${dir_probtrackx_output}"/vox-*
+    #rm -R "${dir_probtrackx_output}"/vox-*
 
 }
-
 
 export -f main
 
