@@ -245,10 +245,10 @@ main (){
     ## STEP 6: Cleanup files
 
     # Remove seed voxels (>10k per subj)
-    #rm -R "${dir_split_masks}"
+    rm -R "${dir_split_masks}"
 
     # Remove voxelwise probtrackx outputs (>10k per subj)
-    #rm -R "${dir_probtrackx_output}"/vox-*
+    rm -R "${dir_probtrackx_output}"/vox-*
 
 }
 
