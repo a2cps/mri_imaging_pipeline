@@ -4,7 +4,7 @@ logs:
   token: ~
 heudiconv:
   appId: heudiconv
-  appVersion: 3.0.9
+  appVersion: 3.1.0
   name: heudiconv_test
   archive: true
   archiveSystemDir: testing/actor-heudiconv
@@ -19,8 +19,8 @@ heudiconv:
         value: --subjects nsphantom
       - key: SESSION_FOR_LONGITUDINAL
         value: --ses 240306
-      - key: SITE
-        value: WS
+      - key: DEVICE_SERIAL_NUMBER
+        value: 1a
   subscriptions:
     - description: Message on Failure
       enabled: true

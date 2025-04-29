@@ -4,7 +4,7 @@ logs:
   token: ~
 dicom_reader:
   appId: dicom_reader
-  appVersion: 3.0.2
+  appVersion: 3.0.5
   name: dicom
   archive: true
   archiveSystemId: secure.frontera
