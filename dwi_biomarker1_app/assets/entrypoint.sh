@@ -6,11 +6,10 @@ main (){
     local SESSION_LABEL="${2}"
     local QSIPREPDIR="${3}"
     local BEDPOSTXDIR="${4}"
-    local QSIRECONDIR="${5}"
-    local ROIPREPDIR="${6}"
-    local OUTDIR="${7}"
-        mkdir -p "${OUTDIR}"
-    local LICENSE="${8}"
+    local ROIPREPDIR="${5}"
+    local OUTDIR="${6}"
+    
+    mkdir -p "${OUTDIR}"
 
     ###########################################################################################################
     ## STEP 0: Prepare mask files (before moving into subjects)
@@ -42,33 +41,18 @@ main (){
     ## STEP 1: Define paths/files (qsiprep and qsirecon-FSL)
 
     ## Redefine subject paths
-    local dir_qsirecon="${QSIRECONDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi
     local dir_qsiprep_dwi="${QSIPREPDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi
     local dir_qsiprep_anat="${QSIPREPDIR}"/"${PARTICIPANT_LABEL}"/anat
 
     ## Define qsiprep files
     local fname_qsiprep_anat="${PARTICIPANT_LABEL}"_desc-preproc_T1w
-    local fname_qsiprep_anat_mask="${PARTICIPANT_LABEL}"_desc-brain_mask
     local fname_qsiprep_xfm_mni2dwi="${PARTICIPANT_LABEL}"_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm
-    local fname_qsiprep_dwi="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_desc-preproc_dwi
     local fname_qsiprep_dwi_ref="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwiref
-    local fname_qsiprep_dwi_mask="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_desc-brain_mask
 
     local qsiprep_anat="${dir_qsiprep_anat}"/"${fname_qsiprep_anat}".nii.gz
-    local qsiprep_anat_mask="${dir_qsiprep_anat}"/"${fname_qsiprep_anat_mask}".nii.gz
     local qsiprep_xfm_mni2dwi="${dir_qsiprep_anat}"/"${fname_qsiprep_xfm_mni2dwi}".h5
-    local qsiprep_dwi="${dir_qsiprep_dwi}"/"${fname_qsiprep_dwi}".nii.gz
     local qsiprep_dwi_ref="${dir_qsiprep_dwi}"/"${fname_qsiprep_dwi_ref}".nii.gz
-    local qsiprep_dwi_mask="${dir_qsiprep_dwi}"/"${fname_qsiprep_dwi_mask}".nii.gz
 
-    ## Define qsireconFSL files
-    local fname_qsireconFSL_mask="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_mask
-    local fname_qsireconFSL_dwi="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwi
-
-    local qsireconFSL_mask="${dir_qsirecon}"/"${fname_qsireconFSL_mask}".nii.gz
-    local qsireconFSL_dwi="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".nii.gz
-    local qsireconFSL_bvals="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bval
-    local qsireconFSL_bvecs="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bvec
 
     ###########################################################################################################
     ## STEP 2: Move masks from MNI to native (preproc)
