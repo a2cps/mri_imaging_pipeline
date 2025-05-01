@@ -1,7 +1,7 @@
 {
     "name": "dwi_biomarker1",
     "appId": "maj-dwi_biomarker1_app",
-    "appVersion": "2.4",
+    "appVersion": "2.5",
     "parameterSet": {
         "appArgs": [
             {

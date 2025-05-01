@@ -12,31 +12,6 @@ main (){
         mkdir -p "${OUTDIR}"
     local LICENSE="${8}"
 
-    ###########################################################################################################
-    ## STEP 0: Prepare mask files (before moving into subjects)
-
-        ## This is done only once, not subject-wise, does it make sense to include here or can it be run separately just once?
-
-        ## $roiprepdir is in my /shared/maj folder, should there be an official product dir for these?
-
-    ## Resample/register the original masks from old 4mm MNI to new 1mm MNI
-    local mask_modall_pref="modules_all"
-    local input="${ROIPREPDIR}"/"${mask_modall_pref}"
-    local ref="${ROIPREPDIR}"/tpl-MNI152NLin2009cAsym_res-01_desc-brain_T1w.nii.gz
-    local transform="${ROIPREPDIR}"/tpl-MNI152NLin2009cAsym_from-MNI152NLin6Asym_mode-image_xfm.h5
-    local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
-    local refname="MNI152NLin2009cAsym_brain"
-    local output="${input}"_in_"${refname}"
-
-    antsApplyTransforms -d 3 \
-    -i "${input}".nii.gz \
-    --interpolation "${interp}" \
-    -t "${transform}" \
-    -r "${ref}" \
-    -o "${output}".nii.gz
-
-    ## Binarize the full mask
-    fslmaths ${output}.nii.gz -bin ${output}_bin.nii.gz
 
     ###########################################################################################################
     ## STEP 1: Define paths/files (qsiprep and qsirecon-FSL)
