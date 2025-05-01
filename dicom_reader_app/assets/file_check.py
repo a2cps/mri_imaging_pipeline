@@ -1,16 +1,17 @@
+import datetime
+import json
 import os
 import pathlib
-from typing import Tuple, Literal
-
-import zipfile
-from shutil import copyfile, copytree, make_archive, rmtree
-import requests
-import sys
-import pydicom
 import re
-import datetime
+import sys
+import zipfile
+import tempfile
+from shutil import copyfile, copytree, make_archive, rmtree
+from typing import Literal, Tuple
+
+import pydicom
+import requests
 from tapipy.tapis import Tapis
-import json
 
 SITE_CODES = {
     "UI": "UI_uic",
@@ -23,6 +24,15 @@ SITE_CODES = {
 }
 
 
+def get_device_serial_number(dcm_file: str) -> str:
+    dcm = pydicom.dcmread(dcm_file, stop_before_pixels=True)
+    device_serial_number = dcm.get("DeviceSerialNumber")
+    if not isinstance(device_serial_number, str):
+        raise ValueError("DeviceSerialNumber missing from dicom")
+
+    return device_serial_number
+
+
 def extract_phantom_date(dicom_file: str) -> str:
     """
     the label of the file should have the date, but this is unreliable
@@ -31,51 +41,59 @@ def extract_phantom_date(dicom_file: str) -> str:
     """
     header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
 
-    if (day := header.get("SeriesDate")) or (day := header.get("AcquisitionDate")):
+    if (day := header.get("SeriesDate")) or (
+        day := header.get("AcquisitionDate")
+    ):
         tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
         return datetime.date.strftime(tmp, "%y%m%d")
 
-    raise AssertionError("AcquisitionDate not found in dicom. Incorrect file unzipped?")
+    raise AssertionError(
+        "AcquisitionDate not found in dicom. Incorrect file unzipped?"
+    )
 
 
 def yymmdd_to_mmddyy(day: str) -> str:
     tmp = datetime.datetime.strptime(day, "%y%m%d").date()
     return datetime.date.strftime(tmp, "%m%d%y")
 
-def get_client():
-    with open('/home1/09910/a2cpsadmin/.tapis3/a2cpsadmin', 'r') as openfile:
-        data = json.load(openfile)
-    t = Tapis(base_url=data["base_url"],
-           tenant_id=data["tenant_id"],
-           access_token=data["access_token"],
-           refresh_token=data["refresh_token"],
-           client_id=data["client_id"],
-           client_key=data["client_key"],
-           verify=True)
-    t.get_tokens()
-    return t 
 
-def post_notification(client,notification):
+def get_client():
+    with open("/home1/09910/a2cpsadmin/.tapis3/a2cpsadmin", "r") as openfile:
+        data = json.load(openfile)
+    t = Tapis(
+        base_url=data["base_url"],
+        tenant_id=data["tenant_id"],
+        access_token=data["access_token"],
+        refresh_token=data["refresh_token"],
+        client_id=data["client_id"],
+        client_key=data["client_key"],
+        verify=True,
+    )
+    t.get_tokens()
+    return t
+
+
+def post_notification(client, notification):
     secretObj = client.sk.readSecret(  # type: ignore
         secretType="user",
         secretName="SLACKBOT_ADDRESS_SECRET_NAME",
-        tenant=client.access_token.claims['tapis/tenant_id'],
-        user=client.access_token.claims['tapis/username']
-        )
-    endpoint = secretObj.get("secretMap").get('SLACKBOT_ADDRESS_SECRET_KEY')
+        tenant=client.access_token.claims["tapis/tenant_id"],
+        user=client.access_token.claims["tapis/username"],
+    )
+    endpoint = secretObj.get("secretMap").get("SLACKBOT_ADDRESS_SECRET_KEY")
     content = requests.post(url=endpoint, json={"text": notification})
     data = content.json()
     return data
 
 
-def message_heudiconv(client,message):
+def message_heudiconv(client, message):
     secretObj = client.sk.readSecret(  # type: ignore
         secretType="user",
         secretName="HEUDICONV_NONCE",
-        tenant=client.access_token.claims['tapis/tenant_id'],
-        user=client.access_token.claims['tapis/username']
-        )
-    endpoint = secretObj.get("secretMap").get('HEUDICONV_NONCE')
+        tenant=client.access_token.claims["tapis/tenant_id"],
+        user=client.access_token.claims["tapis/username"],
+    )
+    endpoint = secretObj.get("secretMap").get("HEUDICONV_NONCE")
     content = requests.post(url=endpoint, json=message)
     data = content.json()
     return data
@@ -85,9 +103,14 @@ def test_zip(filename: str) -> bool:
     try:
         zipfile.ZipFile(filename).testzip()
         return True
-    except Exception as e:
+    except Exception:
         print("bad zip")
         return False
+
+
+def is_device_serial_number_in_header(file: str) -> bool:
+    header = pydicom.dcmread(file, stop_before_pixels=True)
+    return "DeviceSerialNumber" in header
 
 
 def find_dicom(filename: str, isZip: bool) -> str:
@@ -95,22 +118,31 @@ def find_dicom(filename: str, isZip: bool) -> str:
     if isZip:
         site_zip = zipfile.ZipFile(filename)
         for listing in site_zip.infolist():
-            if (not listing.is_dir()) and ("DICOMDIR" not in listing.orig_filename):
-                break
-        dicom_file = site_zip.extract(listing)
-        return dicom_file
+            if (not listing.is_dir()) and (
+                "DICOMDIR" not in listing.orig_filename
+            ):
+                # confirm that device_serial_number is in this dicom
+                # (missing from some RU files)
+                with tempfile.TemporaryDirectory() as tmpd:
+                    dicom_file = site_zip.extract(listing, tmpd)
+                    if not (is_device_serial_number_in_header(dicom_file)):
+                        continue
+                return site_zip.extract(listing)
     # Find first unzipped dicom
     for root, _, files in os.walk(filename):
         if files != []:
             dicom_file = root + "/" + files[0]
+            if not (is_device_serial_number_in_header(dicom_file)):
+                continue
             print(dicom_file)
             return dicom_file
+
+    raise RuntimeError("Unable to find dicom")
 
 
 def get_site_from_zipfile(
     zipfile: pathlib.Path,
 ) -> Literal["UI", "NS", "UC", "UM", "WS", "SH", "RU"]:
-
     SUBMISSION_SITE = {
         "a2dtn01": "UI",
         "UI_uic": "UI",  # helps to have this when testing on files stored in products
@@ -120,12 +152,16 @@ def get_site_from_zipfile(
         "SH_spectrum_health_grand_rapids": "SH",
         "SH_spectrum_health": "SH",  # helps to have this when testing on files stored in products
         "WS_wayne_state": "WS",
-        "RU_rush_imaging": "RU"        
+        "RU_rush_imaging": "RU",
     }
 
     return SUBMISSION_SITE.get(
-        [key for key in SUBMISSION_SITE.keys() if key in str(zipfile.absolute())][0]
-    )
+        [
+            key
+            for key in SUBMISSION_SITE.keys()
+            if key in str(zipfile.absolute())
+        ][0]
+    )  # type: ignore
 
 
 def read_dicom_metadata(
@@ -160,15 +196,24 @@ def read_dicom_metadata(
         subject_id = f"{site_id.lower()}phantom"
         session_id = extract_phantom_date(dicom_file)
         output_path = determine_output_path(
-            site_id, subject_id=yymmdd_to_mmddyy(session_id), session_id=f"QA", qc="QC_"
+            site_id,
+            subject_id=yymmdd_to_mmddyy(session_id),
+            session_id="QA",
+            qc="QC_",
         )
     else:
         std_name = re.search(
             "(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)", patientname.upper()
-        ).group(0)
-        (site_id, subject_id, v, session_number, _) = re.split("(\d+)", std_name)
+        ).group(
+            0
+        )  # type: ignore
+        (site_id, subject_id, v, session_number, _) = re.split(
+            "(\d+)", std_name
+        )
         session_id = v + session_number
-        output_path = determine_output_path(site_id, subject_id, session_id, qc="")
+        output_path = determine_output_path(
+            site_id, subject_id, session_id, qc=""
+        )
 
     return site_id, subject_id, session_id, output_path
 
@@ -193,8 +238,9 @@ def determine_output_path(
 def write_outputs(filename, output_path, isZip, client):
     if os.path.exists(output_path) or os.path.exists(output_path + ".zip"):
         print("Output file exists already, will not overwrite")
-        data = post_notification(client,
-            "Output file exists already, will not overwrite " + output_path
+        data = post_notification(
+            client,
+            "Output file exists already, will not overwrite " + output_path,
         )
         print(data)
         exit(1)
@@ -235,17 +281,21 @@ def main(filename, predefined_subject_id):
             "(\d+)", predefined_subject_id
         )
         session_id = v + session_number
-        output_path = determine_output_path(site_id, subject_id, session_id, qc="")
+        output_path = determine_output_path(
+            site_id, subject_id, session_id, qc=""
+        )
     else:
         (site_id, subject_id, session_id, output_path) = read_dicom_metadata(
             dicom_file, pathlib.Path(filename)
         )
+    device_serial_number = get_device_serial_number(dicom_file)
 
     print(output_path)
+    print(device_serial_number)
     client = get_client()
     write_outputs(filename, output_path, isZip, client)
     message = {
-        "site_id": site_id,
+        "device_serial_number": device_serial_number,
         "subject_id": subject_id,
         "session_id": session_id,
         "dicoms": output_path + ".zip",

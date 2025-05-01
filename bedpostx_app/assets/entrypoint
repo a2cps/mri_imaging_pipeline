@@ -1,23 +1,27 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+
+set -euo pipefail
+
 
 main (){
 
-    local PARTICIPANT_LABEL="${1}"
-    local SESSION_LABEL="${2}"
-    local QSIRECONDIR="${3}"
-    local OUTDIR="${4}"
+    local -r PARTICIPANT_LABEL="${1}"
+    local -r SESSION_LABEL="${2}"
+    local -r QSIRECONDIR="${3}"
+    local -r OUTDIR="${4}"
 
     ###########################################################################################################
     ## Define paths/files (qsiprep and qsirecon-FSL)
 
     ## Define qsireconFSL files
-    local dir_qsirecon="${QSIRECONDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi
-    local fname_qsireconFSL_mask="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_mask
-    local fname_qsireconFSL_dwi="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwi
-    local qsireconFSL_mask="${dir_qsirecon}"/"${fname_qsireconFSL_mask}".nii.gz
-    local qsireconFSL_dwi="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".nii.gz
-    local qsireconFSL_bvals="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bval
-    local qsireconFSL_bvecs="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bvec
+    local -r dir_qsirecon="${QSIRECONDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi
+    local -r fname_qsireconFSL_mask="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_mask
+    local -r fname_qsireconFSL_dwi="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwi
+    local -r qsireconFSL_mask="${dir_qsirecon}"/"${fname_qsireconFSL_mask}".nii.gz
+    local -r qsireconFSL_dwi="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".nii.gz
+    local -r qsireconFSL_bvals="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bval
+    local -r qsireconFSL_bvecs="${dir_qsirecon}"/"${fname_qsireconFSL_dwi}".bvec
 
     
     ###########################################################################################################
@@ -26,8 +30,8 @@ main (){
     ## Prepare bedpostx input
 
     ## Create input dir
-    local dir_bedpostx_input="${OUTDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/bedpostx
-    mkdir -p "${dir_bedpostx_input}"
+    local dir_bedpostx_input
+    dir_bedpostx_input="$(mktemp -d)"
 
     ## Copy input files (from qsirecon-FSL) into input dir
 
@@ -38,7 +42,12 @@ main (){
 
     ## Run bedpostx
 
-    bedpostx_gpu "${dir_bedpostx_input}" -n 3 -b 1000 -j 1250 -s 25 -model 2 --rician --f0 --ardf0
+    bedpostx "${dir_bedpostx_input}" -n 3 -b 1000 -j 1250 -s 25 -model 2 --rician --f0 --ardf0
+
+    ## Create final output dir
+    local -r dir_bedpostx_output_parent="${OUTDIR}"/bedpostx/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"
+    mkdir -p "${dir_bedpostx_output_parent}"
+    mv "${dir_bedpostx_input}".bedpostX "${dir_bedpostx_output_parent}"/dwi.bedpostx
 
     ## NOTES
 
