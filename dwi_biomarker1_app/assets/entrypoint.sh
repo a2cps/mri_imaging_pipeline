@@ -8,34 +8,8 @@ main (){
     local BEDPOSTXDIR="${4}"
     local ROIPREPDIR="${5}"
     local OUTDIR="${6}"
-    
+
     mkdir -p "${OUTDIR}"
-
-    ###########################################################################################################
-    ## STEP 0: Prepare mask files (before moving into subjects)
-
-        ## This is done only once, not subject-wise, does it make sense to include here or can it be run separately just once?
-
-        ## $roiprepdir is in my /shared/maj folder, should there be an official product dir for these?
-
-    ## Resample/register the original masks from old 4mm MNI to new 1mm MNI
-    local mask_modall_pref="modules_all"
-    local input="${ROIPREPDIR}"/"${mask_modall_pref}"
-    local ref="${ROIPREPDIR}"/tpl-MNI152NLin2009cAsym_res-01_desc-brain_T1w.nii.gz
-    local transform="${ROIPREPDIR}"/tpl-MNI152NLin2009cAsym_from-MNI152NLin6Asym_mode-image_xfm.h5
-    local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
-    local refname="MNI152NLin2009cAsym_brain"
-    local output="${input}"_in_"${refname}"
-
-    antsApplyTransforms -d 3 \
-    -i "${input}".nii.gz \
-    --interpolation "${interp}" \
-    -t "${transform}" \
-    -r "${ref}" \
-    -o "${output}".nii.gz
-
-    ## Binarize the full mask
-    fslmaths ${output}.nii.gz -bin ${output}_bin.nii.gz
 
     ###########################################################################################################
     ## STEP 1: Define paths/files (qsiprep and qsirecon-FSL)
@@ -70,35 +44,26 @@ main (){
     local fname_mask_pref="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_desc-mask
     local mask_index_pref="modules_all_index" # created/used here
     local mask_bin_pref="modules_all_bin" # created/used here
+    local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
     ## 1a: Move mask (bin) to native anat (preproc)
 
-    local ref="${qsiprep_anat}"
-    local transform="${qsiprep_xfm_mni2dwi}"
-    local mask="${mask_bin_MNI1mm}"
-    local output_T1w="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_bin_pref}"_space-T1w
-    local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
-
     antsApplyTransforms -d 3 \
-    -i "${mask}" \
+    -i "${mask_bin_MNI1mm}" \
     --interpolation "${interp}" \
-    -t "${transform}" \
-    -r "${ref}" \
-    -o "${output_T1w}".nii.gz
+    -t "${qsiprep_xfm_mni2dwi}" \
+    -r "${qsiprep_anat}" \
+    -o "${dir_move_masks}"/"${fname_mask_pref}"_"${mask_bin_pref}"_space-T1w.nii.gz
 
     ## 1b: Move mask (bin) to native dwi (preproc) and reorient to qsirecon-FSL
 
-    local ref="${qsiprep_dwi_ref}"
-    local transform="${qsiprep_xfm_mni2dwi}"
-    local mask="${mask_bin_MNI1mm}"
     local output_dwi_bin="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi
-    local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
     antsApplyTransforms -d 3 \
-    -i "${mask}" \
+    -i "${mask_bin_MNI1mm}" \
     --interpolation "${interp}" \
-    -t "${transform}" \
-    -r "${ref}" \
+    -t "${qsiprep_xfm_mni2dwi}" \
+    -r "${qsiprep_dwi_ref}" \
     -o "${output_dwi_bin}".nii.gz
 
     ## Reorient mask in native (preproc) dwi to match qsirecon-FSL
@@ -107,32 +72,22 @@ main (){
 
     ## 1c: Move mask (index) to native anat (preproc)
 
-    local ref="${qsiprep_anat}"
-    local transform="${qsiprep_xfm_mni2dwi}"
-    local mask="${mask_index_MNI1mm}"
-    local output_T1w="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_index_pref}"_space-T1w
-    local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
-
     antsApplyTransforms -d 3 \
-    -i "${mask}" \
+    -i "${mask_index_MNI1mm}" \
     --interpolation "${interp}" \
-    -t "${transform}" \
-    -r "${ref}" \
-    -o "${output_T1w}".nii.gz
+    -t "${qsiprep_xfm_mni2dwi}" \
+    -r "${qsiprep_anat}" \
+    -o "${dir_move_masks}"/"${fname_mask_pref}"_"${mask_index_pref}"_space-T1w.nii.gz
 
     ## 1d: Move mask (index) to native dwi (preproc) and reorient to qsirecon-FSL
 
-    local ref="${qsiprep_dwi_ref}"
-    local transform="${qsiprep_xfm_mni2dwi}"
-    local mask="${mask_index_MNI1mm}"
     local output_dwi_index="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_index_pref}"_space-dwi
-    local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
     antsApplyTransforms -d 3 \
-    -i "${mask}" \
+    -i "${mask_index_MNI1mm}" \
     --interpolation "${interp}" \
-    -t "${transform}" \
-    -r "${ref}" \
+    -t "${qsiprep_xfm_mni2dwi}" \
+    -r "${qsiprep_dwi_ref}" \
     -o "${output_dwi_index}".nii.gz
 
     ## Reorient mask in native (preproc) dwi to match qsirecon-FSL
@@ -155,7 +110,8 @@ main (){
     fslmaths "${dir_move_masks}"/"${mask_pref}".nii.gz -index "${dir_move_masks}"/"${mask_pref}"_voxindex.nii.gz
 
     ## get number of voxels by finding max voxel index
-    local num_voxels=$(fslstats ""${dir_move_masks}"/${mask_pref}"_voxindex.nii.gz -R | awk '{print $2}')
+    local num_voxels
+    num_voxels=$(fslstats "${dir_move_masks}/${mask_pref}"_voxindex.nii.gz -R | awk '{print $2}')
     local num_voxels="${num_voxels:0:5}" # remove the ".0000"
 
     ## split mask into separate voxels
@@ -218,11 +174,11 @@ main (){
 
     ## merge all (fdt_paths)
     output="${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtpaths_all.nii.gz
-    fslmerge -t ${output} $(ls -d -v "${dir_probtrackx_output}"/vox-*/fdt_paths.nii.gz)
+    fslmerge -t "${output}" $(ls -d -v "${dir_probtrackx_output}"/vox-*/fdt_paths.nii.gz)
 
     ## merge all (fdt_lengths)
     output="${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtlengths_all.nii.gz
-    fslmerge -t ${output} $(ls -d -v "${dir_probtrackx_output}"/vox-*/fdt_paths_lengths.nii.gz)
+    fslmerge -t "${output}" $(ls -d -v "${dir_probtrackx_output}"/vox-*/fdt_paths_lengths.nii.gz)
 
 
     ###########################################################################################################
