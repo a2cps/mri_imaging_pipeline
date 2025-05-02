@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -e
 
@@ -197,17 +197,13 @@ main (){
     local dir_probtrackx_output="${OUTDIR}"/probtrackx/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/DWIbiomarker1_modules_all_voxseeds
     mkdir -p "${dir_probtrackx_output}"
 
-    ## define binary mask in native DWI fslstd
-    local mask_pref="${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi-fslstd
-
-
     ## Run voxelwise tractography    
 
     parallel --link -j "${N_WORKERS}" do_voxelwise_tractography \
         ::: "${voxels[@]}" \
         ::: "${BEDPOSTXDIR}" \
         ::: "${dir_split_masks}" \
-        ::: "${mask_pref}" \
+        ::: "${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi-fslstd \
         ::: "${dir_probtrackx_output}"
 
 
