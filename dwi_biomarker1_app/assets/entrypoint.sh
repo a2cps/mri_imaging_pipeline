@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 extract_voxels (){
 
@@ -65,6 +65,17 @@ do_voxelwise_tractography (){
 
 }
 
+find_and_merge(){
+    local DST=${1}
+    local SRC_DIR=${2}
+    local PATTERN=${3}
+
+    local to_merge
+    mapfile -t to_merge < <(find "${SRC_DIR}" -type f -name "${PATTERN}" | sort -V)
+    fslmerge -t "${DST}" "${to_merge[@]}"
+
+}
+
 main (){
 
     local PARTICIPANT_LABEL=${1}
@@ -85,13 +96,9 @@ main (){
     local dir_qsiprep_anat="${QSIPREPDIR}"/"${PARTICIPANT_LABEL}"/anat
 
     ## Define qsiprep files
-    local fname_qsiprep_anat="${PARTICIPANT_LABEL}"_desc-preproc_T1w
-    local fname_qsiprep_xfm_mni2dwi="${PARTICIPANT_LABEL}"_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm
-    local fname_qsiprep_dwi_ref="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwiref
-
-    local qsiprep_anat="${dir_qsiprep_anat}"/"${fname_qsiprep_anat}".nii.gz
-    local qsiprep_xfm_mni2dwi="${dir_qsiprep_anat}"/"${fname_qsiprep_xfm_mni2dwi}".h5
-    local qsiprep_dwi_ref="${dir_qsiprep_dwi}"/"${fname_qsiprep_dwi_ref}".nii.gz
+    local qsiprep_anat="${dir_qsiprep_anat}"/"${PARTICIPANT_LABEL}"_desc-preproc_T1w.nii.gz
+    local qsiprep_xfm_mni2dwi="${dir_qsiprep_anat}"/"${PARTICIPANT_LABEL}"_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5
+    local qsiprep_dwi_ref="${dir_qsiprep_dwi}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwiref.nii.gz
 
     ###########################################################################################################
     ## STEP 2: Move masks from MNI to native (preproc)
@@ -178,12 +185,10 @@ main (){
 
     ## split mask into separate voxels
 
-        ## QUESTION: should this be split into batches / parallelized?
-
     local voxels
     mapfile -t voxels < <(seq 1 "${num_voxels}")
 
-    parallel --link -j 1 extract_voxels \
+    parallel --link -j "${N_WORKERS}" extract_voxels \
         ::: "${voxels[@]}" \
         ::: "${dir_move_masks}" \
         ::: "${dir_split_masks}" \
@@ -201,7 +206,7 @@ main (){
 
     parallel --link -j "${N_WORKERS}" do_voxelwise_tractography \
         ::: "${voxels[@]}" \
-        ::: "${BEDPOSTXDIR}" \
+        ::: "${BEDPOSTXDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi.bedpostx \
         ::: "${dir_split_masks}" \
         ::: "${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi-fslstd \
         ::: "${dir_probtrackx_output}"
@@ -215,14 +220,16 @@ main (){
     ## Merge into 4D files
 
     ## merge all (fdt_paths)
-    fslmerge \
-        -t "${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtpaths_all.nii.gz \
-        <(find "${dir_probtrackx_output}" -type f -name "fdt_paths.nii.gz" | sort)
+    find_and_merge \
+        "${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtpaths_all.nii.gz \
+        "${dir_probtrackx_output}" \
+        fdt_paths.nii.gz
 
     ## merge all (fdt_lengths)
-    fslmerge \
-        -t "${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtlengths_all.nii.gz \
-        <(find "${dir_probtrackx_output}" -type f -name "fdt_paths_lengths.nii.gz" | sort)
+    find_and_merge \
+        "${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtlengths_all.nii.gz \
+        "${dir_probtrackx_output}" \
+        fdt_paths_lengths.nii.gz
 
     ###########################################################################################################
     ## STEP 6: Cleanup files
@@ -235,6 +242,6 @@ main (){
 
 }
 
-export -f main extract_voxels do_voxelwise_tractography
+export -f main extract_voxels do_voxelwise_tractography find_and_merge
 
 main "$@"
