@@ -1,0 +1,21 @@
+{
+    "appId": "psadil-bedpostx-app",
+    "appVersion": "0.1",
+    "execSystemLogicalQueue": "corralextra-dev",
+    "maxMinutes": 120,
+    "name": "bedpostx-test",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/NS_northshore/qsirecon_fsl_dtifit/NS10075V1/qsirecon-fsl/derivatives/qsirecon-FSL",
+                "name": "INPUT_DIRS"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "FSLSUB_PARALLEL",
+                "value": 80
+            }
+        ]
+    }
+}

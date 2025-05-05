@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import typing
 from glob import glob
 
 import numpy as np
@@ -95,16 +96,17 @@ jsons = glob(os.path.join(bak, "*json"))
 d_list = []
 for j in jsons:
     with open(j, "r") as f:
-        data = json.load(f)
+        data: dict[str, typing.Any] = json.load(f)
         json_out = {k: v for (k, v) in data.items() if k in keep_list}
-        if json_out.__contains__("dcmmeta_affine"):
-            # print(json_out.get('dcmmeta_affine'))
-            affine = json_out.get("dcmmeta_affine")
+        if (affine := json_out.get("dcmmeta_affine")) is not None:
             for i, row in enumerate(affine):
                 json_out["dcmmeta_affine"][i] = row[0:-1]
         d = pd.json_normalize(json_out)
-        scanner = re.findall("site-(NS|SH|WS2|WS|UM1|UM2|UI|UC|RU)", j)[0]
-        d["scanner"] = scanner
+        device_serial_number = json_out.get("DeviceSerialNumber")
+
+        if not isinstance(device_serial_number, str):
+            raise ValueError("No Device Serial Number?")
+
         phantom = len(re.findall("phantom_", j)) > 0
         d["phantom"] = phantom
         suffix = re.findall(r"_(dwi|bold|T1w|epi)\.", j)[0]
@@ -117,43 +119,47 @@ for j in jsons:
             d["acq"] = re.findall("acq-(dwib0|fmrib0)", j)[0]
             d["dir"] = re.findall("(?<=dir-)(AP|PA)", j)[0]
         elif suffix == "dwi":
-            if phantom and (not scanner == "UM2"):
+            if phantom and (not device_serial_number == "0007347633TMRFIX"):
                 acq = re.findall("acq-(b1000|b2000)", j)[0]
                 d["acq"] = acq
                 d["bval"] = [
                     np.genfromtxt(
-                        f"site-{scanner}phantom_acq-{acq}_dwi.bval"
+                        f"serial-{device_serial_number}phantom_acq-{acq}_dwi.bval"
                     ).tolist()
                 ]
                 d["bvec"] = [
                     np.genfromtxt(
-                        f"site-{scanner}phantom_acq-{acq}_dwi.bvec"
+                        f"serial-{device_serial_number}phantom_acq-{acq}_dwi.bvec"
                     ).tolist()
                 ]
-            elif phantom and scanner == "UM2":
+            elif phantom and device_serial_number == "0007347633TMRFIX":
                 d["bval"] = [
-                    np.genfromtxt(f"site-{scanner}phantom_dwi.bval").tolist()
+                    np.genfromtxt(
+                        f"serial-{device_serial_number}phantom_dwi.bval"
+                    ).tolist()
                 ]
                 d["bvec"] = [
-                    np.genfromtxt(f"site-{scanner}phantom_dwi.bvec").tolist()
+                    np.genfromtxt(
+                        f"serial-{device_serial_number}phantom_dwi.bvec"
+                    ).tolist()
                 ]
 
             else:
                 d["bval"] = [
-                    np.genfromtxt(f"site-{scanner}_dwi.bval").tolist()
+                    np.genfromtxt(f"serial-{device_serial_number}_dwi.bval").tolist()
                 ]
                 d["bvec"] = [
-                    np.genfromtxt(f"site-{scanner}_dwi.bvec").tolist()
+                    np.genfromtxt(f"serial-{device_serial_number}_dwi.bvec").tolist()
                 ]
 
         # parameters stored deeper in the file
-        if data.__contains__("global"):
-            d["BitsStored"] = data.get("global").get("const").get("BitsStored")
+        if (data_global := data.get("global")) is not None:
+            d["BitsStored"] = data_global.get("const").get("BitsStored")
 
         # parameters that follow a set whitelist
         # note that WS stores this information in "CoilString" and so does not need to be included
         # in this check
-        if scanner in ["NS", "SH", "RU"]:
+        if device_serial_number in ["70032", "66022", "166295"]:
             d["ReceiveCoilActiveElements"] = [
                 [
                     "HC1-6",
@@ -172,7 +178,7 @@ for j in jsons:
 
 dd = (
     pd.concat(d_list)
-    .set_index(["suffix", "scanner", "task", "acq"])
+    .set_index(["suffix", "DeviceSerialNumber", "task", "acq"])
     .sort_index()
 )
 dd.to_csv(os.path.join(root, "assets", "acq-params.tsv"), sep="\t")
