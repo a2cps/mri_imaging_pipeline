@@ -82,8 +82,8 @@ main (){
     local SESSION_LABEL=${2}
     local QSIPREPDIR=${3}
     local BEDPOSTXDIR=${4}
-    local ROIPREPDIR=${5}
-    local OUTDIR=${6}
+    local OUTDIR=${5}
+    local ROIPREPDIR=${6:-/opt/tapis/rois}
     local N_WORKERS=${7:-1}
 
     mkdir -p "${OUTDIR}"
@@ -176,8 +176,18 @@ main (){
     ## define binary mask in native DWI fslstd
     local mask_pref="${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi-fslstd
 
-    ## add voxelwise index to mask
-    fslmaths "${dir_move_masks}"/"${mask_pref}".nii.gz -index "${dir_move_masks}"/"${mask_pref}"_voxindex.nii.gz
+    # make image in which all background (0) voxels are set to -1, and the others 0
+    local tmpdir
+    tmpdir=$(mkdtemp -d)
+    local binvmask="${tmpdir}"/bininv.nii.gz
+    fslmaths "${dir_move_masks}"/"${mask_pref}".nii.gz -binv -mul -1 "${binvmask}"
+
+    # add voxelwise index to mask, use binvmask to subtract 1 from all background voxels, then increment index by 1
+    fslmaths "${dir_move_masks}"/"${mask_pref}".nii.gz \
+        -index \
+        -add "${binvmask}" \
+        -add 1 \
+        "${dir_move_masks}"/"${mask_pref}"_voxindex.nii.gz
 
     ## get number of voxels by finding max voxel index
     local num_voxels
