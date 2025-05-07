@@ -96,7 +96,6 @@ main (){
     local dir_qsiprep_anat="${QSIPREPDIR}"/"${PARTICIPANT_LABEL}"/anat
 
     ## Define qsiprep files
-    local qsiprep_anat="${dir_qsiprep_anat}"/"${PARTICIPANT_LABEL}"_desc-preproc_T1w.nii.gz
     local qsiprep_xfm_mni2dwi="${dir_qsiprep_anat}"/"${PARTICIPANT_LABEL}"_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5
     local qsiprep_dwi_ref="${dir_qsiprep_dwi}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwiref.nii.gz
 
@@ -118,16 +117,7 @@ main (){
     local mask_bin_pref="modules_all_bin" # created/used here
     local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
-    ## 1a: Move mask (bin) to native anat (preproc)
-
-    antsApplyTransforms -d 3 \
-        -i "${mask_bin_MNI1mm}" \
-        --interpolation "${interp}" \
-        -t "${qsiprep_xfm_mni2dwi}" \
-        -r "${qsiprep_anat}" \
-        -o "${dir_move_masks}"/"${fname_mask_pref}"_"${mask_bin_pref}"_space-T1w.nii.gz
-
-    ## 1b: Move mask (bin) to native dwi (preproc) and reorient to qsirecon-FSL
+    ## 1a: Move mask (bin) to native dwi (preproc) and reorient to qsirecon-FSL
 
     local output_dwi_bin="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi
 
@@ -142,16 +132,7 @@ main (){
     fslswapdim "${output_dwi_bin}".nii.gz x -y z "${output_dwi_bin}"-fslstd.nii.gz
     fslorient -swaporient "${output_dwi_bin}"-fslstd.nii.gz
 
-    ## 1c: Move mask (index) to native anat (preproc)
-
-    antsApplyTransforms -d 3 \
-        -i "${mask_index_MNI1mm}" \
-        --interpolation "${interp}" \
-        -t "${qsiprep_xfm_mni2dwi}" \
-        -r "${qsiprep_anat}" \
-        -o "${dir_move_masks}"/"${fname_mask_pref}"_"${mask_index_pref}"_space-T1w.nii.gz
-
-    ## 1d: Move mask (index) to native dwi (preproc) and reorient to qsirecon-FSL
+    ## 1b: Move mask (index) to native dwi (preproc) and reorient to qsirecon-FSL
 
     local output_dwi_index="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_index_pref}"_space-dwi
 
