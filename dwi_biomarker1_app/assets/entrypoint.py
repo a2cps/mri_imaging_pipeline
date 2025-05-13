@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import re
 from pathlib import Path
 
 from biomarkers.entrypoints import dwi_biomarker1, tapismpi
@@ -31,8 +32,8 @@ async def main(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dirs", nargs="+", type=Path, required=True)
-    parser.add_argument("--participant-labels", nargs="+", required=True)
-    parser.add_argument("--ses-labels", nargs="+", required=True)
+    parser.add_argument("--participant-labels", nargs="+")
+    parser.add_argument("--ses-labels", nargs="+")
     parser.add_argument("--output-dirs", nargs="+", type=Path)
     parser.add_argument("--bedpostx-dirs", nargs="+", type=Path)
     parser.add_argument("--n-workers", type=int, default=1)
@@ -55,6 +56,16 @@ if __name__ == "__main__":
     else:
         output_dirs = args.output_dirs
 
+    if args.participant_labels is None:
+        participant_labels = [re.findall(r"\d{5}", x)[0] for x in args.input_dirs]
+    else:
+        participant_labels = args.participant_labels
+
+    if args.ses_labels is None:
+        ses_labels = [re.findall("V[13]", x)[0] for x in args.input_dirs]
+    else:
+        ses_labels = args.ses_labels
+
     if args.bedpostx_dirs is None:
         bedpostx_dirs = []
         for input_dir in args.input_dirs:
@@ -70,11 +81,11 @@ if __name__ == "__main__":
         msg = f"Length of output_dirs must equal usize but found {n_output=}, {usize=}"
         raise AssertionError(msg)
 
-    if not (n_sub := len(args.participant_labels)) == usize:
+    if not (n_sub := len(participant_labels)) == usize:
         msg = f"Length of participant_labels must equal usize but found {n_sub=}, {usize=}"
         raise AssertionError(msg)
 
-    if not (n_ses := len(args.ses_labels)) == usize:
+    if not (n_ses := len(ses_labels)) == usize:
         msg = f"Length of ses_labels must equal usize but found {n_ses=}, {usize=}"
         raise AssertionError(msg)
 
@@ -90,9 +101,9 @@ if __name__ == "__main__":
         main(
             qsiprep=args.input_dirs,
             outdirs=output_dirs,
-            participant_labels=args.participant_labels,
+            participant_labels=participant_labels,
             bedpostx_dirs=bedpostx_dirs,
-            ses_labels=args.ses_labels,
+            ses_labels=ses_labels,
             n_workers=args.n_workers,
         )
     )

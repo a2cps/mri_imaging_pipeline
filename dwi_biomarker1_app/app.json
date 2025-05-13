@@ -29,12 +29,12 @@
         },
         {
           "arg": null,
-          "inputMode": "REQUIRED",
+          "inputMode": "INCLUDE_ON_DEMAND",
           "name": "PARTICIPANT_LABELS"
         },
         {
           "arg": null,
-          "inputMode": "REQUIRED",
+          "inputMode": "INCLUDE_ON_DEMAND",
           "name": "SES_LABELS"
         },
         {

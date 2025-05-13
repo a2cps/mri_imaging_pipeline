@@ -30,6 +30,7 @@ APP_STEPS = [
     "gift",
     "qsirecon_fsl_dtifit",
     "bedpostx",
+    "dwi_biomarker1",
 ]
 
 SITE_CODES = {
@@ -653,6 +654,7 @@ def main():
             if scan_report["qsiprep"] == "na":
                 scan_report["qsirecon_fsl_dtifit"] = "na"
                 scan_report["bedpostx"] = "na"
+                scan_report["dwi_biomarker1"] = "na"
             if scan_report["Cuff Leg"] == "1":
                 scan_report["Cuff Leg"] = "Right"
             if scan_report["Cuff Leg"] == "2":
@@ -695,19 +697,9 @@ def main():
             "Cuff1 QST Pressure",
             "Cuff1 Recalibrated Pressure",
             "Cuff1 Applied Pressure",
-            "dicom",
-            "bids",
-            "fslanat",
-            "fmriprep",
-            "gift",
-            "mriqc",
-            "qsiprep",
-            "qsirecon_fsl_dtifit",
-            "bedpostx",
-            "cat12",
-            "brainager",
-            "fcn",
-            "signatures",
+        ]
+        + APP_STEPS
+        + [
             "acquisition_week",
             "Surgical site pain rest",
             "Body pain rest",

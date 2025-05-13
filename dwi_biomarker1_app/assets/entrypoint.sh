@@ -94,8 +94,7 @@ main (){
     ## STEP 2: Move masks from MNI to native (preproc)
 
     ## Define mask files
-    local mask_modall_pref="modules_all"
-    local mask_index_MNI1mm="${ROIPREPDIR}"/"${mask_modall_pref}"_in_MNI152NLin2009cAsym_brain.nii.gz
+    local mask_index_MNI1mm="${ROIPREPDIR}"/modules_all_in_MNI152NLin2009cAsym_brain.nii.gz
 
     ## Create output dir
     local dir_move_masks="${OUTDIR}"/move_masks/"${participant_label}"/"${session_label}"/dwi

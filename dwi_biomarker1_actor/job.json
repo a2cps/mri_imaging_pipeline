@@ -1,59 +1,35 @@
 {
+    "appId": "dwi-biomarker1-app",
+    "appVersion": "0.1",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.ls6",
+    "maxMinutes": 480,
     "name": "dwi_biomarker1",
-    "appId": "maj-dwi_biomarker1_app",
-    "appVersion": "2.5",
     "parameterSet": {
         "appArgs": [
             {
-            "name": "PARTICIPANT_LABEL",
-            "arg": "sub-10042"
-            },
+                "arg": "--n-workers 32",
+                "name": "N_WORKERS"
+            }
+        ],
+        "envVariables": [
             {
-            "name": "SESSION_LABEL",
-            "arg": "ses-V1"
-            },
-            {
-            "name": "QSIPREPDIR",
-            "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsiprep/NS10042V1/qsiprep"
-            },
-            {
-            "name": "BEDPOSTXDIR",
-            "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/bedpostx/NS10042V1/bedpostx/sub-10042/ses-V1/dwi.bedpostx"
-            },
-            {
-            "name": "QSIRECONDIR",
-            "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsirecon_fsl_dtifit/NS10042V1/qsirecon-fsl/derivatives/qsirecon-FSL"
-            },
-            {
-            "name": "ROIPREPDIR",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/DWI_Biomarker-1/prepare_ROIs-VP"
-            },
-            {
-            "name": "OUTDIR",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/dwi_biomarker1_app/derivatives"
-            },
-            {
-            "name": "LICENSE",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/code/license.txt"
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/dwi_biomarker1/"
             }
         ]
     },
-    "moduleLoads": [
+    "subscriptions": [
         {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
-            ]
-        },
-        {
-            "moduleLoadCommand": "module unload",
-            "modulesToLoad": [
-                "xalt"
-            ]
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
         }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
-    "maxMinutes": 2700
+    ]
 }

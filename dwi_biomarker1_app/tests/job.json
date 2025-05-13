@@ -11,14 +11,6 @@
                 "name": "INPUT_DIRS"
             },
             {
-                "arg": "--participant-labels sub-10075",
-                "name": "PARTICIPANT_LABELS"
-            },
-            {
-                "arg": "--ses-labels ses-V1",
-                "name": "SES_LABELS"
-            },
-            {
                 "arg": "--n-workers 100",
                 "name": "N_WORKERS"
             }
