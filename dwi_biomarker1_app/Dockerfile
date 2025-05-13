@@ -10,7 +10,6 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.py /opt/tapis/entrypoint.py
 COPY --chown=$MAMBA_USER:$MAMBA_USER \
     assets/modules_all_in_MNI152NLin2009cAsym_brain.nii.gz \
-    assets/modules_all_in_MNI152NLin2009cAsym_brain_bin.nii.gz \
     /opt/tapis/rois/
 COPY --chmod=0775 --chown=$MAMBA_USER:$MAMBA_USER assets/entrypoint.sh /usr/local/bin/probtrackx2_voxelwise
 

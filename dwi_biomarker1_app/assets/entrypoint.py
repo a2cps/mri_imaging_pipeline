@@ -58,15 +58,7 @@ if __name__ == "__main__":
     if args.bedpostx_dirs is None:
         bedpostx_dirs = []
         for input_dir in args.input_dirs:
-            bedpostx_dirs.append(
-                Path(
-                    str(
-                        Path(input_dir).relative_to(
-                            "/corral-secure/projects/A2CPS/products/mris"
-                        )
-                    ).replace("qsiprep", "bedpostx")
-                )
-            )
+            bedpostx_dirs.append(Path(str(input_dir).replace("qsiprep", "bedpostx")))
     else:
         bedpostx_dirs = args.bedpostx_dirs
 

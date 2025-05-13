@@ -11,11 +11,11 @@
                 "name": "INPUT_DIRS"
             },
             {
-                "arg": "--participant-labels 10075",
+                "arg": "--participant-labels sub-10075",
                 "name": "PARTICIPANT_LABELS"
             },
             {
-                "arg": "--ses-labels V1",
+                "arg": "--ses-labels ses-V1",
                 "name": "SES_LABELS"
             },
             {

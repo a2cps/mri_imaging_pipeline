@@ -5,27 +5,17 @@ set -ex
 extract_voxels (){
 
     local i=${1}
-    local DIR_MOVE_MASK=${2}
-    local DIR_SPLIT_MASKS=${3}
-    local MASK_PREF=${4}
+    local PREFIX=${2}
+    local VOXINDEX=${3}
 
     echo "${i}"
 
-    local vox_index="${DIR_MOVE_MASK}"/"${MASK_PREF}"_voxindex.nii.gz
-
     # Extract each voxel into a separate nii file (binarized output)
-    fslmaths "${vox_index}" \
+    fslmaths "${VOXINDEX}" \
         -thr "${i}" \
         -uthr "${i}" \
         -bin \
-        "${DIR_SPLIT_MASKS}"/"${MASK_PREF}"_voxindex_vox-"${i}"_bin.nii.gz
-
-    # Extract each voxel into a separate nii file (indexed output)
-
-    fslmaths "${vox_index}" \
-        -thr "${i}" \
-        -uthr "${i}" \
-        "${DIR_SPLIT_MASKS}"/"${MASK_PREF}"_voxindex_vox-"${i}"_index.nii.gz
+        "${PREFIX}"vox"${i}"_bin.nii.gz
 
 }
 
@@ -33,18 +23,17 @@ do_voxelwise_tractography (){
 
     local i=${1}
     local BEDPOSTXDIR=${2}
-    local DIR_SPLIT_MASKS=${3}
-    local MASK_PREF=${4}
-    local DIR_PROBTRACKX_OUTPUT=${5}
+    local PREFIX=${3}
+    local DIR_PROBTRACKX_OUTPUT=${4}
 
     echo "running voxel " "${i}"
-    local tractdir="${DIR_PROBTRACKX_OUTPUT}"/vox-"${i}"
+    local tractdir="${DIR_PROBTRACKX_OUTPUT}"/voxelwise/vox-"${i}"
 
     mkdir -p "${tractdir}"
 
     # Run tractography
     probtrackx2 \
-        -x "${DIR_SPLIT_MASKS}"/"${MASK_PREF}"_voxindex_vox-"${i}"_bin.nii.gz \
+        -x "${PREFIX}"vox"${i}"_bin.nii.gz \
         -l \
         --onewaycondition \
         -c 0.2 \
@@ -78,8 +67,8 @@ find_and_merge(){
 
 main (){
 
-    local PARTICIPANT_LABEL=${1}
-    local SESSION_LABEL=${2}
+    local SUB=${1}
+    local SES=${2}
     local QSIPREPDIR=${3}
     local BEDPOSTXDIR=${4}
     local OUTDIR=${5}
@@ -87,17 +76,19 @@ main (){
     local N_WORKERS=${7:-1}
 
     mkdir -p "${OUTDIR}"
+    local participant_label=sub-"${SUB}"
+    local session_label=ses-"${SES}"
 
     ###########################################################################################################
     ## STEP 1: Define paths/files (qsiprep and qsirecon-FSL)
 
     ## Redefine subject paths
-    local dir_qsiprep_dwi="${QSIPREPDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi
-    local dir_qsiprep_anat="${QSIPREPDIR}"/"${PARTICIPANT_LABEL}"/anat
+    local dir_qsiprep_dwi="${QSIPREPDIR}"/"${participant_label}"/"${session_label}"/dwi
+    local dir_qsiprep_anat="${QSIPREPDIR}"/"${participant_label}"/anat
 
     ## Define qsiprep files
-    local qsiprep_xfm_mni2dwi="${dir_qsiprep_anat}"/"${PARTICIPANT_LABEL}"_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5
-    local qsiprep_dwi_ref="${dir_qsiprep_dwi}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_space-T1w_dwiref.nii.gz
+    local qsiprep_xfm_mni2dwi="${dir_qsiprep_anat}"/"${participant_label}"_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5
+    local qsiprep_dwi_ref="${dir_qsiprep_dwi}"/"${participant_label}"_"${session_label}"_space-T1w_dwiref.nii.gz
 
     ###########################################################################################################
     ## STEP 2: Move masks from MNI to native (preproc)
@@ -105,101 +96,80 @@ main (){
     ## Define mask files
     local mask_modall_pref="modules_all"
     local mask_index_MNI1mm="${ROIPREPDIR}"/"${mask_modall_pref}"_in_MNI152NLin2009cAsym_brain.nii.gz
-    local mask_bin_MNI1mm="${ROIPREPDIR}"/"${mask_modall_pref}"_in_MNI152NLin2009cAsym_brain_bin.nii.gz
 
     ## Create output dir
-    local dir_move_masks="${OUTDIR}"/move_masks/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"
+    local dir_move_masks="${OUTDIR}"/move_masks/"${participant_label}"/"${session_label}"/dwi
     mkdir -p "${dir_move_masks}"
 
     ## Define variables
-    local fname_mask_pref="${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_desc-mask
-    local mask_index_pref="modules_all_index" # created/used here
-    local mask_bin_pref="modules_all_bin" # created/used here
     local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
-    ## 1a: Move mask (bin) to native dwi (preproc) and reorient to qsirecon-FSL
-
-    local output_dwi_bin="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi
-
-    antsApplyTransforms -d 3 \
-        -i "${mask_bin_MNI1mm}" \
-        --interpolation "${interp}" \
-        -t "${qsiprep_xfm_mni2dwi}" \
-        -r "${qsiprep_dwi_ref}" \
-        -o "${output_dwi_bin}".nii.gz
-
-    ## Reorient mask in native (preproc) dwi to match qsirecon-FSL
-    fslswapdim "${output_dwi_bin}".nii.gz x -y z "${output_dwi_bin}"-fslstd.nii.gz
-    fslorient -swaporient "${output_dwi_bin}"-fslstd.nii.gz
-
-    ## 1b: Move mask (index) to native dwi (preproc) and reorient to qsirecon-FSL
-
-    local output_dwi_index="${dir_move_masks}"/"${fname_mask_pref}"_"${mask_index_pref}"_space-dwi
+    ## Move mask (index) to native dwi (preproc) and reorient to qsirecon-FSL
+    local dwi_ind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_desc-modulesindex_space-dwi_mask.nii.gz
+    local dwifslstd_ind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_desc-modulesindex_space-dwifslstd_mask.nii.gz
 
     antsApplyTransforms -d 3 \
         -i "${mask_index_MNI1mm}" \
         --interpolation "${interp}" \
         -t "${qsiprep_xfm_mni2dwi}" \
         -r "${qsiprep_dwi_ref}" \
-        -o "${output_dwi_index}".nii.gz
+        -o "${dwi_ind}"
 
     ## Reorient mask in native (preproc) dwi to match qsirecon-FSL
-    fslswapdim "${output_dwi_index}".nii.gz x -y z "${output_dwi_index}"-fslstd.nii.gz
-    fslorient -swaporient "${output_dwi_index}"-fslstd.nii.gz
+    fslswapdim "${dwi_ind}" x -y z "${dwifslstd_ind}"
+    fslorient -swaporient "${dwifslstd_ind}"
 
     ###########################################################################################################
     ## STEP 3: Split mask (native DWI fslstd) into separate voxel seed files
 
-    ## create output dir
-    local dir_split_masks="${dir_move_masks}"/seed_voxels
-    mkdir -p "${dir_split_masks}"
-
-    ## define binary mask in native DWI fslstd
-    local mask_pref="${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi-fslstd
-
     # make image in which all background (0) voxels are set to -1, and the others 0
     local tmpdir
-    tmpdir=$(mkdtemp -d)
+    tmpdir=$(mktemp -d)
     local binvmask="${tmpdir}"/bininv.nii.gz
-    fslmaths "${dir_move_masks}"/"${mask_pref}".nii.gz -binv -mul -1 "${binvmask}"
+    fslmaths "${dwifslstd_ind}" -binv -mul -1 "${binvmask}"
 
     # add voxelwise index to mask, use binvmask to subtract 1 from all background voxels, then increment index by 1
-    fslmaths "${dir_move_masks}"/"${mask_pref}".nii.gz \
+    local dwifslstd_voxind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_desc-modulesvoxindex_space-dwifslstd_mask.nii.gz
+
+    fslmaths "${dwifslstd_ind}" \
+        -bin \
         -index \
         -add "${binvmask}" \
         -add 1 \
-        "${dir_move_masks}"/"${mask_pref}"_voxindex.nii.gz
+        "${dwifslstd_voxind}"
 
-    ## get number of voxels by finding max voxel index
+    ## get number of nonzero voxels
     local num_voxels
-    num_voxels=$(fslstats "${dir_move_masks}/${mask_pref}"_voxindex.nii.gz -V | cut -f 1 -d " ")
+    num_voxels=$(fslstats "${dwifslstd_voxind}" -V | cut -f 1 -d " ")
 
     ## split mask into separate voxels
 
     local voxels
     mapfile -t voxels < <(seq 1 "${num_voxels}")
 
+    ## create output dir
+    local dir_split_masks="${dir_move_masks}"/seed_voxels
+    mkdir -p "${dir_split_masks}"
+
     parallel --link -j "${N_WORKERS}" extract_voxels \
         ::: "${voxels[@]}" \
-        ::: "${dir_move_masks}" \
-        ::: "${dir_split_masks}" \
-        ::: "${mask_pref}" 
+        ::: "${dir_split_masks}"/"${participant_label}"_"${session_label}"_desc-modulesvoxindex \
+        ::: "${dwifslstd_voxind}" 
 
 
     ###########################################################################################################
     ## STEP 4: Probtrackx (tractography, voxelwise seeds)
 
     ## Define output dir
-    local dir_probtrackx_output="${OUTDIR}"/probtrackx/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/DWIbiomarker1_modules_all_voxseeds
+    local dir_probtrackx_output="${OUTDIR}"/probtrackx/"${participant_label}"/"${session_label}"/dwi
     mkdir -p "${dir_probtrackx_output}"
 
-    ## Run voxelwise tractography    
+    ## Run voxelwise tractography
 
     parallel --link -j "${N_WORKERS}" do_voxelwise_tractography \
         ::: "${voxels[@]}" \
-        ::: "${BEDPOSTXDIR}"/"${PARTICIPANT_LABEL}"/"${SESSION_LABEL}"/dwi.bedpostx \
-        ::: "${dir_split_masks}" \
-        ::: "${fname_mask_pref}"_"${mask_bin_pref}"_space-dwi-fslstd \
+        ::: "${BEDPOSTXDIR}"/"${participant_label}"/"${session_label}"/dwi.bedpostx \
+        ::: "${dir_split_masks}"/"${participant_label}"_"${session_label}"_desc-modulesvoxindex \
         ::: "${dir_probtrackx_output}"
 
 
@@ -212,13 +182,13 @@ main (){
 
     ## merge all (fdt_paths)
     find_and_merge \
-        "${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtpaths_all.nii.gz \
+        "${dir_probtrackx_output}"/"${participant_label}"_"${session_label}"_desc-DWIbiomarker1fdtpaths_dwi.nii.gz \
         "${dir_probtrackx_output}" \
         fdt_paths.nii.gz
 
     ## merge all (fdt_lengths)
     find_and_merge \
-        "${dir_probtrackx_output}"/"${PARTICIPANT_LABEL}"_"${SESSION_LABEL}"_DWIbiomarker1_fdtlengths_all.nii.gz \
+        "${dir_probtrackx_output}"/"${participant_label}"_"${session_label}"_desc-DWIbiomarker1fdtlengths_dwi.nii.gz \
         "${dir_probtrackx_output}" \
         fdt_paths_lengths.nii.gz
 
@@ -226,10 +196,10 @@ main (){
     ## STEP 6: Cleanup files
 
     # Remove seed voxels (>10k per subj)
-    rm -R "${dir_split_masks}"
+    rm -r "${dir_split_masks}"
 
     # Remove voxelwise probtrackx outputs (>10k per subj)
-    rm -R "${dir_probtrackx_output}"/vox-*
+    rm -r "${dir_probtrackx_output}"/voxelwise
 
 }
 
