@@ -104,8 +104,8 @@ main (){
     local interp="NearestNeighbor" # NOTE, ideal to not use GenericLabel (removes smallest clusters, e.g. amygdala)
 
     ## Move mask (index) to native dwi (preproc) and reorient to qsirecon-FSL
-    local dwi_ind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_desc-modulesindex_space-dwi_mask.nii.gz
-    local dwifslstd_ind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_desc-modulesindex_space-dwifslstd_mask.nii.gz
+    local dwi_ind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_space-dwi_desc-modules_dseg.nii.gz
+    local dwifslstd_ind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_space-dwifslstd_desc-modules_dseg.nii.gz
 
     antsApplyTransforms -d 3 \
         -i "${mask_index_MNI1mm}" \
@@ -128,7 +128,9 @@ main (){
     fslmaths "${dwifslstd_ind}" -binv -mul -1 "${binvmask}"
 
     # add voxelwise index to mask, use binvmask to subtract 1 from all background voxels, then increment index by 1
-    local dwifslstd_voxind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_desc-modulesvoxindex_space-dwifslstd_mask.nii.gz
+    # this roundabout procedure is done because the -index flag sets the lowest index to 0, which is the same value of s
+    # the background (causing a voxel to be lost)
+    local dwifslstd_voxind="${dir_move_masks}"/"${participant_label}"_"${session_label}"_space-dwifslstd_desc-modulesvox_dseg.nii.gz
 
     fslmaths "${dwifslstd_ind}" \
         -bin \
@@ -150,9 +152,11 @@ main (){
     local dir_split_masks="${dir_move_masks}"/seed_voxels
     mkdir -p "${dir_split_masks}"
 
+    local modulesvox_prefix="${dir_split_masks}"/"${participant_label}"_"${session_label}"_desc-modulesvox
+
     parallel --link -j "${N_WORKERS}" extract_voxels \
         ::: "${voxels[@]}" \
-        ::: "${dir_split_masks}"/"${participant_label}"_"${session_label}"_desc-modulesvoxindex \
+        ::: "${modulesvox_prefix}" \
         ::: "${dwifslstd_voxind}" 
 
 
@@ -168,7 +172,7 @@ main (){
     parallel --link -j "${N_WORKERS}" do_voxelwise_tractography \
         ::: "${voxels[@]}" \
         ::: "${BEDPOSTXDIR}"/"${participant_label}"/"${session_label}"/dwi.bedpostx \
-        ::: "${dir_split_masks}"/"${participant_label}"_"${session_label}"_desc-modulesvoxindex \
+        ::: "${modulesvox_prefix}" \
         ::: "${dir_probtrackx_output}"
 
 
@@ -181,13 +185,13 @@ main (){
 
     ## merge all (fdt_paths)
     find_and_merge \
-        "${dir_probtrackx_output}"/"${participant_label}"_"${session_label}"_desc-DWIbiomarker1fdtpaths_dwi.nii.gz \
+        "${dir_probtrackx_output}"/"${participant_label}"_"${session_label}"_space-dwifslstd_desc-DWIbiomarker1fdtpaths_dwi.nii.gz \
         "${dir_probtrackx_output}" \
         fdt_paths.nii.gz
 
     ## merge all (fdt_lengths)
     find_and_merge \
-        "${dir_probtrackx_output}"/"${participant_label}"_"${session_label}"_desc-DWIbiomarker1fdtlengths_dwi.nii.gz \
+        "${dir_probtrackx_output}"/"${participant_label}"_"${session_label}"_space-dwifslstd_desc-DWIbiomarker1fdtlengths_dwi.nii.gz \
         "${dir_probtrackx_output}" \
         fdt_paths_lengths.nii.gz
 
