@@ -57,12 +57,12 @@ if __name__ == "__main__":
         output_dirs = args.output_dirs
 
     if args.participant_labels is None:
-        participant_labels = [re.findall(r"\d{5}", x)[0] for x in args.input_dirs]
+        participant_labels = [re.findall(r"\d{5}", str(x))[0] for x in args.input_dirs]
     else:
         participant_labels = args.participant_labels
 
     if args.ses_labels is None:
-        ses_labels = [re.findall("V[13]", x)[0] for x in args.input_dirs]
+        ses_labels = [re.findall("V[13]", str(x))[0] for x in args.input_dirs]
     else:
         ses_labels = args.ses_labels
 
