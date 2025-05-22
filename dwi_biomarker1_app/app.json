@@ -1,8 +1,8 @@
 {
-  "containerImage": "docker://psadil/dwi_biomarker1_app",
+  "containerImage": "docker://a2cps/dwi_biomarker1_app:0.1",
   "description": "Tractography and biomarker estimation",
   "enabled": true,
-  "id": "psadil-dwi-biomarker1-app",
+  "id": "dwi-biomarker1-app",
   "version": "0.1",
   "jobAttributes": {
     "archiveOnAppError": false,
