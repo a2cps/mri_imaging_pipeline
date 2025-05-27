@@ -1,6 +1,6 @@
 {
     "appId": "psadil-dwi-biomarker1-app",
-    "appVersion": "0.1",
+    "appVersion": "0.2",
     "cmdPrefix": "ibrun -n 1",
     "maxMinutes": 1440,
     "name": "dwi-biomarker1-app-test",
@@ -9,10 +9,6 @@
             {
                 "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/NS_northshore/qsiprep/NS10075V1/qsiprep",
                 "name": "INPUT_DIRS"
-            },
-            {
-                "arg": "--n-workers 100",
-                "name": "N_WORKERS"
             }
         ]
     }
