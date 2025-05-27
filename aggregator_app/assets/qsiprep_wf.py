@@ -11,7 +11,7 @@ def copy(outdir: Path, inroot: Path) -> None:
     for src in inroot.glob("qsiprep/*/qsiprep/sub*"):
         ses = bu.get_ses_from_sublong(src)
         if src.is_file():
-            utils._symlink_if_needed(
+            utils.symlink_if_needed(
                 src,
                 outdir / f"qsiprep-{ses}" / src.name,
             )
