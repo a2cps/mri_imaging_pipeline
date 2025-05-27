@@ -8,7 +8,7 @@
     "parameterSet": {
         "appArgs": [
             {
-                "arg": "--n-workers 42",
+                "arg": "--n-workers 62",
                 "name": "N_WORKERS"
             }
         ],
