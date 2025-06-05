@@ -1,6 +1,6 @@
 {
     "appId": "dwi-biomarker1-app",
-    "appVersion": "0.1",
+    "appVersion": "1.0",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
     "maxMinutes": 720,

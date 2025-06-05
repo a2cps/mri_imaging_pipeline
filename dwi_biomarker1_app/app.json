@@ -1,9 +1,9 @@
 {
-  "containerImage": "docker://a2cps/dwi_biomarker1_app:0.1",
+  "containerImage": "docker://a2cps/dwi_biomarker1_app:1.0",
   "description": "Tractography and biomarker estimation",
   "enabled": true,
   "id": "dwi-biomarker1-app",
-  "version": "0.1",
+  "version": "1.0",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
