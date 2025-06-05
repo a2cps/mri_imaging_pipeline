@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import re
+import shutil
 from pathlib import Path
 
 from biomarkers.entrypoints import dwi_biomarker1, tapismpi
@@ -15,7 +16,6 @@ async def main(
     participant_labels: list[str],
     ses_labels: list[str],
     bedpostx_dirs: list[Path],
-    n_workers: int = 1,
     roi_dir: Path = Path("/opt/tapis/rois"),
 ) -> None:
     await dwi_biomarker1.DWIBiomarker1Entrypoint(
@@ -24,8 +24,10 @@ async def main(
         participant_label=participant_labels,
         bedpostxdir=bedpostx_dirs,
         ses_label=ses_labels,
-        n_workers=n_workers,
         roi_dir=roi_dir,
+        stage_ignore_patterns=shutil.ignore_patterns(
+            "*preproc*", "figures", "*from-T1w*", "logs"
+        ),
     ).run()
 
 
@@ -36,7 +38,9 @@ if __name__ == "__main__":
     parser.add_argument("--ses-labels", nargs="+")
     parser.add_argument("--output-dirs", nargs="+", type=Path)
     parser.add_argument("--bedpostx-dirs", nargs="+", type=Path)
-    parser.add_argument("--n-workers", type=int, default=1)
+    parser.add_argument(
+        "--mris", type=Path, default=Path("/corral-secure/projects/A2CPS/products/mris")
+    )
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -46,11 +50,9 @@ if __name__ == "__main__":
         for input_dir in args.input_dirs:
             output_dirs.append(
                 Path(
-                    str(
-                        Path(input_dir).relative_to(
-                            "/corral-secure/projects/A2CPS/products/mris"
-                        )
-                    ).replace("/qsiprep/", "/dwi_biomarker1/")
+                    str(Path(input_dir).relative_to(args.mris)).replace(
+                        "/qsiprep/", "/dwi_biomarker1/"
+                    )
                 ).parent
             )
     else:
@@ -104,6 +106,5 @@ if __name__ == "__main__":
             participant_labels=participant_labels,
             bedpostx_dirs=bedpostx_dirs,
             ses_labels=ses_labels,
-            n_workers=args.n_workers,
         )
     )

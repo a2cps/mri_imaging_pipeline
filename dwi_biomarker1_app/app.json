@@ -46,11 +46,6 @@
           "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
           "name": "OUTPUT_DIRS"
-        },
-        {
-          "arg": "--n-workers 1",
-          "inputMode": "INCLUDE_ON_DEMAND",
-          "name": "N_WORKERS"
         }
       ],
       "archiveFilter": {

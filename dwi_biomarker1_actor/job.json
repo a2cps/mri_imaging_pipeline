@@ -3,19 +3,18 @@
     "appVersion": "0.1",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
-    "maxMinutes": 240,
+    "maxMinutes": 720,
     "name": "dwi_biomarker1",
     "parameterSet": {
-        "appArgs": [
-            {
-                "arg": "--n-workers 62",
-                "name": "N_WORKERS"
-            }
-        ],
+        "appArgs": [],
         "envVariables": [
             {
                 "key": "FAILURE_LOG_DST",
                 "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/dwi_biomarker1/"
+            },
+            {
+                "key": "POLARS_MAX_THREADS",
+                "value": "1"
             }
         ]
     },
