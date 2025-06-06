@@ -1,0 +1,126 @@
+#!/bin/bash
+
+set -euo pipefail
+
+main (){
+
+    local DTIFITDIR="${1}"
+    local QSIPREPDIR="${2}"
+    local OUTDIR="${3}"
+    local MASKDIR="${4}"
+    local PARTICIPANT_LABEL="sub-${5}"
+    local SES_LABEL="ses-${6}"
+    
+    ###########################################################################################################
+    ## STEP 1: Define paths/files
+
+    ## Define qsiprep paths
+    local -r qsiprep_participant="${QSIPREPDIR}"/"${PARTICIPANT_LABEL}"
+    local -r dir_qsiprep_dwi="${qsiprep_participant}"/"${SES_LABEL}"/dwi
+    local -r dir_qsiprep_anat="${qsiprep_participant}"/anat
+
+    ## Define qsiprep files
+    local -r qsiprep_xfm_mni2dwi="${dir_qsiprep_anat}"/"${PARTICIPANT_LABEL}"_from-MNI152NLin2009cAsym_to-T1w_mode-image_xfm.h5
+    local -r qsiprep_dwi_ref="${dir_qsiprep_dwi}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-T1w_dwiref.nii.gz
+
+
+    ###########################################################################################################
+    ## STEP 2: Move masks from MNI to native (preproc)
+
+    ## Create output dir
+    local -r dir_move_masks="${OUTDIR}"/move_masks/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
+    mkdir -p "${dir_move_masks}"
+
+    ## Move mask to native dwi (preproc)
+
+    local -r dwi_ind="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-dwi_desc-JHUICBM_dseg
+
+    antsApplyTransforms -d 3 \
+        -i "${MASKDIR}"/JHU-ICBM-labels-1mm.nii.gz \
+        --interpolation MultiLabel \
+        -t "${qsiprep_xfm_mni2dwi}" \
+        -r "${qsiprep_dwi_ref}" \
+        -o "${dwi_ind}".nii.gz
+
+
+    ###########################################################################################################
+    ## STEP 3: Split up mask (native) into separate ROIs
+
+    local -r dwi_ind_roi="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-dwi_desc-JHUICBM_roi
+        ## output name
+
+    for roinum in {1..48} ; do
+
+    fslmaths "${dwi_ind}".nii.gz -thr "${roinum}" -uthr "${roinum}" -bin "${dwi_ind_roi}"_"${roinum}"_bin.nii.gz
+
+    done
+
+
+    ###########################################################################################################
+    ## STEP 4: Extract DTI metrics from all ROIs
+
+    ## Create output dir
+    local -r dir_extract="${OUTDIR}"/extract_dtimetrics/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
+    mkdir -p "${dir_extract}"
+
+    local -r dwi_ind_roi="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-dwi_desc-JHUICBM_roi
+        # input file for each ROI
+
+    # ROI labels file
+    roi_labels_file="${MASKDIR}"/JHU-ICBM-labels.txt
+    mapfile -t roi_labels < "${roi_labels_file}"
+
+    # Define a single output CSV file for each subject
+    local -r outfile="${dir_extract}/extract_dtifit_atlas-JHUICBM_sub-${subj}_ses-${sesh}_allROIs.tsv"
+
+    # Write the first line of headers
+    echo "subject,session,roifull,label,shell,metric,min,max,mean" > "${outfile}"
+
+    # Loop through b-shells
+    for bshell in b1000 multishell ; do
+
+        if [[ "${bshell}" == "multishell" ]]; then
+
+            local -r dir_dtifit="${DTIFITDIR}"/multishell/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
+            local -r dti_image="${dir_dtifit}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-T1w_dwi_"${metric}"
+
+        elif [[ "$bshell" == "b1000" ]]; then
+
+            local -r dir_dtifit="${DTIFITDIR}"/"${bshell}"/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
+            local -r dti_image="${dir_dtifit}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_acq-"${bshell}"_space-T1w_dwi_"${metric}"
+        fi
+
+        # Loop through DTI metrics
+        for metric in FA MD MO L1 L2 L3 ; do
+            # note, UKB IDPs for DTI includes all of these
+
+            # Loop through ROIs
+            for roinum in {1..48} ; do
+
+                # define roi
+                local -r roifull=JHUICBM_ROI"${roinum}"
+                local -r roimask="${dwi_ind_roi}"_"${roinum}"_bin
+                local -r label="${roi_labels[$((roinum - 1))]}" # array starts at 0 (so minus 1 to match roinum)
+
+                # Run fslstats and capture the output (min, max, mean)
+                stats=$(fslstats "${dti_image}.nii.gz" -k "${roimask}.nii.gz" -R -M)
+                read min max mean <<< "$stats"
+                    # -R (min and max of nonzero voxels)
+                    # -M (mean of nonzero voxels)
+
+                # Append the row to the CSV file
+                echo "${subj},${sesh},${roifull},${label},${bshell},${metric},${min},${max},${mean}" >> "${outfile}"
+
+            # End ROI loop
+            done
+
+        # End metric loop
+        done
+
+    # End b-shell loop
+    done
+
+}
+export -f main
+
+main "$@"

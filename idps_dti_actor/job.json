@@ -1,0 +1,57 @@
+{
+    "name": "idps_dti",
+    "appId": "maj-idps_dti_app",
+    "appVersion": "0.1",
+    "parameterSet": {
+        "appArgs": [
+        {
+          "name": "DTIFITDIR",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsirecon_fsl_dtifit/NS10042V1/dtifit"
+        },
+        {
+          "name": "QSIPREPDIR",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "/corral-secure/projects/A2CPS/products/mris/NS_northshore/qsiprep/NS10042V1/qsiprep"
+        },
+        {
+          "name": "OUTDIR",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/idps_dti_app/derivatives"
+        },
+        {
+          "name": "MASKDIR",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "/corral-secure/projects/A2CPS/shared/maj/IDPs_UKB_A2CPS/prepare_ROIs/JHU_ICBM"
+        },
+        {
+          "name": "PARTICIPANT_LABEL",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "10042"
+        },
+        {
+          "name": "SES_LABEL",
+          "inputMode": "INCLUDE_BY_DEFAULT",
+          "arg": "V1"
+        }
+        ]
+    },
+    "moduleLoads": [
+        {
+            "moduleLoadCommand": "module load",
+            "modulesToLoad": [
+                "tacc-apptainer"
+            ]
+        },
+        {
+            "moduleLoadCommand": "module unload",
+            "modulesToLoad": [
+                "xalt"
+            ]
+        }
+    ],
+    "hiddenOptions": [
+        "MEM"
+    ],
+    "maxMinutes": 240
+}
