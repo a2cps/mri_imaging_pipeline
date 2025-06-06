@@ -36,8 +36,8 @@ main (){
     local -r dwi_ind="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-dwi_desc-JHUICBM_dseg
 
     antsApplyTransforms -d 3 \
-        -i "${MASKDIR}"/JHU-ICBM-labels-1mm.nii.gz \
-        --interpolation MultiLabel \
+        -i "${MASKDIR}"/JHU-ICBM-labels-1mm_in_MNI152NLin2009cAsym.nii.gz \
+        --interpolation GenericLabel \
         -t "${qsiprep_xfm_mni2dwi}" \
         -r "${qsiprep_dwi_ref}" \
         -o "${dwi_ind}".nii.gz
