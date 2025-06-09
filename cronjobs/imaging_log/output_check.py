@@ -31,6 +31,7 @@ APP_STEPS = [
     "qsirecon_fsl_dtifit",
     "bedpostx",
     "dwi_biomarker1",
+    "postgift",
 ]
 
 SITE_CODES = {
@@ -666,6 +667,8 @@ def main():
                 and scan_report["2nd Resting State Indicated"] == "0"
             ):
                 scan_report["gift"] = "na"
+            if scan_report["gift"] == "na":
+                scan_report["postgift"] = "na"
 
             list_of_dict.append(scan_report)
         except Exception as e:
