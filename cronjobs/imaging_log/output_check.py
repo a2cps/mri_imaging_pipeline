@@ -29,6 +29,7 @@ APP_STEPS = [
     "signatures",
     "gift",
     "qsirecon_fsl_dtifit",
+    "postdtifit",
     "bedpostx",
     "dwi_biomarker1",
 ]
@@ -655,6 +656,8 @@ def main():
                 scan_report["qsirecon_fsl_dtifit"] = "na"
                 scan_report["bedpostx"] = "na"
                 scan_report["dwi_biomarker1"] = "na"
+            if scan_report["qsirecon_fsl_dtifit"] == "na":
+                scan_report["postdtifit"] = "na"
             if scan_report["Cuff Leg"] == "1":
                 scan_report["Cuff Leg"] = "Right"
             if scan_report["Cuff Leg"] == "2":
