@@ -44,7 +44,7 @@ main (){
 
     ## Move mask from native dwi (qsiprep) to native dwi (qsirecon FSL) to match dtifit outputs
     local -r output="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-qsireconFSL_desc-JHUICBM_dseg
-    fslswapdim ${dwi_ind}.nii.gz -x y z ${output}.nii.gz
+    fslswapdim ${dwi_ind}.nii.gz x -y z ${output}.nii.gz
     fslorient -swaporient ${output}.nii.gz
 
     local -r dwi_ind="${dwi_ind}" #to match new output name "space-qsireconFSL"
