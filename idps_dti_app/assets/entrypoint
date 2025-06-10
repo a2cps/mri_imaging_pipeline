@@ -25,15 +25,15 @@ main (){
 
 
     ###########################################################################################################
-    ## STEP 2: Move masks from MNI to native (preproc)
+    ## STEP 2: Move masks from MNI to native
 
     ## Create output dir
     local -r dir_move_masks="${OUTDIR}"/move_masks/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
     mkdir -p "${dir_move_masks}"
 
-    ## Move mask to native dwi (preproc)
+    ## Move mask to native dwi (qsiprep)
 
-    local -r dwi_ind="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-dwi_desc-JHUICBM_dseg
+    local -r dwi_ind="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-qsiprep_desc-JHUICBM_dseg
 
     antsApplyTransforms -d 3 \
         -i "${MASKDIR}"/JHU-ICBM-labels-1mm_in_MNI152NLin2009cAsym.nii.gz \
@@ -42,11 +42,17 @@ main (){
         -r "${qsiprep_dwi_ref}" \
         -o "${dwi_ind}".nii.gz
 
+    ## Move mask from native dwi (qsiprep) to native dwi (qsirecon FSL) to match dtifit outputs
+    local -r output="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-qsireconFSL_desc-JHUICBM_dseg
+    fslswapdim ${dwi_ind}.nii.gz -x y z ${output}.nii.gz
+    fslorient -swaporient ${output}.nii.gz
+
+    local -r dwi_ind="${dwi_ind}" #to match new output name "space-qsireconFSL"
 
     ###########################################################################################################
     ## STEP 3: Split up mask (native) into separate ROIs
 
-    local -r dwi_ind_roi="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-dwi_desc-JHUICBM_roi
+    local -r dwi_ind_roi="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-qsireconFSL_desc-JHUICBM_roi
         ## output name
 
     for roinum in {1..48} ; do
@@ -63,14 +69,12 @@ main (){
     local -r dir_extract="${OUTDIR}"/extract_dtimetrics/"${PARTICIPANT_LABEL}"/"${SES_LABEL}"/dwi
     mkdir -p "${dir_extract}"
 
-    local -r dwi_ind_roi="${dir_move_masks}"/"${PARTICIPANT_LABEL}"_"${SES_LABEL}"_space-dwi_desc-JHUICBM_roi
-        # input file for each ROI
-
     # ROI labels file
-    roi_labels_file="${MASKDIR}"/JHU-ICBM-labels.txt
-    mapfile -t roi_labels < "${roi_labels_file}"
+    roi_labels_file="${MASKDIR}"/JHU-labels.txt
+    mapfile -t roi_labels < <(cut -f2- "${roi_labels_file}")    # read only the 2nd field (the label text) into the array
+        # alternatively, could do this in the roinum loop below: label=$(sed -n "${roinum}p" JHU-labels.txt | cut -f2-)
 
-    # Define a single output CSV file for each subject
+    # Define a single output file for each subject
     local -r outfile="${dir_extract}/extract_dtifit_atlas-JHUICBM_sub-${subj}_ses-${sesh}_allROIs.tsv"
 
     # Write the first line of headers
