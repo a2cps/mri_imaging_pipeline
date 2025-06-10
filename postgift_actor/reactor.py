@@ -15,7 +15,7 @@ JOB = Path("/opt/job.json")
 N_SUBS_PER_NODE = 30
 
 # for ls
-MAX_NODES_PER_JOB = 10
+MAX_NODES_PER_JOB = 5
 
 # can change by incoming message by specifying "MAXJOBS"
 MAXJOBS = N_SUBS_PER_NODE * MAX_NODES_PER_JOB

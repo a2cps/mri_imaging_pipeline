@@ -1,5 +1,5 @@
 {
-    "containerImage": "docker://a2cps/postdtifit_app",
+    "containerImage": "docker://a2cps/postdtifit_app:1.0",
     "description": "Extract basic dtifit metrics",
     "enabled": true,
     "id": "postdtifit-app",
@@ -103,5 +103,5 @@
     ],
     "runtimeVersion": null,
     "strictFileInputs": true,
-    "version": "0.1"
+    "version": "1.0"
 }
