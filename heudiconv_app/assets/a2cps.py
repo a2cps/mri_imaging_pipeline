@@ -70,7 +70,7 @@ protocols2fix.update(
             # anat should grab one that has ORIG
             (".*(anat-T1w)[-_]acq[-_]GRE$", r"\1"),
             # also expect ORIG in some DWI (and sometimes also a suffix )
-            (".*([Bb][12]000).*", r"dwi-dwi_acq-\1"),
+            (".*[Bb]([12]000).*", r"dwi-dwi_acq-b\1"),
             ("func[-_]bold[-_]acq[-_]QA", "func_task-rest"),
             # WS/UI had some atypical names early on
             ("REST1_17DSV", "func_task-rest"),
