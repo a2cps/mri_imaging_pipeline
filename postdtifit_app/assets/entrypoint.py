@@ -50,7 +50,7 @@ if __name__ == "__main__":
                 Path(
                     str(Path(input_dir).relative_to(args.mris))
                     .replace("qsirecon_fsl_dtifit", "postdtifit")
-                    .replace("dtifit", "postdtifit")
+                    .replace("/dtifit", "/postdtifit")
                 ).parent
             )
     else:
