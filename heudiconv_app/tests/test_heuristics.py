@@ -31,9 +31,11 @@ rest = {
 cuff = {"func_task-cuff_run-1": ["Cuff1", "CUFF1", "CUFF1R2", "CUFF1R2"]}
 dwib0 = {"fmap-epi_acq-dwib0": ["DWI_B0"]}
 fmrib0 = {"fmap-epi_acq-fmrib0": ["fMRI_B0"]}
+dwib1000 = {"dwi-dwi_acq-b1000": ["DWI_b1000_17DSV", "DWI_B1000_17DSV"]}
+dwib2000 = {"dwi-dwi_acq-b2000": ["DWI_b2000_17DSV", "DWI_B2000_17DSV"]}
 
 
-SCANS = [anatomical, dwi, rest, cuff, dwib0, fmrib0]
+SCANS = [anatomical, dwi, rest, cuff, dwib0, fmrib0, dwib1000, dwib2000]
 
 
 def _apply_substitutions(
@@ -51,5 +53,8 @@ def test_substitutions():
     for scan in SCANS:
         for expected, observed in scan.items():
             for i in observed:
+                print(i)
                 value = _apply_substitutions(p2f, i)
-                assert value == expected
+                if not value == expected:
+                    msg = f"Failed to produce expected protocol {value=} {expected=}"
+                    raise RuntimeError(msg)
