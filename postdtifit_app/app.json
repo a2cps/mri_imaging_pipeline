@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/postdtifit_app:1.1",
-    "version": "1.1",
+    "containerImage": "docker://a2cps/postdtifit_app:1.2",
+    "version": "1.2",
     "description": "Extract basic dtifit metrics",
     "enabled": true,
     "id": "postdtifit-app",
@@ -13,7 +13,7 @@
         "execSystemExecDir": "${JobWorkingDir}",
         "execSystemId": "secure.ls6",
         "execSystemInputDir": "${JobWorkingDir}",
-        "execSystemLogicalQueue": "corralextra-dev",
+        "execSystemLogicalQueue": "corralextra",
         "execSystemOutputDir": "${JobWorkingDir}",
         "fileInputArrays": [],
         "fileInputs": [],

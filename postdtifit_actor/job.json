@@ -1,6 +1,6 @@
 {
     "appId": "postdtifit-app",
-    "appVersion": "1.1",
+    "appVersion": "1.2",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
     "maxMinutes": 60,
