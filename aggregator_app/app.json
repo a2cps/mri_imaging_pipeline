@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/aggregator:2.9",
-    "version": "2.9",
+    "containerImage": "docker://psadil/aggregator_app",
+    "version": "0.6",
     "description": "Stage MRI Products for Release",
     "enabled": true,
     "id": "aggregator",
@@ -101,6 +101,6 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "runtimeVersion": null,
+    "runtimeVersion": "0.6",
     "strictFileInputs": true
 }

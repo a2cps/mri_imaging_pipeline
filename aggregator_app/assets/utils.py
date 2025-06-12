@@ -2,6 +2,10 @@ import logging
 import shutil
 from pathlib import Path
 
+import nibabel as nb
+import numpy as np
+from nilearn import maskers
+
 
 def _copy_overwrite(src: str | Path, dst: str | Path) -> str:
     out = Path(dst)
@@ -47,3 +51,11 @@ def symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
     else:
         Path(dst).symlink_to(Path(src).resolve())
     return dst
+
+
+def get_volume(nif: Path, masker: maskers.NiftiLabelsMasker) -> np.ndarray:
+    nii: nb.nifti1.Nifti1Image = nb.nifti1.Nifti1Image.load(nif)
+    if not len(nii.shape) == 3:
+        raise AssertionError("Expected 3d image")
+    n_voxels = masker.fit_transform(nii).squeeze()
+    return np.astype(n_voxels * np.prod(nii.header.get_zooms()), np.float64)
