@@ -3,7 +3,7 @@
     "appVersion": "1.2",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
-    "maxMinutes": 60,
+    "maxMinutes": 80,
     "name": "postdtifit",
     "parameterSet": {
         "appArgs": [],
