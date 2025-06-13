@@ -1,7 +1,7 @@
 {
     "name": "aggregate",
     "appId": "psadil-aggregator_app",
-    "appVersion": "0.5",
+    "appVersion": "0.6",
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra-dev",
     "parameterSet": {
@@ -20,5 +20,5 @@
             }
         ]
     },
-    "maxMinutes": 30
+    "maxMinutes": 120
 }

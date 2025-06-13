@@ -1,9 +1,32 @@
 from pathlib import Path
 
+import polars as pl
 import utils
 from biomarkers import utils as bu
-from mriqc.reports.group import gen_html
-from mriqc.utils.misc import generate_tsv
+
+IMTYPES = {"T1w": "anat", "T2w": "anat", "bold": "func", "dwi": "dwi"}
+
+
+def generate_tsv(output_dir: Path, mod: str) -> None:
+    """
+    Generates a tsv file from all json files in the derivatives directory
+    """
+
+    # If some were found, generate the CSV file and group report
+    datalist = []
+    for jsonfile in output_dir.glob(f"sub-*/**/{IMTYPES[mod]}/sub-*_{mod}.json"):
+        datalist.append(
+            pl.read_json(jsonfile)
+            .drop(
+                "bids_meta", "provenance", "bValuesEstimation", "bValues", strict=False
+            )
+            .with_columns(bids_name=pl.lit(jsonfile.stem))
+        )
+
+    if len(datalist):
+        pl.concat(datalist).unique("bids_name", keep="last").write_csv(
+            output_dir / (f"group_{mod}.tsv"), separator="\t"
+        )
 
 
 def copy(outdir: Path, inroot: Path) -> None:
@@ -22,11 +45,4 @@ def make_toplevel(outdir: Path) -> None:
     bu.mkdir_recursive(outdir)
     # https://github.com/nipreps/mriqc/blob/a2c320cce2ffff5a0e32d71213db7df834b5026a/mriqc/cli/run.py#L196-L236
     for modality in ["T1w", "bold", "dwi"]:
-        _, out_tsv = generate_tsv(outdir, modality)
-        if Path(out_tsv).exists():
-            gen_html(
-                out_tsv,
-                modality,
-                csv_failed=outdir / f"group_variant-failed_{modality}.tsv",
-                out_file=outdir / f"group_{modality}.html",
-            )
+        generate_tsv(outdir, modality)

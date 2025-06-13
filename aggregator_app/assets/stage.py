@@ -5,6 +5,7 @@ import shutil
 import tempfile
 from pathlib import Path
 
+import bedpostx_wf
 import bids_wf
 import brainager_wf
 import cat12_wf
@@ -13,8 +14,10 @@ import fmriprep_wf
 import freesurfer_wf
 import fslanat_wf
 import gift_wf
+import idps
 import mriqc_wf
-import pandas as pd
+import polars as pl
+import postdtifit_wf
 import qsiprep_wf
 import qsirecon_fsl_dtifit_wf
 import signatures_wf
@@ -67,8 +70,8 @@ def _make_sublong(site: str, subject_id: str, visit: str) -> str:
 
 
 def is_fmriprep_aggregated(path: Path, row) -> bool:
-    sub = row.subject_id
-    ses = row.visit
+    sub = row["subject_id"]
+    ses = row["visit"]
     all_ready = False
 
     target = path / f"sub-{sub}" / f"ses-{ses}"
@@ -82,9 +85,9 @@ def is_fmriprep_aggregated(path: Path, row) -> bool:
 
 
 def is_qsiprep_aggregated(path: Path, row) -> bool:
-    sub = row.subject_id
-    ses = row.visit
-    qsiprep_dir = path / f"qsiprep-{ses}"
+    sub = row["subject_id"]
+    ses = row["visit"]
+    qsiprep_dir = Path(f"{path}-{ses}")
     qsiprep_target = qsiprep_dir / f"sub-{sub}" / f"ses-{ses}"
     eddy_target = path / "eddyqc" / f"sub-{sub}" / f"ses-{ses}"
     all_ready = (
@@ -103,8 +106,8 @@ def is_qsiprep_aggregated(path: Path, row) -> bool:
 
 
 def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
-    sub = row.subject_id
-    ses = row.visit
+    sub = row["subject_id"]
+    ses = row["visit"]
     qsirecon_dir = path / "qsirecon-fsl"
     qsirecon_target = (
         qsirecon_dir
@@ -137,42 +140,34 @@ def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
 
 
 def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
-    sub = row.subject_id
-    ses = row.visit
+    sub = row["subject_id"]
+    ses = row["visit"]
 
     target = mriqc_root / f"sub-{sub}" / f"ses-{ses}"
     all_ready = False
     if target.exists():
-        # The column names will be renamed to positional names if they
-        # are invalid Python identifiers, repeated, or start with
-        # an underscore.
-        t1_received = row._5
-        cuff1_received = row._9
-        cuff2_received = row._11
-        rest1_received = row._13
-        rest2_received = row._15
         htmls = []
-        if t1_received == 1:
+        if row["T1 Received"] == 1:
             htmls.append((mriqc_root / f"sub-{sub}_ses-{ses}_T1w.html").exists())
-        if cuff1_received == 1:
+        if row["fMRI Individualized Pressure Received"] == 1:
             htmls.append(
                 (
                     mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-01_bold.html"
                 ).exists()
             )
-        if cuff2_received == 1:
+        if row["fMRI Standard Pressure Received"] == 1:
             htmls.append(
                 (
                     mriqc_root / f"sub-{sub}_ses-{ses}_task-cuff_run-02_bold.html"
                 ).exists()
             )
-        if rest1_received == 1:
+        if row["1st Resting State Received"] == 1:
             htmls.append(
                 (
                     mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-01_bold.html"
                 ).exists()
             )
-        if rest2_received == 1:
+        if row["2nd Resting State Received"] == 1:
             htmls.append(
                 (
                     mriqc_root / f"sub-{sub}_ses-{ses}_task-rest_run-02_bold.html"
@@ -188,35 +183,31 @@ def is_mriqc_aggregated(mriqc_root: Path, row) -> bool:
 
 
 def _cleaned_niis_avail(cleaned_root: Path, row) -> bool:
-    sub = row.subject_id
-    ses = row.visit
-    cuff1_received = row._9
-    cuff2_received = row._11
-    rest1_received = row._13
-    rest2_received = row._15
+    sub = row["subject_id"]
+    ses = row["visit"]
     niis = []
-    if cuff1_received == 1:
+    if row["fMRI Individualized Pressure Received"] == 1:
         niis.append(
             (
                 cleaned_root
                 / f"sub-{sub}_ses-{ses}_task-cuff_run-1_desc-preproc_bold.nii.gz"
             ).exists()
         )
-    if cuff2_received == 1:
+    if row["fMRI Standard Pressure Received"] == 1:
         niis.append(
             (
                 cleaned_root
                 / f"sub-{sub}_ses-{ses}_task-cuff_run-2_desc-preproc_bold.nii.gz"
             ).exists()
         )
-    if rest1_received == 1:
+    if row["1st Resting State Received"] == 1:
         niis.append(
             (
                 cleaned_root
                 / f"sub-{sub}_ses-{ses}_task-rest_run-1_desc-preproc_bold.nii.gz"
             ).exists()
         )
-    if rest2_received == 1:
+    if row["2nd Resting State Received"] == 1:
         niis.append(
             (
                 cleaned_root
@@ -228,7 +219,7 @@ def _cleaned_niis_avail(cleaned_root: Path, row) -> bool:
 
 def is_signatures_aggregated(path: Path, row) -> bool:
     all_dirs = [
-        (path / sig / f"sub={row.subject_id}" / f"ses={row.visit}")
+        (path / sig / f"sub={row['subject_id']}" / f"ses={row['visit']}")
         for sig in [
             "signature-by-part",
             "signature-by-run",
@@ -242,7 +233,7 @@ def is_signatures_aggregated(path: Path, row) -> bool:
         all_ready = _cleaned_niis_avail(path / "signature-cleaned", row)
         if not all_ready:
             logging.error(
-                f"sub={row.subject_id}, ses={row.visit} did not pass signatures validation"
+                f"sub={row['subject_id']}, ses={row['visit']} did not pass signatures validation"
             )
             for d in all_dirs:
                 shutil.rmtree(d)
@@ -252,7 +243,7 @@ def is_signatures_aggregated(path: Path, row) -> bool:
 
 def is_fcn_aggregated(path: Path, row) -> bool:
     all_dirs = (
-        (path / fcn / f"sub={row.subject_id}" / f"ses={row.visit}")
+        (path / fcn / f"sub={row['subject_id']}" / f"ses={row['visit']}")
         for fcn in ["acompcor", "connectivity", "connectivity-confounds"]
     )
     all_ready = False
@@ -260,7 +251,7 @@ def is_fcn_aggregated(path: Path, row) -> bool:
         all_ready = _cleaned_niis_avail(path / "connectivity-cleaned", row)
         if not all_ready:
             logging.error(
-                f"sub={row.subject_id}, ses={row.visit} did not pass fcn validation"
+                f"sub={row['subject_id']}, ses={row['visit']} did not pass fcn validation"
             )
             for d in all_dirs:
                 shutil.rmtree(d)
@@ -271,10 +262,9 @@ def is_fcn_aggregated(path: Path, row) -> bool:
 def is_brainager_aggregated(path: Path, row) -> bool:
     target = (
         path
-        / "brainager"
-        / f"sub-{row.subject_id}"
-        / f"ses-{row.visit}"
-        / f"sub-{row.subject_id}_ses-{row.visit}_T1w.nii"
+        / f"sub-{row['subject_id']}"
+        / f"ses-{row['visit']}"
+        / f"sub-{row['subject_id']}_ses-{row['visit']}_T1w.nii"
     )
     all_ready = False
     if target.exists():
@@ -285,7 +275,7 @@ def is_brainager_aggregated(path: Path, row) -> bool:
         )
         if not all_ready:
             logging.error(
-                f"sub={row.subject_id}, ses={row.visit} did not pass brainager validation"
+                f"sub={row['subject_id']}, ses={row['visit']} did not pass brainager validation"
             )
             shutil.rmtree(target.parent)
 
@@ -293,7 +283,7 @@ def is_brainager_aggregated(path: Path, row) -> bool:
 
 
 def is_fslanat_aggregated(path: Path, row) -> bool:
-    target = path / "fslanat" / f"sub-{row.subject_id}_ses-{row.visit}_T1w.anat"
+    target = path / f"sub-{row['subject_id']}_ses-{row['visit']}_T1w.anat"
     all_ready = False
     if target.exists():
         try:
@@ -308,65 +298,94 @@ def is_fslanat_aggregated(path: Path, row) -> bool:
 
 def is_cat12_aggregated(path: Path, row) -> bool:
     return (
-        path / "report" / f"catreport_sub-{row.subject_id}_ses-{row.visit}_T1w.pdf"
+        path
+        / "report"
+        / f"catreport_sub-{row['subject_id']}_ses-{row['visit']}_T1w.pdf"
     ).exists()
 
 
 def is_gift_aggregated(path: Path, row) -> bool:
-    return (path / f"sub-{row.subject_id}" / f"ses-{row.visit}").exists()
+    return (path / f"sub-{row['subject_id']}" / f"ses-{row['visit']}").exists()
 
 
-def _get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
-    ready: pd.DataFrame = pd.read_csv(ILOG, na_values=["", "na", "n/a"]).query(
-        "site == @site_code"
+def is_bedpostx_aggregated(path: Path, row) -> bool:
+    return (path / f"sub-{row['subject_id']}" / f"ses-{row['visit']}").exists()
+
+
+def is_postgift_aggregated(path: Path, row) -> bool:
+    all_dirs = (
+        (path / subdir / f"sub={row['subject_id']}" / f"ses={row['visit']}")
+        for subdir in ["amplitude", "biomarkers", "connectivity"]
     )
+    return all([d.exists() for d in all_dirs])
+
+
+def is_postdtifit_aggregated(path: Path, row) -> bool:
+    return (
+        path
+        / "diffusion_regional"
+        / f"sub-{row['subject_id']}"
+        / f"ses-{row['visit']}"
+        / "dwi"
+        / f"sub-{row['subject_id']}_ses-{row['visit']}_space-dwi_desc-JHUICBM_dseg.nii.gz"
+    ).exists() and (
+        path
+        / "diffusion_regional_stats"
+        / f"sub={row['subject_id']}"
+        / f"ses-{row['visit']}"
+        / "0.parquet"
+    ).exists()
+
+
+def is_dwi_biomarker1_aggregated(path: Path, row) -> bool:
+    all_dirs = (
+        (path / subdir / f"sub-{row['subject_id']}" / f"ses-{row['visit']}")
+        for subdir in ["move_masks", "networks", "probtrackx"]
+    )
+    return all([d.exists() for d in all_dirs])
+
+
+def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
+    ready = pl.read_csv(ILOG, null_values=["", "na", "n/a"]).filter(
+        pl.col("site") == site_code
+    )
+
+    job_aggregators = {
+        "fmriprep": is_fmriprep_aggregated,
+        "qsiprep": is_qsiprep_aggregated,
+        "brainager": is_brainager_aggregated,
+        "cat12": is_cat12_aggregated,
+        "mriqc": is_mriqc_aggregated,
+        "fslanat": is_fslanat_aggregated,
+        "fcn": is_fcn_aggregated,
+        "signatures": is_signatures_aggregated,
+        "gift": is_gift_aggregated,
+        "qsirecon_fsl_dtifit": is_qsirecon_fsl_dtifit_aggregated,
+        "bedpostx": is_bedpostx_aggregated,
+        "postgift": is_postgift_aggregated,
+        "postdtifit": is_postdtifit_aggregated,
+        "dwi_biomarker1": is_dwi_biomarker1_aggregated,
+    }
+
     # now, get list of jobs that will need to be copied over,
     # which can differ for each sub/ses (e.g., no dwi means no qsiprep)
     # this is rare, but see NS10205V1 (for which there is nothing)
     derivatives: dict[str, list[str]] = dict()
-    for row in ready.itertuples():
-        sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
+    for row in ready.iter_rows(named=True):
         jobs = set()
+        for name, is_aggregated in job_aggregators.items():
+            if row[name] == 1 and not is_aggregated(outroot / name, row):
+                jobs.add(name)
 
-        if row.fmriprep == 1:
-            if not is_fmriprep_aggregated(outroot / "fmriprep", row):
-                jobs.add("fmriprep")
-        if row.qsiprep == 1:
-            if not is_qsiprep_aggregated(outroot, row):
-                jobs.add("qsiprep")
-        if row.brainager == 1:
-            if not is_brainager_aggregated(outroot, row):
-                jobs.add("brainager")
-        if row.cat12 == 1:
-            if not is_cat12_aggregated(outroot / "cat12", row):
-                jobs.add("cat12")
-        if row.mriqc == 1:
-            if not is_mriqc_aggregated(outroot / "mriqc", row=row):
-                jobs.add("mriqc")
-        if row.fslanat == 1:
-            if not is_fslanat_aggregated(outroot, row):
-                jobs.add("fslanat")
-        if row.fcn == 1:
-            if not is_fcn_aggregated(outroot / "fcn", row):
-                jobs.add("fcn")
-        if row.signatures == 1:
-            if not is_signatures_aggregated(outroot / "signatures", row):
-                jobs.add("signatures")
-        if row.gift == 1:
-            if not is_gift_aggregated(outroot / "gift", row):
-                jobs.add("gift")
-        if row.qsirecon_fsl_dtifit == 1:
-            if not is_qsirecon_fsl_dtifit_aggregated(
-                outroot / "qsirecon_fsl_dtifit", row
-            ):
-                jobs.add("qsirecon_fsl_dtifit")
         if len(to_agg := list(jobs)) >= 0:
-            derivatives.update({sublong: to_agg})
+            derivatives.update(
+                {_make_sublong(row["site"], row["subject_id"], row["visit"]): to_agg}
+            )
 
     return derivatives
 
 
-def _prep_staged_dir(outroot: Path) -> None:
+def prep_staged_dir(outroot: Path) -> None:
     # delete broken symlinks (e.g., files created by previous run of heudiconv
     # that no longer exist)
     for target in os.walk(outroot):
@@ -375,55 +394,39 @@ def _prep_staged_dir(outroot: Path) -> None:
             if not (broken := tar_dir / f).exists():
                 logging.warning(f"deleting broken symlink: {broken}")
                 broken.unlink()
-        # if the only remaining file is a nifti that is a real file, it
-        # is a holdover and should also be deleted
-        if (
-            len(target[2]) == 1
-            and str(to_del := (Path(target[0]) / target[2][0])).endswith(".nii.gz")
-            and not to_del.is_symlink()
-        ):
-            logging.warning(f"deleting isolated file: {to_del}")
-            to_del.unlink()
 
     # delete empty directories
     for target in os.walk(outroot, topdown=False):
-        if (len(target[1] + target[2]) == 0) and (
-            (to_del := Path(target[0])).name
-            not in [
-                "tmp",
-                "bak",
-                "trash",
-            ]  # from FreeSurfer, generally empty (and should be kept)
-        ):
+        if len(target[1] + target[2]) == 0:
+            to_del = Path(target[0])
             logging.warning(f"deleting empty directory: {to_del}")
             os.removedirs(to_del)
 
 
-def _get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
-    bids_avail: pd.DataFrame = pd.read_csv(ILOG).query(
-        "bids == 1 and site == @site_code"
-    )[["site", "subject_id", "visit"]]
+def get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
+    bids_avail = (
+        pl.read_csv(ILOG, null_values=["", "na", "n/a"])
+        .filter(pl.col("bids") == 1, pl.col("site") == site_code)
+        .select("site", "subject_id", "visit")
+    )
     exists: dict[str, bool] = {}
-    for row in bids_avail.itertuples():
-        sublong = _make_sublong(row.site, row.subject_id, row.visit)  # type: ignore
+    for row in bids_avail.iter_rows(named=True):
+        sublong = _make_sublong(row["site"], row["subject_id"], row["visit"])  # type: ignore
         exists[sublong] = (
             len(list((inroot / SITE_LONG[site_code] / "bids" / sublong).glob("*out")))
             > 0
         ) and not (
-            outroot / "bids" / f"sub-{row.subject_id}" / f"ses-{row.visit}"
+            outroot / "bids" / f"sub-{row['subject_id']}" / f"ses-{row['visit']}"
         ).exists()
     return set(k for k, v in exists.items() if v)
 
 
 def main(
-    inroot: Path,
-    outroot: Path,
-    max_subs: float | int = float("inf"),
-    tidy: bool = True,
+    inroot: Path, outroot: Path, max_subs: float | int = float("inf"), tidy: bool = True
 ) -> None:
     if tidy:
         logging.info("tidying output directory")
-        _prep_staged_dir(outroot=outroot)
+        prep_staged_dir(outroot=outroot)
     with tempfile.TemporaryDirectory() as tmpd:
         tmpdir = Path(tmpd)
         for site_code, site_long in SITE_LONG.items():
@@ -431,7 +434,7 @@ def main(
 
             # first, get all new raw (bids) data
             tmp_site = tmpdir / site_long
-            bidstocopy = _get_bids_tocopy(
+            bidstocopy = get_bids_tocopy(
                 inroot=inroot, outroot=outroot, site_code=site_code
             )
             for i, subsesd in enumerate(bidstocopy):
@@ -451,7 +454,7 @@ def main(
                 bids_wf.copy(inroot=tmp_site, outdir=outroot / "bids")
 
             # grab only sub/ses that do not already exist in output
-            subses_tocopy = _get_deriv_tocopy(outroot=outroot, site_code=site_code)
+            subses_tocopy = get_deriv_tocopy(outroot=outroot, site_code=site_code)
 
             # then, get all available derivatives
             for i, (subsesd, jobs) in enumerate(subses_tocopy.items()):
@@ -474,7 +477,9 @@ def main(
                 logging.info("Storing derivatives in final location")
                 cat12_wf.copy(inroot=tmp_site, outdir=outroot / "cat12")
                 qsiprep_wf.copy(inroot=tmp_site, outdir=outroot)
-                qsirecon_fsl_dtifit_wf.copy(inroot=tmp_site, outdir=outroot)
+                qsirecon_fsl_dtifit_wf.copy(
+                    inroot=tmp_site, outdir=outroot / "qsirecon_fsl_dtifit"
+                )
                 brainager_wf.copy(inroot=tmp_site, outdir=outroot / "brainager")
                 mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
                 fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep")
@@ -488,6 +493,18 @@ def main(
                 fcn_wf.copy(inroot=tmp_site, outdir=outroot / "fcn")
                 signatures_wf.copy(inroot=tmp_site, outdir=outroot / "signatures")
                 gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift")
+                bedpostx_wf.copy(inroot=tmp_site, outdir=outroot / "bedpostx")
+                utils.copy_with_subdirs(
+                    inroot=tmp_site / "postgift",
+                    outdir=outroot / "postgift",
+                    subdirs=["amplitude", "biomarkers", "connectivity"],
+                )
+                postdtifit_wf.copy(inroot=tmp_site, outdir=outroot / "postdtifit")
+                utils.copy_with_subdirs(
+                    inroot=tmp_site / "dwi_biomarker1",
+                    outdir=outroot / "dwi_biomarker1",
+                    subdirs=["move_masks", "networks", "probtrackx"],
+                )
             if tmp_site.exists():
                 logging.info(f"Removing temporary directory for {site_long}")
                 shutil.rmtree(tmp_site)
@@ -497,9 +514,12 @@ def main(
         bids_wf.make_toplevel(outdir=outroot / "bids")
         cat12_wf.make_toplevel(outdir=outroot / "cat12")
         mriqc_wf.make_toplevel(outdir=outroot / "mriqc")
+        fcn_wf.make_toplevel(outdir=outroot / "fcn")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep")
         freesurfer_wf.make_toplevel(outdir=outroot / "freesurfer")
         fslanat_wf.make_toplevel(outdir=outroot / "fslanat")
+        qsirecon_fsl_dtifit_wf.make_toplevel(outdir=outroot / "qsirecon_fsl_dtifit")
+        idps.make_toplevel(outroot)
 
         logging.info("Finished!")
 
@@ -514,8 +534,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(
-        inroot=args.inroot,
-        outroot=args.outroot,
-        max_subs=args.max_subs,
-        tidy=args.tidy,
+        inroot=args.inroot, outroot=args.outroot, max_subs=args.max_subs, tidy=args.tidy
     )

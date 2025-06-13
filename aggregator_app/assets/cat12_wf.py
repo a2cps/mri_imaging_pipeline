@@ -1,8 +1,6 @@
 from pathlib import Path
 
-import nibabel as nb
-import numpy as np
-import pandas as pd
+import polars as pl
 import utils
 from biomarkers import utils as bu
 from nilearn import maskers
@@ -26,22 +24,14 @@ HENN = (
 )
 
 
-def get_volume(nif: Path, masker: maskers.NiftiLabelsMasker) -> np.ndarray:
-    nii: nb.nifti1.Nifti1Image = nb.nifti1.load(nif)  # type: ignore
-    if not len(nii.shape) == 3:
-        raise AssertionError("Expected 3d image")
-    n_voxels = masker.fit_transform(nii).squeeze()
-    return n_voxels * np.prod(nii.header.get_zooms())  # type: ignore
-
-
-def get_atlas_volumes(mridir: Path, atlas: Path) -> pd.DataFrame | None:
+def get_atlas_volumes(mridir: Path, atlas: Path) -> pl.DataFrame | None:
     out = []
     masker = maskers.NiftiLabelsMasker(labels_img=atlas, strategy="sum")
     # https://neuro-jena.github.io/cat12-help/#naming
     for p1 in mridir.rglob("*wp1*nii"):
         sub = bu.get_sub_from_sublong(p1)
         ses = bu.get_ses_from_sublong(p1)
-        cluster_volume = get_volume(p1, masker)
+        cluster_volume = utils.get_volume(p1, masker)
         volumes = {
             "sub": sub,
             "ses": ses,
@@ -50,9 +40,9 @@ def get_atlas_volumes(mridir: Path, atlas: Path) -> pd.DataFrame | None:
             "cluster": list(range(len(cluster_volume))),
             "volume": cluster_volume,
         }
-        out.append(pd.DataFrame(volumes).set_index(["sub", "ses", "mri", "atlas"]))
+        out.append(pl.DataFrame(volumes))
 
-    return pd.concat(out, axis=0) if len(out) else None
+    return pl.concat(out) if len(out) else None
 
 
 def make_toplevel(outdir: Path) -> None:
@@ -60,8 +50,8 @@ def make_toplevel(outdir: Path) -> None:
     smallwood_volumes = get_atlas_volumes(mridir=outdir, atlas=SMALLWOOD)
     henn_volumes = get_atlas_volumes(mridir=outdir, atlas=HENN)
     if smallwood_volumes is not None and henn_volumes is not None:
-        pd.concat([smallwood_volumes, henn_volumes]).to_csv(
-            outdir / "cluster_volumes.tsv", sep="\t"
+        pl.concat([smallwood_volumes, henn_volumes]).write_csv(
+            outdir / "cluster_volumes.tsv", separator="\t"
         )
 
 

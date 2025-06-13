@@ -2,6 +2,11 @@ import logging
 import shutil
 from pathlib import Path
 
+import nibabel as nb
+import numpy as np
+from biomarkers import utils as bu
+from nilearn import maskers
+
 
 def _copy_overwrite(src: str | Path, dst: str | Path) -> str:
     out = Path(dst)
@@ -47,3 +52,19 @@ def symlink_if_needed(src, dst, *args, **kwargs) -> Path:  # noqa: ARG001
     else:
         Path(dst).symlink_to(Path(src).resolve())
     return dst
+
+
+def get_volume(nif: Path, masker: maskers.NiftiLabelsMasker) -> np.ndarray:
+    nii: nb.nifti1.Nifti1Image = nb.nifti1.Nifti1Image.load(nif)
+    if not len(nii.shape) == 3:
+        raise AssertionError("Expected 3d image")
+    n_voxels = masker.fit_transform(nii).squeeze()
+    return np.astype(n_voxels * np.prod(nii.header.get_zooms()), np.float64)
+
+
+def copy_with_subdirs(inroot: Path, outdir: Path, subdirs: list[str]) -> None:
+    bu.mkdir_recursive(outdir)
+
+    for subsesd in (inroot).glob("*"):
+        for subdir in subdirs:
+            mergetree_overwrite(subsesd / subdir, outdir / subdir)
