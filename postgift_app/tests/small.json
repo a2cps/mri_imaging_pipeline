@@ -8,7 +8,7 @@
     "parameterSet": {
         "appArgs": [
             {
-                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/NS_northshore/gift/NS10075V1/gift",
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/UI_uic/gift/UI10003V1/gift",
                 "name": "INPUT_DIRS"
             }
         ]
