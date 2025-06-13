@@ -101,6 +101,6 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "runtimeVersion": "0.6",
+    "runtimeVersion": null,
     "strictFileInputs": true
 }
