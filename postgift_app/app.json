@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/postgift_app:1.0",
-    "version": "1.0",
+    "containerImage": "docker://a2cps/postgift_app:1.1",
+    "version": "1.1",
     "description": "Convert GIFT outputs to tabular form",
     "enabled": true,
     "id": "postgift-app",
