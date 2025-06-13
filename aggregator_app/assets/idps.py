@@ -64,7 +64,8 @@ def get_gift(root: Path) -> pl.DataFrame:
             variable="source_"
             + pl.col("source").cast(pl.Utf8)
             + "_target_"
-            + pl.col("target").cast(pl.Utf8),
+            + pl.col("target").cast(pl.Utf8)
+            + "_connectivity",
         )
         .drop(["source", "target", "model"])
         .rename({"connectivity": "value"})

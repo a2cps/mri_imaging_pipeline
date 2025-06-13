@@ -68,8 +68,6 @@ def _parse_aseg_header(f: Path) -> pl.DataFrame:
             dfs.append(pl.DataFrame({"BrainSegVol": [_get_float(line)]}))
         elif "Measure BrainSegNotVent, BrainSegVolNotVent" in line:
             dfs.append(pl.DataFrame({"BrainSegVolNotVent": [_get_float(line)]}))
-        elif "Measure BrainSegNotVentSurf, BrainSegVolNotVentSurf" in line:
-            dfs.append(pl.DataFrame({"BrainSegVolNotVentSurf": [_get_float(line)]}))
         elif "Measure Cortex, CortexVol" in line:
             dfs.append(pl.DataFrame({"CortexVol": [_get_float(line)]}))
         elif "Measure SupraTentorial, SupraTentorialVol" in line:
@@ -94,10 +92,6 @@ def _parse_aseg_header(f: Path) -> pl.DataFrame:
             dfs.append(pl.DataFrame({"SubCortGrayVol": [_get_float(line)]}))
         elif "Measure TotalGray, TotalGrayVol" in line:
             dfs.append(pl.DataFrame({"TotalGrayVol": [_get_float(line)]}))
-        elif "Measure SupraTentorialNotVentVox, SupraTentorialVolNotVentVox" in line:
-            dfs.append(
-                pl.DataFrame({"SupraTentorialVolNotVentVox": [_get_float(line)]})
-            )
         elif "Measure Mask, MaskVol" in line:
             dfs.append(pl.DataFrame({"MaskVol": [_get_float(line)]}))
         elif "BrainSegVol-to-eTIV, BrainSegVol-to-eTIV" in line:
@@ -128,9 +122,25 @@ def _parse_aparc_header(f: Path) -> pl.DataFrame:
     return pl.concat(dfs, how="horizontal")
 
 
+def _parse_brainvol_header(f: Path) -> pl.DataFrame:
+    dfs = []
+
+    lines = f.read_text().splitlines()
+    for line in lines:
+        if "Measure BrainSegNotVentSurf, BrainSegVolNotVentSurf" in line:
+            dfs.append(pl.DataFrame({"BrainSegVolNotVentSurf": [_get_float(line)]}))
+        elif "Measure SupraTentorialNotVentVox, SupraTentorialVolNotVentVox" in line:
+            dfs.append(
+                pl.DataFrame({"SupraTentorialVolNotVentVox": [_get_float(line)]})
+            )
+
+    return pl.concat(dfs, how="horizontal")
+
+
 def parse_all_headers(root: Path) -> pl.DataFrame:
     _aseg: list[pl.DataFrame] = []
     _aparc: list[pl.DataFrame] = []
+    _brainvol: list[pl.DataFrame] = []
     for subsesdir in root.glob("sub*"):
         sub = int(bu.get_sub_from_sublong(subsesdir))
         ses = bu.get_ses_from_sublong(subsesdir)
@@ -144,10 +154,17 @@ def parse_all_headers(root: Path) -> pl.DataFrame:
                 sub=sub, ses=pl.lit(ses)
             )
         )
+        _brainvol.append(
+            _parse_brainvol_header(subsesdir / "stats" / "brainvol.stats").with_columns(
+                sub=sub, ses=pl.lit(ses)
+            )
+        )
+
     aseg = pl.concat(_aseg)
     aparc = pl.concat(_aparc)
+    brainvol = pl.concat(_brainvol)
 
-    return aseg.join(aparc, on=["sub", "ses"])
+    return aseg.join(aparc, on=["sub", "ses"]).join(brainvol, on=["sub", "ses"])
 
 
 def parse_aseg(f: Path) -> pl.DataFrame:

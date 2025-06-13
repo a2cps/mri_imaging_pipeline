@@ -18,7 +18,6 @@ import idps
 import mriqc_wf
 import polars as pl
 import postdtifit_wf
-import postgift_wf
 import qsiprep_wf
 import qsirecon_fsl_dtifit_wf
 import signatures_wf
@@ -338,6 +337,14 @@ def is_postdtifit_aggregated(path: Path, row) -> bool:
     ).exists()
 
 
+def is_dwi_biomarker1_aggregated(path: Path, row) -> bool:
+    all_dirs = (
+        (path / subdir / f"sub-{row['subject_id']}" / f"ses-{row['visit']}")
+        for subdir in ["move_masks", "networks", "probtrackx"]
+    )
+    return all([d.exists() for d in all_dirs])
+
+
 def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
     ready = pl.read_csv(ILOG, null_values=["", "na", "n/a"]).filter(
         pl.col("site") == site_code
@@ -357,6 +364,7 @@ def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
         "bedpostx": is_bedpostx_aggregated,
         "postgift": is_postgift_aggregated,
         "postdtifit": is_postdtifit_aggregated,
+        "dwi_biomarker1": is_dwi_biomarker1_aggregated,
     }
 
     # now, get list of jobs that will need to be copied over,
@@ -486,8 +494,17 @@ def main(
                 signatures_wf.copy(inroot=tmp_site, outdir=outroot / "signatures")
                 gift_wf.copy(inroot=tmp_site, outdir=outroot / "gift")
                 bedpostx_wf.copy(inroot=tmp_site, outdir=outroot / "bedpostx")
-                postgift_wf.copy(inroot=tmp_site, outdir=outroot / "postgift")
+                utils.copy_with_subdirs(
+                    inroot=tmp_site / "postgift",
+                    outdir=outroot / "postgift",
+                    subdirs=["amplitude", "biomarkers", "connectivity"],
+                )
                 postdtifit_wf.copy(inroot=tmp_site, outdir=outroot / "postdtifit")
+                utils.copy_with_subdirs(
+                    inroot=tmp_site / "dwi_biomarker1",
+                    outdir=outroot / "dwi_biomarker1",
+                    subdirs=["move_masks", "networks", "probtrackx"],
+                )
             if tmp_site.exists():
                 logging.info(f"Removing temporary directory for {site_long}")
                 shutil.rmtree(tmp_site)

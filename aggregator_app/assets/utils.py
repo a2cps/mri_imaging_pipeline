@@ -4,6 +4,7 @@ from pathlib import Path
 
 import nibabel as nb
 import numpy as np
+from biomarkers import utils as bu
 from nilearn import maskers
 
 
@@ -59,3 +60,11 @@ def get_volume(nif: Path, masker: maskers.NiftiLabelsMasker) -> np.ndarray:
         raise AssertionError("Expected 3d image")
     n_voxels = masker.fit_transform(nii).squeeze()
     return np.astype(n_voxels * np.prod(nii.header.get_zooms()), np.float64)
+
+
+def copy_with_subdirs(inroot: Path, outdir: Path, subdirs: list[str]) -> None:
+    bu.mkdir_recursive(outdir)
+
+    for subsesd in (inroot).glob("*"):
+        for subdir in subdirs:
+            mergetree_overwrite(subsesd / subdir, outdir / subdir)
