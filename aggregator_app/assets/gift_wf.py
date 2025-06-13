@@ -16,3 +16,6 @@ def copy(inroot: Path, outdir: Path) -> None:
                 "*anat*", "gift_rank-*log", "dataset_description.json"
             ),
         )
+    for f in outdir.rglob("*gz"):
+        if "nii" not in f.name:
+            f.rename(f.with_name(f.name.replace(".gz", ".nii.gz")))

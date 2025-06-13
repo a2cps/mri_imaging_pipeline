@@ -1,16 +1,16 @@
 {
- "name": "uic",
+ "name": "test",
  "appId": "dicom_reader",
- "appVersion": "3.0.3",
+ "appVersion": "3.0.5",
  "parameterSet": {
     "appArgs": [
 	{
 	"name": "FILENAME",
-    	"arg": "/corral-secure/projects/A2CPS/submissions/a2dtn01/EXAM12637"
+    	"arg": "corral-secure/projects/A2CPS/submissions/UC_uchicago/UC0001V1_A2CPS.zip"
 	},
 	{
 	"name": "SUBJECT_ID",
-	"arg": "UI11040V1"
+	"arg": "test"
 	}
 	]
   }

@@ -1,8 +1,8 @@
 {
     "name": "trav-human-WS",
     "appId": "heudiconv",
-    "appVersion": "3.0.3",
-    "archiveSystemDir": "/corral-secure/projects/A2CPS/community/resources/imaging/traveling/WS_wayne_state/bids/WS2travel2",
+    "appVersion": "3.1.0",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/development/mris/WS_wayne_state/bids/WS_travhuman_tmp_test",
     "archiveSystemId": "secure.ls6",
     "maxMinutes": 1440,
     "parameterSet": {

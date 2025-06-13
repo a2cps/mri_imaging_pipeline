@@ -1,6 +1,4 @@
-FROM freesurfer/synthstrip:1.6 AS fs
-
-FROM mambaorg/micromamba:1.5.8-jammy
+FROM mambaorg/micromamba:2.0-ubuntu24.10
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER env.yml /tmp/env.yml
 
@@ -12,8 +10,6 @@ RUN micromamba install -q --name base --yes --file /tmp/env.yml \
     && micromamba clean --yes --all
 
 COPY --chown=$MAMBA_USER:$MAMBA_USER assets /opt/tapis
-COPY --from=fs --chown=$MAMBA_USER:$MAMBA_USER /freesurfer/models/synthstrip.1.pt /opt/synthstrip.1.pt
-
 
 ENTRYPOINT [ "/usr/local/bin/_entrypoint.sh", "python", "/opt/tapis/stage.py" ]
 CMD ["--help"]

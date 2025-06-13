@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/aggregator:2.8",
-    "version": "2.8",
+    "containerImage": "docker://a2cps/aggregator:3.0",
+    "version": "3.0",
     "description": "Stage MRI Products for Release",
     "enabled": true,
     "id": "aggregator",
@@ -38,12 +38,6 @@
                     "arg": null,
                     "inputMode": "INCLUDE_ON_DEMAND",
                     "name": "MAXSUBS"
-                },
-                {
-                    "arg": "--n-threads 16",
-                    "description": "Number of threads used during synthstrip",
-                    "inputMode": "INCLUDE_BY_DEFAULT",
-                    "name": "NTHREADS"
                 },
                 {
                     "arg": "--tidy",

@@ -1,0 +1,24 @@
+{
+    "name": "aggregate",
+    "appId": "psadil-aggregator_app",
+    "appVersion": "0.6",
+    "execSystemId": "secure.ls6",
+    "execSystemLogicalQueue": "corralextra-dev",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "name": "INROOT",
+                "arg": "/corral-secure/projects/A2CPS/products/mris"
+            },
+            {
+                "name": "OUTROOT",
+                "arg": "all_sites"
+            },
+            {
+                "name": "MAXSUBS",
+                "arg": "--max-subs 2"
+            }
+        ]
+    },
+    "maxMinutes": 30
+}

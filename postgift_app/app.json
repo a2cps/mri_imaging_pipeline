@@ -1,0 +1,92 @@
+{
+    "containerImage": "docker://a2cps/postgift_app:1.1",
+    "version": "1.1",
+    "description": "Convert GIFT outputs to tabular form",
+    "enabled": true,
+    "id": "postgift-app",
+    "jobAttributes": {
+        "archiveOnAppError": false,
+        "cmdPrefix": "ibrun -n 1",
+        "description": null,
+        "dynamicExecSystem": false,
+        "execSystemConstraints": null,
+        "execSystemExecDir": "${JobWorkingDir}",
+        "execSystemId": "secure.ls6",
+        "execSystemInputDir": "${JobWorkingDir}",
+        "execSystemLogicalQueue": "corralextra",
+        "execSystemOutputDir": "${JobWorkingDir}",
+        "fileInputArrays": [],
+        "fileInputs": [],
+        "maxMinutes": 120,
+        "nodeCount": 1,
+        "parameterSet": {
+            "appArgs": [
+                {
+                    "arg": null,
+                    "inputMode": "REQUIRED",
+                    "name": "INPUT_DIRS"
+                },
+                {
+                    "arg": null,
+                    "inputMode": "INCLUDE_ON_DEMAND",
+                    "name": "OUTPUT_DIRS"
+                }
+            ],
+            "archiveFilter": {
+                "excludes": [
+                    "tapisjob.sh",
+                    "${JobUUID}.out",
+                    "${JobUUID}.err",
+                    "tapisjob.env"
+                ],
+                "includeLaunchFiles": false,
+                "includes": []
+            },
+            "containerArgs": [
+                {
+                    "arg": "--bind /corral-secure/projects/A2CPS",
+                    "description": "Mount for TAP functions",
+                    "inputMode": "FIXED",
+                    "name": "Container Mounts"
+                }
+            ],
+            "envVariables": [],
+            "logConfig": {
+                "stderrFilename": "${JobUUID}.err",
+                "stdoutFilename": "${JobUUID}.out"
+            },
+            "schedulerOptions": [
+                {
+                    "arg": "--tapis-profile ls6-mpi",
+                    "description": "Scheduler profile for HPC clusters at TACC",
+                    "inputMode": "FIXED",
+                    "name": "TACC Scheduler Profile"
+                },
+                {
+                    "arg": "--job-name ${JobName}",
+                    "description": "TAP Functions require the substring 'tap_' and in the slurm job name in order to function.",
+                    "inputMode": "FIXED",
+                    "name": "TAP Session Substring"
+                },
+                {
+                    "arg": "-A A2CPS",
+                    "description": "The TACC allocation associated with this job execution",
+                    "inputMode": "FIXED",
+                    "name": "TACC Allocation"
+                }
+            ]
+        },
+        "subscriptions": [],
+        "tags": []
+    },
+    "jobType": "BATCH",
+    "maxJobs": -1,
+    "maxJobsPerUser": -1,
+    "owner": "${apiUserId}",
+    "runtime": "SINGULARITY",
+    "runtimeOptions": [
+        "SINGULARITY_RUN"
+    ],
+    "runtimeVersion": null,
+    "strictFileInputs": true
+}

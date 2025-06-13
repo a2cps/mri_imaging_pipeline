@@ -1,62 +1,34 @@
 {
+    "appId": "dwi-biomarker1-app",
+    "appVersion": "1.0",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
+    "archiveSystemId": "secure.ls6",
+    "maxMinutes": 720,
     "name": "dwi_biomarker1",
-    "appId": "maj-dwi_biomarker1_app",
-    "appVersion": "0.1",
     "parameterSet": {
-        "appArgs": [
+        "appArgs": [],
+        "envVariables": [
             {
-            "name": "PARTICIPANT_LABEL",
-            "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "sub-20064"
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/dwi_biomarker1/"
             },
             {
-            "name": "SESSION_LABEL",
-            "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "ses-V1"
-            },
-            {
-            "name": "QSIPREPDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "/corral-secure/projects/A2CPS/products/mris/WS_wayne_state/qsiprep/WS20064V1/qsiprep"
-            },
-            {
-            "name": "QSIRECONDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/qsirecon-fsl_dtifit_app/derivatives/qsirecon-FSL"
-            },
-            {
-            "name": "ROIPREPDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/DWI_Biomarker-1/prepare_ROIs-VP"
-            },
-            {
-            "name": "OUTDIR",
-            "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/dwi_biomarker1_app/derivatives"
-            },
-            {
-            "name": "LICENSE",
-            "inputMode": "INCLUDE_BY_DEFAULT",
-            "arg": "/corral-secure/projects/A2CPS/shared/maj/qsiprep_tests/code/license.txt"
+                "key": "POLARS_MAX_THREADS",
+                "value": "1"
             }
         ]
     },
-    "moduleLoads": [
+    "subscriptions": [
         {
-            "moduleLoadCommand": "module load",
-            "modulesToLoad": [
-                "tacc-apptainer"
-            ]
-        },
-        {
-            "moduleLoadCommand": "module unload",
-            "modulesToLoad": [
-                "xalt"
-            ]
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
         }
-    ],
-    "hiddenOptions": [
-        "MEM"
-    ],
-    "maxMinutes": 360
+    ]
 }
