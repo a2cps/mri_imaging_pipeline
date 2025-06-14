@@ -12,7 +12,6 @@ def generate_tsv(output_dir: Path, mod: str) -> None:
     Generates a tsv file from all json files in the derivatives directory
     """
 
-    # If some were found, generate the CSV file and group report
     datalist = []
     for jsonfile in output_dir.glob(f"sub-*/**/{IMTYPES[mod]}/sub-*_{mod}.json"):
         datalist.append(
@@ -24,9 +23,9 @@ def generate_tsv(output_dir: Path, mod: str) -> None:
         )
 
     if len(datalist):
-        pl.concat(datalist).unique("bids_name", keep="last").write_csv(
-            output_dir / (f"group_{mod}.tsv"), separator="\t"
-        )
+        pl.concat(datalist, how="vertical_relaxed").unique(
+            "bids_name", keep="last"
+        ).write_csv(output_dir / (f"group_{mod}.tsv"), separator="\t")
 
 
 def copy(outdir: Path, inroot: Path) -> None:
