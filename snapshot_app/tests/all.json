@@ -1,0 +1,20 @@
+{
+    "appId": "psadil-snapshot-app",
+    "appVersion": "1.0",
+    "execSystemId": "secure.ls6",
+    "execSystemLogicalQueue": "corralextra-dev",
+    "maxMinutes": 120,
+    "name": "snapshot-test",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--inroot /corral-secure/projects/A2CPS/shared/psadil/jobs/eff5632e-6583-4ff6-b3a1-e0c4a679d4c9-007/all_sites",
+                "name": "INROOT"
+            },
+            {
+                "arg": "--outroot mris",
+                "name": "OUTROOT"
+            }
+        ]
+    }
+}
