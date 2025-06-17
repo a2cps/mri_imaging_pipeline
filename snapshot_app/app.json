@@ -1,8 +1,8 @@
 {
-    "containerImage": "docker://psadil/snapshot_app",
+    "containerImage": "docker://a2cps/snapshot_app:3.2",
     "description": "snapshot mri",
     "enabled": true,
-    "id": "psadil-snapshot-app",
+    "id": "snapshot-app",
     "jobAttributes": {
         "cmdPrefix": null,
         "description": null,
@@ -93,5 +93,5 @@
     ],
     "runtimeVersion": null,
     "strictFileInputs": true,
-    "version": "1.0"
+    "version": "3.2"
 }
