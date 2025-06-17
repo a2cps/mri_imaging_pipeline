@@ -1,0 +1,24 @@
+{
+    "appId": "psadil-signatures",
+    "appVersion": "0.6",
+    "maxMinutes": 240,
+    "name": "signatures",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/UI_uic/fmriprep/UI10010V1/fmriprep /corral-secure/projects/A2CPS/products/mris/UI_uic/fmriprep/UI10011V1/fmriprep /corral-secure/projects/A2CPS/products/mris/UI_uic/fmriprep/UI10023V1/fmriprep /corral-secure/projects/A2CPS/products/mris/UI_uic/fmriprep/UI10030V1/fmriprep",
+                "name": "INPUT_DIRS"
+            },
+            {
+                "arg": "--output-dirs UI_uic/signatures/UI10010V1 UI_uic/signatures/UI10011V1 UI_uic/signatures/UI10023V1 UI_uic/signatures/UI10030V1",
+                "name": "OUTPUT_DIRS"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "POLARS_MAX_THREADS",
+                "value": "14"
+            }
+        ]
+    }
+}

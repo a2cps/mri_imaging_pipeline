@@ -1,10 +1,10 @@
 {
-    "appId": "psadil-snapshot_app",
-    "appVersion": "4.0",
+    "appId": "snapshot_app",
+    "appVersion": "3.0",
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra",
-    "maxMinutes": 360,
-    "name": "snapshot-bids",
+    "maxMinutes": 720,
+    "name": "mri-snapshot",
     "parameterSet": {
         "appArgs": [
             {
@@ -12,12 +12,8 @@
                 "name": "INROOT"
             },
             {
-                "arg": "--outroot mris",
+                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery-release-2-1-0/mris",
                 "name": "OUTROOT"
-            },
-            {
-                "arg": "--job bids",
-                "name": "JOB"
             },
             {
                 "arg": "--n-workers 2",
