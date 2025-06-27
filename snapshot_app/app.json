@@ -1,5 +1,6 @@
 {
-    "containerImage": "docker://a2cps/snapshot_app:3.2",
+    "containerImage": "docker://a2cps/snapshot_app:3.6",
+    "version": "3.6",
     "description": "snapshot mri",
     "enabled": true,
     "id": "snapshot-app",
@@ -92,6 +93,5 @@
         "SINGULARITY_RUN"
     ],
     "runtimeVersion": null,
-    "strictFileInputs": true,
-    "version": "3.2"
+    "strictFileInputs": true
 }
