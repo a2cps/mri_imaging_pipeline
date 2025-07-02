@@ -59,11 +59,11 @@ protocols2fix.update(
             # this rule must come *after* DWI_B0
             ("^D[TW]I", "dwi"),
             (
-                r".*(REST|Rest)([12])([_\s]*R[1-9]*)*$",
+                r".*(REST|Rest)\s?([12])([_\s]*R[1-9]*)*$",
                 r"func_task-rest_run-\2",
             ),
             (
-                r".*(CUFF|Cuff)([12])([_\s]*R[1-9]*)*$",
+                r".*(CUFF|Cuff)\s?([12])([_\s]*R[1-9]*)*$",
                 r"func_task-cuff_run-\2",
             ),
             # phantom scan heuristics
@@ -90,6 +90,8 @@ protocols2fix.update(
             # SH Traveling Human
             ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
             ("^dMRI$", "dwi"),
+            # UIC scanner update
+            ("Sag T1_MPRAGE", "anat-T1w"),
         ],
     }
 )
