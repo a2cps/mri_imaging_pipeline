@@ -17,6 +17,7 @@ anatomical = {
         "T1_MPRAGE R1",
         "Tra T1 MPRAGE orthog",
         "anat-T1w_acq-MPRAGE",
+        "Sag T1_MPRAGE",
     ]
 }
 dwi = {"dwi": ["DWI", "dwi", "DTI", "ORIG: DTI", "dMRI"]}

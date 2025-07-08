@@ -39,8 +39,8 @@ DICOMS=(
     "${project}"/SH_spectrum_health/dicoms/QC_SH050224QA.zip
     "${project}"/UC_uchicago/dicoms/UC10885V1.zip
     "${project}"/UC_uchicago/dicoms/QC_UC011024QA.zip
-    "${project}"/UI_uic/dicoms/UI10910V1.zip
-    "${project}"/UI_uic/dicoms/QC_UI083123QA.zip
+    "${project}"/UI_uic/dicoms/UI11256V3.zip # after upgrade to software 30
+    "${project}"/UI_uic/dicoms/QC_UI070225QA.zip # after upgrade to software 30
     "${project}"/UM_umichigan/dicoms/UM20369V1.zip # UM1
     "${project}"/UM_umichigan/dicoms/UM25245V1.zip  # UM2
     /corral-secure/projects/A2CPS/products/development/mris/UM_umichigan/dicoms/UM02081322QA.zip
@@ -48,9 +48,9 @@ DICOMS=(
     "${project}"/WS_wayne_state/dicoms/QC_WS010824QA.zip
     "${project}"/UM_umichigan/dicoms/UM20340V3.zip  # scan with variable ShimSetting
     )
-SUBJECTS=(            10920 nsphantom 10945  ruphantom 25441 shphantom 10885 ucphantom 10910            uiphantom        20369            25245             umphantom        25225 wsphantom 20340)
+SUBJECTS=(            10920 nsphantom 10945  ruphantom 25441 shphantom 10885 ucphantom 11256            uiphantom        20369            25245             umphantom        25225 wsphantom 20340)
 SITE=(               NS    NS        RU     RU        SH    SH        UC    UC        UI               UI               UM               UM                UM               WS    WS        UM)
-SES=(                 V1    012324    V1     041125    V1    050224    V1    011024    V1               083123           V1               V1                081322           V1    010824    V3)
+SES=(                 V1    012324    V1     041125    V1    050224    V1    011024    V3               070225           V1               V1                081322           V1    010824    V3)
 DEVICE_SERIAL_NUMBER=(70032 70032     166295 166295    66022 66022     71399 71399     000000312996MR3T 000000312996MR3T 000000000UM750MR 0007347633TMRFIX  0007347633TMRFIX 40292 40292     0007347633TMRFIX)
 
 declare -A SITE_LONG=(

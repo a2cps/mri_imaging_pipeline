@@ -3,12 +3,12 @@
     "AcquisitionNumber": 1,
     "BidsGuess": [
         "anat",
-        "_acq-EFGRE3Dp2_run-3_T1w"
+        "_acq-EFGRE3Dp2_run-2_T1w"
     ],
     "BodyPartExamined": "BRAIN",
     "CoilString": "RM:Nova32ch",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20240123",
+    "ConversionSoftwareVersion": "v1.0.20240202",
     "DeviceSerialNumber": "000000312996MR3T",
     "EchoTime": 0.00292,
     "FlipAngle": 8,
@@ -25,14 +25,14 @@
         "PRIMARY",
         "OTHER"
     ],
-    "ImagingFrequency": 127.779012,
+    "ImagingFrequency": 127.779005,
     "InPlanePhaseEncodingDirectionDICOM": "ROW",
     "InstitutionName": "UNIVERSITY OF ILLINOIS",
     "InversionTime": 1.06,
     "MRAcquisitionType": "3D",
     "MagneticFieldStrength": 3,
     "Manufacturer": "GE",
-    "ManufacturersModelName": "DISCOVERY MR750",
+    "ManufacturersModelName": "Discovery MR750",
     "Modality": "MR",
     "ParallelReductionFactorInPlane": 2,
     "ParallelReductionFactorOutOfPlane": 2,
@@ -41,24 +41,24 @@
     "PercentSampling": 100,
     "PixelBandwidth": 244.141,
     "PrescanReuseString": "TG/s1,RN/s1",
-    "ProcedureStepDescription": "SPGR",
-    "ProtocolName": "UM1_ABCD_4.1.21_FINAL",
-    "PulseSequenceName": "research/ABCD/mprage_promo",
+    "ProcedureStepDescription": "MP-RAGE",
+    "ProtocolName": "UM1_ABCD_6.18.25_FINAL_3",
+    "PulseSequenceName": "MP-RAGE",
     "ReconMatrixPE": 256,
-    "RepetitionTime": 0.006952,
-    "SAR": 0.209967,
-    "ScanOptions": "EDR_GEMS\\PROMO_GEMS\\ACC_GEMS\\IR_GEMS",
-    "ScanningSequence": "RM",
+    "RepetitionTime": 3.09238,
+    "SAR": 0.154974,
+    "ScanOptions": "EDR_GEMS\\PROMO_GEMS\\ACC_GEMS\\FSI_GEMS\\IR_GEMS",
+    "ScanningSequence": "RM\\IR",
     "SequenceVariant": "NONE",
-    "SeriesDescription": "T1_MPRAGE",
-    "SeriesNumber": 3,
+    "SeriesDescription": "Sag T1_MPRAGE",
+    "SeriesNumber": 2,
     "ShimSetting": [
-        1,
-        12,
-        -37
+        36,
+        64,
+        -621
     ],
     "SliceThickness": 1,
-    "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
+    "SoftwareVersions": "30\\LX\\SIGNA_LX1.MR30.1_R04_2421.a",
     "SpacingBetweenSlices": 1,
     "StationName": "GEMSGEMS",
     "dcmmeta_affine": [
@@ -66,19 +66,19 @@
             1.0,
             0.0,
             0.0,
-            -104.125
+            -98.5
         ],
         [
             0.0,
             1.0,
             0.0,
-            -105.6240005493164
+            -106.875
         ],
         [
             0.0,
             0.0,
             1.0,
-            -140.62399291992188
+            -128.5749969482422
         ],
         [
             0.0,
@@ -144,15 +144,16 @@
             "BodyPartExamined": "BRAIN",
             "CardiacNumberOfImages": 0,
             "Columns": 256,
-            "ContentTime": "123854",
+            "ContentTime": "104657",
             "EchoNumbers": 1,
             "EchoTime": 2.92,
             "EchoTrainLength": 1,
             "FlipAngle": 8.0,
             "GroupLength_0X10_0X0": 90,
-            "GroupLength_0X18_0X0": 520,
-            "GroupLength_0X40_0X0": 82,
-            "GroupLength_0X7FE0_0X0": 131080,
+            "GroupLength_0X18_0X0": 530,
+            "GroupLength_0X28_0X0": 146,
+            "GroupLength_0X40_0X0": 80,
+            "GroupLength_0X7FE0_0X0": 131084,
             "HeartRate": 0,
             "HighBit": 15,
             "ImageOrientationPatient": [
@@ -170,19 +171,19 @@
             ],
             "ImagedNucleus": "1H",
             "ImagesInAcquisition": 208,
-            "ImagingFrequency": 127.779012,
+            "ImagingFrequency": 127.779005,
             "InPlanePhaseEncodingDirection": "ROW",
             "InversionTime": 1060.0,
             "MRAcquisitionType": "3D",
             "MagneticFieldStrength": 3.0,
             "Manufacturer": "GE MEDICAL SYSTEMS",
-            "ManufacturerModelName": "DISCOVERY MR750",
+            "ManufacturerModelName": "Discovery MR750",
             "Modality": "MR",
             "NumberOfAverages": 1.0,
             "PercentPhaseFieldOfView": 100.0,
             "PercentSampling": 100.0,
             "PerformedLocation": "GEMS",
-            "PerformedProcedureStepStartTime": "123721",
+            "PerformedProcedureStepStartTime": "104252",
             "PhotometricInterpretation": "MONOCHROME2",
             "PixelBandwidth": 244.141,
             "PixelRepresentation": 1,
@@ -190,43 +191,47 @@
                 1.0,
                 1.0
             ],
-            "ProtocolName": "UM1_ABCD_4.1.21_FINAL",
+            "ProtocolName": "UM1_ABCD_6.18.25_FINAL_3",
             "ReceiveCoilName": "RM:Nova32ch",
             "ReconstructionDiameter": 256.0,
             "ReferencedPerformedProcedureStepSequence": [
                 {
                     "GroupLength": 100,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.258433801359128380304493139046777300026"
+                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.514.63726241676736621201008228427357454165"
                 }
             ],
-            "RepetitionTime": 6.952,
+            "RepetitionTime": 3092.38,
             "Rows": 256,
-            "SAR": 0.209967,
+            "SAR": 0.154974,
             "SamplesPerPixel": 1,
             "ScanOptions": [
                 "EDR_GEMS",
                 "PROMO_GEMS",
                 "ACC_GEMS",
+                "FSI_GEMS",
                 "IR_GEMS"
             ],
-            "ScanningSequence": "RM",
+            "ScanningSequence": [
+                "RM",
+                "IR"
+            ],
             "SequenceVariant": "NONE",
-            "SeriesDescription": "T1_MPRAGE",
-            "SeriesNumber": 3,
-            "SeriesTime": "123853",
+            "SeriesDescription": "Sag T1_MPRAGE",
+            "SeriesNumber": 2,
+            "SeriesTime": "104657",
             "SliceThickness": 1.0,
             "SmallestImagePixelValue": 0,
             "SoftwareVersions": [
-                "27",
+                "30",
                 "LX",
-                "MR Software release:DV26.0_R02_1810.b"
+                "SIGNA_LX1.MR30.1_R04_2421.a"
             ],
             "SpacingBetweenSlices": 1.0,
             "SpecificCharacterSet": "ISO_IR 100",
             "StackID": "1",
-            "StudyID": "12019",
-            "StudyTime": "123732",
+            "StudyID": "13395",
+            "StudyTime": "104554",
             "TriggerWindow": 0,
             "VariableFlipAngleFlag": "N"
         }
