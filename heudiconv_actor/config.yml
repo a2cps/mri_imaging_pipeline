@@ -4,7 +4,7 @@ logs:
   token: ~
 heudiconv:
   appId: heudiconv
-  appVersion: 3.1.2
+  appVersion: 3.1.3
   name: heudiconv_test
   archive: true
   archiveSystemDir: testing/actor-heudiconv
