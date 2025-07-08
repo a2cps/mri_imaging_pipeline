@@ -3,12 +3,12 @@
     "AcquisitionNumber": 1,
     "BidsGuess": [
         "fmap",
-        "_acq-EPI_dir-PA_run-7_epi"
+        "_acq-EPI_dir-PA_run-6_epi"
     ],
     "BodyPartExamined": "BRAIN",
     "CoilString": "RM:Nova32ch",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20240123",
+    "ConversionSoftwareVersion": "v1.0.20240202",
     "DeviceSerialNumber": "000000312996MR3T",
     "EchoTime": 0.08,
     "EffectiveEchoSpacing": 0.000536,
@@ -26,19 +26,19 @@
         "PRIMARY",
         "OTHER"
     ],
-    "ImagingFrequency": 127.778966,
+    "ImagingFrequency": 127.778974,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionName": "UNIVERSITY OF ILLINOIS",
     "IntendedFor": [
-        "ses-V1/func/sub-10910_ses-V1_task-rest_run-01_bold.nii.gz",
-        "ses-V1/func/sub-10910_ses-V1_task-cuff_run-02_bold.nii.gz",
-        "ses-V1/func/sub-10910_ses-V1_task-cuff_run-01_bold.nii.gz",
-        "ses-V1/func/sub-10910_ses-V1_task-rest_run-02_bold.nii.gz"
+        "ses-V1/func/sub-11296_ses-V1_task-rest_run-02_bold.nii.gz",
+        "ses-V1/func/sub-11296_ses-V1_task-cuff_run-02_bold.nii.gz",
+        "ses-V1/func/sub-11296_ses-V1_task-rest_run-01_bold.nii.gz",
+        "ses-V1/func/sub-11296_ses-V1_task-cuff_run-01_bold.nii.gz"
     ],
     "MRAcquisitionType": "2D",
     "MagneticFieldStrength": 3,
     "Manufacturer": "GE",
-    "ManufacturersModelName": "DISCOVERY MR750",
+    "ManufacturersModelName": "Discovery MR750",
     "Modality": "MR",
     "PatientPosition": "HFS",
     "PercentPhaseFOV": 100,
@@ -48,20 +48,20 @@
     "PixelBandwidth": 3906.25,
     "PrescanReuseString": "RN/s1",
     "ProcedureStepDescription": "Spin Echo",
-    "ProtocolName": "UM1_ABCD_4.1.21_FINAL",
+    "ProtocolName": "UM1_ABCD_6.18.25_FINAL_3",
     "PulseSequenceName": "research/ABCD/epi_pepolar",
     "ReconMatrixPE": 128,
     "RepetitionTime": 7.4,
-    "SAR": 0.425751,
-    "ScanOptions": "SAT_GEMS\\EDR_GEMS\\MP_GEMS\\EPI_GEMS\\FS",
+    "SAR": 0.41268,
+    "ScanOptions": "SAT_GEMS\\MP_GEMS\\EPI_GEMS\\FS",
     "ScanningSequence": "EP\\RM",
     "SequenceVariant": "NONE",
     "SeriesDescription": "fMRI_B0",
-    "SeriesNumber": 7,
+    "SeriesNumber": 6,
     "ShimSetting": [
-        0,
-        12,
-        -37
+        40,
+        84,
+        -791
     ],
     "SliceThickness": 2.4,
     "SliceTiming": [
@@ -126,7 +126,7 @@
         3.7,
         0
     ],
-    "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
+    "SoftwareVersions": "30\\LX\\SIGNA_LX1.MR30.1_R04_2421.a",
     "SpacingBetweenSlices": 2.4,
     "StationName": "GEMSGEMS",
     "TotalReadoutTime": 0.068072,
