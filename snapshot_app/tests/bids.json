@@ -1,6 +1,6 @@
 {
     "appId": "psadil-snapshot_app",
-    "appVersion": "2.3",
+    "appVersion": "4.0",
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra",
     "maxMinutes": 360,
@@ -20,7 +20,7 @@
                 "name": "JOB"
             },
             {
-                "arg": "--n-workers 32",
+                "arg": "--n-workers 2",
                 "name": "N_WORKERS"
             }
         ]

@@ -1,0 +1,16 @@
+{
+    "appId": "psadil-postgift-app",
+    "appVersion": "0.1",
+    "cmdPrefix": "ibrun -n 1",
+    "execSystemLogicalQueue": "corralextra-dev",
+    "maxMinutes": 120,
+    "name": "postgift-test",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/UI_uic/gift/UI10003V1/gift",
+                "name": "INPUT_DIRS"
+            }
+        ]
+    }
+}

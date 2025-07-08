@@ -9,7 +9,7 @@ sub-*/ses-*/fmap/*.bval
 sub-*/ses-*/fmap/*.bvec
 """
 
-DESCRIPTION = {"BIDSVersion": "1.8.0", "Name": "A2CPS"}
+DESCRIPTION = {"BIDSVersion": "1.9.0", "Name": "A2CPS"}
 
 README = "A2CPS dataset"
 

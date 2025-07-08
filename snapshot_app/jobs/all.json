@@ -1,0 +1,24 @@
+{
+    "appId": "snapshot-app",
+    "appVersion": "3.6",
+    "execSystemId": "secure.ls6",
+    "execSystemLogicalQueue": "corralextra",
+    "maxMinutes": 720,
+    "name": "mri-snapshot",
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--inroot /corral-secure/projects/A2CPS/products/mris/all_sites",
+                "name": "INROOT"
+            },
+            {
+                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery-release-2-1-0/mris",
+                "name": "OUTROOT"
+            },
+            {
+                "arg": "--n-workers 2",
+                "name": "N_WORKERS"
+            }
+        ]
+    }
+}

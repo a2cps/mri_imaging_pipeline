@@ -3,12 +3,12 @@
     "AcquisitionNumber": 1,
     "BidsGuess": [
         "dwi",
-        "_acq-EPI2_dir-PA_run-40005_dwi"
+        "_acq-EPI2_dir-PA_run-40004_dwi"
     ],
     "BodyPartExamined": "HEAD",
     "CoilString": "RM:Nova32ch",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20240123",
+    "ConversionSoftwareVersion": "v1.0.20240202",
     "DeviceSerialNumber": "000000312996MR3T",
     "EchoTime": 0.0638,
     "EffectiveEchoSpacing": 0.000748,
@@ -26,14 +26,14 @@
         "PRIMARY",
         "OTHER"
     ],
-    "ImagingFrequency": 127.778702,
+    "ImagingFrequency": 127.778749,
     "InPlanePhaseEncodingDirectionDICOM": "COL",
     "InstitutionName": "UNIVERSITY OF ILLINOIS",
     "InternalPulseSequenceName": "EPI2",
     "MRAcquisitionType": "2D",
     "MagneticFieldStrength": 3,
     "Manufacturer": "GE",
-    "ManufacturersModelName": "DISCOVERY MR750",
+    "ManufacturersModelName": "Discovery MR750",
     "Modality": "MR",
     "PatientPosition": "HFS",
     "PercentPhaseFOV": 100,
@@ -41,24 +41,24 @@
     "PhaseEncodingDirection": "j",
     "PhaseEncodingPolarityGE": "Flipped",
     "PixelBandwidth": 1953.12,
-    "PrescanReuseString": "RN/s1",
+    "PrescanReuseString": "RN/s1,Cal/s2",
     "ProtocolName": "UM1_A2CPS QA_6.24.21",
     "PulseSequenceName": "epi2",
     "ReconMatrixPE": 256,
     "RepetitionTime": 2,
-    "SAR": 0.04248,
+    "SAR": 0.051248,
     "ScanOptions": "EDR_GEMS\\EPI_GEMS\\PFF",
     "ScanningSequence": "EP\\SE",
     "SequenceVariant": "NONE",
     "SeriesDescription": "ORIG dwi-dwi_acq-b1000",
-    "SeriesNumber": 40005,
+    "SeriesNumber": 40004,
     "ShimSetting": [
-        -2,
-        8,
-        -12
+        23,
+        129,
+        -180
     ],
     "SliceThickness": 5,
-    "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
+    "SoftwareVersions": "30\\LX\\SIGNA_LX1.MR30.1_R04_2421.a",
     "SpacingBetweenSlices": 6,
     "StationName": "GEMSGEMS",
     "TotalReadoutTime": 0.19074,
@@ -67,19 +67,19 @@
             -0.8593999743461609,
             0.0,
             0.0,
-            107.69499969482422
+            108.32029724121094
         ],
         [
             0.0,
             0.8593999743461609,
             0.0,
-            -105.82599639892578
+            -96.45170593261719
         ],
         [
             0.0,
             0.0,
             6.0,
-            -22.874500274658203
+            2.125
         ],
         [
             0.0,
@@ -146,17 +146,17 @@
             "BodyPartExamined": "HEAD",
             "CardiacNumberOfImages": 0,
             "Columns": 256,
-            "ContentTime": "151328",
+            "ContentTime": "150553",
             "EchoNumbers": 1,
             "EchoTime": 63.8,
             "EchoTrainLength": 1,
             "FlipAngle": 90.0,
+            "GeometryOfKSpaceTraversal": "RECTILINEAR",
             "GroupLength_0X10_0X0": 96,
-            "GroupLength_0X20_0X0": 408,
             "GroupLength_0X28_0X0": 156,
-            "GroupLength_0X40_0X0": 82,
-            "GroupLength_0X7FE0_0X0": 131080,
-            "GroupLength_0X8_0X0": 878,
+            "GroupLength_0X40_0X0": 80,
+            "GroupLength_0X7FE0_0X0": 131084,
+            "GroupLength_0X8_0X0": 940,
             "HeartRate": 0,
             "HighBit": 15,
             "ImageOrientationPatient": [
@@ -174,18 +174,18 @@
             ],
             "ImagedNucleus": "1H",
             "ImagesInAcquisition": 15,
-            "ImagingFrequency": 127.778702,
+            "ImagingFrequency": 127.778749,
             "InPlanePhaseEncodingDirection": "COL",
             "MRAcquisitionType": "2D",
             "MagneticFieldStrength": 3.0,
             "Manufacturer": "GE MEDICAL SYSTEMS",
-            "ManufacturerModelName": "DISCOVERY MR750",
+            "ManufacturerModelName": "Discovery MR750",
             "Modality": "MR",
             "NumberOfAverages": 1.0,
             "PercentPhaseFieldOfView": 100.0,
             "PercentSampling": 100.0,
             "PerformedLocation": "GEMS",
-            "PerformedProcedureStepStartTime": "150705",
+            "PerformedProcedureStepStartTime": "145656",
             "PhotometricInterpretation": "MONOCHROME2",
             "PixelBandwidth": 1953.12,
             "PixelRepresentation": 1,
@@ -196,16 +196,17 @@
             "ProtocolName": "UM1_A2CPS QA_6.24.21",
             "ReceiveCoilName": "RM:Nova32ch",
             "ReconstructionDiameter": 220.0,
+            "RectilinearPhaseEncodeReordering": "LINEAR",
             "ReferencedPerformedProcedureStepSequence": [
                 {
                     "GroupLength": 100,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.239335310030062981905735976300439524022"
+                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.514.248248204936894935922894637302909957173"
                 }
             ],
             "RepetitionTime": 2000.0,
             "Rows": 256,
-            "SAR": 0.04248,
+            "SAR": 0.051248,
             "SamplesPerPixel": 1,
             "ScanOptions": [
                 "EDR_GEMS",
@@ -218,20 +219,20 @@
             ],
             "SequenceVariant": "NONE",
             "SeriesDescription": "ORIG dwi-dwi_acq-b1000",
-            "SeriesNumber": 40005,
-            "SeriesTime": "151328",
+            "SeriesNumber": 40004,
+            "SeriesTime": "150552",
             "SliceThickness": 5.0,
             "SmallestImagePixelValue": 0,
             "SoftwareVersions": [
-                "27",
+                "30",
                 "LX",
-                "MR Software release:DV26.0_R02_1810.b"
+                "SIGNA_LX1.MR30.1_R04_2421.a"
             ],
             "SpacingBetweenSlices": 6.0,
             "SpecificCharacterSet": "ISO_IR 100",
             "StackID": "1",
-            "StudyID": "11635",
-            "StudyTime": "150721",
+            "StudyID": "13391",
+            "StudyTime": "145703",
             "TriggerWindow": 0,
             "VariableFlipAngleFlag": "N",
             "VolumetricProperties": "VOLUME"

@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-import pandas as pd
+import polars as pl
 import utils
 from biomarkers import utils as bu
 
@@ -17,13 +17,12 @@ def copy(outdir: Path, inroot: Path) -> None:
         bu.mkdir_recursive(out_subses)
 
         # brainager outputs csvs, but all tables in aggregation
-        # could be tsv
+        # should be tsv
         if src.suffix == ".csv":
-            pd.read_csv(src).to_csv(
+            pl.read_csv(src).write_csv(
                 out_subses / src.with_suffix(".tsv").name,
-                sep="\t",
-                index=False,
-                na_rep="n/a",
+                separator="\t",
+                null_value="n/a",
             )
     for src in inroot.rglob("brainager/*"):
         sub = bu.get_sub_from_sublong(src)

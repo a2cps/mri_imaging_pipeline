@@ -3,12 +3,12 @@
     "AcquisitionNumber": 1,
     "BidsGuess": [
         "dwi",
-        "_acq-EPI2m3_dir-PA_run-6_dwi"
+        "_acq-EPI2m3_dir-PA_run-5_dwi"
     ],
     "BodyPartExamined": "BRAIN",
     "CoilString": "RM:Nova32ch",
     "ConversionSoftware": "dcm2niix",
-    "ConversionSoftwareVersion": "v1.0.20240123",
+    "ConversionSoftwareVersion": "v1.0.20240202",
     "DeviceSerialNumber": "000000312996MR3T",
     "EchoTime": 0.0817,
     "EffectiveEchoSpacing": 0.000768,
@@ -33,7 +33,7 @@
     "MRAcquisitionType": "2D",
     "MagneticFieldStrength": 3,
     "Manufacturer": "GE",
-    "ManufacturersModelName": "DISCOVERY MR750",
+    "ManufacturersModelName": "Discovery MR750",
     "Modality": "MR",
     "MultibandAccelerationFactor": 3,
     "NumberOfDiffusionDirectionGE": 102,
@@ -44,22 +44,22 @@
     "PhaseEncodingDirection": "j",
     "PhaseEncodingPolarityGE": "Flipped",
     "PixelBandwidth": 1785.71,
-    "PrescanReuseString": "TG/s5,RN/s1",
+    "PrescanReuseString": "RN/s1,Cal/s2",
     "ProcedureStepDescription": "Spin Echo",
-    "ProtocolName": "UM1_ABCD_4.1.21_FINAL",
+    "ProtocolName": "UM1_ABCD_6.18.25_FINAL_3",
     "PulseSequenceName": "research/ABCD/muxepi2",
     "ReconMatrixPE": 140,
     "RepetitionTime": 4.1,
-    "SAR": 0.488882,
+    "SAR": 0.4476,
     "ScanOptions": "CL_GEMS\\SAT_GEMS\\EDR_GEMS\\EPI_GEMS\\HYPERBAND_GEMS\\PFF\\FS",
     "ScanningSequence": "EP\\RM",
     "SequenceVariant": "NONE",
     "SeriesDescription": "DWI",
-    "SeriesNumber": 6,
+    "SeriesNumber": 5,
     "ShimSetting": [
-        -2,
-        12,
-        -38
+        40,
+        84,
+        -791
     ],
     "SliceThickness": 1.7,
     "SliceTiming": [
@@ -145,61 +145,61 @@
         2.12593,
         0
     ],
-    "SoftwareVersions": "27\\LX\\MR Software release:DV26.0_R02_1810.b",
+    "SoftwareVersions": "30\\LX\\SIGNA_LX1.MR30.1_R04_2421.a",
     "SpacingBetweenSlices": 1.7,
     "StationName": "GEMSGEMS",
-    "TensorFileNumberGE": 160,
+    "TensorFileNumberGE": 4321,
     "TotalReadoutTime": 0.106752,
     "dcmmeta_affine": [
         [
             -1.7143000364303589,
-            0.0,
-            0.0,
-            118.51799774169922
+            0,
+            0,
+            124.14285278320312
         ],
         [
-            0.0,
+            0,
             1.7143000364303589,
-            0.0,
-            -108.51969909667969
+            0,
+            -107.89484405517578
         ],
         [
-            0.0,
-            0.0,
-            1.7000000476837158,
-            -76.12449645996094
+            0,
+            0,
+            1.7000007629394531,
+            -72.20005798339844
         ],
         [
-            0.0,
-            0.0,
-            0.0,
-            1.0
+            0,
+            0,
+            0,
+            1
         ]
     ],
     "dcmmeta_reorient_transform": [
         [
-            0.0,
-            -1.0,
-            0.0,
-            139.0
+            0,
+            -1,
+            0,
+            139
         ],
         [
-            1.0,
-            0.0,
-            0.0,
-            0.0
+            1,
+            0,
+            0,
+            0
         ],
         [
-            0.0,
-            0.0,
-            -1.0,
-            80.0
+            0,
+            0,
+            -1,
+            80
         ],
         [
-            0.0,
-            0.0,
-            0.0,
-            1.0
+            0,
+            0,
+            0,
+            1
         ]
     ],
     "dcmmeta_shape": [
@@ -237,19 +237,20 @@
             "EchoNumbers": 1,
             "EchoTime": 81.7,
             "EchoTrainLength": 1,
-            "FlipAngle": 90.0,
+            "FlipAngle": 90,
+            "GeometryOfKSpaceTraversal": "RECTILINEAR",
             "GroupLength_0X10_0X0": 90,
-            "GroupLength_0X40_0X0": 82,
-            "GroupLength_0X7FE0_0X0": 39208,
+            "GroupLength_0X40_0X0": 80,
+            "GroupLength_0X7FE0_0X0": 39212,
             "HeartRate": 0,
             "HighBit": 15,
             "ImageOrientationPatient": [
-                1.0,
-                -0.0,
-                0.0,
-                -0.0,
-                1.0,
-                0.0
+                1,
+                -0,
+                0,
+                -0,
+                1,
+                0
             ],
             "ImageType": [
                 "ORIGINAL",
@@ -261,15 +262,15 @@
             "ImagingFrequency": 127.778959,
             "InPlanePhaseEncodingDirection": "COL",
             "MRAcquisitionType": "2D",
-            "MagneticFieldStrength": 3.0,
+            "MagneticFieldStrength": 3,
             "Manufacturer": "GE MEDICAL SYSTEMS",
-            "ManufacturerModelName": "DISCOVERY MR750",
+            "ManufacturerModelName": "Discovery MR750",
             "Modality": "MR",
-            "NumberOfAverages": 1.0,
-            "PercentPhaseFieldOfView": 100.0,
-            "PercentSampling": 100.0,
+            "NumberOfAverages": 1,
+            "PercentPhaseFieldOfView": 100,
+            "PercentSampling": 100,
             "PerformedLocation": "GEMS",
-            "PerformedProcedureStepStartTime": "123721",
+            "PerformedProcedureStepStartTime": "104252",
             "PhotometricInterpretation": "MONOCHROME2",
             "PixelBandwidth": 1785.71,
             "PixelRepresentation": 1,
@@ -277,19 +278,20 @@
                 1.7143,
                 1.7143
             ],
-            "ProtocolName": "UM1_ABCD_4.1.21_FINAL",
+            "ProtocolName": "UM1_ABCD_6.18.25_FINAL_3",
             "ReceiveCoilName": "RM:Nova32ch",
-            "ReconstructionDiameter": 240.0,
+            "ReconstructionDiameter": 240,
+            "RectilinearPhaseEncodeReordering": "LINEAR",
             "ReferencedPerformedProcedureStepSequence": [
                 {
                     "GroupLength": 100,
                     "ReferencedSOPClassUID": "1.2.840.10008.3.1.2.3.3",
-                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.408.258433801359128380304493139046777300026"
+                    "ReferencedSOPInstanceUID": "1.2.840.113619.6.514.63726241676736621201008228427357454165"
                 }
             ],
-            "RepetitionTime": 4100.0,
+            "RepetitionTime": 4100,
             "Rows": 140,
-            "SAR": 0.488882,
+            "SAR": 0.4476,
             "SamplesPerPixel": 1,
             "ScanOptions": [
                 "CL_GEMS",
@@ -306,20 +308,20 @@
             ],
             "SequenceVariant": "NONE",
             "SeriesDescription": "DWI",
-            "SeriesNumber": 6,
-            "SeriesTime": "124726",
+            "SeriesNumber": 5,
+            "SeriesTime": "105605",
             "SliceThickness": 1.7,
             "SmallestImagePixelValue": 0,
             "SoftwareVersions": [
-                "27",
+                "30",
                 "LX",
-                "MR Software release:DV26.0_R02_1810.b"
+                "SIGNA_LX1.MR30.1_R04_2421.a"
             ],
             "SpacingBetweenSlices": 1.7,
             "SpecificCharacterSet": "ISO_IR 100",
             "StackID": "1",
-            "StudyID": "12019",
-            "StudyTime": "123732",
+            "StudyID": "13395",
+            "StudyTime": "104554",
             "TriggerWindow": 0,
             "VariableFlipAngleFlag": "N"
         }
