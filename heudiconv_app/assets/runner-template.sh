@@ -167,7 +167,7 @@ python /tapis/assets/edit_json.py "${OUTDIR}"
 # so delete any that are found
 find "${OUTDIR}" -type f -name '*task-rest*events.tsv' -delete
 
-set -x
+set -xe
 if [[ ${CHECK_JSONS} == 1 ]]; then
   # Sites have both a patient protocol and a phantom protocol, which always differ. So, the checks must
   # be divided by whether we're dealing with a phantom scan or not.
