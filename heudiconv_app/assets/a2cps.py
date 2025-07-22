@@ -165,11 +165,15 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         # During or around collection of SH20149V3, the SH scanner crashed, causing most
         # files in this session to be deleted. There is a T1w, but it is not the raw
         # image that we typically want. This keeps that derived image, since it is the
-        # only one available
+        # only one available (1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028)
         # https://a2cps-pain.slack.com/archives/C02JP3G763X/p1689344497466429
+        # For 1.3.12.2.1107.5.2.43.66022.2025070314243471561794826.0.0.0 (SH25468V1),
+        # the ND scan was not exported, so we only have the corrected one available
         and not (
             dcmdata.SeriesInstanceUID
             == "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028"
+            or dcmdata.SeriesInstanceUID
+            == "1.3.12.2.1107.5.2.43.66022.2025070314243471561794826.0.0.0"
         )
     ):
         exclude = True
