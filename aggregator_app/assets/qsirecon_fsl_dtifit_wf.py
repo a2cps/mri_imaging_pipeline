@@ -80,20 +80,15 @@ DESCRIPTION2 = {
 
 def copy(outdir: Path, inroot: Path) -> None:
     for product in ["qsirecon-fsl", "split_shells", "dtifit"]:
-        bu.mkdir_recursive(outdir / product)
-        for src in (inroot / "qsirecon_fsl_dtifit").glob(f"*/{product}"):
-            if product == "qsirecon-fsl":
-                ignore = shutil.ignore_patterns(
-                    ".bidsignore", "logs", "dataset_description.json"
-                )
-            else:
-                ignore = None
-
-            utils.mergetree_overwrite(
-                src,
-                outdir / product,
-                ignore=ignore,
+        if product == "qsirecon-fsl":
+            ignore = shutil.ignore_patterns(
+                ".bidsignore", "logs", "dataset_description.json"
             )
+        else:
+            ignore = None
+        bu.mkdir_recursive(outdir / product)
+        for src in (inroot / "qsirecon_fsl_dtifit").glob("*"):
+            utils.mergetree_overwrite(src / product, outdir / product, ignore=ignore)
 
 
 def make_toplevel(outdir: Path) -> None:
