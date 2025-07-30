@@ -118,14 +118,14 @@ def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
         / "dwi"
     )
     split_shells_target = path / "split_shells" / f"sub-{sub}" / f"ses-{ses}" / "dwi"
-    dtifit_dir = path / "dtifit"
+    dtifit_dirs = [
+        path / "dtifit" / bval / f"sub-{sub}" / f"ses-{ses}"
+        for bval in ["b1000", "b2000", "b3000", "multishell"]
+    ]
     all_ready = (
         qsirecon_target.exists()
         & split_shells_target.exists()
-        & all(
-            (dtifit_dir / bval).exists()
-            for bval in ["b1000", "b2000", "b3000", "multishell"]
-        )
+        & all(dtifit_dir.exists() for dtifit_dir in dtifit_dirs)
     )
 
     if not all_ready:
@@ -133,8 +133,9 @@ def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
             shutil.rmtree(qsirecon_target)
         if split_shells_target.exists():
             shutil.rmtree(split_shells_target)
-        if dtifit_dir.exists():
-            shutil.rmtree(dtifit_dir)
+        for dtifit_dir in dtifit_dirs:
+            if dtifit_dir.exists():
+                shutil.rmtree(dtifit_dir)
 
     return all_ready
 
