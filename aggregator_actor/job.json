@@ -13,6 +13,12 @@
                 "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites",
                 "name": "OUTROOT"
             }
+        ],
+        "envVariables": [
+            {
+                "key": "POLARS_MAX_THREADS",
+                "value": "8"
+            }
         ]
     },
     "subscriptions": [
