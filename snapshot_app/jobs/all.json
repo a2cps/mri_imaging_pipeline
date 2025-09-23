@@ -1,6 +1,6 @@
 {
     "appId": "snapshot-app",
-    "appVersion": "3.6",
+    "appVersion": "3.7",
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra",
     "maxMinutes": 720,
@@ -12,7 +12,7 @@
                 "name": "INROOT"
             },
             {
-                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery-release-2-1-0/mris",
+                "arg": "--outroot /corral-secure/projects/A2CPS/products/consortium-data/pre-surgery-release-2-1-1/mris",
                 "name": "OUTROOT"
             },
             {

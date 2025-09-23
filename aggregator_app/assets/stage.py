@@ -118,14 +118,14 @@ def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
         / "dwi"
     )
     split_shells_target = path / "split_shells" / f"sub-{sub}" / f"ses-{ses}" / "dwi"
-    dtifit_dir = path / "dtifit"
+    dtifit_dirs = [
+        path / "dtifit" / bval / f"sub-{sub}" / f"ses-{ses}"
+        for bval in ["b1000", "b2000", "b3000", "multishell"]
+    ]
     all_ready = (
         qsirecon_target.exists()
         & split_shells_target.exists()
-        & all(
-            (dtifit_dir / bval).exists()
-            for bval in ["b1000", "b2000", "b3000", "multishell"]
-        )
+        & all(dtifit_dir.exists() for dtifit_dir in dtifit_dirs)
     )
 
     if not all_ready:
@@ -133,8 +133,9 @@ def is_qsirecon_fsl_dtifit_aggregated(path: Path, row) -> bool:
             shutil.rmtree(qsirecon_target)
         if split_shells_target.exists():
             shutil.rmtree(split_shells_target)
-        if dtifit_dir.exists():
-            shutil.rmtree(dtifit_dir)
+        for dtifit_dir in dtifit_dirs:
+            if dtifit_dir.exists():
+                shutil.rmtree(dtifit_dir)
 
     return all_ready
 
@@ -512,13 +513,21 @@ def main(
         # finally, handle all toplevel file material
         logging.info("Adding toplevel files")
         bids_wf.make_toplevel(outdir=outroot / "bids")
+        logging.info("cat12")
         cat12_wf.make_toplevel(outdir=outroot / "cat12")
+        logging.info("mriqc")
         mriqc_wf.make_toplevel(outdir=outroot / "mriqc")
+        logging.info("fcn")
         fcn_wf.make_toplevel(outdir=outroot / "fcn")
+        logging.info("fmriprep")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep")
+        logging.info("freesurfer")
         freesurfer_wf.make_toplevel(outdir=outroot / "freesurfer")
+        logging.info("fslanat")
         fslanat_wf.make_toplevel(outdir=outroot / "fslanat")
+        logging.info("qsirecon_fsl_dtifit")
         qsirecon_fsl_dtifit_wf.make_toplevel(outdir=outroot / "qsirecon_fsl_dtifit")
+        logging.info("idps")
         idps.make_toplevel(outroot)
 
         logging.info("Finished!")

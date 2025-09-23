@@ -1,6 +1,6 @@
 {
-    "containerImage": "docker://a2cps/snapshot_app:3.6",
-    "version": "3.6",
+    "containerImage": "docker://a2cps/snapshot_app:3.7",
+    "version": "3.7",
     "description": "snapshot mri",
     "enabled": true,
     "id": "snapshot-app",

@@ -1,6 +1,6 @@
 {
     "appId": "aggregator",
-    "appVersion": "3.1",
+    "appVersion": "3.3",
     "maxMinutes": 1440,
     "name": "aggregate",
     "parameterSet": {
@@ -12,6 +12,12 @@
             {
                 "arg": "/corral-secure/projects/A2CPS/products/mris/all_sites",
                 "name": "OUTROOT"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "POLARS_MAX_THREADS",
+                "value": "8"
             }
         ]
     },
