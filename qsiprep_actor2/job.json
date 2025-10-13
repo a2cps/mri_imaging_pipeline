@@ -1,0 +1,58 @@
+{
+    "appId": "qsiprep",
+    "appVersion": "3.3",
+    "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
+    "archiveSystemId": "secure.frontera",
+    "cmdPrefix": "ibrun -n 1",
+    "coresPerNode": 1,
+    "maxMinutes": 1140,
+    "name": "qsiprep2",
+    "nodeCount": 1,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 ",
+                "name": "INPUT_DIRS"
+            },
+            {
+                "arg": "--n-workers 10",
+                "name": "N_WORKERS"
+            },
+            {
+                "arg": "--mem-mb 21333",
+                "name": "MEM_MB"
+            },
+            {
+                "arg": "--job qsiprep2",
+                "name": "JOB"
+            },
+            {
+                "arg": "--unringing-method none",
+                "name": "UNRINGING_METHOD"
+            },
+            {
+                "arg": "--denoise-method none",
+                "name": "DENOISE_METHOD"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
+            }
+        ]
+    },
+    "subscriptions": [
+        {
+            "deliveryTargets": [
+                {
+                    "deliveryAddress": "",
+                    "deliveryMethod": "WEBHOOK"
+                }
+            ],
+            "description": "Message on Failure",
+            "enabled": true,
+            "eventCategoryFilter": "JOB_ERROR_MESSAGE"
+        }
+    ]
+}

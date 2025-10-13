@@ -50,6 +50,11 @@
 					"arg": null,
 					"inputMode": "INCLUDE_ON_DEMAND",
 					"name": "DENOISE_METHOD"
+				},
+				{
+					"arg": null,
+					"inputMode": "INCLUDE_ON_DEMAND",
+					"name": "JOB"
 				}
 			],
 			"archiveFilter": {

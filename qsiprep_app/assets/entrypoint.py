@@ -45,6 +45,7 @@ if __name__ == "__main__":
     parser.add_argument("--mem-mb", type=int, default=None)
     parser.add_argument("--unringing-method", type=str, default="mrdegibbs")
     parser.add_argument("--denoise-method", type=str, default="patch2self")
+    parser.add_argument("--job", type=str, default="qsiprep")
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -58,7 +59,7 @@ if __name__ == "__main__":
                         Path(input_dir).relative_to(
                             "/corral-secure/projects/A2CPS/products/mris"
                         )
-                    ).replace("/bids/", "/qsiprep/")
+                    ).replace("/bids/", f"/{args.job}/")
                 )
             )
     else:
