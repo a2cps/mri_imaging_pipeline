@@ -354,7 +354,7 @@ def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
     job_aggregators = {
         "fmriprep": is_fmriprep_aggregated,
         "qsiprep": is_qsiprep_aggregated,
-        "qsiprep2": is_qsiprep_aggregated,
+        "qsiprep_nodenoise": is_qsiprep_aggregated,
         "brainager": is_brainager_aggregated,
         "cat12": is_cat12_aggregated,
         "mriqc": is_mriqc_aggregated,
@@ -479,7 +479,9 @@ def main(
                 logging.info("Storing derivatives in final location")
                 cat12_wf.copy(inroot=tmp_site, outdir=outroot / "cat12")
                 qsiprep_wf.copy(inroot=tmp_site, outdir=outroot)
-                qsiprep_wf.copy(inroot=tmp_site, outdir=outroot, job="qsiprep2")
+                qsiprep_wf.copy(
+                    inroot=tmp_site, outdir=outroot, job="qsiprep_nodenoise"
+                )
                 qsirecon_fsl_dtifit_wf.copy(
                     inroot=tmp_site, outdir=outroot / "qsirecon_fsl_dtifit"
                 )

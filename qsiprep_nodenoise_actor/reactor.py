@@ -26,7 +26,7 @@ class QSIPrepReactor(models.Reactor):
         rundef = (
             self.ilog
             # exclude rows that were already processed
-            .filter(pl.col("qsiprep2") == 0)
+            .filter(pl.col("qsiprep_nodenoise") == 0)
             .filter(pl.col("bids") == 1)
             .with_columns(
                 sublong=pl.concat_str(
@@ -69,7 +69,7 @@ class QSIPrepReactor(models.Reactor):
 
 def main() -> None:
     QSIPrepReactor(
-        job_name=f"qsiprep2-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        job_name=f"qsiprep_nodenoise-{datetime.datetime.today().strftime('%Y-%m-%d')}",
         N_SUBS_PER_NODE=N_SUBS_PER_NODE,
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
         JOB=JOB,

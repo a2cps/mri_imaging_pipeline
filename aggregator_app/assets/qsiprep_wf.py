@@ -22,8 +22,8 @@ def copy(outdir: Path, inroot: Path, job: str = "qsiprep") -> None:
         sub = bu.get_sub_from_sublong(src)
         ses = bu.get_ses_from_sublong(src)
 
-        if "2" in job:
-            eqc = "eddyqc2"
+        if "denoise" in job:
+            eqc = "eddyqc_nodenoise"
         else:
             eqc = "eddyqc"
         out_subses = outdir / eqc / f"sub-{sub}" / f"ses-{ses}"

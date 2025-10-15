@@ -6,7 +6,7 @@
     "cmdPrefix": "ibrun -n 1",
     "coresPerNode": 1,
     "maxMinutes": 1140,
-    "name": "qsiprep2",
+    "name": "qsiprep_nodenoise",
     "nodeCount": 1,
     "parameterSet": {
         "appArgs": [
@@ -23,7 +23,7 @@
                 "name": "MEM_MB"
             },
             {
-                "arg": "--job qsiprep2",
+                "arg": "--job qsiprep_nodenoise",
                 "name": "JOB"
             },
             {
