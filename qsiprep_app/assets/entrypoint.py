@@ -19,6 +19,8 @@ async def main(
     outdirs: typing.Sequence[Path],
     n_workers: int | None = None,
     mem_mb: int | None = None,
+    unringing_method: str = "patch2self",
+    denoise_method: str = "mrdegibbs",
 ) -> None:
     await qsiprep.QSIPRepEntrypoint(
         outs=outdirs,
@@ -30,6 +32,8 @@ async def main(
         stage_ignore_patterns=shutil.ignore_patterns(
             "*sourcedata*", "*func*", "*scans.tsv", "*scans.json", "*fmrib0*"
         ),
+        unringing_method=unringing_method,
+        denoise_method=denoise_method,
     ).run()
 
 
@@ -39,6 +43,9 @@ if __name__ == "__main__":
     parser.add_argument("--output-dirs", nargs="+", type=Path)
     parser.add_argument("--n-workers", type=int, default=None)
     parser.add_argument("--mem-mb", type=int, default=None)
+    parser.add_argument("--unringing-method", type=str, default="mrdegibbs")
+    parser.add_argument("--denoise-method", type=str, default="patch2self")
+    parser.add_argument("--job", type=str, default="qsiprep")
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -52,7 +59,7 @@ if __name__ == "__main__":
                         Path(input_dir).relative_to(
                             "/corral-secure/projects/A2CPS/products/mris"
                         )
-                    ).replace("/bids/", "/qsiprep/")
+                    ).replace("/bids/", f"/{args.job}/")
                 )
             )
     else:
@@ -76,5 +83,7 @@ if __name__ == "__main__":
             outdirs=output_dirs,
             n_workers=args.n_workers,
             mem_mb=args.mem_mb,
+            unringing_method=args.unringing_method,
+            denoise_method=args.denoise_method,
         )
     )
