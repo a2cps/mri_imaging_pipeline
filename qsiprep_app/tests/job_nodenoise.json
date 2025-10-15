@@ -1,0 +1,43 @@
+{
+    "appId": "psadil-qsiprep",
+    "appVersion": "1.0",
+    "cmdPrefix": "ibrun -n 1 apptainer run docker://psadil/qsiprep_app --help && ibrun -n 3",
+    "coresPerNode": 3,
+    "maxMinutes": 540,
+    "name": "qsiprep-test",
+    "nodeCount": 1,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/UM_umichigan/bids/UM20023V1  /corral-secure/projects/A2CPS/products/mris/UI_uic/bids/UI10008V1 /corral-secure/projects/A2CPS/products/mris/UI_uic/bids/UI10320V1",
+                "name": "INPUT_DIRS"
+            },
+            {
+                "arg": "--output-dirs UM_umichigan/qsiprep_raw/UM20023V1 UI_uic/qsiprep_raw/UI10008V1 UI_uic/qsiprep_raw/UI10320V1",
+                "name": "OUTPUT_DIRS"
+            },
+            {
+                "arg": "--n-workers 10",
+                "name": "N_WORKERS"
+            },
+            {
+                "arg": "--mem-mb 21333",
+                "name": "MEM_MB"
+            },
+            {
+                "arg": "--unringing-method none",
+                "name": "UNRINGING_METHOD"
+            },
+            {
+                "arg": "--denoise-method none",
+                "name": "DENOISE_METHOD"
+            }
+        ],
+        "envVariables": [
+            {
+                "key": "FAILURE_LOG_DST",
+                "value": "logs"
+            }
+        ]
+    }
+}
