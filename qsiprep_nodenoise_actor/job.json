@@ -1,6 +1,6 @@
 {
-    "appId": "qsiprep",
-    "appVersion": "3.3",
+    "appId": "qsiprep_nodenoise",
+    "appVersion": "1.0",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris/",
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 1",
