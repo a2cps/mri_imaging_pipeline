@@ -14,6 +14,27 @@ logging.basicConfig(
     force=True,
 )
 
+ALL_JOBS = [
+    "bedpostx",
+    "bids",
+    "brainager",
+    "cat12",
+    "dwi_biomarker1",
+    "eddyqc",
+    "fcn",
+    "fmriprep",
+    "freesurfer",
+    "fslanat",
+    "gift",
+    "mriqc",
+    "postdtifit",
+    "postgift",
+    "qsiprep-V1",
+    "qsirecon_fsl_dtifit",
+    "signatures",
+    "synthstrip",
+]
+
 
 def main(
     inroot: Path,
@@ -32,49 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("--inroot", type=Path, required=True)
     parser.add_argument("--outroot", type=Path, required=True)
     parser.add_argument(
-        "--job",
-        choices=[
-            "bedpostx",
-            "bids",
-            "brainager",
-            "cat12",
-            "dwi_biomarker1",
-            "eddyqc",
-            "fcn",
-            "fmriprep",
-            "freesurfer",
-            "fslanat",
-            "gift",
-            "mriqc",
-            "postdtifit",
-            "postgift",
-            "qsiprep-V1",
-            "qsirecon_fsl_dtifit",
-            "signatures",
-            "synthstrip",
-        ],
-        required=False,
-        nargs="+",
-        default=[
-            "bedpostx",
-            "bids",
-            "brainager",
-            "cat12",
-            "dwi_biomarker1",
-            "eddyqc",
-            "fcn",
-            "fmriprep",
-            "freesurfer",
-            "fslanat",
-            "gift",
-            "mriqc",
-            "postdtifit",
-            "postgift",
-            "qsiprep-V1",
-            "qsirecon_fsl_dtifit",
-            "signatures",
-            "synthstrip",
-        ],
+        "--job", choices=ALL_JOBS, required=False, nargs="+", default=ALL_JOBS
     )
     parser.add_argument("--n-workers", type=int, default=1)
 
