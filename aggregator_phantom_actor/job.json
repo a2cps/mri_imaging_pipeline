@@ -1,6 +1,6 @@
 {
     "name": "aggregator_phantom_job",
-    "appId": "urrutia-aggregator_phantom_app",
+    "appId": "aggregator_phantom_app",
     "appVersion": "3.0",
     "parameterSet": {
         "appArgs": [

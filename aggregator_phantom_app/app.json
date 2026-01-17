@@ -1,5 +1,5 @@
 {
-  "id": "urrutia-aggregator_phantom_app",
+  "id": "aggregator_phantom_app",
   "version": "3.0",
   "description": "Run aggregator_phantom_app",
   "owner": "${apiUserId}",
