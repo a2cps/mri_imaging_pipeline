@@ -1,6 +1,6 @@
 {
     "appId": "snapshot-app",
-    "appVersion": "3.7",
+    "appVersion": "4.0",
     "execSystemId": "secure.ls6",
     "execSystemLogicalQueue": "corralextra",
     "maxMinutes": 720,
