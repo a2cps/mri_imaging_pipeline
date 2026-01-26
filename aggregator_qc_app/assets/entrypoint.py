@@ -533,7 +533,8 @@ def rate_dwi(
         .join(ilog, on=["sub", "ses"], how="left")
         .with_columns(
             raw_percent_bad_slices=pl.col("raw_num_bad_slices")
-            / (pl.col("raw_dimension_z") * pl.col("raw_num_directions")),
+            / (pl.col("raw_dimension_z") * pl.col("raw_num_directions"))
+            * 100,
         )
         .with_columns(
             rating_ndc=pl.when(pl.col("raw_masked_neighbor_corr") > 0.6)
