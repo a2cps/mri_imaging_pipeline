@@ -7,13 +7,12 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Optional
 
+import atlassian
 import numpy as np
-import pandas as pd
+import polars as pl
 import requests
-from atlassian import Confluence
-from tapipy.tapis import Tapis, TapisResult
+from tapipy import tapis
 
 SCAN = {
     "rest_run-01_bold": "REST1",
@@ -40,12 +39,19 @@ SITE_CODES = {
 }
 
 CONFLUENCE_URL = "https://a2cps.atlassian.net"
+A2CPS = Path("/corral-secure/projects/A2CPS")
+MRIS = A2CPS / "products" / "mris"
+ILOG = A2CPS / "shared" / "urrutia" / "imaging_report" / "imaging_log.csv"
 
 
 @dataclass
-class Confluence_Auth:
+class ConfluenceAuth:
     username: str
     token: str
+
+
+def zscore_expr(col_name: str):
+    return (pl.col(col_name) - pl.col(col_name).mean()) / pl.col(col_name).std()
 
 
 def load_cached_client(src: Path) -> dict:
@@ -65,11 +71,11 @@ def check_client(cached_client: Path) -> None:
 
 def get_client(
     cached_client: Path = DEFAULT_CACHED_CLIENT,
-) -> Tapis:
+) -> tapis.Tapis:
     check_client(cached_client)
 
     client = load_cached_client(cached_client)
-    t = Tapis(
+    t = tapis.Tapis(
         base_url=client.get("base_url"),
         tenant_id=client.get("tenant_id"),
         access_token=client.get("access_token"),
@@ -81,13 +87,12 @@ def get_client(
     return t
 
 
-def get_confluence_token(secret_name: str, cached_client: Path | None = None) -> str:
-    if cached_client is None:
-        client = get_client()
-    else:
-        client = get_client(cached_client=cached_client)
+def get_confluence_token(
+    secret_name: str, cached_client: Path = DEFAULT_CACHED_CLIENT
+) -> str:
+    client = get_client(cached_client=cached_client)
 
-    token: TapisResult = client.sk.readSecret(  # type: ignore
+    token: tapis.TapisResult = client.sk.readSecret(  # type: ignore
         secretType="user",
         secretName=secret_name,
         tenant=os.environ.get("_tapisTenant"),
@@ -101,26 +106,42 @@ def get_confluence_token(secret_name: str, cached_client: Path | None = None) ->
     return pat
 
 
-def _zscore(scores: np.ndarray) -> np.ndarray:
-    return (scores - scores.mean()) / scores.std()
-
-
 def _format_url(url: str, text: str = "link") -> str:
     return f'<a href="{url}">{text}</a>'
 
 
-def read_json(f: Path) -> pd.DataFrame:
-    d = pd.read_json(f, orient="index").T
-    d.drop("dataset", axis=1, inplace=True)
-    d["source"] = re.findall("^[a-z]+", f.name)
-    d["date"] = date.fromtimestamp(f.stat().st_mtime)
-    return d
+def read_mriqc_manual_json(f: Path) -> pl.DataFrame:
+    """read manual review jsons
+
+    Args:
+        f (Path): _description_
+
+    Returns:
+        pl.DataFrame: _description_
+    """
+    source_match = re.findall("^[a-zA-Z]+", f.name)
+    source = source_match[0] if source_match else ""
+
+    return (
+        pl.read_json(f)
+        .drop("dataset", strict=False)
+        .with_columns(
+            pl.col("rating").cast(pl.Int64),
+            source=pl.lit(source),
+            date=pl.lit(date.fromtimestamp(f.stat().st_mtime)),
+            f=pl.lit(f.name),
+        )
+    )
 
 
 def post_notification(
-    notification: str, confluence: Optional[Confluence] = None
+    notification: str, confluence_auth: ConfluenceAuth | None = None
 ) -> None:
-    if confluence is not None:
+    if confluence_auth is not None:
+        confluence = atlassian.Confluence(
+            url=CONFLUENCE_URL,
+            session=start_session(confluence_auth=confluence_auth),
+        )
         confluence.update_page(
             page_id="5406790",
             title="QC Aggregation",
@@ -132,112 +153,167 @@ def post_notification(
         )
     else:
         print(notification)
-    return
 
 
-def build_notification(outliers: pd.DataFrame, notification) -> str:
-    for site, small in outliers.sort_index().groupby(level=0):
+def build_notification(outliers: pl.DataFrame, notification: list) -> str:
+    if outliers.is_empty():
+        return "\n".join(notification)
+
+    sites = outliers["site"].unique().sort()
+
+    for site in sites:
+        small = outliers.filter(pl.col("site") == site).sort(
+            ["sub", "ses", "bids_name"]
+        )
         notification.append(f"<h3>{site}</h3>")
-        for idx, row in small.sort_index().iterrows():
-            if row.source in ["technologist", "auto"]:
-                notification.append(
-                    f'<p><strong>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</strong></p>'  # type: ignore
-                )
+
+        for row in small.iter_rows(named=True):
+            bids_name = row["bids_name"]
+
+            # Filter out keys and None/NaN values
+            content = {
+                k: v
+                for k, v in row.items()
+                if k
+                not in [
+                    "rating",
+                    "notes",
+                    "date",
+                    "source",
+                    "site",
+                    "sub",
+                    "ses",
+                    "bids_name",
+                    "task",
+                ]
+                and v is not None
+                and (not isinstance(v, float) or not np.isnan(v))
+            }
+
+            if row.get("source") in ["technologist", "auto"]:
+                notification.append(f"<p><strong>{bids_name}: {content}</strong></p>")
             else:
-                notification.append(
-                    f'<p>{idx[-1]}: {row.drop(["rating","notes","date","source"]).dropna().to_dict()}</p>'  # type: ignore
-                )
+                notification.append(f"<p>{bids_name}: {content}</p>")
 
     return "\n".join(notification)
 
 
-def build_bids_name(d: pd.DataFrame, suffix: str) -> pd.DataFrame:
+def build_bids_name(d: pl.DataFrame, suffix: str) -> pl.DataFrame:
     if suffix == "bold":
-        d["task"] = np.select(
-            [
-                [bool(re.search(x.scan, "REST1")) for x in d.itertuples()],
-                [bool(re.search(x.scan, "REST2")) for x in d.itertuples()],
-                [bool(re.search(x.scan, "CUFF1")) for x in d.itertuples()],
-                [bool(re.search(x.scan, "CUFF2")) for x in d.itertuples()],
-            ],
-            ["rest", "rest", "cuff", "cuff"],
+        d = d.with_columns(
+            task=pl.when(pl.col("scan").str.contains("REST1"))
+            .then(pl.lit("rest"))
+            .when(pl.col("scan").str.contains("REST2"))
+            .then(pl.lit("rest"))
+            .when(pl.col("scan").str.contains("CUFF1"))
+            .then(pl.lit("cuff"))
+            .when(pl.col("scan").str.contains("CUFF2"))
+            .then(pl.lit("cuff"))
+            .otherwise(pl.lit(None)),
+            run=pl.when(pl.col("scan").str.contains("REST1"))
+            .then(pl.lit("01"))
+            .when(pl.col("scan").str.contains("REST2"))
+            .then(pl.lit("02"))
+            .when(pl.col("scan").str.contains("CUFF1"))
+            .then(pl.lit("01"))
+            .when(pl.col("scan").str.contains("CUFF2"))
+            .then(pl.lit("02"))
+            .otherwise(pl.lit(None)),
+        ).with_columns(
+            bids_name=pl.format(
+                "sub-{}_ses-{}_task-{}_run-{}_{}",
+                pl.col("sub"),
+                pl.col("ses"),
+                pl.col("task"),
+                pl.col("run"),
+                pl.lit(suffix),
+            )
         )
-        d["run"] = np.select(
-            [
-                [bool(re.search(x.scan, "REST1")) for x in d.itertuples()],
-                [bool(re.search(x.scan, "REST2")) for x in d.itertuples()],
-                [bool(re.search(x.scan, "CUFF1")) for x in d.itertuples()],
-                [bool(re.search(x.scan, "CUFF2")) for x in d.itertuples()],
-            ],
-            ["01", "02", "01", "02"],
-        )
-        d["bids_name"] = [
-            f"sub-{x.sub}_ses-{x.ses}_task-{x.task}_run-{x.run}_{suffix}"
-            for x in d.itertuples()
-        ]
     elif suffix in ["T1w", "dwi"]:
-        d["bids_name"] = [f"sub-{x.sub}_ses-{x.ses}_{suffix}" for x in d.itertuples()]
-
+        d = d.with_columns(
+            bids_name=pl.format(
+                "sub-{}_ses-{}_{}", pl.col("sub"), pl.col("ses"), pl.lit(suffix)
+            )
+        )
     return d
 
 
 def get_outliers(
-    d: pd.DataFrame,
-    groups,
-    imaging_log: Path = Path(
-        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
-    ),
-) -> pd.DataFrame:
+    d: pl.DataFrame, groups: list[str], imaging_log: Path = ILOG
+) -> pl.DataFrame:
     """
-    get_outliers(fname=pd.read_csv('group_T1w.tsv', delimiter="\t"))
-    get_outliers(fname=pd.read_csv('group_T1w.tsv', delimiter="\t"), ['site'])
+    get_outliers(fname=pl.read_csv('group_T1w.tsv', separator="\t"))
+    get_outliers(fname=pl.read_csv('group_T1w.tsv', separator="\t"), ['site'])
     """
 
     sites = (
-        pd.read_csv(imaging_log, usecols=["subject_id", "site"])
-        .rename(columns={"subject_id": "sub"})
-        .drop_duplicates()
+        pl.read_csv(imaging_log, columns=["subject_id", "site"])
+        .rename({"subject_id": "sub"})
+        .unique()
     )
-    dind = d[["bids_name"]].copy()
-    dind["sub"] = [int(re.findall(r"\d{5}", x)[0]) for x in dind["bids_name"]]
-    dind["ses"] = [re.findall("ses-([a-zA-Z0-9]+)", x)[0] for x in dind["bids_name"]]
+
+    d = d.with_columns(
+        sub=pl.col("bids_name").str.extract(r"(\d{5})").cast(pl.Int64),
+        ses=pl.col("bids_name").str.extract(r"ses-([a-zA-Z0-9]+)"),
+    )
 
     if "task" in groups:
-        indices = ["site", "sub", "task", "ses", "bids_name"]
-        dind["task"] = [re.findall(r"task-(\w+)_", x)[0] for x in dind["bids_name"]]
-    else:
-        indices = ["site", "sub", "ses", "bids_name"]
+        d = d.with_columns(task=pl.col("bids_name").str.extract(r"task-(\w+)_"))
 
-    dind = dind.merge(sites, on="sub", how="left")
+    d = d.join(sites, on="sub", how="left")
 
-    d.drop(d.filter(regex="spacing.*|size.*").columns, axis=1, inplace=True)
-    outliers = (
-        d.merge(dind, on=["bids_name"])
-        .set_index(indices)
-        .groupby(groups)
-        .transform(lambda x: np.where(np.abs(_zscore(x)) > 3, x, np.nan))
-        .dropna(how="all")
-        .round(1)
-    )
+    # Drop regex columns
+    cols_to_drop = [
+        c
+        for c in d.columns
+        if re.match(r"spacing.*|size.*|.*dimension.*|.*num_directions|.*max_b", c)
+    ]
+    d = d.drop(cols_to_drop)
+
+    # Identify numeric columns for z-score
+    numeric_cols = [
+        c
+        for c, t in d.schema.items()
+        if t in [pl.Float64, pl.Int64, pl.Float32, pl.Int32]
+        and c not in groups + ["sub", "ses", "bids_name"]
+    ]
+
+    # Calculate outliers
+    # Keep value if zscore > 3, else null
+    exprs = [
+        pl.when((zscore_expr(c).abs() > 3).over(groups))
+        .then(pl.col(c))
+        .otherwise(pl.lit(None))
+        .alias(c)
+        for c in numeric_cols
+    ]
+
+    keys = ["site", "sub", "ses", "bids_name"] + (["task"] if "task" in groups else [])
+
+    outliers = d.select(keys + exprs)
+
+    # Drop rows where all numeric columns are null (not outliers)
+    outliers = outliers.filter(
+        pl.any_horizontal([pl.col(c).is_not_null() for c in numeric_cols])
+    ).with_columns([pl.col(c).round(1) for c in numeric_cols])
 
     return outliers
 
 
-def gather_dwi(
-    root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
-):
+def gather_dwiqc(root: Path = MRIS):
+    dfs: list[pl.DataFrame] = []
+    for x in root.glob("*/qsiprep/*/qsiprep/sub*/ses*/dwi/*_desc-ImageQC_dwi.csv"):
+        df = pl.read_csv(x)
+        dfs.append(df)
+
+    if not dfs:
+        raise AssertionError("No dwi qc files found")
+
     d = (
-        pd.concat(
-            [
-                pd.read_csv(x)
-                for x in root.glob(
-                    "*/qsiprep/*/qsiprep/sub*/ses*/dwi/*_desc-ImageQC_dwi.csv"
-                )
-            ]
-        )
-        .rename(columns={"file_name": "bids_name"})
+        pl.concat(dfs, how="vertical_relaxed")
+        .rename({"file_name": "bids_name"})
         .drop(
-            columns=[
+            [
                 "subject_id",
                 "acq_id",
                 "task_id",
@@ -246,7 +322,8 @@ def gather_dwi(
                 "rec_id",
                 "session_id",
                 "run_id",
-            ]
+            ],
+            strict=False,
         )
     )
     return d
@@ -266,36 +343,33 @@ def extract_defects(xml: Path) -> float:
     return 2 - 2 * n
 
 
-def build_cat_df(xml: Path) -> pd.DataFrame:
-    rating = "green"
+def build_cat_df(xml: Path) -> pl.DataFrame:
+    rating = 3
     iqr = extract_iqr(xml)
     defects = extract_defects(xml)
     # defect threshold from Table 3 of Rosen et al. 2018; 10.1016/j.neuroimage.2017.12.059
     if iqr < 60 or defects < -217:
-        rating = "red"
+        rating = 1
     elif iqr < 80:
-        rating = "yellow"
-    d = pd.DataFrame(
-        [
-            {
-                "sub": int(re.findall(r"\d{5}", str(xml))[0]),
-                "ses": re.findall("(?<=ses-)[Vv][13]", str(xml))[0],
-                "scan": "T1w",
-                "rating": rating,
-                "source": "auto",
-                "date": date.fromtimestamp(xml.stat().st_ctime),
-            }
-        ]
+        rating = 2
+    d = pl.DataFrame(
+        {
+            "sub": int(re.findall(r"\d{5}", str(xml))[0]),
+            "ses": re.findall("(?<=ses-)[Vv][13]", str(xml))[0],
+            "scan": "T1w",
+            "rating": rating,
+            "source": "auto",
+            "date": date.fromtimestamp(xml.stat().st_ctime),
+        }
     )
     return d
 
 
-def gather_cat(
-    root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
-):
-    return pd.concat(
-        [build_cat_df(x) for x in root.glob("*/cat12/*/cat12/report/*xml")]
-    )
+def gather_cat(root: Path = MRIS):
+    dfs = [build_cat_df(x) for x in root.glob("*/cat12/*/cat12/report/*xml")]
+    if not dfs:
+        raise AssertionError("did not find any cat12 data frames?")
+    return pl.concat(dfs)
 
 
 def get_task(src: Path) -> str:
@@ -306,85 +380,84 @@ def get_task(src: Path) -> str:
     return maybe_task[0]
 
 
-def gather_motion(
-    root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
-) -> pd.DataFrame:
+def gather_motion(root: Path = MRIS) -> pl.DataFrame:
     confounds = []
     for s in SITE_CODES.values():
         for tsv in (root / s / "fmriprep").glob(
             f"{s[0:2]}*/fmriprep/sub*/ses*/func/*confounds_timeseries.tsv"
         ):
-            rmsd = pd.read_csv(
-                tsv, sep="\t", usecols=["rmsd"], dtype={"rmsd": np.float64}
-            )
+            rmsd = pl.read_csv(
+                tsv, separator="\t", columns=["rmsd"], null_values="n/a"
+            ).select(pl.col("rmsd").cast(pl.Float64))
             bids_name = tsv.name.replace("desc-confounds_timeseries.tsv", "bold")
             task = get_task(tsv)
             confounds.append(
-                pd.DataFrame(
+                pl.DataFrame(
                     {
-                        "bids_name": bids_name,
-                        "fd_mean": rmsd.mean(),
-                        "fd_max": rmsd.max(),
-                        "fd_perc": np.mean(rmsd.to_numpy() > TASK_THRESH[task]),
-                        "n_trs": len(rmsd),
+                        "bids_name": [bids_name],
+                        "fd_mean": [rmsd["rmsd"].mean()],
+                        "fd_max": [rmsd["rmsd"].max()],
+                        "fd_perc": [(rmsd["rmsd"] > TASK_THRESH[task]).mean()],
+                        "n_trs": [rmsd.height],
                     }
                 )
             )
 
-    return pd.concat(confounds, ignore_index=True)
+    return pl.concat(confounds)
 
 
-def rate_motion(row) -> str:
-    if (row.fd_mean > 0.55) or (row.n_trs < 450):
-        rating = "red"
-    elif (row.fd_mean > 0.25) or (row.fd_perc > 0.2) or (row.fd_max > 5):
-        rating = "yellow"
-    else:
-        rating = "green"
-
-    return rating
-
-
-def rate_rest2_wo_cuff(d: pd.DataFrame) -> pd.DataFrame:
-    tmp = (
-        d[["sub", "ses", "scan"]]
-        .assign(value=1)
-        .pivot(values="value", index=["sub", "ses"], columns=["scan"])
-        .reset_index()
-        .query("CUFF1.isna() and CUFF2.isna() and not REST2.isna()")
-        .assign(rating="red")
-        .assign(scan="REST2")
+def rate_rest2_wo_cuff(d: pl.DataFrame) -> pl.DataFrame:
+    red_rest2 = (
+        d.select(["sub", "ses", "scan"])
+        .with_columns(value=pl.lit(1))
+        .unique()
+        .pivot(on="scan", index=["sub", "ses"], values="value")
+        .with_columns(
+            rating_new=pl.when(
+                (pl.col("REST2") == 1)
+                & pl.col("CUFF2").is_null()
+                & pl.col("CUFF1").is_null()
+            )
+            .then(1)
+            .otherwise(3)
+        )
+        .filter(pl.col("rating_new") == 1)
+        .select(["sub", "ses", "rating_new"])
+        .with_columns(scan=pl.lit("REST2"))
     )
-    out = d.merge(
-        tmp[["sub", "ses", "scan", "rating"]],
-        on=["sub", "ses", "scan"],
-        how="outer",
-    ).fillna({"rating_y": ""})
-    x = []
-    for r in out.itertuples():
-        if r.rating_y == "":
-            x.append(r.rating_x)
-        else:
-            x.append(r.rating_y)
-    out["rating"] = x
-    return out[d.columns]
 
-
-def auto_rate_bold(d: pd.DataFrame) -> pd.DataFrame:
-    bold_iqm = gather_motion()
-    bold_iqm["rating"] = [rate_motion(x) for x in bold_iqm.itertuples()]
-    rated = d.merge(bold_iqm[["bids_name", "rating"]], on="bids_name", how="left").drop(
-        ["bids_name"], axis=1
+    return (
+        d.join(red_rest2, on=["sub", "ses", "scan"], how="left")
+        .with_columns(rating=pl.coalesce(["rating_new", "rating"]))
+        .drop("rating_new")
     )
-    rated["source"] = "auto"
-    # fmriprep processing often lags. default assumes scan is okay
-    rated["rating"] = rated["rating"].fillna("green")
+
+
+def rate_bold(d: pl.DataFrame) -> pl.DataFrame:
+    bold_iqm = gather_motion().with_columns(
+        rating=pl.when((pl.col("fd_mean") > 0.55) | (pl.col("n_trs") < 450))
+        .then(1)
+        .when(
+            (pl.col("fd_mean") > 0.25)
+            | (pl.col("fd_perc") > 0.2)
+            | (pl.col("fd_max") > 5)
+        )
+        .then(2)
+        .otherwise(3)
+    )
+
+    rated = (
+        d.join(bold_iqm.select(["bids_name", "rating"]), on="bids_name", how="left")
+        .drop("bids_name")
+        .with_columns(source=pl.lit("auto"))
+    )
+
     rated = rate_rest2_wo_cuff(rated)
     return rated
 
 
 def start_session(
-    confluence_auth: Confluence_Auth,
+    confluence_auth: ConfluenceAuth,
 ) -> requests.Session:
     s = requests.Session()
     s.auth = (confluence_auth.username, confluence_auth.token)
@@ -410,93 +483,154 @@ def rating_to_code(src) -> int:
 
 
 def rate_dwi(
-    d: pd.DataFrame,
-    root: Path = Path("/corral-secure/projects/A2CPS/products/mris"),
-) -> pd.DataFrame:
+    ilog: pl.DataFrame, dwiqc: pl.DataFrame, root: Path = MRIS
+) -> pl.DataFrame:
     DWI_LENGTHS = {
-        "NS": [102],
-        "SH": [103],
-        "UC": [102],
-        "UI": [104],
-        "UM": [104],
-        "WS": [102],
-        "RU": [103],
+        "NS": 102,
+        "SH": 103,
+        "UC": 102,
+        "UI": 104,
+        "UM": 104,
+        "WS": 102,
+        "RU": 103,
     }
 
+    bval_counts = []
+    for x in root.glob("*/bids/*/sub*/ses-V*/dwi/*bval"):
+        with open(x, "r") as f:
+            content = f.read().strip().split()
+            count = len(content)
+            bval_counts.append({"f": str(x.absolute()), "observed": count})
+
+    if not bval_counts:
+        raise AssertionError("No bvals found")
+
+    bvals = pl.DataFrame(bval_counts).with_columns(
+        site=pl.col("f").str.extract(r"({})".format("|".join(DWI_LENGTHS.keys())))
+    )
+
+    expected_df = pl.DataFrame(
+        [{"site": k, "expected": v} for k, v in DWI_LENGTHS.items()]
+    )
+
     bvals = (
-        pd.concat(
-            [
-                pd.read_csv(x, header=None, delim_whitespace=True).T.assign(
-                    f=x.absolute()
-                )
-                for x in root.glob(
-                    "*/bids/*/sub*/ses-V*/dwi/*bval"
-                )  # V is ses for excluding phantoms
-            ]
+        bvals.join(expected_df, on="site", how="left")
+        .with_columns(
+            rating_acq=pl.when(pl.col("expected") == pl.col("observed"))
+            .then(3)
+            .otherwise(1),
+            sub=pl.col("f").str.extract(r"(\d{5})").cast(pl.Int64),
+            ses=pl.col("f").str.extract(r"(V[13])"),
         )
-        .groupby("f")
-        .count()
-        .reset_index()
-        .rename(columns={0: "observed"})
+        .select("sub", "ses", "rating_acq")
     )
-    bvals["site"] = [
-        re.findall("|".join(DWI_LENGTHS.keys()), str(x))[0] for x in bvals["f"]
-    ]
-    bvals = bvals.merge(
-        pd.DataFrame.from_dict(DWI_LENGTHS, orient="index", columns=["expected"])
-        .reset_index()
-        .rename(columns={"index": "site"})
+
+    dwiqc = (
+        dwiqc.with_columns(
+            sub=pl.col("bids_name").str.extract(r"sub-(\d{5})").cast(pl.Int64),
+            ses=pl.col("bids_name").str.extract(r"ses-([Vv][13])"),
+        )
+        .join(ilog, on=["sub", "ses"], how="left")
+        .with_columns(
+            raw_percent_bad_slices=pl.col("raw_num_bad_slices")
+            / (pl.col("raw_dimension_z") * pl.col("raw_num_directions"))
+            * 100,
+        )
+        .with_columns(
+            rating_ndc=pl.when(pl.col("raw_masked_neighbor_corr") > 0.6)
+            .then(3)
+            .when(pl.col("raw_masked_neighbor_corr") > 0.4)
+            .then(2)
+            .otherwise(1),
+            rating_bad_slices=pl.when(pl.col("raw_percent_bad_slices") < 1)
+            .then(3)
+            .when(pl.col("raw_percent_bad_slices") < 10)
+            .then(2)
+            .otherwise(1),
+            rating_contrast=pl.when(pl.col("raw_dwi_contrast") > 1.3)
+            .then(3)
+            .when(pl.col("raw_dwi_contrast") > 1.1)
+            .then(2)
+            .otherwise(1),
+        )
+        .with_columns(
+            rating_metrics=pl.min_horizontal(pl.selectors.starts_with("rating_"))
+        )
+        .select("sub", "ses", "rating_metrics")
+        .join(bvals, on=["sub", "ses"], how="right")
+        .with_columns(rating=pl.min_horizontal(pl.selectors.starts_with("rating_")))
     )
-    bvals["rating"] = bvals.apply(
-        lambda row: "green" if row["expected"] == row["observed"] else "red",
-        axis=1,
+    return (
+        ilog.join(dwiqc, on=["sub", "ses"], how="left")
+        .fill_null(3)  # any missing ratings will get 3 => green
+        .with_columns(source=pl.lit("auto"))
     )
-    bvals["sublong"] = bvals.apply(
-        lambda x: re.findall(r"[A-Z]{2}\d{5}V[13]", str(x["f"]))[0],
-        axis=1,
-    )
-    d["sublong"] = d.apply(lambda row: f'{row["site"]}{row["sub"]}{row["ses"]}', axis=1)
-    d["source"] = "auto"
-    return d.merge(bvals[["rating", "sublong"]], on="sublong").drop(["sublong"], axis=1)
 
 
-def write_ratings_unique(d: pd.DataFrame) -> pd.DataFrame:
+def write_ratings_unique(d: pl.DataFrame) -> pl.DataFrame:
+    fake_date = date(2000, 1, 1)
+
     # manual ratings always overwrite auto + tech scans
-    d["source_code"] = [source_to_code(x) for x in d["source"].values]
+    d = d.with_columns(
+        source_code=pl.col("source").map_elements(
+            source_to_code, return_dtype=pl.Int64
+        ),
+        rating_grade=pl.col("rating").map_elements(
+            rating_to_code, return_dtype=pl.Int64
+        ),
+        date=pl.col("date").cast(pl.Date, strict=False),
+    ).with_columns(pl.col("date").fill_null(fake_date))
 
-    # of the auto scans, always take the lowest
-    d["rating_grade"] = [rating_to_code(x) for x in d["rating"].values]
+    window = ["site", "sub", "ses", "scan"]
 
-    # if multiple grades remain, take the most recent
-    # currently there are no dates for tech ratings. this hack of fake date is to ensure that they stay
-    # selecting the most recent rating
-    d["date"] = pd.to_datetime(d["date"])
-    d.loc[pd.isnull(d["date"]), "date"] = pd.to_datetime("2000-01-01")
+    d = (
+        d.filter(pl.col("source_code") == pl.col("source_code").max().over(window))
+        .filter(pl.col("rating_grade") == pl.col("rating_grade").min().over(window))
+        .filter(pl.col("date") == pl.col("date").max().over(window))
+    ).drop(["source_code", "rating_grade"])
 
-    single_rating = (
-        d.groupby(["site", "sub", "ses", "scan"], as_index=False)
-        .apply(lambda x: x[x["source_code"] == x["source_code"].max(skipna=False)])
-        .groupby(["site", "sub", "ses", "scan"], as_index=False)
-        .apply(lambda x: x[x["rating_grade"] == x["rating_grade"].min(skipna=False)])
-        .groupby(["site", "sub", "ses", "scan"], as_index=False)
-        .apply(lambda x: x[x["date"] == x["date"].max(skipna=False)])
-        .drop(["source_code", "rating_grade"], axis=1)
+    # Restore null date
+    d = d.with_columns(
+        pl.when(pl.col("date") == fake_date)
+        .then(None)
+        .otherwise(pl.col("date"))
+        .alias("date")
     )
-    single_rating.loc[  # type: ignore
-        single_rating["date"] == pd.to_datetime("2000-01-01"), "date"
-    ] = pd.to_datetime("")
-    single_rating["date"] = single_rating["date"].copy().dt.date
-    single_rating.to_csv("qc-log-latest.csv", index=False)
 
-    return single_rating  # type: ignore
+    d.write_csv("qc-log-latest.csv")
+
+    return d
 
 
-def update_qclog(
-    imaging_log: Path,
-    json_dir: Path,
-    confluence_auth: Confluence_Auth | None = None,
-) -> pd.DataFrame:
-    RATING = {"4": "green", "3": "green", "2": "yellow", "1": "red", "0": ""}
+def get_manual_reviews(root: Path) -> pl.DataFrame:
+    # Read manual review jsons
+    djs: list[pl.DataFrame] = []
+    for f in root.glob("*json"):
+        djs.append(read_mriqc_manual_json(f))
+
+    if not len(djs):
+        raise AssertionError("No manual reviews found")
+
+    return (
+        pl.concat(djs, how="diagonal_relaxed")
+        .with_columns(
+            notes=pl.col("artifacts").map_elements(
+                lambda x: ", ".join(x), return_dtype=pl.Utf8
+            ),
+            sub=pl.col("f").str.extract(r"sub-(\d{5})").cast(pl.Int64),
+            ses=pl.col("f").str.extract(r"ses-([Vv][13])"),
+            scan=pl.col("f")
+            .str.extract(r"({})".format("|".join(SCAN.keys())))
+            .replace(SCAN),
+        )
+        .select("sub", "ses", "scan", "rating", "notes", "date")
+    )
+
+
+def update_qclog(imaging_log: Path, json_dir: Path) -> pl.DataFrame:
+    # all ratings will start as numeric and map to the traffic light
+    # before returning
+
     LOG_KEYS = {
         "T1 Received": "T1w",
         "fMRI Individualized Pressure Received": "CUFF1",
@@ -507,73 +641,75 @@ def update_qclog(
     }
 
     log = (
-        pd.read_csv(imaging_log)[
-            ["site", "subject_id", "visit", "fMRI T1 Tech Rating"]
-            + list(LOG_KEYS.keys())
-        ]
+        pl.read_csv(
+            imaging_log,
+            columns=["site", "subject_id", "visit", "fMRI T1 Tech Rating"]
+            + list(LOG_KEYS.keys()),
+        )
         .rename(
-            columns={
+            {
                 "subject_id": "sub",
                 "visit": "ses",
                 "fMRI T1 Tech Rating": "rating",
             }
         )
-        .melt(id_vars=["site", "sub", "ses", "rating"], var_name="scan")
-        .query("value == 1")
-        .drop(["value"], axis=1)
+        .unpivot(
+            index=["site", "sub", "ses", "rating"],
+            variable_name="scan",
+            value_name="acquired",
+        )
+        .filter(pl.col("acquired") == 1)
+        .drop("acquired")
+        .with_columns(pl.col("scan").replace(LOG_KEYS))
+        .with_columns(
+            rating=pl.when(pl.col("scan") == "T1w")
+            .then(pl.col("rating").cast(pl.Int64).cast(pl.String))
+            .otherwise(None),
+            source=pl.when(pl.col("scan") == "T1w")
+            .then(pl.lit("technologist"))
+            .otherwise(pl.lit("")),
+        )
     )
-    log["scan"] = [
-        LOG_KEYS[re.findall("|".join(LOG_KEYS.keys()), x)[0]] for x in log["scan"]
-    ]
-    log["rating"].fillna(0, inplace=True)
-    log["rating"] = log.apply(
-        lambda row: str(int(row["rating"])) if row["scan"] == "T1w" else "0",
-        axis=1,
-    )
-    log["source"] = log.apply(
-        lambda row: "technologist" if row["scan"] == "T1w" else "", axis=1
-    )
-    log["rating"] = [RATING[x] for x in log["rating"]]
-    log_t1w = log.query("scan in ['T1w']")
+
+    log_t1w = log.filter(pl.col("scan") == "T1w")
+
     log_dwi = rate_dwi(
-        log.query("scan in ['DWI']").copy().drop(["rating", "source"], axis=1)
+        log.filter(pl.col("scan") == "DWI").drop(["rating", "source"]),
+        dwiqc=gather_dwiqc(),
     )
-    log_bold = auto_rate_bold(
-        d=build_bids_name(log.query("not scan in ['DWI','T1w']").copy(), "bold").drop(
-            ["rating", "source", "task", "run"], axis=1
+
+    log_bold = rate_bold(
+        d=build_bids_name(
+            log.filter(~pl.col("scan").is_in(["DWI", "T1w"])), "bold"
+        ).drop(["rating", "source", "task", "run"])
+    )
+
+    sub_site_maps = log.select(["site", "sub"]).unique()
+
+    log_cat = gather_cat().join(sub_site_maps, on="sub", how="left")
+    log_manual = get_manual_reviews(json_dir).join(sub_site_maps, on="sub", how="left")
+
+    combined = pl.concat(
+        [log_bold, log_t1w, log_dwi, log_cat, log_manual], how="diagonal_relaxed"
+    )
+
+    return combined.select(
+        ["site", "sub", "ses", "scan", "rating", "source", "date", "notes"]
+    ).with_columns(
+        pl.col("rating").replace(
+            {4: "green", 3: "green", 2: "yellow", 1: "red", 0: None}
         )
     )
-    log_short = log_t1w[["site", "sub"]].drop_duplicates()
 
-    # gather_cat doesn't have access to site, hence merging
-    log_cat = gather_cat().merge(log_short)
 
-    log_all = pd.concat([log_bold, log_t1w, log_dwi, log_cat])
-
-    d = pd.concat([read_json(x) for x in json_dir.glob("*json")])
-    d2 = (
-        d.assign(
-            notes=[", ".join(x) for x in d["artifacts"]],
-            sub=[int(re.findall(r"\d{5}", x)[0]) for x in d["subject"]],
-            ses=[re.findall("(?<=ses-)[Vv][13]", x)[0] for x in d["subject"]],
-            rating=[RATING[str(x)] for x in d["rating"]],
-            scan=[SCAN[re.findall("|".join(SCAN.keys()), x)[0]] for x in d["subject"]],
-        )
-        .drop(["subject", "artifacts"], axis=1)
-        .merge(log_short)
-        .merge(log_all, how="outer")
-        .query("rating!=''")
-    )
-    names = ["site", "sub", "ses", "scan", "rating", "source", "date", "notes"]
-    to_upload = d2[names].sort_values(names)
-
-    if confluence_auth is not None:
-        confluence = Confluence(
+def upload_to_confluence(qclog: pl.DataFrame, auth: ConfluenceAuth | None) -> None:
+    if auth is not None:
+        confluence = atlassian.Confluence(
             url=CONFLUENCE_URL,
-            session=start_session(confluence_auth=confluence_auth),
+            session=start_session(confluence_auth=auth),
         )
         with tempfile.NamedTemporaryFile(suffix=".xlsx") as f:
-            to_upload.to_excel(f.name, index=False, engine="openpyxl")
+            qclog.write_excel(f.name)
             confluence.attach_file(
                 filename=f.name,
                 page_id="5406798",
@@ -581,56 +717,43 @@ def update_qclog(
                 title="QC Log",
             )
     else:
-        print(to_upload)
-
-    return write_ratings_unique(to_upload.copy())
+        print(qclog)
 
 
-def main(
+def build_overall_notification(
+    qclog: pl.DataFrame,
     t1w_fname: Path,
     bold_fname: Path,
-    json_dir: Path,
-    imaging_log: Path = Path(
-        "/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
-    ),
-    confluence_auth: Confluence_Auth | None = None,
-) -> None:
-    qclog = update_qclog(
-        imaging_log=imaging_log,
-        json_dir=json_dir,
-        confluence_auth=confluence_auth,
-    )
-
+    imaging_log: Path,
+) -> str:
     qclog_anat = build_bids_name(
-        qclog.query("scan=='T1w'").drop(["scan"], axis=1).copy(), "T1w"
-    ).set_index(["site", "sub", "ses", "bids_name"])
-
-    qclog_func = (
-        build_bids_name(
-            qclog.query("scan in ['CUFF1', 'CUFF2', 'REST1', 'REST2']").copy(),
-            "bold",
-        )
-        .drop(["run", "scan"], axis=1)
-        .set_index(["site", "sub", "task", "ses", "bids_name"])
+        qclog.filter(pl.col("scan") == "T1w").drop("scan"), "T1w"
     )
+
+    qclog_dwi = build_bids_name(
+        qclog.filter(pl.col("scan") == "DWI").drop("scan"), "dwi"
+    )
+
+    qclog_func = build_bids_name(
+        qclog.filter(pl.col("scan").is_in(["CUFF1", "CUFF2", "REST1", "REST2"])),
+        "bold",
+    ).drop(["run", "scan"])
 
     anat_outliers = get_outliers(
-        d=pd.read_csv(t1w_fname, delimiter="\t"),
+        d=pl.read_csv(t1w_fname, separator="\t"),
         groups=["site"],
         imaging_log=imaging_log,
-    ).join(qclog_anat)
+    ).join(qclog_anat, on=["site", "sub", "ses", "bids_name"], how="left")
+
+    dwi_outliers = get_outliers(
+        d=gather_dwiqc(), groups=["site"], imaging_log=imaging_log
+    ).join(qclog_dwi, on=["site", "sub", "ses", "bids_name"], how="left")
+
     func_outliers = get_outliers(
-        d=pd.read_csv(bold_fname, delimiter="\t"),
+        d=pl.read_csv(bold_fname, separator="\t"),
         groups=["site", "task"],
         imaging_log=imaging_log,
-    ).join(qclog_func)
-    dwi_outliers = get_outliers(
-        d=gather_dwi(), groups=["site"], imaging_log=imaging_log
-    )
-    dwi_outliers["source"] = ""
-    dwi_outliers["rating"] = pd.NA
-    dwi_outliers["notes"] = ""
-    dwi_outliers["date"] = ""
+    ).join(qclog_func, on=["site", "sub", "task", "ses", "bids_name"], how="left")
 
     anat_notification = build_notification(anat_outliers, ["<h1>T1w</h1>"])
     func_notification = build_notification(func_outliers, ["<h1>bold</h1>"])
@@ -644,7 +767,7 @@ def main(
   </ul>
   """
 
-    notification = "".join(
+    return "".join(
         [
             header,
             f'<p>{_format_url("https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris/all_sites/mriqc-group", text="group htmls")}</p>',
@@ -654,18 +777,30 @@ def main(
         ]
     )
 
-    if confluence_auth is not None:
-        post_notification(
-            notification,
-            Confluence(
-                url=CONFLUENCE_URL,
-                session=start_session(confluence_auth=confluence_auth),
-            ),
-        )
-    else:
-        post_notification(notification)
 
-    return
+def main(
+    t1w_fname: Path,
+    bold_fname: Path,
+    json_dir: Path,
+    imaging_log: Path = ILOG,
+    confluence_auth: ConfluenceAuth | None = None,
+) -> None:
+    qclog = update_qclog(imaging_log=imaging_log, json_dir=json_dir)
+
+    # this is a table of all ratings that have been provided for each scan
+    upload_to_confluence(qclog, confluence_auth)
+
+    # save log with one rating per scan (this is mainly what gets used)
+    qclog_unique = write_ratings_unique(qclog)
+
+    notification = build_overall_notification(
+        qclog_unique,
+        t1w_fname=t1w_fname,
+        bold_fname=bold_fname,
+        imaging_log=imaging_log,
+    )
+
+    post_notification(notification=notification, confluence_auth=confluence_auth)
 
 
 if __name__ == "__main__":
@@ -678,25 +813,22 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--t1w_fname",
-        default="/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_T1w.tsv",
+        default=MRIS / "all_sites" / "mriqc" / "group_T1w.tsv",
         help="group level tsv for T1w images",
         type=Path,
     )
     parser.add_argument(
         "--bold_fname",
-        default="/corral-secure/projects/A2CPS/products/mris/all_sites/mriqc/group_bold.tsv",
+        default=MRIS / "all_sites" / "mriqc" / "group_bold.tsv",
         help="group level tsv for bold images",
         type=Path,
     )
     parser.add_argument(
-        "--imaging_log",
-        default="/corral-secure/projects/A2CPS/shared/urrutia/imaging_report/imaging_log.csv",
-        help="log of received scans",
-        type=Path,
+        "--imaging_log", default=ILOG, help="log of received scans", type=Path
     )
     parser.add_argument(
         "--json_dir",
-        default="/corral-secure/projects/A2CPS/shared/psadil/qclog/mriqc-reviews",
+        default=A2CPS / "shared" / "psadil" / "qclog" / "mriqc-reviews",
         help="log of received scans",
         type=Path,
     )
@@ -711,7 +843,7 @@ if __name__ == "__main__":
         if not args.confluence_username:
             msg = "Received secret_name but no username. Unable to access confluence without username"
             raise ValueError(msg)
-        confluence_auth = Confluence_Auth(
+        confluence_auth = ConfluenceAuth(
             username=args.confluence_username,
             token=get_confluence_token(
                 secret_name=args.secret_name, cached_client=args.cached_client
