@@ -1,8 +1,8 @@
 import argparse
-from pathlib import Path
 import json
-import os
 import logging
+import os
+from pathlib import Path
 
 SITE_LONG = {
     "NS": "NS_northshore",
@@ -55,6 +55,8 @@ def main(
         for bids in inroot.glob(f"{site}/bids/*QC*"):
             for phantom_id in bids.glob("sub-*"):
                 target_sub_dir = outdir / phantom_id.name
+                if not target_sub_dir.exists():
+                    target_sub_dir.mkdir(parents=True)
                 for ses in phantom_id.glob("ses*"):
                     target = target_sub_dir / ses.name
                     if not target.exists():
@@ -71,9 +73,7 @@ def main(
 
     (outdir / "README").write_text(README)
 
-    (outdir / "dataset_description.json").write_text(
-        json.dumps(DESCRIPTION, indent=2)
-    )
+    (outdir / "dataset_description.json").write_text(json.dumps(DESCRIPTION, indent=2))
 
     (outdir / ".bidsignore").write_text(BIDS_IGNORE)
 
