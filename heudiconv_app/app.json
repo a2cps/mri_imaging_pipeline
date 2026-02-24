@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/heudiconv:250708",
+    "containerImage": "docker://a2cps/heudiconv:260224",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
