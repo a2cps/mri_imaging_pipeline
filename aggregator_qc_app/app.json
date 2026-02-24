@@ -1,9 +1,9 @@
 {
-    "containerImage": "docker://a2cps/aggregator_qc_app:3.5",
+    "containerImage": "docker://a2cps/aggregator_qc_app:3.7",
     "description": "Aggregate quality control metrics and run simple checks",
     "enabled": true,
     "id": "aggregator_qc_app",
-    "version": "3.5",
+    "version": "3.7",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": null,

@@ -1,7 +1,7 @@
 {
     "name": "aggregator_phantom_job",
     "appId": "aggregator_phantom_app",
-    "appVersion": "3.0",
+    "appVersion": "3.1",
     "parameterSet": {
         "appArgs": [
             {

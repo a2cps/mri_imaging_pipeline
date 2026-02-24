@@ -1,6 +1,6 @@
 {
     "id": "heudiconv",
-    "version": "3.1.4",
+    "version": "3.1.5",
     "description": "HEUristic DIcom CONVerter, coverts dicoms into standardized BIDS format",
     "owner": "urrutia",
     "enabled": true,
@@ -26,6 +26,7 @@
         "archiveSystemId": "secure.ls6",
         "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/${JobOwner}/jobs/${JobCreateDate}/${JobName}-${JobUUID}",
         "archiveOnAppError": false,
+        "archiveMode": "SKIP_ON_FAIL",
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,
