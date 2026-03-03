@@ -1,6 +1,6 @@
 {
     "id": "heudiconv",
-    "version": "3.1.4",
+    "version": "3.1.6",
     "description": "HEUristic DIcom CONVerter, coverts dicoms into standardized BIDS format",
     "owner": "urrutia",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/heudiconv:250708",
+    "containerImage": "docker://a2cps/heudiconv:260224",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
@@ -26,6 +26,7 @@
         "archiveSystemId": "secure.ls6",
         "archiveSystemDir": "/corral-secure/projects/A2CPS/shared/${JobOwner}/jobs/${JobCreateDate}/${JobName}-${JobUUID}",
         "archiveOnAppError": false,
+        "archiveMode": "SKIP_ON_FAIL",
         "isMpi": false,
         "mpiCmd": null,
         "cmdPrefix": null,

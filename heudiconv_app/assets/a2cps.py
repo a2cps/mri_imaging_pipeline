@@ -123,9 +123,14 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     ):
         exclude = True
     # similar issue for UI phantom scans
-    elif dcmdata.get("DeviceSerialNumber") == "000000312996MR3T" and (
-        dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"]
-        or dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
+    elif (
+        dcmdata.get("DeviceSerialNumber") == "000000312996MR3T"
+        and (
+            dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"]
+            or dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
+            or dcmdata.SeriesInstanceUID
+            == "1.2.840.113619.2.514.5035799.8439083.17544.1758633299.429"  # QC_UI092625QA func partial acquisition
+        )
     ):
         exclude = True
     # Also need to exclude a particular case for UM1, since it is not appropriately

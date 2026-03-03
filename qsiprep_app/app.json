@@ -1,9 +1,9 @@
 {
-	"containerImage": "docker://a2cps/qsiprep_app:3.3",
-	"version": "3.3",
+	"containerImage": "docker://a2cps/qsiprep_nodenoise_app:1.0",
+	"version": "1.0",
 	"description": "Run qsiprep",
 	"enabled": true,
-	"id": "qsiprep",
+	"id": "qsiprep_nodenoise",
 	"jobAttributes": {
 		"archiveOnAppError": false,
 		"cmdPrefix": "ibrun -n 1",
