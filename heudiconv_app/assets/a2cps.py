@@ -102,6 +102,13 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     exclude = False
     if dcmdata.SeriesDescription == "<MPR Collection>":
         exclude = True
+
+    # fMRI for UC071422QA failed export
+    elif (dcmdata.get("DeviceSerialNumber") == "71399") and (
+        dcmdata.SeriesInstanceUID
+        == "1.3.46.670589.11.71399.5.0.5396.2022071415564142844"
+    ):
+        exclude = True
     # participants from second scanner at UM
     # "The way the extra volume is collected, distortion correction has to be
     # turned on.  This means that the series 3 DTI has GE's distortion
