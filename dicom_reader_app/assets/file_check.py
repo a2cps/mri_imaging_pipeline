@@ -4,8 +4,8 @@ import os
 import pathlib
 import re
 import sys
-import zipfile
 import tempfile
+import zipfile
 from shutil import copyfile, copytree, make_archive, rmtree
 from typing import Literal, Tuple
 
@@ -41,15 +41,11 @@ def extract_phantom_date(dicom_file: str) -> str:
     """
     header = pydicom.dcmread(dicom_file, stop_before_pixels=True)
 
-    if (day := header.get("SeriesDate")) or (
-        day := header.get("AcquisitionDate")
-    ):
+    if (day := header.get("SeriesDate")) or (day := header.get("AcquisitionDate")):
         tmp = datetime.datetime.strptime(day, "%Y%m%d").date()
         return datetime.date.strftime(tmp, "%y%m%d")
 
-    raise AssertionError(
-        "AcquisitionDate not found in dicom. Incorrect file unzipped?"
-    )
+    raise AssertionError("AcquisitionDate not found in dicom. Incorrect file unzipped?")
 
 
 def yymmdd_to_mmddyy(day: str) -> str:
@@ -118,9 +114,7 @@ def find_dicom(filename: str, isZip: bool) -> str:
     if isZip:
         site_zip = zipfile.ZipFile(filename)
         for listing in site_zip.infolist():
-            if (not listing.is_dir()) and (
-                "DICOMDIR" not in listing.orig_filename
-            ):
+            if (not listing.is_dir()) and ("DICOMDIR" not in listing.orig_filename):
                 # confirm that device_serial_number is in this dicom
                 # (missing from some RU files)
                 with tempfile.TemporaryDirectory() as tmpd:
@@ -156,11 +150,7 @@ def get_site_from_zipfile(
     }
 
     return SUBMISSION_SITE.get(
-        [
-            key
-            for key in SUBMISSION_SITE.keys()
-            if key in str(zipfile.absolute())
-        ][0]
+        [key for key in SUBMISSION_SITE.keys() if key in str(zipfile.absolute())][0]
     )  # type: ignore
 
 
@@ -178,6 +168,8 @@ def read_dicom_metadata(
 
     # phantom scan based on crude heuristic
     if re.search("[q][ac]", patientname, flags=re.IGNORECASE) is not None:
+        session_id = extract_phantom_date(dicom_file)
+        site_id = get_site_from_zipfile(zipfile=zipfile)
         # there is a standard for setting patient name with phantoms
         #  https://confluence.a2cps.org/pages/viewpage.action?spaceKey=DOC&title=A2CPS+Tech+Manual
         # - First name: <site code><mmddyy>QA; e.g. UI040121QA, UC050221QA, NS051521QA
@@ -192,28 +184,24 @@ def read_dicom_metadata(
         # sites can only upload to their own folder).
         #
         # this is not done for patient scans, as the site id *should* be in their PatientName field
-        site_id = get_site_from_zipfile(zipfile=zipfile)
-        subject_id = f"{site_id.lower()}phantom"
-        session_id = extract_phantom_date(dicom_file)
+        # WS has two phantom scans, the DSV and FBIRN
+        if "FBRIN" in str(zipfile):
+            # need to keep "phantom" in name for use with heudiconv app
+            subject_id = f"{site_id.lower()}fbirnphantom"
+            qc = "QCFBIRN_"
+        else:
+            subject_id = f"{site_id.lower()}phantom"
+            qc = "QC_"
         output_path = determine_output_path(
-            site_id,
-            subject_id=yymmdd_to_mmddyy(session_id),
-            session_id="QA",
-            qc="QC_",
+            site_id, subject_id=yymmdd_to_mmddyy(session_id), session_id="QA", qc=qc
         )
     else:
         std_name = re.search(
             "(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)", patientname.upper()
-        ).group(
-            0
-        )  # type: ignore
-        (site_id, subject_id, v, session_number, _) = re.split(
-            "(\d+)", std_name
-        )
+        ).group(0)  # type: ignore
+        (site_id, subject_id, v, session_number, _) = re.split("(\d+)", std_name)
         session_id = v + session_number
-        output_path = determine_output_path(
-            site_id, subject_id, session_id, qc=""
-        )
+        output_path = determine_output_path(site_id, subject_id, session_id, qc="")
 
     return site_id, subject_id, session_id, output_path
 
@@ -281,9 +269,7 @@ def main(filename, predefined_subject_id):
             "(\d+)", predefined_subject_id
         )
         session_id = v + session_number
-        output_path = determine_output_path(
-            site_id, subject_id, session_id, qc=""
-        )
+        output_path = determine_output_path(site_id, subject_id, session_id, qc="")
     else:
         (site_id, subject_id, session_id, output_path) = read_dicom_metadata(
             dicom_file, pathlib.Path(filename)

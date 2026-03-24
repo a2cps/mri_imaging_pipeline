@@ -13,15 +13,14 @@ submitted="/corral-secure/projects/A2CPS/system/cronjob/submitted.txt"
 dicom_actor=dicom_router.prod
 notifications_id=imaging-slackbot.prod
 #$tapis auth tokens refresh 1> /dev/null
-$tapis actors list 1> /dev/null
-
+$tapis actors list 1>/dev/null
 
 function announce_error() {
 	echo TODO: possibly announce that this script failed
 }
 
 # TODO: figure out how to do on EXIT with non 0 only
-trap announce_error SIGINT SIGHUP SIGABRT 
+trap announce_error SIGINT SIGHUP SIGABRT
 
 function skip_file() {
 	msg="$1"
@@ -32,15 +31,14 @@ function skip_file() {
 #zips=("$indir"/*/*.zip)
 zips=()
 for site in NS_northshore UC_uchicago UM_umichigan SH_spectrum_health_grand_rapids WS_wayne_state RU_rush_imaging; do
-  zips+=("${indir}"/${site}/*zip)
+	zips+=("${indir}"/${site}/*zip)
 done
 # but WS sends two sets of phantom dicoms:
 #   $indir/Wayne_state/QA/DSV
 #   $indir/Wayne_state/QA/BIRD
-# we only want to process the DSV files. 
-zips+=("$indir"/WS_wayne_state/QA/DSV/*zip)
+# we only want to process the DSV files.
+zips+=("$indir"/WS_wayne_state/QA/*/*zip)
 zips+=("$indir"/a2dtn01/*)
-
 
 touch "$submitted"
 for uploaded_file in "${zips[@]}"; do
@@ -48,18 +46,18 @@ for uploaded_file in "${zips[@]}"; do
 		#echo "$uploaded_file was submitted, skipping"
 		continue
 	fi
-        #check if file was modified in the last hour
-        modfilter=$(find "$uploaded_file" -mmin +60)
-        file_string=$(echo $modfilter | sed 's/\s.*$//')
-        if [ "$file_string" = "$uploaded_file" ]; then
-		# requires tapis from tapis-cli (pypi)	
+	#check if file was modified in the last hour
+	modfilter=$(find "$uploaded_file" -mmin +60)
+	file_string=$(echo $modfilter | sed 's/\s.*$//')
+	if [ "$file_string" = "$uploaded_file" ]; then
+		# requires tapis from tapis-cli (pypi)
 		echo tapis actors submit -m "{\"uploaded_file\": \"$uploaded_file\"}" "$dicom_actor"
 		$tapis actors submit -m "{\"uploaded_file\": \"$uploaded_file\"}" $dicom_actor
-		echo "$uploaded_file" >> "$submitted"
+		echo "$uploaded_file" >>"$submitted"
 		echo abaco submit -m "{\"text\": \"detected and submitted for processing: $uploaded_file\"}" $notifications_id
 		$tapis actors submit -m "{\"text\": \"detected and submitted for processing: $uploaded_file\"}" $notifications_id
 		continue
-	else 
+	else
 		skip_file "$uploaded_file modified within 1 hour"
 	fi
 
