@@ -301,7 +301,7 @@ def get_device_serial_number(layout: ancpbids.BIDSLayout) -> DEVICE_SERIAL_NUMBE
     any_json: list[str] = layout.get(extension="json", return_type="file")
     device_serial_number = None
     for j in any_json:
-        sidecar_path = pathlib.Path(any_json)
+        sidecar_path = pathlib.Path(j)
         sidecar: dict[str, typing.Any] = json.loads(sidecar_path.read_text())
         device_serial_number = sidecar.get("DeviceSerialNumber")
         if device_serial_number is not None:

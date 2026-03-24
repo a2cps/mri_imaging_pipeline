@@ -185,7 +185,7 @@ def read_dicom_metadata(
         #
         # this is not done for patient scans, as the site id *should* be in their PatientName field
         # WS has two phantom scans, the DSV and FBIRN
-        if "FBRIN" in str(zipfile):
+        if "FBIRN" in str(zipfile):
             # need to keep "phantom" in name for use with heudiconv app
             subject_id = f"{site_id.lower()}fbirnphantom"
             qc = "QCFBIRN_"
