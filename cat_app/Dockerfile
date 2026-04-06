@@ -1,7 +1,7 @@
 # bring in the micromamba image so we can copy files from it
 FROM mambaorg/micromamba:1.5 AS micromamba
 
-FROM psadil/cat12:12.9
+FROM psadil/cat12:12.9-1
 
 USER root
 
@@ -37,5 +37,5 @@ RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge -f /tmp/env.ym
 COPY assets/entrypoint.py /opt/cat_app/
 ENV TZ=US/Central
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/cat_app/entrypoint.py"]
+ENTRYPOINT ["xvfb-run", "-a", "/usr/local/bin/_entrypoint.sh", "python", "/opt/cat_app/entrypoint.py"]
 CMD [ "--help" ]

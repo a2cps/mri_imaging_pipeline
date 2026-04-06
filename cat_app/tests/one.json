@@ -1,0 +1,18 @@
+{
+    "appId": "psadil-cat_app",
+    "appVersion": "3.1",
+    "archiveSystemId": "secure.ls6",
+    "cmdPrefix": "ibrun -n 1",
+    "coresPerNode": 1,
+    "maxMinutes": 240,
+    "name": "cat12",
+    "nodeCount": 1,
+    "parameterSet": {
+        "appArgs": [
+            {
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/RU_rush/bids/RU11169V1",
+                "name": "INPUT_DIRS"
+            }
+        ]
+    }
+}
