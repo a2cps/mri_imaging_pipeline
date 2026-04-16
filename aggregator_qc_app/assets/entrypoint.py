@@ -3,6 +3,7 @@ import json
 import os
 import re
 import tempfile
+import typing
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import date
@@ -83,7 +84,7 @@ def get_client(
         client_id=client.get("client_id"),
         client_key=client.get("client_key"),
         verify=True,
-    )  # type: ignore
+    )
     return t
 
 
@@ -98,7 +99,7 @@ def get_confluence_token(
         tenant=os.environ.get("_tapisTenant"),
         user=os.environ.get("_tapisEffectiveUserId"),
     )
-    pat: str | None = token.get("secretMap").get("token")  # type: ignore
+    pat: str | None = token.get("secretMap").get("token")
     if pat is None:
         msg = "unable to find key 'token' in secretMap"
         raise AssertionError(msg)
@@ -486,13 +487,15 @@ def rate_dwi(
     ilog: pl.DataFrame, dwiqc: pl.DataFrame, root: Path = MRIS
 ) -> pl.DataFrame:
     DWI_LENGTHS = {
-        "NS": 102,
-        "SH": 103,
-        "UC": 102,
-        "UI": 104,
-        "UM": 104,
-        "WS": 102,
-        "RU": 103,
+        "70032": 102,
+        "66022": 103,
+        "71399": 102,
+        "000000312996MR3T": 104,
+        "0007347633TMRFIX": 104,
+        "000000000UM750MR": 104,
+        "40292": 102,
+        "213020": 103,
+        "166295": 103,
     }
 
     bval_counts = []
@@ -500,21 +503,32 @@ def rate_dwi(
         with open(x, "r") as f:
             content = f.read().strip().split()
             count = len(content)
-            bval_counts.append({"f": str(x.absolute()), "observed": count})
+        for j in x.parent.parent.rglob(".json"):
+            device_serial_number: dict[str, typing.Any] = json.loads(j.read_text()).get(
+                "DeviceSerialNumber"
+            )
+            if device_serial_number is not None:
+                break
+        if device_serial_number is None:
+            raise AssertionError(
+                f"No jsons found with DeviceSerialNumber {x.parent.parent}"
+            )
+
+        bval_counts.append(
+            {"f": str(x.absolute()), "observed": count, "device": device_serial_number}
+        )
 
     if not bval_counts:
         raise AssertionError("No bvals found")
 
-    bvals = pl.DataFrame(bval_counts).with_columns(
-        site=pl.col("f").str.extract(r"({})".format("|".join(DWI_LENGTHS.keys())))
-    )
+    bvals = pl.DataFrame(bval_counts)
 
     expected_df = pl.DataFrame(
-        [{"site": k, "expected": v} for k, v in DWI_LENGTHS.items()]
+        [{"device": k, "expected": v} for k, v in DWI_LENGTHS.items()]
     )
 
     bvals = (
-        bvals.join(expected_df, on="site", how="left")
+        bvals.join(expected_df, on="device", how="left")
         .with_columns(
             rating_acq=pl.when(pl.col("expected") == pl.col("observed"))
             .then(3)
@@ -770,7 +784,7 @@ def build_overall_notification(
     return "".join(
         [
             header,
-            f'<p>{_format_url("https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris/all_sites/mriqc-group", text="group htmls")}</p>',
+            f"<p>{_format_url('https://a2cps.org/workbench/data/tapis/projects/a2cps.project.PHI-PRODUCTS/mris/all_sites/mriqc-group', text='group htmls')}</p>",
             anat_notification,
             func_notification,
             dwi_notification,
