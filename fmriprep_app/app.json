@@ -63,6 +63,11 @@
           "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
           "name": "ANAT_ONLY"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "DERIVATIVES"
         }
       ],
       "archiveFilter": {

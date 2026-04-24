@@ -31,7 +31,7 @@ N_SEC_TO_COPY_ONE_SUB = 180
 
 
 class FMRIPrepReactor(models.Reactor):
-    def get_runlist(self) -> tuple[list[str], list[str]]:
+    def get_runlist(self) -> tuple[list[str], list[str], list[str]]:
         rundef = (
             self.ilog.rename(
                 {
@@ -42,7 +42,7 @@ class FMRIPrepReactor(models.Reactor):
                 }
             )
             .filter(pl.col("T1 Received") == 1)
-            .filter(pl.col("bids") == 1)
+            .filter(pl.col("synthstrip") == 1)
             .filter(pl.col("fmriprep") == 0)
             .with_columns(
                 sublong=pl.concat_str(
@@ -64,7 +64,13 @@ class FMRIPrepReactor(models.Reactor):
                     pl.col("sitelong"),
                     pl.lit("/bids/"),
                     pl.col("sublong"),
-                )
+                ),
+                DERIVATIVES=pl.concat_str(
+                    pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
+                    pl.col("sitelong"),
+                    pl.lit("/synthstrip/"),
+                    pl.col("sublong"),
+                ),
             )
             .sort(
                 "visit", "Surgery Week", "subject_id"
@@ -78,6 +84,9 @@ class FMRIPrepReactor(models.Reactor):
             rundef.select(pl.col("ANAT_ONLY"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions],
+            rundef.select(pl.col("DERIVATIVES"))
+            .to_series()
+            .to_list()[: self.maxjobs * self.n_submissions],
         )
         return runlist
 
@@ -85,10 +94,11 @@ class FMRIPrepReactor(models.Reactor):
         print(json.dumps(self.context, indent=4))
 
         runlist = self.get_runlist()
-        for r, (input_dirs, anat_only) in enumerate(
+        for r, (input_dirs, anat_only, derivatives) in enumerate(
             zip(
                 itertools.batched(runlist[0], self.maxjobs),
                 itertools.batched(runlist[1], self.maxjobs),
+                itertools.batched(runlist[2], self.maxjobs),
             )
         ):
             n_jobs = len(input_dirs)
@@ -97,6 +107,9 @@ class FMRIPrepReactor(models.Reactor):
             )
             self.set_app_arg(
                 name="ANAT_ONLY", value="--anat-only " + " ".join(anat_only)
+            )
+            self.set_app_arg(
+                name="DERIVATIVES", value="--derivatives " + " ".join(anat_only)
             )
             self.job.name = f"{self.job_name}-{r}"
 
