@@ -20,6 +20,7 @@ APP_STEPS = [
     "dicom",
     "bids",
     "fslanat",
+    "synthstrip",
     "fmriprep",
     "mriqc",
     "qsiprep",
@@ -649,6 +650,7 @@ def main():
                 scan_report["qsiprep_nodenoise"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
+                scan_report["synthstrip"] = "na"
             if scan_report["fmriprep"] == "na":
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
