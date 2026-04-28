@@ -1,6 +1,6 @@
 {
     "id": "heudiconv",
-    "version": "3.1.7",
+    "version": "3.1.8",
     "description": "HEUristic DIcom CONVerter, coverts dicoms into standardized BIDS format",
     "owner": "urrutia",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/heudiconv:260324",
+    "containerImage": "docker://a2cps/heudiconv:260428",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,
