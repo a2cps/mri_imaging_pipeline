@@ -102,6 +102,13 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     exclude = False
     if dcmdata.SeriesDescription == "<MPR Collection>":
         exclude = True
+
+    # fMRI for UC071422QA failed export
+    elif (dcmdata.get("DeviceSerialNumber") == "71399") and (
+        dcmdata.SeriesInstanceUID
+        == "1.3.46.670589.11.71399.5.0.5396.2022071415564142844"
+    ):
+        exclude = True
     # participants from second scanner at UM
     # "The way the extra volume is collected, distortion correction has to be
     # turned on.  This means that the series 3 DTI has GE's distortion
@@ -172,14 +179,16 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         # image that we typically want. This keeps that derived image, since it is the
         # only one available (1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028)
         # https://a2cps-pain.slack.com/archives/C02JP3G763X/p1689344497466429
-        # For 1.3.12.2.1107.5.2.43.66022.2025070314243471561794826.0.0.0 (SH25468V1),
+        # For 1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0 (SH25468V1),
         # the ND scan was not exported, so we only have the corrected one available
-        and not (
-            dcmdata.SeriesInstanceUID
-            == "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028"
-            or dcmdata.SeriesInstanceUID
-            == "1.3.12.2.1107.5.2.43.66022.2025070314243471561794826.0.0.0"
-        )
+        # same for 1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0 (SH25466V3)
+        # https://a2cps-pain.slack.com/archives/C0286MKRR4Z/p1776968241940429
+        and dcmdata.SeriesInstanceUID
+        not in [
+            "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028",
+            "1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0",
+            "1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0",
+        ]
     ):
         exclude = True
     # RU sends both T1_MPRAGE (with NonlinearGradientCorrection: true) and T1_MPRAGE_ND

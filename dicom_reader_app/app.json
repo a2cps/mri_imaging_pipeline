@@ -1,6 +1,6 @@
 {
     "id": "dicom_reader",
-    "version": "3.0.5",
+    "version": "3.0.7",
     "description": "Run an interactive Jupyter Notebook session on an HPC compute node.",
     "owner": "a2cpsadmin",
     "enabled": true,
@@ -9,7 +9,7 @@
     "runtimeOptions": [
         "SINGULARITY_RUN"
     ],
-    "containerImage": "docker://a2cps/dicom_reader_app:3.0.5",
+    "containerImage": "docker://a2cps/dicom_reader_app:3.0.7",
     "jobType": "BATCH",
     "maxJobs": -1,
     "maxJobsPerUser": -1,

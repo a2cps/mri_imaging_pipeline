@@ -298,14 +298,19 @@ def compare(
 
 
 def get_device_serial_number(layout: ancpbids.BIDSLayout) -> DEVICE_SERIAL_NUMBER:
-    any_nii: list[str] = layout.get(extension="json", return_type="file", suffix="T1w")  # type: ignore
-    if len(any_nii) == 0:
-        raise AssertionError("No scan jsons found")
-    sidecar_path = pathlib.Path(any_nii[0])
-    sidecar: dict[str, typing.Any] = json.loads(sidecar_path.read_text())
-    device_serial_number = sidecar.get("DeviceSerialNumber")
+    any_json: list[str] = layout.get(extension="json", return_type="file")
+    device_serial_number = None
+    for j in any_json:
+        sidecar_path = pathlib.Path(j)
+        sidecar: dict[str, typing.Any] = json.loads(sidecar_path.read_text())
+        device_serial_number = sidecar.get("DeviceSerialNumber")
+        if device_serial_number is not None:
+            break
 
-    return device_serial_number  # type: ignore
+    if device_serial_number is None:
+        raise AssertionError("No jsons found with DeviceSerialNumber")
+
+    return device_serial_number
 
 
 def main(root: str, phantom: bool = False, post: bool = False) -> None:
