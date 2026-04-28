@@ -367,7 +367,7 @@ def set_jsonfield(meta: pathlib.Path, key: str, value: typing.Any) -> None:
     print(f"{key} for {meta} is set to {value}")
 
 
-def edit_json(data_path):
+def edit_json(data_path: str):
     dirs = Path(data_path).absolute()
 
     # assume that if there was a conversion then there should be at least 1 json
@@ -441,6 +441,12 @@ def edit_json(data_path):
             "30\\LX\\SIGNA_LX1.MR30.1_R01_2322.c".lower(),
         ]:
             add_slicetiming_to_uhp_dwi(dirs)
+
+    # NS10427V1 seems to have gone through an anonymizer, and so the DeviceSerialNumber
+    # is missing from the jsons. Add it here for use downstream
+    if "NS10427V1" in data_path.upper():
+        for j in (dirs / "sub-10427" / "ses-V1").glob("*/*json"):
+            set_jsonfield(j, key="DeviceSerialNumber", value="70032")
 
 
 def add_slicetiming_to_uhp_dwi(dirs: Path) -> None:
