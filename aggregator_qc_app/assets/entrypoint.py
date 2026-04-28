@@ -3,7 +3,6 @@ import json
 import os
 import re
 import tempfile
-import typing
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import date
@@ -503,10 +502,9 @@ def rate_dwi(
         with open(x, "r") as f:
             content = f.read().strip().split()
             count = len(content)
-        for j in x.parent.parent.rglob(".json"):
-            device_serial_number: dict[str, typing.Any] = json.loads(j.read_text()).get(
-                "DeviceSerialNumber"
-            )
+        device_serial_number: str | None = None
+        for j in x.parent.parent.rglob("*json"):
+            device_serial_number = json.loads(j.read_text()).get("DeviceSerialNumber")
             if device_serial_number is not None:
                 break
         if device_serial_number is None:
