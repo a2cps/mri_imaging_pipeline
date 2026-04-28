@@ -179,15 +179,14 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
         # image that we typically want. This keeps that derived image, since it is the
         # only one available (1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028)
         # https://a2cps-pain.slack.com/archives/C02JP3G763X/p1689344497466429
-        # For 1.3.12.2.1107.5.2.43.66022.2025092913244619534461863.0.0.0 (SH25468V1),
+        # For 1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0 (SH25468V1),
         # the ND scan was not exported, so we only have the corrected one available
         # same for 1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0 (SH25466V3)
         # https://a2cps-pain.slack.com/archives/C0286MKRR4Z/p1776968241940429
         and dcmdata.SeriesInstanceUID
         not in [
             "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028",
-            "1.3.12.2.1107.5.2.43.66022.2025070314243471561794826.0.0.0",
-            "1.3.12.2.1107.5.2.43.66022.2025092913244619534461863.0.0.0",
+            "1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0",
             "1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0",
         ]
     ):
