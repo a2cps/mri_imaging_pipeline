@@ -40,7 +40,7 @@ if __name__ == "__main__":
                         Path(input_dir).relative_to(
                             "/corral-secure/projects/A2CPS/products/mris"
                         )
-                    ).replace("/bids/", "/cat12/")
+                    ).replace("/bids/", "/cat12-v4/")
                 )
             )
     else:
