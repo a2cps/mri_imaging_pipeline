@@ -25,6 +25,7 @@ APP_STEPS = [
     "qsiprep",
     "qsiprep_nodenoise",
     "cat12",
+    "cat12-v4",
     "brainager",
     "fcn",
     "signatures",
@@ -641,6 +642,7 @@ def main():
             # remove preprocessing if scans not indicated
             if scan_report["T1 Indicated"] == "0":
                 scan_report["cat12"] = "na"
+                scan_report["cat12-v4"] = "na"
                 scan_report["brainager"] = "na"
                 scan_report["fslanat"] = "na"
                 scan_report["fmriprep"] = "na"

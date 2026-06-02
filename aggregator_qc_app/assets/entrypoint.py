@@ -366,7 +366,7 @@ def build_cat_df(xml: Path) -> pl.DataFrame:
 
 
 def gather_cat(root: Path = MRIS):
-    dfs = [build_cat_df(x) for x in root.glob("*/cat12/*/cat12/report/*xml")]
+    dfs = [build_cat_df(x) for x in root.glob("*/cat12-v4/*/cat12/report/*xml")]
     if not dfs:
         raise AssertionError("did not find any cat12 data frames?")
     return pl.concat(dfs)
