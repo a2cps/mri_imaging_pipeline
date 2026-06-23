@@ -10,7 +10,7 @@ from mri_actor_utils import config, models
 JOB = Path("/opt/job.json")
 
 # numbers for ls6
-N_SUBS_PER_NODE = 30
+N_SUBS_PER_NODE = 20
 
 # for ls
 MAX_NODES_PER_JOB = 32

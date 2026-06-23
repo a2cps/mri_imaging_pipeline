@@ -1,6 +1,6 @@
 {
     "appId": "cat12_app",
-    "appVersion": "3.0",
+    "appVersion": "3.2",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.ls6",
     "cmdPrefix": "ibrun -n 12",
