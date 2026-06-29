@@ -1,4 +1,4 @@
-FROM ghcr.io/prefix-dev/pixi:0.67.2 AS build
+FROM ghcr.io/prefix-dev/pixi:0.71.1 AS build
 
 RUN apt update && apt install -y git
 
@@ -15,7 +15,7 @@ RUN pixi shell-hook > /shell-hook.sh
 # extend the shell-hook script to run the command passed to the container
 RUN echo 'exec "$@"' >> /shell-hook.sh
 
-FROM ubuntu:24.04 AS production
+FROM ubuntu:26.04 AS production
 
 COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
 COPY --from=build  /shell-hook.sh /shell-hook.sh
@@ -33,5 +33,4 @@ RUN sed '1d' /tmp/mri_synthstrip > /opt/synthstrip/mri_synthstrip.py \
 # set the entrypoint to the shell-hook script (activate the environment and run the command)
 # no more pixi needed in the prod container
 ENTRYPOINT ["/bin/bash", "/shell-hook.sh", "python", "/opt/synthstrip/entrypoint.py"]
-
-# CMD ["-h"]
+CMD ["--help"]

@@ -9,9 +9,8 @@ from mri_actor_utils import config, models
 # within docker container
 JOB = Path("/opt/job.json")
 
-# numbers for ls6
-# even 8 subs uses to much of /tmp
-N_SUBS_PER_NODE = 6
+# numbers for frontera (tmp system is half the size of ls6)
+N_SUBS_PER_NODE = 2
 
 # for ls
 MAX_NODES_PER_JOB = 32
@@ -33,14 +32,13 @@ N_SEC_TO_COPY_ONE_SUB = 180
 class FMRIPrepReactor(models.Reactor):
     def get_runlist(self) -> tuple[list[str], list[str], list[str]]:
         rundef = (
-            self.ilog.rename(
-                {
-                    "fMRI Individualized Pressure Received": "CUFF1",
-                    "fMRI Standard Pressure Received": "CUFF2",
-                    "1st Resting State Received": "REST1",
-                    "2nd Resting State Received": "REST2",
-                }
-            )
+            self.ilog
+            .rename({
+                "fMRI Individualized Pressure Received": "CUFF1",
+                "fMRI Standard Pressure Received": "CUFF2",
+                "1st Resting State Received": "REST1",
+                "2nd Resting State Received": "REST2",
+            })
             .filter(pl.col("T1 Received") == 1)
             .filter(pl.col("synthstrip") == 1)
             .filter(pl.col("fmriprep") == 0)
@@ -78,13 +76,16 @@ class FMRIPrepReactor(models.Reactor):
         )
 
         runlist = (
-            rundef.select(pl.col("INPUT_DIRS"))
+            rundef
+            .select(pl.col("INPUT_DIRS"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions],
-            rundef.select(pl.col("ANAT_ONLY"))
+            rundef
+            .select(pl.col("ANAT_ONLY"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions],
-            rundef.select(pl.col("DERIVATIVES"))
+            rundef
+            .select(pl.col("DERIVATIVES"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions],
         )

@@ -1,4 +1,4 @@
-FROM python:3.12-bullseye
+FROM python:3.13-trixie
 
 RUN pip install --no-cache-dir \
     git+https://github.com/a2cps/mri-actor-utils.git@99d7194f516b64acf2efcc261dcbc39ead778323\

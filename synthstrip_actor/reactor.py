@@ -9,9 +9,8 @@ from mri_actor_utils import config, models
 # within docker container
 JOB = Path("/opt/job.json")
 
-# numbers for ls6
-# even 8 subs uses to much of /tmp
-N_SUBS_PER_NODE = 64
+# numbers for frontera
+N_SUBS_PER_NODE = 32
 
 # for ls
 MAX_NODES_PER_JOB = 32
@@ -33,7 +32,8 @@ N_SEC_TO_COPY_ONE_SUB = 180
 class SynthStripReactor(models.Reactor):
     def get_runlist(self) -> tuple[list[str]]:
         rundef = (
-            self.ilog.filter(pl.col("T1 Received") == 1)
+            self.ilog
+            .filter(pl.col("T1 Received") == 1)
             .filter(pl.col("bids") == 1)
             .filter(pl.col("synthstrip") == 0)
             .with_columns(
@@ -56,7 +56,8 @@ class SynthStripReactor(models.Reactor):
         )
 
         runlist = (
-            rundef.select(pl.col("INPUT_DIRS"))
+            rundef
+            .select(pl.col("INPUT_DIRS"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions]
         )

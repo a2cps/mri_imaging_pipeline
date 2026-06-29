@@ -18,7 +18,7 @@ pyarrow = "<24"
 pydantic = "<3"
 scikit-image = "<0.27"
 scikit-learn = "<2"
-pytorch = "2.1.2.*"
+pytorch = "2.12.*"
 pillow = "<13"
 xxhash = ">=0.8.3,<0.9"
 python = "3.10.*"
@@ -26,7 +26,7 @@ surfa = ">=0.6.3,<0.7"
 typing_extensions = ">=4.15.0,<5"
 ucx = "1.17.0.*"
 rdma-core = "52.0.*"
-impi_rt = "2021.12.*"
+impi_rt = "2021.*"
 
 [pypi-dependencies]
-biomarkers = { git = "https://github.com/a2cps/biomarker-extractor.git", rev = "a55dd5e" }
+biomarkers = { git = "https://github.com/a2cps/biomarker-extractor.git", rev = "ce65b9d" }
