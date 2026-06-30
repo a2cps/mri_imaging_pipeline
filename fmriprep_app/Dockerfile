@@ -1,55 +1,34 @@
-# bring in the micromamba image so we can copy files from it
-FROM mambaorg/micromamba:1.5.8 AS micromamba
-FROM freesurfer/synthstrip:1.6 AS fs
+FROM ghcr.io/prefix-dev/pixi:0.71 AS build
 
-FROM nipreps/fmriprep:24.1.1
+RUN apt update && apt install -y git
 
-USER root
+# copy source code, pixi.toml and pixi.lock to the container
+COPY  . /app
+WORKDIR /app
+# run some compilation / build task (if needed)
+# RUN pixi run build
+# run the `install` command (or any other). This will also install the dependencies into `/app/.pixi`
+RUN pixi install
+# Create the shell-hook bash script to activate the environment
+RUN pixi shell-hook > /shell-hook.sh
 
-ARG MAMBA_USER=mambauser
-ARG MAMBA_USER_ID=57439
-ARG MAMBA_USER_GID=57439
-ENV MAMBA_USER=$MAMBA_USER
-ENV MAMBA_ROOT_PREFIX="/opt/conda"
-ENV MAMBA_EXE="/bin/micromamba"
+# extend the shell-hook script to run the command passed to the container
+RUN echo 'exec "$@"' >> /shell-hook.sh
 
-COPY --from=micromamba "$MAMBA_EXE" "$MAMBA_EXE"
-COPY --from=micromamba /usr/local/bin/_activate_current_env.sh /usr/local/bin/_activate_current_env.sh
-COPY --from=micromamba /usr/local/bin/_dockerfile_shell.sh /usr/local/bin/_dockerfile_shell.sh
-COPY --from=micromamba /usr/local/bin/_entrypoint.sh /usr/local/bin/_entrypoint.sh
-COPY --from=micromamba /usr/local/bin/_dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
-COPY --from=micromamba /usr/local/bin/_dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
+FROM nipreps/fmriprep:25.2.5
 
-RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh && \
-    /usr/local/bin/_dockerfile_setup_root_prefix.sh
+COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
+COPY --from=build  /shell-hook.sh /shell-hook-main.sh
 
-USER $MAMBA_USER
-
-SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
-ENV ENV_NAME=fmriprep
-
-RUN micromamba install -q --name ${ENV_NAME} --yes -c conda-forge --freeze-installed \
-    impi_rt=2021.12 \
-    ucx=1.17.0 \
-    rdma-core=52.0 \
-    mpi4py=3.1.6 \
-    polars=1.0.0 \
-    pydantic=2.8.0 \
-    pytorch=2.3.1 \
-    && micromamba run -n ${ENV_NAME} pip install \
-    --no-deps \
-    mriqc==24.0.0 \
-    git+https://github.com/a2cps/biomarker-extractor.git@329e7a29fc6b9b956cc9955f8481570b6987e432 \
-    && micromamba clean --all --yes
-
-COPY --from=fs --chown=$MAMBA_USER:$MAMBA_USER /freesurfer/models/synthstrip.1.pt /opt/synthstrip.1.pt
-COPY --from=fs --chown=$MAMBA_USER:$MAMBA_USER --chmod=774 /freesurfer/mri_synthstrip /usr/local/bin
+# fmriprep plays fast and loose with the path
+RUN sed -i '1i export PATH="/app/.pixi/envs/fmriprep/bin:/opt/freesurfer/bin:/opt/freesurfer/tktools:/opt/freesurfer/mni/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"' /shell-hook.sh \
+    && echo 'exec "$@"' >> /shell-hook.sh \
+    && sed -i '/CONDA_SHLVL/,$d' ${HOME}/.bashrc
 
 # files searched for in entrypoint.py
 COPY assets/entrypoint.py assets/license.txt /opt/fmriprep_app/
 ENV TZ=US/Central
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/fmriprep_app/entrypoint.py"]
-
+ENTRYPOINT ["/bin/bash", "/shell-hook-main.sh", "python", "/opt/fmriprep_app/entrypoint.py"]
 CMD [ "--help" ]
 

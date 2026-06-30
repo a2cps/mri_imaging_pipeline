@@ -20,7 +20,9 @@ APP_STEPS = [
     "dicom",
     "bids",
     "fslanat",
+    "synthstrip",
     "fmriprep",
+    "fmriprep-v4",
     "mriqc",
     "qsiprep",
     "qsiprep_nodenoise",
@@ -194,13 +196,11 @@ def redcap_query():
         for item in all_mcc1
         if item["redcap_event_name"] == "informed_consent_arm_1"
     }
-    date_dict.update(
-        {
-            item["record_id"]: item["sp_surg_date"]
-            for item in all_mcc2
-            if item["redcap_event_name"] == "informed_consent_arm_1"
-        }
-    )
+    date_dict.update({
+        item["record_id"]: item["sp_surg_date"]
+        for item in all_mcc2
+        if item["redcap_event_name"] == "informed_consent_arm_1"
+    })
     # date_dict.update({item['record_id']:item['sp_surg_date']
     #                   for item in mcc1_thoracic.json()
     #                   if item['redcap_event_name'] == 'informed_consent_arm_1'})
@@ -243,15 +243,13 @@ def redcap_query():
             "fmricuffrest2yn",
         ]
         updated_item = {k: v for k, v in item.items() if k in relevant_keys}
-        updated_item.update(
-            {
-                k: "1"
-                for k, v in updated_item.items()
-                if updated_item["fmricuffcompletescl"] == "1"
-                and k.endswith("yn")
-                and k in update_scans
-            }
-        )
+        updated_item.update({
+            k: "1"
+            for k, v in updated_item.items()
+            if updated_item["fmricuffcompletescl"] == "1"
+            and k.endswith("yn")
+            and k in update_scans
+        })
         # If it comes from mcc1 and is V1, pull value from fmricuffcalfpressure on the QST form
         # if it comes from mcc1 and is V3, pull value from fmricuffcalfpressure on the imaging form
         # if it is from mcc2 and V1 pull value from cuffpfmripressure on the QST form
@@ -284,15 +282,13 @@ def redcap_query():
 
     for index, item in enumerate(mcc2_uploaded_list):
         updated_item = {k: v for k, v in item.items() if k in relevant_keys}
-        updated_item.update(
-            {
-                k: "1"
-                for k, v in updated_item.items()
-                if updated_item["fmricuffcompletescl"] == "1"
-                and k.endswith("yn")
-                and k in update_scans
-            }
-        )
+        updated_item.update({
+            k: "1"
+            for k, v in updated_item.items()
+            if updated_item["fmricuffcompletescl"] == "1"
+            and k.endswith("yn")
+            and k in update_scans
+        })
 
         try:
             contra = [
@@ -334,9 +330,11 @@ def redcap_query():
             )
             session_id = v + session_number
             updated_item = item
-            updated_item.update(
-                {"site_id": site_id, "subject_id": subject_id, "visit": session_id}
-            )
+            updated_item.update({
+                "site_id": site_id,
+                "subject_id": subject_id,
+                "visit": session_id,
+            })
             uploaded[index] = updated_item
         except Exception as e:
             print(std_name)
@@ -646,11 +644,13 @@ def main():
                 scan_report["brainager"] = "na"
                 scan_report["fslanat"] = "na"
                 scan_report["fmriprep"] = "na"
+                scan_report["fmriprep-v4"] = "na"
                 scan_report["gift"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["qsiprep_nodenoise"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
+                scan_report["synthstrip"] = "na"
             if scan_report["fmriprep"] == "na":
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"

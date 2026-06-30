@@ -1,11 +1,11 @@
 {
-    "appId": "psadil-fmriprep_app",
-    "appVersion": "0.1",
-    "cmdPrefix": "ibrun -n 12",
-    "coresPerNode": 6,
+    "appId": "psadil-fmriprep-app",
+    "appVersion": "4.1",
+    "cmdPrefix": "ibrun -n 1 apptainer run docker://psadil/fmriprep_app --help && ibrun -n 12",
+    "coresPerNode": 2,
     "maxMinutes": 360,
     "name": "fmriprep",
-    "nodeCount": 2,
+    "nodeCount": 6,
     "parameterSet": {
         "appArgs": [
             {
@@ -17,11 +17,15 @@
                 "name": "OUTPUT_DIRS"
             },
             {
-                "arg": "--n-workers 21",
+                "arg": "--derivatives /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/NS_northshore/synthstrip/NStravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/NS_northshore/synthstrip/NStravel2  /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/RU_rush/synthstrip/RUtravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/RU_rush/synthstrip/RUtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/SH_spectrum_health/synthstrip/SHtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/UC_uchicago/synthstrip/UCtravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/UC_uchicago/synthstrip/UCtravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/UI_uic/synthstrip/UItravel1 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/UI_uic/synthstrip/UItravel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/UM_umichigan/synthstrip/UM1travel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/UM_umichigan/synthstrip/UM2travel2 /corral-secure/projects/A2CPS/shared/psadil/jobs/035defe5-d975-42e0-b9e6-f6a643d86e1e-007/WS_wayne_state/synthstrip/WStravel2",
+                "name": "DERIVATIVES"
+            },
+            {
+                "arg": "--n-workers 27",
                 "name": "N_WORKERS"
             },
             {
-                "arg": "--mem-mb 42666",
+                "arg": "--mem-mb 96000",
                 "name": "MEM_MB"
             },
             {

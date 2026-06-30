@@ -1,15 +1,15 @@
 {
-  "containerImage": "docker://a2cps/fmriprep_app:3.5",
-  "version": "3.6",
+  "containerImage": "docker://psadil/fmriprep_app",
+  "version": "4.1",
   "description": "Run fmriprep",
   "enabled": true,
-  "id": "fmriprep-app",
+  "id": "psadil-fmriprep-app",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
     "description": null,
     "execSystemExecDir": "${JobWorkingDir}",
-    "execSystemId": "secure.ls6",
+    "execSystemId": "secure.frontera",
     "execSystemInputDir": "${JobWorkingDir}",
     "execSystemLogicalQueue": "corralextra",
     "execSystemOutputDir": "${JobWorkingDir}",
@@ -63,6 +63,11 @@
           "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
           "name": "ANAT_ONLY"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "DERIVATIVES"
         }
       ],
       "archiveFilter": {
@@ -90,7 +95,7 @@
       },
       "schedulerOptions": [
         {
-          "arg": "--tapis-profile ls6-mpi",
+          "arg": "--tapis-profile frontera-mpi",
           "description": "Scheduler profile for HPC clusters at TACC",
           "inputMode": "FIXED",
           "name": "TACC Scheduler Profile"
