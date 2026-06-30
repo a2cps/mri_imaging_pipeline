@@ -1,9 +1,9 @@
 {
-    "containerImage": "docker://psadil/synthstrip_app:0.1",
-    "version": "0.1",
-    "description": "Run fmriprep",
+    "containerImage": "docker://a2cps/synthstrip_app:1.0",
+    "version": "1.0",
+    "description": "Run synthstrip",
     "enabled": true,
-    "id": "psadil-synthstrip-app",
+    "id": "synthstrip-app",
     "jobAttributes": {
         "archiveOnAppError": false,
         "cmdPrefix": "ibrun -n 1",

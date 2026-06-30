@@ -30,7 +30,7 @@ N_SEC_TO_COPY_ONE_SUB = 180
 
 
 class SynthStripReactor(models.Reactor):
-    def get_runlist(self) -> tuple[list[str]]:
+    def get_runlist(self) -> list[str]:
         rundef = (
             self.ilog
             .filter(pl.col("T1 Received") == 1)
@@ -67,7 +67,7 @@ class SynthStripReactor(models.Reactor):
         print(json.dumps(self.context, indent=4))
 
         runlist = self.get_runlist()
-        for r, input_dirs in enumerate(itertools.batched(runlist[0], self.maxjobs)):
+        for r, input_dirs in enumerate(itertools.batched(runlist, self.maxjobs)):
             n_jobs = len(input_dirs)
             self.set_app_arg(
                 name="INPUT_DIRS", value="--input-dirs " + " ".join(input_dirs)

@@ -1,6 +1,6 @@
 {
-    "appId": "psadil-synthstrip-app",
-    "appVersion": "0.1",
+    "appId": "synthstrip-app",
+    "appVersion": "1.0",
     "archiveSystemDir": "/corral-secure/projects/A2CPS/products/mris",
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 24",
