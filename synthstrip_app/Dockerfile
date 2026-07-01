@@ -19,7 +19,7 @@ FROM ubuntu:26.04 AS production
 
 COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
 COPY --from=build  /shell-hook.sh /shell-hook.sh
-ADD --chmod=+rw https://surfer.nmr.mgh.harvard.edu/docs/synthstrip/requirements/synthstrip.1.pt \
+ADD --chmod=555 https://surfer.nmr.mgh.harvard.edu/docs/synthstrip/requirements/synthstrip.1.pt \
     https://surfer.nmr.mgh.harvard.edu/docs/synthstrip/requirements/synthstrip.nocsf.1.pt \
     /opt/synthstrip/
 ADD https://raw.githubusercontent.com/freesurfer/freesurfer/9636483c91e04cc17775ce4cb430b86f67046f1a/mri_synthstrip/mri_synthstrip \
