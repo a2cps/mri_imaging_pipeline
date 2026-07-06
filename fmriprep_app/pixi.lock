@@ -51,7 +51,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/python-gil-3.12.13-hd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.12-8_cp312.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-      - pypi: git+https://github.com/a2cps/biomarker-extractor.git?rev=8c6868d#8c6868d95ba94fd5ef6c82c4cc1266f42ea2e9d3
+      - pypi: git+https://github.com/a2cps/biomarker-extractor.git?rev=03e72977615875167a5dfc04a22ce0068595a1fe#03e72977615875167a5dfc04a22ce0068595a1fe
       - pypi: https://files.pythonhosted.org/packages/18/67/36e9267722cc04a6b9f15c7f3441c2363321a3ea07da7ae0c0707beb2a9c/typing_extensions-4.15.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/32/d5/f9a850d79b0851d1d4ef6456097579a9005b31fea68726a4ae5f2d82ddd9/threadpoolctl-3.6.0-py3-none-any.whl
@@ -626,7 +626,7 @@ packages:
   run_exports: {}
   size: 119135
   timestamp: 1767016325805
-- pypi: git+https://github.com/a2cps/biomarker-extractor.git?rev=8c6868d#8c6868d95ba94fd5ef6c82c4cc1266f42ea2e9d3
+- pypi: git+https://github.com/a2cps/biomarker-extractor.git?rev=03e72977615875167a5dfc04a22ce0068595a1fe#03e72977615875167a5dfc04a22ce0068595a1fe
   name: biomarkers
   version: 0.1.0
   requires_dist:

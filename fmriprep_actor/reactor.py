@@ -41,7 +41,7 @@ class FMRIPrepReactor(models.Reactor):
             })
             .filter(pl.col("T1 Received") == 1)
             .filter(pl.col("synthstrip") == 1)
-            .filter(pl.col("fmriprep") == 0)
+            .filter(pl.col("fmriprep-v4") == 0)
             .with_columns(
                 sublong=pl.concat_str(
                     pl.col("site"), pl.col("subject_id"), pl.col("visit")
@@ -110,7 +110,7 @@ class FMRIPrepReactor(models.Reactor):
                 name="ANAT_ONLY", value="--anat-only " + " ".join(anat_only)
             )
             self.set_app_arg(
-                name="DERIVATIVES", value="--derivatives " + " ".join(anat_only)
+                name="DERIVATIVES", value="--derivatives " + " ".join(derivatives)
             )
             self.job.name = f"{self.job_name}-{r}"
 
