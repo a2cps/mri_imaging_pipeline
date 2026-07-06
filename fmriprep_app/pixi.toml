@@ -15,4 +15,4 @@ mpi4py = "3.1.6.*"
 polars = "1.33.1.*"
 
 [pypi-dependencies]
-biomarkers = { git = "https://github.com/a2cps/biomarker-extractor.git", rev = "8c6868d" }
+biomarkers = { git = "https://github.com/a2cps/biomarker-extractor.git", rev = "dd85fc9745fae6fb647d277117470852bd6686d5" }

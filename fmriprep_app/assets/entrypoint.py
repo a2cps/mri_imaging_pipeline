@@ -25,7 +25,7 @@ async def main(
     output_spaces: typing.Sequence[fmriprep_models.OUTPUT_SPACE] = (
         typing.get_args(fmriprep_models.OUTPUT_SPACE)
     ),
-    anat_only: typing.Sequence[bool] | None = None,
+    anat_only: typing.MutableSequence[bool] | None = None,
     derivatives: typing.Sequence[Path] | None = None,
 ) -> None:
     await fmriprep.FMRIPRepEntrypoint(
@@ -38,7 +38,14 @@ async def main(
         dummy_scans=dummy_scans,
         bold2anat_dof=bold2anat_dof,
         output_spaces=output_spaces,
-        stage_ignore_patterns=shutil.ignore_patterns("*.heudiconv", "sourcedata"),
+        stage_ignore_patterns=shutil.ignore_patterns(
+            "*.heudiconv",
+            "sourcedata",
+            "*scans.tsv",
+            "*scans.json",
+            "*sessions.tsv",
+            "*sessions.json",
+        ),
         anat_only=anat_only,
         derivatives=derivatives,
     ).run()

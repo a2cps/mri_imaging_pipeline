@@ -110,7 +110,7 @@ class FMRIPrepReactor(models.Reactor):
                 name="ANAT_ONLY", value="--anat-only " + " ".join(anat_only)
             )
             self.set_app_arg(
-                name="DERIVATIVES", value="--derivatives " + " ".join(anat_only)
+                name="DERIVATIVES", value="--derivatives " + " ".join(derivatives)
             )
             self.job.name = f"{self.job_name}-{r}"
 
