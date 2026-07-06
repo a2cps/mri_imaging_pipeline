@@ -41,7 +41,7 @@ class FMRIPrepReactor(models.Reactor):
             })
             .filter(pl.col("T1 Received") == 1)
             .filter(pl.col("synthstrip") == 1)
-            .filter(pl.col("fmriprep") == 0)
+            .filter(pl.col("fmriprep-v4") == 0)
             .with_columns(
                 sublong=pl.concat_str(
                     pl.col("site"), pl.col("subject_id"), pl.col("visit")

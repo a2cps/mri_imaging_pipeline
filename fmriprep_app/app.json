@@ -1,9 +1,9 @@
 {
-  "containerImage": "docker://psadil/fmriprep_app",
+  "containerImage": "docker://a2cps/fmriprep_app:4.1",
   "version": "4.1",
   "description": "Run fmriprep",
   "enabled": true,
-  "id": "psadil-fmriprep-app",
+  "id": "fmriprep-app",
   "jobAttributes": {
     "archiveOnAppError": false,
     "cmdPrefix": "ibrun -n 1",
