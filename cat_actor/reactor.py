@@ -10,7 +10,7 @@ from mri_actor_utils import config, models
 JOB = Path("/opt/job.json")
 
 # numbers for ls6
-N_SUBS_PER_NODE = 30
+N_SUBS_PER_NODE = 20
 
 # for ls
 MAX_NODES_PER_JOB = 32
@@ -30,7 +30,7 @@ class CAT12Reactor(models.Reactor):
         rundef = (
             self.ilog.filter(pl.col("T1 Received") == 1)
             .filter(pl.col("bids") == 1)
-            .filter(pl.col("cat12") == 0)
+            .filter(pl.col("cat12-v4") == 0)
             .with_columns(
                 sublong=pl.concat_str(
                     pl.col("site"), pl.col("subject_id"), pl.col("visit")

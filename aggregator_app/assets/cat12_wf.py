@@ -58,10 +58,10 @@ def make_toplevel(outdir: Path) -> None:
 def copy(outdir: Path, inroot: Path) -> None:
     bu.mkdir_recursive(outdir)
 
-    for subses in inroot.glob("cat12/*"):
+    for subses in inroot.glob("cat12-v4/*"):
         sub = bu.get_sub_from_sublong(subses)
         ses = bu.get_ses_from_sublong(subses)
         for out in ["label", "mri", "report", "surf"]:
             utils.mergetree_overwrite(
-                subses / "cat12" / out, outdir / f"sub-{sub}" / f"ses-{ses}" / out
+                subses / "cat12-v4" / out, outdir / f"sub-{sub}" / f"ses-{ses}" / out
             )

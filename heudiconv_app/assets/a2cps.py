@@ -229,4 +229,11 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     ]:
         exclude = True
 
+    # odd extra scans included for this phantom
+    elif (dcmdata.get("PatientName") == "A2CPS_QA_NS08012022") and (
+        dcmdata.get("SeriesDescription")
+        in ["func-bold_acq-QA COR", "func-bold_acq-QA SAG", "func-bold_acq-QA TRA"]
+    ):
+        exclude = True
+
     return exclude

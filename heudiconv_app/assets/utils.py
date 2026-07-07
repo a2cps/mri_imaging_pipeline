@@ -442,6 +442,11 @@ def edit_json(data_path):
         ]:
             add_slicetiming_to_uhp_dwi(dirs)
 
+    # NS10427V1 seems to have gone through an anonymizer, and so the DeviceSerialNumber
+    # is missing from the jsons. Add it here for use downstream
+    for j in (dirs / "sub-10427" / "ses-V1").glob("*/*json"):
+        set_jsonfield(j, key="DeviceSerialNumber", value="70032")
+
 
 def add_slicetiming_to_uhp_dwi(dirs: Path) -> None:
     """Redo dcm2niix with hidden option to get slicetiming info in GE dwi"""

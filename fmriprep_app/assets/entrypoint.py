@@ -11,7 +11,6 @@ from mpi4py import MPI
 tapismpi.configure_mpi_logger()
 
 # defined in Dockerfile
-SYNTHSTRIP_MODEL = Path("/opt/synthstrip.1.pt")
 FS_LICENSE = Path("/opt/fmriprep_app/license.txt")
 
 
@@ -24,15 +23,15 @@ async def main(
     dummy_scans: int | None = None,
     bold2anat_dof: fmriprep_models.BOLD2ANAT_DOF = 6,
     output_spaces: typing.Sequence[fmriprep_models.OUTPUT_SPACE] = (
-        typing.get_args(fmriprep_models.OUTPUT_SPACE),
+        typing.get_args(fmriprep_models.OUTPUT_SPACE)
     ),
-    anat_only: typing.Sequence[bool] | None = None,
+    anat_only: typing.MutableSequence[bool] | None = None,
+    derivatives: typing.Sequence[Path] | None = None,
 ) -> None:
     await fmriprep.FMRIPRepEntrypoint(
         outs=outdirs,
         ins=bids_directory,
         fs_license_file=FS_LICENSE,
-        synthstrip_model=SYNTHSTRIP_MODEL,
         n_workers=n_workers,
         mem_mb=mem_mb,
         cifti_output=cifti_output,
@@ -40,9 +39,15 @@ async def main(
         bold2anat_dof=bold2anat_dof,
         output_spaces=output_spaces,
         stage_ignore_patterns=shutil.ignore_patterns(
-            "*.heudiconv", "sourcedata"
+            "*.heudiconv",
+            "sourcedata",
+            "*scans.tsv",
+            "*scans.json",
+            "*sessions.tsv",
+            "*sessions.json",
         ),
         anat_only=anat_only,
+        derivatives=derivatives,
     ).run()
 
 
@@ -73,6 +78,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--anat-only", nargs="+", default=None, choices=["True", "False"]
     )
+    parser.add_argument("--derivatives", nargs="+", default=None, type=Path)
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -86,7 +92,7 @@ if __name__ == "__main__":
                         Path(input_dir).relative_to(
                             "/corral-secure/projects/A2CPS/products/mris"
                         )
-                    ).replace("/bids/", "/fmriprep/")
+                    ).replace("/bids/", "/fmriprep-v4/")
                 )
             )
     else:
@@ -106,12 +112,20 @@ if __name__ == "__main__":
 
     if args.anat_only:
         if not len(args.anat_only) == len(args.input_dirs):
-            msg = "If --anat-only is specified, it must have length equal to --input-dirs"
+            msg = (
+                "If --anat-only is specified, it must have length equal to --input-dirs"
+            )
             raise AssertionError(msg)
         else:
             anat_only = [arg == "True" for arg in args.anat_only]
     else:
         anat_only = None
+
+    if args.derivatives:
+        if not len(args.derivatives) == len(args.input_dirs):
+            raise AssertionError(
+                "If --derivatives is specified, it must have length equal to --input-dirs"
+            )
 
     asyncio.run(
         main(
@@ -124,5 +138,6 @@ if __name__ == "__main__":
             bold2anat_dof=args.bold2anat_dof,
             output_spaces=args.output_spaces,
             anat_only=anat_only,
+            derivatives=args.derivatives,
         )
     )

@@ -1,5 +1,5 @@
 {
-  "containerImage": "docker://a2cps/cat_app:3.0",
+  "containerImage": "docker://a2cps/cat_app:3.3",
   "description": "Run cat12",
   "enabled": true,
   "id": "cat12_app",
@@ -85,5 +85,5 @@
     "SINGULARITY_RUN"
   ],
   "strictFileInputs": true,
-  "version": "3.0"
+  "version": "3.3"
 }

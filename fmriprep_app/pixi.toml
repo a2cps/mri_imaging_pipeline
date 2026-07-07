@@ -1,0 +1,18 @@
+[workspace]
+authors = ["Patrick Sadil <psadil@gmail.com>"]
+channels = ["conda-forge"]
+name = "fmriprep_app"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+impi_rt = "2021.12.*"
+ucx = "1.17.0.*"
+rdma-core = "52.0.*"
+mpi4py = "3.1.6.*"
+polars = "1.33.1.*"
+
+[pypi-dependencies]
+biomarkers = { git = "https://github.com/a2cps/biomarker-extractor.git", rev = "dd85fc9745fae6fb647d277117470852bd6686d5" }
