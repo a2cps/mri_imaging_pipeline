@@ -27,6 +27,7 @@ rest = {
         "REST1",
         "DelRec - REST1",
         "WIP DelRec - REST1",
+        "REST1_FBIRN",
     ]
 }
 cuff = {"func_task-cuff_run-1": ["Cuff1", "CUFF1", "CUFF1R2", "CUFF1R2"]}
