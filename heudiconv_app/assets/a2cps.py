@@ -2,138 +2,130 @@
 import pydicom
 from heudiconv.heuristics.reproin import *
 
-protocols2fix.update({
-    "": [
-        # regular expression, what to replace with
-        # At the start of data collection, repeated scans were marked _R#
-        # (e.g., T1_MPRAGE_R1 is the first repeat of T1).
-        # for any scan that has a repeat suffix (e.g., _R2), strip the suffix
-        # this lets them be marked as duplicates, which can then be deleted after heudiconv
-        # (they'll end with a suffix _dup)
-        (r"(.*)(R[1-9]*)$", r"\1"),  # strip any trailing R#
-        (r"(.*)([_\s]+)$", r"\1"),  # strip any trailing characters
-        ("AAHead_Scout_.*", "anat-scout"),
-        ("^dti_.*", "dwi"),
-        (
-            "^space_top_distortion_corr.*_([ap]+)_([12])",
-            r"fmap-epi_dir-\1_run-\2",
-        ),
-        # I do not think there is a point in keeping any
-        # of _ap _32ch _mb8 in the output filename, although
-        # could be brought into _acq- if very much desired OR
-        # there are some subjects/sessions scanned differently
-        ("^(.+)_ap.*_r(0[0-9])", r"func_task-\1_run-\2"),
-        # also the same as above...
-        ("^t1w_.*", "anat-T1w"),
-        # below are my guesses based on what I saw in README
-        ("_r(0[0-9])", r"_run-\1"),
-        ("self_other", "selfother"),
-        # For  a2dtn01  on tacc -- based on the wrong field
-        # ('^ssfse', 'anat-scout'),
-        # ('^research/ABCD/mprage_promo', 'anat-T1w'),
-        # ('^research/ABCD/muxepi2', 'dwi'),
-        # ('^research/ABCD/epi_pepolar', 'fmap-epi_run-1'),
-        # ('^research/ABCD/muxepi$', 'func_task-unk_run-unk'),
-        ("^3Plane_Loc.*", "anat-scout"),
-        (r"^(T1[_\s])*MPRAGE", "anat-T1w"),
-        ("^GE_EPI_B0_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
-        ("^GE_EPI_B0", "fmap-epi_acq-fmrib0"),
-        ("^SE_EPI_B0_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),
-        ("^SE_EPI_B0", "fmap-epi_acq-dwib0"),
-        # new rules for new B0 names
-        ("^[fF]MRI_B0_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
-        ("^[fF]MRI_B0", "fmap-epi_acq-fmrib0"),
-        ("^DWI_B0_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),
-        ("^DWI_B0", "fmap-epi_acq-dwib0"),
-        # additional variants to support ABCD naming (dMRI_distortionmap_AP/PA and fMRI_distortionmap_AP/PA)
-        ("^fMRI_distortionmap_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
-        ("^fMRI_distorionmap", "fmap-epi_acq-fmrib0"),
-        ("^dMRI_distortionmap_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),
-        ("^dMRI_distortionmap", "fmap-epi_acq-dwib0"),
-        # the next few refer to variations on names provided by second
-        # UM scanner
-        ("^ORIG: D[TW]I$", "dwi"),
-        ("^REV_POL: D[TW]I$", "fmap-epi_acq-dwib0"),
-        ("^ORIG T1_MPRAGE$", "anat-T1w"),
-        # this rule must come *after* DWI_B0
-        ("^D[TW]I", "dwi"),
-        (
-            r".*(REST|Rest)\s?([12])([_\s]*R[1-9]*)*$",
-            r"func_task-rest_run-\2",
-        ),
-        (
-            r".*(CUFF|Cuff)\s?([12])([_\s]*R[1-9]*)*$",
-            r"func_task-cuff_run-\2",
-        ),
-        # phantom scan heuristics
-        # anat should grab one that has ORIG
-        (".*(anat-T1w)[-_]acq[-_]GRE$", r"\1"),
-        # also expect ORIG in some DWI (and sometimes also a suffix )
-        (".*[Bb]([12]000).*", r"dwi-dwi_acq-b\1"),
-        ("func[-_]bold[-_]acq[-_]QA", "func_task-rest"),
-        # WS/UI had some atypical names early on
-        ("REST1_17DSV", "func_task-rest"),
-        ("REST1_FBIRN", "func_task-rest"),
-        ("^Ax.*GRE.*", "anat-T1w"),
-        ("^fMRI QA$", "func_task-rest"),
-        ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1"),
-        # UM (ABCD) phantom heuristics
-        ("ORIG: MB_Diffusion_QA", "dwi"),  # b3000
-        ("MB_fMRI_QA", "func_task-rest_acq-mb"),
-        ("Standard_fBIRN_QA", "func_task-rest_acq-fBIRN"),
-        ("Coil_QA", "anat-T1w"),
-        # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
-        (".*t1spgr_208sl.*", "anat-T1w"),
-        # after SH upgrade
-        ("Tra T1 MPRAGE orthog", "anat-T1w"),
-        ("^T1_MPRAGE_ND$", "anat-T1w"),
-        # SH Traveling Human
-        ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
-        ("^dMRI$", "dwi"),
-        # UIC scanner update
-        ("Sag T1_MPRAGE", "anat-T1w"),
-    ],
-})
+protocols2fix.update(
+    {
+        "": [
+            # regular expression, what to replace with
+            # At the start of data collection, repeated scans were marked _R#
+            # (e.g., T1_MPRAGE_R1 is the first repeat of T1).
+            # for any scan that has a repeat suffix (e.g., _R2), strip the suffix
+            # this lets them be marked as duplicates, which can then be deleted after heudiconv
+            # (they'll end with a suffix _dup)
+            (r"(.*)(R[1-9]*)$", r"\1"),  # strip any trailing R#
+            (r"(.*)([_\s]+)$", r"\1"),  # strip any trailing characters
+            ("AAHead_Scout_.*", "anat-scout"),
+            ("^dti_.*", "dwi"),
+            (
+                "^space_top_distortion_corr.*_([ap]+)_([12])",
+                r"fmap-epi_dir-\1_run-\2",
+            ),
+            # I do not think there is a point in keeping any
+            # of _ap _32ch _mb8 in the output filename, although
+            # could be brought into _acq- if very much desired OR
+            # there are some subjects/sessions scanned differently
+            ("^(.+)_ap.*_r(0[0-9])", r"func_task-\1_run-\2"),
+            # also the same as above...
+            ("^t1w_.*", "anat-T1w"),
+            # below are my guesses based on what I saw in README
+            ("_r(0[0-9])", r"_run-\1"),
+            ("self_other", "selfother"),
+            # For  a2dtn01  on tacc -- based on the wrong field
+            # ('^ssfse', 'anat-scout'),
+            # ('^research/ABCD/mprage_promo', 'anat-T1w'),
+            # ('^research/ABCD/muxepi2', 'dwi'),
+            # ('^research/ABCD/epi_pepolar', 'fmap-epi_run-1'),
+            # ('^research/ABCD/muxepi$', 'func_task-unk_run-unk'),
+            ("^3Plane_Loc.*", "anat-scout"),
+            (r"^(T1[_\s])*MPRAGE", "anat-T1w"),
+            ("^GE_EPI_B0_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
+            ("^GE_EPI_B0", "fmap-epi_acq-fmrib0"),
+            ("^SE_EPI_B0_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),
+            ("^SE_EPI_B0", "fmap-epi_acq-dwib0"),
+            # new rules for new B0 names
+            ("^[fF]MRI_B0_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
+            ("^[fF]MRI_B0", "fmap-epi_acq-fmrib0"),
+            ("^DWI_B0_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),
+            ("^DWI_B0", "fmap-epi_acq-dwib0"),
+            # additional variants to support ABCD naming (dMRI_distortionmap_AP/PA and fMRI_distortionmap_AP/PA)
+            ("^fMRI_distortionmap_(AP|PA)", r"fmap-epi_acq-fmrib0_dir-\1"),
+            ("^fMRI_distorionmap", "fmap-epi_acq-fmrib0"),
+            ("^dMRI_distortionmap_(AP|PA)", r"fmap-epi_acq-dwib0_dir-\1"),
+            ("^dMRI_distortionmap", "fmap-epi_acq-dwib0"),
+            # the next few refer to variations on names provided by second
+            # UM scanner
+            ("^ORIG: D[TW]I$", "dwi"),
+            ("^REV_POL: D[TW]I$", "fmap-epi_acq-dwib0"),
+            ("^ORIG T1_MPRAGE$", "anat-T1w"),
+            # this rule must come *after* DWI_B0
+            ("^D[TW]I", "dwi"),
+            (
+                r".*(REST|Rest)\s?([12])([_\s]*R[1-9]*)*$",
+                r"func_task-rest_run-\2",
+            ),
+            (
+                r".*(CUFF|Cuff)\s?([12])([_\s]*R[1-9]*)*$",
+                r"func_task-cuff_run-\2",
+            ),
+            # phantom scan heuristics
+            # anat should grab one that has ORIG
+            (".*(anat-T1w)[-_]acq[-_]GRE$", r"\1"),
+            # also expect ORIG in some DWI (and sometimes also a suffix )
+            (".*[Bb]([12]000).*", r"dwi-dwi_acq-b\1"),
+            ("func[-_]bold[-_]acq[-_]QA", "func_task-rest"),
+            # WS/UI had some atypical names early on
+            ("REST1_17DSV", "func_task-rest"),
+            ("REST1_FBIRN", "func_task-rest"),
+            ("^Ax.*GRE.*", "anat-T1w"),
+            ("^fMRI QA$", "func_task-rest"),
+            ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1"),
+            # UM (ABCD) phantom heuristics
+            ("ORIG: MB_Diffusion_QA", "dwi"),  # b3000
+            ("MB_fMRI_QA", "func_task-rest_acq-mb"),
+            ("Standard_fBIRN_QA", "func_task-rest_acq-fBIRN"),
+            ("Coil_QA", "anat-T1w"),
+            # after UM1 was upgraded, they stopped using typical A2CPS rules for some scans
+            (".*t1spgr_208sl.*", "anat-T1w"),
+            # after SH upgrade
+            ("Tra T1 MPRAGE orthog", "anat-T1w"),
+            ("^T1_MPRAGE_ND$", "anat-T1w"),
+            # SH Traveling Human
+            ("^anat-T1w_acq-MPRAGE$", "anat-T1w"),
+            ("^dMRI$", "dwi"),
+            # UIC scanner update
+            ("Sag T1_MPRAGE", "anat-T1w"),
+        ],
+    }
+)
 
 
 def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     """Return True if a DICOM dataset should be filtered out, else False"""
     exclude = False
-    if (
-        dcmdata.SeriesDescription == "<MPR Collection>"
-        or (dcmdata.get("DeviceSerialNumber") == "71399")
+    if dcmdata.SeriesDescription == "<MPR Collection>" or (dcmdata.get("DeviceSerialNumber") == "71399") and (
+        dcmdata.SeriesInstanceUID
+        == "1.3.46.670589.11.71399.5.0.5396.2022071415564142844"
+    ) or (
+        dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX"
         and (
+            dcmdata.SeriesDescription == "DTI"
+            or dcmdata.SeriesDescription == "DWI"
+            or dcmdata.SeriesDescription == "T1_MPRAGE"
+        )
+        and (dcmdata.get("PatientName") not in ["UM070121"])  # patients without "ORIG"
+    ) or (
+        dcmdata.get("DeviceSerialNumber") == "000000312996MR3T"
+        and (
+            dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"]
+            or dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
+            or dcmdata.SeriesInstanceUID
+            == "1.2.840.113619.2.514.5035799.8439083.17544.1758633299.429"  # QC_UI092625QA func partial acquisition
+        )
+    ) or dcmdata.get("DeviceSerialNumber") == "000000000UM750MR" and (
+        (
             dcmdata.SeriesInstanceUID
-            == "1.3.46.670589.11.71399.5.0.5396.2022071415564142844"
+            == "1.2.840.113619.2.495.11554579.1334848.32096.1676398992.675"
         )
-        or (
-            dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX"
-            and (
-                dcmdata.SeriesDescription == "DTI"
-                or dcmdata.SeriesDescription == "DWI"
-                or dcmdata.SeriesDescription == "T1_MPRAGE"
-            )
-            and (
-                dcmdata.get("PatientName") not in ["UM070121"]
-            )  # patients without "ORIG"
-        )
-        or (
-            dcmdata.get("DeviceSerialNumber") == "000000312996MR3T"
-            and (
-                dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"]
-                or dcmdata.SeriesDescription == "anat-T1w_acq-GRE"
-                or dcmdata.SeriesInstanceUID
-                == "1.2.840.113619.2.514.5035799.8439083.17544.1758633299.429"  # QC_UI092625QA func partial acquisition
-            )
-        )
-        or dcmdata.get("DeviceSerialNumber") == "000000000UM750MR"
-        and (
-            (
-                dcmdata.SeriesInstanceUID
-                == "1.2.840.113619.2.495.11554579.1334848.32096.1676398992.675"
-            )
-            and (dcmdata.SeriesDescription == "DTI")
-        )
+        and (dcmdata.SeriesDescription == "DTI")
     ):
         exclude = True
     elif "QA_4.1.21" in dcmdata.ProtocolName and (
@@ -148,55 +140,44 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     #
     # at least some UC files that are carried along with the zip do not have the ImageType field,
     # so we have to check for it's existence
-    elif (
-        dcmdata.__contains__("ImageType")
-        and "MPR" in dcmdata.ImageType
-        or any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"])
-        or (
-            dcmdata.get("DeviceSerialNumber") == "66022"
-            and dcmdata.SoftwareVersions in ["syngo MR XA30", "syngo MR XA60"]
-            and (dcmdata.SeriesDescription == "T1_MPRAGE")
-            # During or around collection of SH20149V3, the SH scanner crashed, causing most
-            # files in this session to be deleted. There is a T1w, but it is not the raw
-            # image that we typically want. This keeps that derived image, since it is the
-            # only one available (1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028)
-            # https://a2cps-pain.slack.com/archives/C02JP3G763X/p1689344497466429
-            # For 1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0 (SH25468V1),
-            # the ND scan was not exported, so we only have the corrected one available
-            # same for 1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0 (SH25466V3)
-            # https://a2cps-pain.slack.com/archives/C0286MKRR4Z/p1776968241940429
-            and dcmdata.SeriesInstanceUID
-            not in [
-                "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028",
-                "1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0",
-                "1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0",
-            ]
-        )
-        or (
-            (dcmdata.get("DeviceSerialNumber") == "166295")
-            and (dcmdata.get("SeriesDescription") == "T1_MPRAGE")
-            and (
-                dcmdata.get("SeriesInstanceUID")
-                not in ["1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"]
-            )
-        )
-        or (dcmdata.get("DeviceSerialNumber") == "66022")
-        and (dcmdata.get("SeriesDescription") == "fMRI_B0_PA_80")
-        or (
-            (dcmdata.get("DeviceSerialNumber") == "213020")
-            and (dcmdata.get("SoftwareVersions") in ["syngo MR XA61"])
-            and (dcmdata.get("SeriesDescription") in ["T1_MPRAGE", "DWI"])
-        )
-        or dcmdata.get("SeriesInstanceUID")
-        in [
-            "1.2.840.113619.2.475.11565861.620651.23559.1692723865.930",
-            "1.2.840.113619.2.156.8323329.54158.1697548545.889646",
+    elif dcmdata.__contains__("ImageType") and "MPR" in dcmdata.ImageType or any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]) or (
+        dcmdata.get("DeviceSerialNumber") == "66022"
+        and dcmdata.SoftwareVersions in ["syngo MR XA30", "syngo MR XA60"]
+        and (dcmdata.SeriesDescription == "T1_MPRAGE")
+        # During or around collection of SH20149V3, the SH scanner crashed, causing most
+        # files in this session to be deleted. There is a T1w, but it is not the raw
+        # image that we typically want. This keeps that derived image, since it is the
+        # only one available (1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028)
+        # https://a2cps-pain.slack.com/archives/C02JP3G763X/p1689344497466429
+        # For 1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0 (SH25468V1),
+        # the ND scan was not exported, so we only have the corrected one available
+        # same for 1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0 (SH25466V3)
+        # https://a2cps-pain.slack.com/archives/C0286MKRR4Z/p1776968241940429
+        and dcmdata.SeriesInstanceUID
+        not in [
+            "1.3.12.2.1107.5.2.43.66022.30000023071315285849200000028",
+            "1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0",
+            "1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0",
         ]
-        or (dcmdata.get("PatientName") == "A2CPS_QA_NS08012022")
+    ) or (
+        (dcmdata.get("DeviceSerialNumber") == "166295")
+        and (dcmdata.get("SeriesDescription") == "T1_MPRAGE")
         and (
-            dcmdata.get("SeriesDescription")
-            in ["func-bold_acq-QA COR", "func-bold_acq-QA SAG", "func-bold_acq-QA TRA"]
+            dcmdata.get("SeriesInstanceUID")
+            not in ["1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"]
         )
+    ) or (dcmdata.get("DeviceSerialNumber") == "66022") and (
+        dcmdata.get("SeriesDescription") == "fMRI_B0_PA_80"
+    ) or (
+        (dcmdata.get("DeviceSerialNumber") == "213020")
+        and (dcmdata.get("SoftwareVersions") in ["syngo MR XA61"])
+        and (dcmdata.get("SeriesDescription") in ["T1_MPRAGE", "DWI"])
+    ) or dcmdata.get("SeriesInstanceUID") in [
+        "1.2.840.113619.2.475.11565861.620651.23559.1692723865.930",
+        "1.2.840.113619.2.156.8323329.54158.1697548545.889646",
+    ] or (dcmdata.get("PatientName") == "A2CPS_QA_NS08012022") and (
+        dcmdata.get("SeriesDescription")
+        in ["func-bold_acq-QA COR", "func-bold_acq-QA SAG", "func-bold_acq-QA TRA"]
     ):
         exclude = True
 
