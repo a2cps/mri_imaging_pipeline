@@ -74,6 +74,7 @@ protocols2fix.update(
             ("func[-_]bold[-_]acq[-_]QA", "func_task-rest"),
             # WS/UI had some atypical names early on
             ("REST1_17DSV", "func_task-rest"),
+            ("REST1_FBIRN", "func_task-rest"),
             ("^Ax.*GRE.*", "anat-T1w"),
             ("^fMRI QA$", "func_task-rest"),
             ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1"),
@@ -100,26 +101,10 @@ protocols2fix.update(
 def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     """Return True if a DICOM dataset should be filtered out, else False"""
     exclude = False
-    if dcmdata.SeriesDescription == "<MPR Collection>":
-        exclude = True
-
-    # fMRI for UC071422QA failed export
-    elif (dcmdata.get("DeviceSerialNumber") == "71399") and (
+    if dcmdata.SeriesDescription == "<MPR Collection>" or (dcmdata.get("DeviceSerialNumber") == "71399") and (
         dcmdata.SeriesInstanceUID
         == "1.3.46.670589.11.71399.5.0.5396.2022071415564142844"
-    ):
-        exclude = True
-    # participants from second scanner at UM
-    # "The way the extra volume is collected, distortion correction has to be
-    # turned on.  This means that the series 3 DTI has GE's distortion
-    # correction applied already, while series 310 is the original DTI data.
-    # To match what is acquired on other scanners, you probably want the B0
-    # volume (series 311) and the original DTI data (series 312 [sic: 310]).
-    # Unfortunately, that means you also get series 3, which you probably don't
-    # want."
-    # For T1w, we get both a modified "T1_MPRAGE" and "ORIG T1_MPRAGE". This
-    # prevents the modifed one from going through conversion
-    elif (
+    ) or (
         dcmdata.get("DeviceSerialNumber") == "0007347633TMRFIX"
         and (
             dcmdata.SeriesDescription == "DTI"
@@ -127,10 +112,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
             or dcmdata.SeriesDescription == "T1_MPRAGE"
         )
         and (dcmdata.get("PatientName") not in ["UM070121"])  # patients without "ORIG"
-    ):
-        exclude = True
-    # similar issue for UI phantom scans
-    elif (
+    ) or (
         dcmdata.get("DeviceSerialNumber") == "000000312996MR3T"
         and (
             dcmdata.SeriesDescription in ["dwi-dwi_acq-b1000", "dwi-dwi_acq-b2000"]
@@ -138,11 +120,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
             or dcmdata.SeriesInstanceUID
             == "1.2.840.113619.2.514.5035799.8439083.17544.1758633299.429"  # QC_UI092625QA func partial acquisition
         )
-    ):
-        exclude = True
-    # Also need to exclude a particular case for UM1, since it is not appropriately
-    # truncated (UM20191V3, DTI -- non ORIG)
-    elif dcmdata.get("DeviceSerialNumber") == "000000000UM750MR" and (
+    ) or dcmdata.get("DeviceSerialNumber") == "000000000UM750MR" and (
         (
             dcmdata.SeriesInstanceUID
             == "1.2.840.113619.2.495.11554579.1334848.32096.1676398992.675"
@@ -162,15 +140,7 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     #
     # at least some UC files that are carried along with the zip do not have the ImageType field,
     # so we have to check for it's existence
-    elif dcmdata.__contains__("ImageType") and "MPR" in dcmdata.ImageType:
-        exclude = True
-    # SH sends derived dwi phantom scans. the following excludes those
-    elif any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]):
-        exclude = True
-
-    # after the SH upgrade, (i.e., software "syngo MR XA30"), SH sends the raw anatomical as
-    # T1_MPRAGE_ND ("No Distortion Correction"), but also always a derived scan called T1_MPRAGE
-    elif (
+    elif dcmdata.__contains__("ImageType") and "MPR" in dcmdata.ImageType or any(suffix in dcmdata.SeriesDescription for suffix in ["ADC", "TRACE"]) or (
         dcmdata.get("DeviceSerialNumber") == "66022"
         and dcmdata.SoftwareVersions in ["syngo MR XA30", "syngo MR XA60"]
         and (dcmdata.SeriesDescription == "T1_MPRAGE")
@@ -189,48 +159,23 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
             "1.3.12.2.1107.5.2.43.66022.2025070314312560679396202.0.0.0",
             "1.3.12.2.1107.5.2.43.66022.2025102413293475526668421.0.0.0",
         ]
-    ):
-        exclude = True
-    # RU sends both T1_MPRAGE (with NonlinearGradientCorrection: true) and T1_MPRAGE_ND
-    # (with NonlinearGradientCorrection: false). Both are sent to anat (as duplicates),
-    # but we only want to store T1_MPRAGE_ND (same as with SH after conversion to XA30)
-    # except, there is at least one case where the T1_MPRAGE is the only scan that was sent,
-    # and so we make an exception in order to have at least 1 anatomical image
-    elif (
+    ) or (
         (dcmdata.get("DeviceSerialNumber") == "166295")
         and (dcmdata.get("SeriesDescription") == "T1_MPRAGE")
         and (
             dcmdata.get("SeriesInstanceUID")
             not in ["1.3.12.2.1107.5.2.43.166295.2023111311150187440940754.0.0.0"]
         )
-    ):
-        exclude = True
-
-    # test scan from SH (TE of 80 vs 70), late May 2024
-    elif (dcmdata.get("DeviceSerialNumber") == "66022") and (
+    ) or (dcmdata.get("DeviceSerialNumber") == "66022") and (
         dcmdata.get("SeriesDescription") == "fMRI_B0_PA_80"
-    ):
-        exclude = True
-
-    # new WS scanner is like the other Siemens scanners -- it produces T1_MPRAGE[_ND]
-    # and DWI and DWI_ORIG
-    elif (
+    ) or (
         (dcmdata.get("DeviceSerialNumber") == "213020")
         and (dcmdata.get("SoftwareVersions") in ["syngo MR XA61"])
         and (dcmdata.get("SeriesDescription") in ["T1_MPRAGE", "DWI"])
-    ):
-        exclude = True
-
-    # https://a2cps.atlassian.net/wiki/spaces/DOC/pages/517439490/GE+UM25132V3+Missing+Slice+on+DWI_B0
-    # this nifti was created manually
-    elif dcmdata.get("SeriesInstanceUID") in [
+    ) or dcmdata.get("SeriesInstanceUID") in [
         "1.2.840.113619.2.475.11565861.620651.23559.1692723865.930",
         "1.2.840.113619.2.156.8323329.54158.1697548545.889646",
-    ]:
-        exclude = True
-
-    # odd extra scans included for this phantom
-    elif (dcmdata.get("PatientName") == "A2CPS_QA_NS08012022") and (
+    ] or (dcmdata.get("PatientName") == "A2CPS_QA_NS08012022") and (
         dcmdata.get("SeriesDescription")
         in ["func-bold_acq-QA COR", "func-bold_acq-QA SAG", "func-bold_acq-QA TRA"]
     ):
