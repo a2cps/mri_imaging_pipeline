@@ -68,6 +68,11 @@
           "arg": null,
           "inputMode": "INCLUDE_ON_DEMAND",
           "name": "DERIVATIVES"
+        },
+        {
+          "arg": null,
+          "inputMode": "INCLUDE_ON_DEMAND",
+          "name": "IGNORE"
         }
       ],
       "archiveFilter": {

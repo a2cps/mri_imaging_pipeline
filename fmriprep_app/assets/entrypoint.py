@@ -27,6 +27,7 @@ async def main(
     ),
     anat_only: typing.MutableSequence[bool] | None = None,
     derivatives: typing.Sequence[Path] | None = None,
+    ignore: typing.Sequence[fmriprep_models.IGNORABLE] | None = None,
 ) -> None:
     await fmriprep.FMRIPRepEntrypoint(
         outs=outdirs,
@@ -48,6 +49,7 @@ async def main(
         ),
         anat_only=anat_only,
         derivatives=derivatives,
+        ignore=ignore,
     ).run()
 
 
@@ -79,6 +81,12 @@ if __name__ == "__main__":
         "--anat-only", nargs="+", default=None, choices=["True", "False"]
     )
     parser.add_argument("--derivatives", nargs="+", default=None, type=Path)
+    parser.add_argument(
+        "--ignore",
+        nargs="+",
+        choices=typing.get_args(fmriprep_models.IGNORABLE),
+        default=["fmap-jacobian"],
+    )
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -139,5 +147,6 @@ if __name__ == "__main__":
             output_spaces=args.output_spaces,
             anat_only=anat_only,
             derivatives=args.derivatives,
+            ignore=args.ignore,
         )
     )
