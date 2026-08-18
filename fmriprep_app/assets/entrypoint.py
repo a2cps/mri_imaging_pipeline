@@ -27,6 +27,7 @@ async def main(
     ),
     anat_only: typing.MutableSequence[bool] | None = None,
     derivatives: typing.Sequence[Path] | None = None,
+    ignore: typing.Sequence[fmriprep_models.IGNORABLE] | None = None,
 ) -> None:
     await fmriprep.FMRIPRepEntrypoint(
         outs=outdirs,
@@ -48,6 +49,7 @@ async def main(
         ),
         anat_only=anat_only,
         derivatives=derivatives,
+        ignore=ignore,
     ).run()
 
 
@@ -79,6 +81,12 @@ if __name__ == "__main__":
         "--anat-only", nargs="+", default=None, choices=["True", "False"]
     )
     parser.add_argument("--derivatives", nargs="+", default=None, type=Path)
+    parser.add_argument(
+        "--ignore",
+        nargs="+",
+        choices=typing.get_args(fmriprep_models.IGNORABLE),
+        default=None,
+    )
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
@@ -98,20 +106,20 @@ if __name__ == "__main__":
     else:
         output_dirs = args.output_dirs
 
-    if not (n_input := len(args.input_dirs)) == usize:
+    if (n_input := len(args.input_dirs)) != usize:
         msg = f"Length of input_dirs must equal usize but found {n_input=}, {usize=}"
         raise AssertionError(msg)
 
-    if not (n_output := len(output_dirs)) == usize:
+    if (n_output := len(output_dirs)) != usize:
         msg = f"Length of output_dirs must equal usize but found {n_output=}, {usize=}"
         raise AssertionError(msg)
 
-    if not len(output_dirs) == len(set(output_dirs)):
+    if len(output_dirs) != len(set(output_dirs)):
         msg = "Output directories must be unique"
         raise AssertionError(msg)
 
     if args.anat_only:
-        if not len(args.anat_only) == len(args.input_dirs):
+        if len(args.anat_only) != len(args.input_dirs):
             msg = (
                 "If --anat-only is specified, it must have length equal to --input-dirs"
             )
@@ -121,11 +129,10 @@ if __name__ == "__main__":
     else:
         anat_only = None
 
-    if args.derivatives:
-        if not len(args.derivatives) == len(args.input_dirs):
-            raise AssertionError(
-                "If --derivatives is specified, it must have length equal to --input-dirs"
-            )
+    if args.derivatives and len(args.derivatives) != len(args.input_dirs):
+        raise AssertionError(
+            "If --derivatives is specified, it must have length equal to --input-dirs"
+        )
 
     asyncio.run(
         main(
@@ -139,5 +146,6 @@ if __name__ == "__main__":
             output_spaces=args.output_spaces,
             anat_only=anat_only,
             derivatives=args.derivatives,
+            ignore=args.ignore,
         )
     )
