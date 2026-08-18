@@ -85,7 +85,7 @@ if __name__ == "__main__":
         "--ignore",
         nargs="+",
         choices=typing.get_args(fmriprep_models.IGNORABLE),
-        default=["fmap-jacobian"],
+        default=None,
     )
 
     args = parser.parse_args()
@@ -106,20 +106,20 @@ if __name__ == "__main__":
     else:
         output_dirs = args.output_dirs
 
-    if not (n_input := len(args.input_dirs)) == usize:
+    if (n_input := len(args.input_dirs)) != usize:
         msg = f"Length of input_dirs must equal usize but found {n_input=}, {usize=}"
         raise AssertionError(msg)
 
-    if not (n_output := len(output_dirs)) == usize:
+    if (n_output := len(output_dirs)) != usize:
         msg = f"Length of output_dirs must equal usize but found {n_output=}, {usize=}"
         raise AssertionError(msg)
 
-    if not len(output_dirs) == len(set(output_dirs)):
+    if len(output_dirs) != len(set(output_dirs)):
         msg = "Output directories must be unique"
         raise AssertionError(msg)
 
     if args.anat_only:
-        if not len(args.anat_only) == len(args.input_dirs):
+        if len(args.anat_only) != len(args.input_dirs):
             msg = (
                 "If --anat-only is specified, it must have length equal to --input-dirs"
             )
@@ -129,11 +129,10 @@ if __name__ == "__main__":
     else:
         anat_only = None
 
-    if args.derivatives:
-        if not len(args.derivatives) == len(args.input_dirs):
-            raise AssertionError(
-                "If --derivatives is specified, it must have length equal to --input-dirs"
-            )
+    if args.derivatives and len(args.derivatives) != len(args.input_dirs):
+        raise AssertionError(
+            "If --derivatives is specified, it must have length equal to --input-dirs"
+        )
 
     asyncio.run(
         main(

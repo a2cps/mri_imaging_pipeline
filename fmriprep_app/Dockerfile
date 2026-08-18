@@ -1,4 +1,4 @@
-FROM ghcr.io/prefix-dev/pixi:0.71.2 AS build
+FROM ghcr.io/prefix-dev/pixi:0.76.2 AS build
 
 RUN apt update && apt install -y git
 
@@ -31,4 +31,3 @@ ENV TZ=US/Central
 
 ENTRYPOINT ["/bin/bash", "/shell-hook-main.sh", "python", "/opt/fmriprep_app/entrypoint.py"]
 CMD [ "--help" ]
-
