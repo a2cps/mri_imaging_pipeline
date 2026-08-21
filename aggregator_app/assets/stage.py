@@ -346,6 +346,16 @@ def is_dwi_biomarker1_aggregated(path: Path, row) -> bool:
     return all([d.exists() for d in all_dirs])
 
 
+def is_synthstripv4_aggregated(path: Path, row) -> bool:
+    return (
+        path
+        / f"sub-{row['subject_id']}"
+        / f"ses-{row['visit']}"
+        / "anat"
+        / f"sub-sub-{row['subject_id']}_ses-{row['visit']}_desc-brain_mask.nii.gz"
+    ).exists()
+
+
 def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
     ready = pl.read_csv(ILOG, null_values=["", "na", "n/a"]).filter(
         pl.col("site") == site_code
@@ -353,6 +363,8 @@ def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
 
     job_aggregators = {
         "fmriprep": is_fmriprep_aggregated,
+        "fmriprep-v4": is_fmriprep_aggregated,
+        "synthstrip-v4": is_synthstripv4_aggregated,
         "qsiprep": is_qsiprep_aggregated,
         "qsiprep_nodenoise": is_qsiprep_aggregated,
         "brainager": is_brainager_aggregated,
@@ -380,9 +392,9 @@ def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
                 jobs.add(name)
 
         if len(to_agg := list(jobs)) >= 0:
-            derivatives.update(
-                {_make_sublong(row["site"], row["subject_id"], row["visit"]): to_agg}
-            )
+            derivatives.update({
+                _make_sublong(row["site"], row["subject_id"], row["visit"]): to_agg
+            })
 
     return derivatives
 
@@ -407,7 +419,8 @@ def prep_staged_dir(outroot: Path) -> None:
 
 def get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
     bids_avail = (
-        pl.read_csv(ILOG, null_values=["", "na", "n/a"])
+        pl
+        .read_csv(ILOG, null_values=["", "na", "n/a"])
         .filter(pl.col("bids") == 1, pl.col("site") == site_code)
         .select("site", "subject_id", "visit")
     )
@@ -424,7 +437,7 @@ def get_bids_tocopy(inroot: Path, outroot: Path, site_code: str) -> set[str]:
 
 
 def main(
-    inroot: Path, outroot: Path, max_subs: float | int = float("inf"), tidy: bool = True
+    inroot: Path, outroot: Path, max_subs: float = float("inf"), tidy: bool = True
 ) -> None:
     if tidy:
         logging.info("tidying output directory")
@@ -488,12 +501,15 @@ def main(
                 brainager_wf.copy(inroot=tmp_site, outdir=outroot / "brainager")
                 mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
                 fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep")
+                fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep-v4")
                 synthstrip_wf.copy(
                     inroot=tmp_site,
                     outdir=outroot / "synthstrip",
                     bidsdir=outroot / "bids",
                 )
+                synthstrip_wf.copyv4(inroot=tmp_site, outdir=outroot / "synthstrip-v4")
                 freesurfer_wf.copy(inroot=tmp_site, outdir=outroot / "freesurfer")
+                freesurfer_wf.copy(inroot=tmp_site, outdir=outroot / "freesurfer-v4")
                 fslanat_wf.copy(inroot=tmp_site, outdir=outroot / "fslanat")
                 fcn_wf.copy(inroot=tmp_site, outdir=outroot / "fcn")
                 signatures_wf.copy(inroot=tmp_site, outdir=outroot / "signatures")
@@ -525,8 +541,11 @@ def main(
         fcn_wf.make_toplevel(outdir=outroot / "fcn")
         logging.info("fmriprep")
         fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep")
+        fmriprep_wf.make_toplevel(outdir=outroot / "fmriprep-v4")
+        synthstrip_wf.make_toplevel(outdir=outroot / "synthstrip-v4", inroot=inroot)
         logging.info("freesurfer")
         freesurfer_wf.make_toplevel(outdir=outroot / "freesurfer")
+        freesurfer_wf.make_toplevel(outdir=outroot / "freesurfer-v4")
         logging.info("fslanat")
         fslanat_wf.make_toplevel(outdir=outroot / "fslanat")
         logging.info("qsirecon_fsl_dtifit")
