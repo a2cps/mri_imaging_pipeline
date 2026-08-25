@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 
 import yaml
-from tapipy import actors
-from tapipy.tapis import TapisResult
+from tapipy import actors, errors
+from tapipy.tapis import TapisResult, Tapis
 
 
 def get_failurebot_url(client) -> str:
@@ -35,6 +35,28 @@ def _make_callback(server: str, alias: str, nonce: str) -> str:
     return f"{server}/actors/v2/{alias}/messages?x-nonce={os.getenv(nonce)}"
 
 
+def get_client():
+    """
+    Returns a pre-authenticated Tapis client using the abaco environment variables.
+    """
+    # if we have an access token, use that:
+    if token := os.environ.get("_abaco_access_token"):
+        tp = Tapis(
+            base_url=os.environ.get("_abaco_api_server", default="").strip(
+                "/"
+            ),
+            access_token=token,
+        )  # type: ignore
+    elif server := os.environ.get("_abaco_api_server"):
+        # otherwise, create a client with a fake JWT. this will only work if the actor
+        # supplies its own token to itself via a config object or the message, etc.
+        tp = Tapis(base_url=server.strip("/"), jwt="123")  # type: ignore
+    else:
+        raise errors.BaseTapyException(
+            "Unable to instantiate a Tapis client: no token found."
+        )
+    return tp
+
 def submit_heudiconv(
     config,
     device_serial_number: str,
@@ -44,7 +66,8 @@ def submit_heudiconv(
     outdir: Path,
 ) -> None:
     # Create agave client from reactor object
-    client = actors.get_client()
+    #client = actors.get_client()
+    client = get_client()
     # copy our job.json from config.yml
     job_def = config["heudiconv"]
     envVariables = job_def["parameterSet"]["envVariables"]
@@ -92,6 +115,7 @@ def submit_heudiconv(
 def main() -> None:
     """Main function"""
     context = actors.get_context()  # type: ignore
+    print("Context: ", context)
     message = context.message_dict
     print("Message: ", message)
     with open("/opt/config.yml", "r") as f:
