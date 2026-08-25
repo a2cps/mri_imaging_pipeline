@@ -68,6 +68,6 @@ def copyv4(outdir: Path, inroot: Path) -> None:
 def make_toplevel(outdir: Path, inroot: Path) -> None:
 
     pl.scan_csv(f"{inroot}/*/synthstrip/*/volumes.tsv", separator="\t").sink_csv(
-        outdir / "volumes.tsv", separator="\t"
+        outdir / "volumes.tsv", separator="\t", mkdir=True
     )
     (outdir / "volumes.json").write_text(json.dumps(VOLUMES, indent=2, sort_keys=True))
