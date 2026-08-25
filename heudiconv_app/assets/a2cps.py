@@ -178,6 +178,10 @@ def filter_dicom(dcmdata: pydicom.Dataset) -> bool:
     ] or (dcmdata.get("PatientName") == "A2CPS_QA_NS08012022") and (
         dcmdata.get("SeriesDescription")
         in ["func-bold_acq-QA COR", "func-bold_acq-QA SAG", "func-bold_acq-QA TRA"]
+    ) or ( # some testing at SH on 6/23/2022 gave us scans with 4 and 6 active elements. this selects the most common
+        dcmdata.get("DeviceSerialNumber") == "66022"
+        and (dcmdata.get("PatientName") == "A2CPS^SH20220623QC")
+        and any(s in dcmdata.get("ProtocolName") for s in ["4E", "6E"])
     ):
         exclude = True
 
