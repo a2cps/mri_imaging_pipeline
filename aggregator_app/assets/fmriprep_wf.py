@@ -20,13 +20,13 @@ figures/
 
 DESCRIPTION = {
     "Name": "fMRIPrep - fMRI PREProcessing workflow",
-    "BIDSVersion": "1.8.0",
+    "BIDSVersion": "1.11.0",
     "DatasetType": "derivative",
     "GeneratedBy": [
         {
             "Name": "fMRIPrep",
-            "Version": "20.2.3",
-            "CodeURL": "https://github.com/nipreps/fmriprep/archive/20.2.3.tar.gz",
+            "Version": "25.2.5",
+            "CodeURL": "https://github.com/nipreps/fmriprep/archive/25.2.5.tar.gz",
         }
     ],
     "SourceDatasets": [
