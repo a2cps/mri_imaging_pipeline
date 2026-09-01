@@ -20,7 +20,7 @@ APP_STEPS = [
     "dicom",
     "bids",
     "fslanat",
-    "synthstrip",
+    "synthstrip-v4",
     "fmriprep",
     "fmriprep-v4",
     "mriqc",
@@ -323,10 +323,10 @@ def redcap_query():
             std_name = item["fmripatientname"]
             std_name = std_name.upper()
             # print(std_name)
-            patient_id = re.search("(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)", std_name)
+            patient_id = re.search(r"(NS|WS|UC|UM|UI|SH|RU)\d{5}[vV](1|3)", std_name)
             # print(patient_id)
             (site_id, subject_id, v, session_number, space) = re.split(
-                "(\d+)", patient_id.group(0)
+                r"(\d+)", patient_id.group(0)
             )
             session_id = v + session_number
             updated_item = item
@@ -414,12 +414,12 @@ def find_heudiconv_outputs(bids_dir):
     scans_df = pd.read_csv(scans_file, sep="\t")
     scan_list = scans_df["filename"].tolist()
     # Create a set of regexs to match filenames to scan names
-    anat = re.compile("anat/[\w\W]+_T1w.nii.gz")
-    dwi = re.compile("dwi/[\w\W]+_dwi.nii.gz")
-    cuff1 = re.compile("func/[\w\W]+cuff_run-01_bold.nii.gz")
-    cuff2 = re.compile("func/[\w\W]+cuff_run-02_bold.nii.gz")
-    rest1 = re.compile("func/[\w\W]+rest_run-01_bold.nii.gz")
-    rest2 = re.compile("func/[\w\W]+rest_run-02_bold.nii.gz")
+    anat = re.compile(r"anat/[\w\W]+_T1w.nii.gz")
+    dwi = re.compile(r"dwi/[\w\W]+_dwi.nii.gz")
+    cuff1 = re.compile(r"func/[\w\W]+cuff_run-01_bold.nii.gz")
+    cuff2 = re.compile(r"func/[\w\W]+cuff_run-02_bold.nii.gz")
+    rest1 = re.compile(r"func/[\w\W]+rest_run-01_bold.nii.gz")
+    rest2 = re.compile(r"func/[\w\W]+rest_run-02_bold.nii.gz")
     # Create a dictonary of scan names and regex lookups
 
     search_scans = {
@@ -445,8 +445,8 @@ def find_heudiconv_outputs(bids_dir):
 def compare_colums(workbook, worksheet, a, b):
     format1 = workbook.add_format({"bg_color": "#FFC7CE", "font_color": "#9C0006"})
     worksheet.conditional_format(
-        "${}$2:${}$175".format(a, b),
-        {"type": "formula", "criteria": "=${}2<>${}2".format(a, b), "format": format1},
+        f"${a}$2:${b}$175",
+        {"type": "formula", "criteria": f"=${a}2<>${b}2", "format": format1},
     )
     return worksheet
 
@@ -650,7 +650,7 @@ def main():
                 scan_report["qsiprep_nodenoise"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
-                scan_report["synthstrip"] = "na"
+                scan_report["synthstrip-v4"] = "na"
             if scan_report["fmriprep"] == "na":
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
@@ -741,7 +741,6 @@ def main():
     df.to_csv("report.csv", index=False)
     write_excel(df)
 
-    return
 
 
 if __name__ == "__main__":
