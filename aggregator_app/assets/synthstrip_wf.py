@@ -61,7 +61,7 @@ def copyv4(outdir: Path, inroot: Path) -> None:
 
     bu.mkdir_recursive(outdir)
 
-    for src in (inroot / "synthstrip-v4").glob("sub*"):
+    for src in inroot.glob("synthstrip-v4/*/synthstrip/sub*"):
         utils.mergetree_overwrite(src, outdir / src.name)
 
 
