@@ -61,13 +61,13 @@ def copyv4(outdir: Path, inroot: Path) -> None:
 
     bu.mkdir_recursive(outdir)
 
-    for src in (inroot / "synthstrip-v4").glob("sub*"):
+    for src in inroot.glob("synthstrip-v4/*/synthstrip/sub*"):
         utils.mergetree_overwrite(src, outdir / src.name)
 
 
 def make_toplevel(outdir: Path, inroot: Path) -> None:
 
-    pl.scan_csv(f"{inroot}/*/synthstrip/*/volumes.tsv", separator="\t").sink_csv(
+    pl.scan_csv(f"{inroot}/*/synthstrip-v4/*/synthstrip/volumes.tsv", separator="\t").sink_csv(
         outdir / "volumes.tsv", separator="\t", mkdir=True
     )
     (outdir / "volumes.json").write_text(json.dumps(VOLUMES, indent=2, sort_keys=True))
