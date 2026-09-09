@@ -40,7 +40,7 @@ class FMRIPrepReactor(models.Reactor):
                 "2nd Resting State Received": "REST2",
             })
             .filter(pl.col("T1 Received") == 1)
-            .filter(pl.col("synthstrip") == 1)
+            .filter(pl.col("synthstrip-v4") == 1)
             .filter(pl.col("fmriprep-v4") == 0)
             .with_columns(
                 sublong=pl.concat_str(
@@ -66,7 +66,7 @@ class FMRIPrepReactor(models.Reactor):
                 DERIVATIVES=pl.concat_str(
                     pl.lit("/corral-secure/projects/A2CPS/products/mris/"),
                     pl.col("sitelong"),
-                    pl.lit("/synthstrip/"),
+                    pl.lit("/synthstrip-v4/"),
                     pl.col("sublong"),
                 ),
             )
