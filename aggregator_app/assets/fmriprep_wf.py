@@ -58,10 +58,13 @@ def copy(outdir: Path, inroot: Path) -> None:
     bu.mkdir_recursive(outdir)
 
     # this grabs both sub-##### directories and sub*html files
-    for src in inroot.glob("fmriprep/*/fmriprep/sub*"):
+    for src in inroot.glob("*/fmriprep/sub*"):
         if src.is_file():
-            sub = bu.get_sub_from_sublong(src)
-            ses = bu.get_ses_from_sublong(src)
+            # sub/ses are regex-matched against the whole path string, so trim
+            # to the globbed root (a tempdir name can contain 5 digits)
+            rel = src.relative_to(inroot)
+            sub = bu.get_sub_from_sublong(rel)
+            ses = bu.get_ses_from_sublong(rel)
             utils._copy_overwrite(src, outdir / f"sub-{sub}_ses-{ses}.html")
         else:
             utils.mergetree_overwrite(src, outdir / src.name)

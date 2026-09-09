@@ -10,8 +10,11 @@ def copy(outdir: Path, inroot: Path) -> None:
     bu.mkdir_recursive(outdir)
 
     for src in inroot.rglob("brainager/*/*"):
-        sub = bu.get_sub_from_sublong(src)
-        ses = bu.get_ses_from_sublong(src)
+        # sub/ses are regex-matched against the whole path string, so trim
+        # to the globbed root (a tempdir name can contain 5 digits)
+        rel = src.relative_to(inroot)
+        sub = bu.get_sub_from_sublong(rel)
+        ses = bu.get_ses_from_sublong(rel)
 
         out_subses = outdir / f"sub-{sub}" / f"ses-{ses}"
         bu.mkdir_recursive(out_subses)
@@ -25,8 +28,9 @@ def copy(outdir: Path, inroot: Path) -> None:
                 null_value="n/a",
             )
     for src in inroot.rglob("brainager/*"):
-        sub = bu.get_sub_from_sublong(src)
-        ses = bu.get_ses_from_sublong(src)
+        rel = src.relative_to(inroot)
+        sub = bu.get_sub_from_sublong(rel)
+        ses = bu.get_ses_from_sublong(rel)
         utils.mergetree_overwrite(
             src,
             outdir / f"sub-{sub}" / f"ses-{ses}",

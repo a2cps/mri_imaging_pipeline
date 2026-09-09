@@ -17,8 +17,11 @@ def _get_fslanat_table(root: Path) -> pl.DataFrame:
 def _get_all_volumes(root: Path) -> pl.DataFrame:
     volumes = []
     for src in root.glob("sub*"):
-        sub = bu.get_sub_from_sublong(src)
-        ses = bu.get_ses_from_sublong(src)
+        # sub/ses are regex-matched against the whole path string, so trim
+        # to the globbed root (a tempdir name can contain 5 digits)
+        rel = src.relative_to(root)
+        sub = bu.get_sub_from_sublong(rel)
+        ses = bu.get_ses_from_sublong(rel)
         volumes.append(
             _get_fslanat_table(src).with_columns(sub=pl.lit(sub), ses=pl.lit(ses))
         )
@@ -30,8 +33,9 @@ def copy(outdir: Path, inroot: Path) -> None:
     bu.mkdir_recursive(outdir)
 
     for src in inroot.glob("fslanat/*"):
-        sub = bu.get_sub_from_sublong(src)
-        ses = bu.get_ses_from_sublong(src)
+        rel = src.relative_to(inroot)
+        sub = bu.get_sub_from_sublong(rel)
+        ses = bu.get_ses_from_sublong(rel)
         utils.mergetree_overwrite(
             src,
             outdir,
