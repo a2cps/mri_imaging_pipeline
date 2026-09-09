@@ -142,8 +142,9 @@ def parse_all_headers(root: Path) -> pl.DataFrame:
     _aparc: list[pl.DataFrame] = []
     _brainvol: list[pl.DataFrame] = []
     for subsesdir in root.glob("sub*"):
-        sub = int(bu.get_sub_from_sublong(subsesdir))
-        ses = bu.get_ses_from_sublong(subsesdir)
+        rel = subsesdir.relative_to(root)
+        sub = int(bu.get_sub_from_sublong(rel))
+        ses = bu.get_ses_from_sublong(rel)
         _aseg.append(
             _parse_aseg_header(subsesdir / "stats" / "aseg.stats").with_columns(
                 sub=sub, ses=pl.lit(ses)
@@ -188,8 +189,9 @@ def parse_aseg(f: Path) -> pl.DataFrame:
 def parse_all_aparc(root: Path) -> pl.DataFrame:
     aparc: list[pl.DataFrame] = []
     for subsesdir in root.glob("sub*"):
-        sub = int(bu.get_sub_from_sublong(subsesdir))
-        ses = bu.get_ses_from_sublong(subsesdir)
+        rel = subsesdir.relative_to(root)
+        sub = int(bu.get_sub_from_sublong(rel))
+        ses = bu.get_ses_from_sublong(rel)
         for hemi in ["lh", "rh"]:
             aparc.append(
                 parse_aparc(subsesdir / "stats" / f"{hemi}.aparc.stats").with_columns(
@@ -256,8 +258,9 @@ def parse_all_aparc(root: Path) -> pl.DataFrame:
 def parse_all_aseg(root: Path) -> pl.DataFrame:
     aseg: list[pl.DataFrame] = []
     for subsesdir in root.glob("sub*"):
-        sub = int(bu.get_sub_from_sublong(subsesdir))
-        ses = bu.get_ses_from_sublong(subsesdir)
+        rel = subsesdir.relative_to(root)
+        sub = int(bu.get_sub_from_sublong(rel))
+        ses = bu.get_ses_from_sublong(rel)
         aseg.append(
             parse_aseg(subsesdir / "stats" / "aseg.stats").with_columns(
                 sub=sub, ses=pl.lit(ses), seg=pl.lit("aseg")
@@ -285,12 +288,15 @@ def get_gm_morph(aparc: pl.DataFrame) -> pl.DataFrame:
 def copy(outdir: Path, inroot: Path) -> None:
     bu.mkdir_recursive(outdir)
 
-    for src in inroot.glob("fmriprep/*/fmriprep/sourcedata/freesurfer/sub*"):
+    for src in inroot.glob("*/fmriprep/sourcedata/freesurfer/sub*"):
+        # sub/ses are regex-matched against the whole path string, so trim
+        # to the globbed root (a tempdir name can contain 5 digits)
+        rel = src.relative_to(inroot)
         # folders renamed so that sessions do not collide
         utils.mergetree_overwrite(
             src,
             outdir
-            / f"sub-{bu.get_sub_from_sublong(src)}_ses-{bu.get_ses_from_sublong(src)}",
+            / f"sub-{bu.get_sub_from_sublong(rel)}_ses-{bu.get_ses_from_sublong(rel)}",
         )
 
 

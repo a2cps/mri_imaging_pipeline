@@ -87,9 +87,13 @@ def is_fmriprep_aggregated(path: Path, row) -> bool:
 def is_qsiprep_aggregated(path: Path, row) -> bool:
     sub = row["subject_id"]
     ses = row["visit"]
-    qsiprep_dir = Path(f"{path}-{ses}")
+    # path names a job (e.g. outroot/qsiprep) rather than a directory that
+    # exists: qsiprep_wf.copy writes sessions to outroot/{job}-{ses} and eddyqc
+    # to outroot/eddyqc[_nodenoise], both siblings of path
+    qsiprep_dir = path.with_name(f"{path.name}-{ses}")
     qsiprep_target = qsiprep_dir / f"sub-{sub}" / f"ses-{ses}"
-    eddy_target = path / "eddyqc" / f"sub-{sub}" / f"ses-{ses}"
+    eqc = "eddyqc_nodenoise" if "denoise" in path.name else "eddyqc"
+    eddy_target = path.parent / eqc / f"sub-{sub}" / f"ses-{ses}"
     all_ready = (
         qsiprep_target.exists()
         & (qsiprep_dir / f"sub-{sub}.html").exists()
@@ -97,6 +101,7 @@ def is_qsiprep_aggregated(path: Path, row) -> bool:
     )
 
     if not all_ready:
+        logging.error(f"{sub=}, {ses=} did not pass {path.name} validation")
         if eddy_target.exists():
             shutil.rmtree(eddy_target)
         if qsiprep_target.exists():
@@ -222,16 +227,15 @@ def is_signatures_aggregated(path: Path, row) -> bool:
     all_dirs = [
         (path / sig / f"sub={row['subject_id']}" / f"ses={row['visit']}")
         for sig in [
-            "signature-by-part",
-            "signature-by-run",
-            "signature-by-tr",
-            "signature-labels",
-            "signature-rawdata",
+            "signatures-by-part",
+            "signatures-by-run",
+            "signatures-by-tr",
+            "confounds",
         ]
     ]
     all_ready = False
     if all([d.exists() for d in all_dirs]):
-        all_ready = _cleaned_niis_avail(path / "signature-cleaned", row)
+        all_ready = _cleaned_niis_avail(path / "cleaned", row)
         if not all_ready:
             logging.error(
                 f"sub={row['subject_id']}, ses={row['visit']} did not pass signatures validation"
@@ -243,13 +247,13 @@ def is_signatures_aggregated(path: Path, row) -> bool:
 
 
 def is_fcn_aggregated(path: Path, row) -> bool:
-    all_dirs = (
+    all_dirs = [
         (path / fcn / f"sub={row['subject_id']}" / f"ses={row['visit']}")
-        for fcn in ["acompcor", "connectivity", "connectivity-confounds"]
-    )
+        for fcn in ["connectivity", "confounds", "timeseries"]
+    ]
     all_ready = False
     if all([d.exists() for d in all_dirs]):
-        all_ready = _cleaned_niis_avail(path / "connectivity-cleaned", row)
+        all_ready = _cleaned_niis_avail(path / "cleaned", row)
         if not all_ready:
             logging.error(
                 f"sub={row['subject_id']}, ses={row['visit']} did not pass fcn validation"
@@ -261,24 +265,22 @@ def is_fcn_aggregated(path: Path, row) -> bool:
 
 
 def is_brainager_aggregated(path: Path, row) -> bool:
-    target = (
-        path
-        / f"sub-{row['subject_id']}"
-        / f"ses-{row['visit']}"
-        / f"sub-{row['subject_id']}_ses-{row['visit']}_T1w.nii"
-    )
+    # the T1w.nii itself is deliberately not aggregated (see the ignore
+    # patterns in brainager_wf.copy), so it cannot be part of this check
+    subses = path / f"sub-{row['subject_id']}" / f"ses-{row['visit']}"
+    stem = f"sub-{row['subject_id']}_ses-{row['visit']}_T1w"
     all_ready = False
-    if target.exists():
+    if subses.exists():
         all_ready = (
-            target.with_name(f"{target.stem}_tissue_volumes.tsv").exists()
-            and target.with_suffix(".tsv").exists()
-            and target.with_name(f"slicesdir_{target.name}").exists()
+            (subses / f"{stem}_tissue_volumes.tsv").exists()
+            and (subses / f"{stem}.tsv").exists()
+            and (subses / f"slicesdir_{stem}.nii").exists()
         )
         if not all_ready:
             logging.error(
                 f"sub={row['subject_id']}, ses={row['visit']} did not pass brainager validation"
             )
-            shutil.rmtree(target.parent)
+            shutil.rmtree(subses)
 
     return all_ready
 
@@ -300,6 +302,8 @@ def is_fslanat_aggregated(path: Path, row) -> bool:
 def is_cat12_aggregated(path: Path, row) -> bool:
     return (
         path
+        / f"sub-{row['subject_id']}"
+        / f"ses-{row['visit']}"
         / "report"
         / f"catreport_sub-{row['subject_id']}_ses-{row['visit']}_T1w.pdf"
     ).exists()
@@ -314,10 +318,10 @@ def is_bedpostx_aggregated(path: Path, row) -> bool:
 
 
 def is_postgift_aggregated(path: Path, row) -> bool:
-    all_dirs = (
+    all_dirs = [
         (path / subdir / f"sub={row['subject_id']}" / f"ses={row['visit']}")
         for subdir in ["amplitude", "biomarkers", "connectivity"]
-    )
+    ]
     return all([d.exists() for d in all_dirs])
 
 
@@ -333,16 +337,15 @@ def is_postdtifit_aggregated(path: Path, row) -> bool:
         path
         / "diffusion_regional_stats"
         / f"sub={row['subject_id']}"
-        / f"ses-{row['visit']}"
-        / "0.parquet"
+        / f"ses={row['visit']}"
     ).exists()
 
 
 def is_dwi_biomarker1_aggregated(path: Path, row) -> bool:
-    all_dirs = (
+    all_dirs = [
         (path / subdir / f"sub-{row['subject_id']}" / f"ses-{row['visit']}")
         for subdir in ["move_masks", "networks", "probtrackx"]
-    )
+    ]
     return all([d.exists() for d in all_dirs])
 
 
@@ -352,7 +355,7 @@ def is_synthstripv4_aggregated(path: Path, row) -> bool:
         / f"sub-{row['subject_id']}"
         / f"ses-{row['visit']}"
         / "anat"
-        / f"sub-sub-{row['subject_id']}_ses-{row['visit']}_desc-brain_mask.nii.gz"
+        / f"sub-{row['subject_id']}_ses-{row['visit']}_desc-brain_mask.nii.gz"
     ).exists()
 
 
@@ -368,7 +371,7 @@ def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
         "qsiprep": is_qsiprep_aggregated,
         "qsiprep_nodenoise": is_qsiprep_aggregated,
         "brainager": is_brainager_aggregated,
-        "cat12": is_cat12_aggregated,
+        "cat12-v4": is_cat12_aggregated,
         "mriqc": is_mriqc_aggregated,
         "fslanat": is_fslanat_aggregated,
         "fcn": is_fcn_aggregated,
@@ -490,7 +493,9 @@ def main(
             # were copied into the ouptut directory (e.g., during testing)
             if len(subses_tocopy):
                 logging.info("Storing derivatives in final location")
-                cat12_wf.copy(inroot=tmp_site, outdir=outroot / "cat12")
+                cat12_wf.copy(
+                    inroot=tmp_site / "cat12-v4", outdir=outroot / "cat12-v4"
+                )
                 qsiprep_wf.copy(inroot=tmp_site, outdir=outroot)
                 qsiprep_wf.copy(
                     inroot=tmp_site, outdir=outroot, job="qsiprep_nodenoise"
@@ -500,16 +505,16 @@ def main(
                 )
                 brainager_wf.copy(inroot=tmp_site, outdir=outroot / "brainager")
                 mriqc_wf.copy(inroot=tmp_site, outdir=outroot / "mriqc")
-                fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep")
-                fmriprep_wf.copy(inroot=tmp_site, outdir=outroot / "fmriprep-v4")
+                fmriprep_wf.copy(inroot=tmp_site / "fmriprep", outdir=outroot / "fmriprep")
+                fmriprep_wf.copy(inroot=tmp_site / "fmriprep-v4", outdir=outroot / "fmriprep-v4")
                 synthstrip_wf.copy(
                     inroot=tmp_site,
                     outdir=outroot / "synthstrip",
                     bidsdir=outroot / "bids",
                 )
                 synthstrip_wf.copyv4(inroot=tmp_site, outdir=outroot / "synthstrip-v4")
-                freesurfer_wf.copy(inroot=tmp_site, outdir=outroot / "freesurfer")
-                freesurfer_wf.copy(inroot=tmp_site, outdir=outroot / "freesurfer-v4")
+                freesurfer_wf.copy(inroot=tmp_site / "fmriprep", outdir=outroot / "freesurfer")
+                freesurfer_wf.copy(inroot=tmp_site / "fmriprep-v4", outdir=outroot / "freesurfer-v4")
                 fslanat_wf.copy(inroot=tmp_site, outdir=outroot / "fslanat")
                 fcn_wf.copy(inroot=tmp_site, outdir=outroot / "fcn")
                 signatures_wf.copy(inroot=tmp_site, outdir=outroot / "signatures")
@@ -534,7 +539,7 @@ def main(
         logging.info("Adding toplevel files")
         bids_wf.make_toplevel(outdir=outroot / "bids")
         logging.info("cat12")
-        cat12_wf.make_toplevel(outdir=outroot / "cat12")
+        cat12_wf.make_toplevel(outdir=outroot / "cat12-v4")
         logging.info("mriqc")
         mriqc_wf.make_toplevel(outdir=outroot / "mriqc")
         logging.info("fcn")

@@ -44,8 +44,11 @@ def copy(outdir: Path, inroot: Path, bidsdir: Path) -> None:
 
     for src in inroot.glob("fmriprep/*/synthstrip/sub*"):
         utils.mergetree_overwrite(src, outdir / src.name)
-        sub = bu.get_sub_from_sublong(src)
-        ses = bu.get_ses_from_sublong(src)
+        # sub/ses are regex-matched against the whole path string, so trim
+        # to the globbed root (a tempdir name can contain 5 digits)
+        rel = src.relative_to(inroot)
+        sub = bu.get_sub_from_sublong(rel)
+        ses = bu.get_ses_from_sublong(rel)
         anat_stem = (
             Path(f"sub-{sub}") / f"ses-{ses}" / "anat" / f"sub-{sub}_ses-{ses}_T1w"
         )

@@ -9,7 +9,9 @@ def copy(outdir: Path, inroot: Path, job: str = "qsiprep") -> None:
     bu.mkdir_recursive(outdir / f"{job}-V3")
 
     for src in inroot.glob(f"{job}/*/qsiprep/sub*"):
-        ses = bu.get_ses_from_sublong(src)
+        # sub/ses are regex-matched against the whole path string, so trim
+        # to the globbed root (a tempdir name can contain 5 digits)
+        ses = bu.get_ses_from_sublong(src.relative_to(inroot))
         if src.is_file():
             utils.symlink_if_needed(
                 src,
@@ -19,8 +21,9 @@ def copy(outdir: Path, inroot: Path, job: str = "qsiprep") -> None:
             utils.mergetree_overwrite(src, outdir / f"{job}-{ses}" / src.name)
 
     for src in inroot.glob(f"{job}/*/eddyqc"):
-        sub = bu.get_sub_from_sublong(src)
-        ses = bu.get_ses_from_sublong(src)
+        rel = src.relative_to(inroot)
+        sub = bu.get_sub_from_sublong(rel)
+        ses = bu.get_ses_from_sublong(rel)
 
         if "denoise" in job:
             eqc = "eddyqc_nodenoise"
