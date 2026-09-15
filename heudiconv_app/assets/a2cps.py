@@ -74,7 +74,7 @@ protocols2fix.update(
             ("func[-_]bold[-_]acq[-_]QA", "func_task-rest"),
             # WS/UI had some atypical names early on
             ("REST1_17DSV", "func_task-rest"),
-            ("REST1_FBIRN", "func_task-rest"),
+            ("[0-9]*-*REST1_FBIRN", "func_task-rest"),
             ("^Ax.*GRE.*", "anat-T1w"),
             ("^fMRI QA$", "func_task-rest"),
             ("^ORIG DWI ([12]000)$", r"dwi-dwi_acq-b\1"),
