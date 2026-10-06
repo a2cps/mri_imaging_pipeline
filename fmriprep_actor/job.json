@@ -34,7 +34,7 @@
         "envVariables": [
             {
                 "key": "FAILURE_LOG_DST",
-                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fmriprep/"
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/fmriprep-v4/"
             }
         ]
     },
