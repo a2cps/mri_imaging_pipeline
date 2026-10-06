@@ -32,13 +32,14 @@ N_SEC_TO_COPY_ONE_SUB = 180
 class FMRIPrepReactor(models.Reactor):
     def get_runlist(self) -> tuple[list[str], list[str], list[str]]:
         rundef = (
-            self.ilog
-            .rename({
-                "fMRI Individualized Pressure Received": "CUFF1",
-                "fMRI Standard Pressure Received": "CUFF2",
-                "1st Resting State Received": "REST1",
-                "2nd Resting State Received": "REST2",
-            })
+            self.ilog.rename(
+                {
+                    "fMRI Individualized Pressure Received": "CUFF1",
+                    "fMRI Standard Pressure Received": "CUFF2",
+                    "1st Resting State Received": "REST1",
+                    "2nd Resting State Received": "REST2",
+                }
+            )
             .filter(pl.col("T1 Received") == 1)
             .filter(pl.col("synthstrip-v4") == 1)
             .filter(pl.col("fmriprep-v4") == 0)
@@ -73,19 +74,18 @@ class FMRIPrepReactor(models.Reactor):
             .sort(
                 "visit", "Surgery Week", "subject_id"
             )  # ensure V1 run before V3, and do oldest scans
+            .filter(pl.col("visit") != "V3")
+            .reverse()
         )
 
         runlist = (
-            rundef
-            .select(pl.col("INPUT_DIRS"))
+            rundef.select(pl.col("INPUT_DIRS"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions],
-            rundef
-            .select(pl.col("ANAT_ONLY"))
+            rundef.select(pl.col("ANAT_ONLY"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions],
-            rundef
-            .select(pl.col("DERIVATIVES"))
+            rundef.select(pl.col("DERIVATIVES"))
             .to_series()
             .to_list()[: self.maxjobs * self.n_submissions],
         )

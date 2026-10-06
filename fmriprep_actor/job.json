@@ -5,7 +5,7 @@
     "archiveSystemId": "secure.frontera",
     "cmdPrefix": "ibrun -n 12",
     "coresPerNode": 6,
-    "maxMinutes": 2880,
+    "maxMinutes": 1500,
     "name": "fmriprep",
     "nodeCount": 2,
     "parameterSet": {
