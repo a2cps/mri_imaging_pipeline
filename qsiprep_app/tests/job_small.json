@@ -13,7 +13,7 @@
                 "name": "INPUT_DIRS"
             },
             {
-                "arg": "--output-dirs NS_northshore/bids/NStravel1 NS_northshore/bids/NStravel2 RU_rush/bids/RUtravel1 RU_rush/bids/RUtravel2 SH_spectrum_health/bids/SHtravel2 UC_uchicago/bids/UCtravel1",
+                "arg": "--output-dirs NS_northshore/qsiprep-v4/NStravel1 NS_northshore/qsiprep-v4/NStravel2 RU_rush/qsiprep-v4/RUtravel1 RU_rush/qsiprep-v4/RUtravel2 SH_spectrum_health/qsiprep-v4/SHtravel2 UC_uchicago/qsiprep-v4/UCtravel1",
                 "name": "OUTPUT_DIRS"
             },
             {

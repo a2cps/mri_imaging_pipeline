@@ -1,55 +1,53 @@
-# bring in the micromamba image so we can copy files from it
+FROM ghcr.io/prefix-dev/pixi:0.76.2 AS build
+
+RUN apt update && apt install -y git
+
+# copy source code, pixi.toml and pixi.lock to the container
+COPY . /app
+WORKDIR /app
+# run the `install` command (or any other). This will also install the dependencies into `/app/.pixi`
+RUN pixi install
+# Create the shell-hook bash script to activate the environment
+RUN pixi shell-hook > /shell-hook.sh
+
+# extend the shell-hook script to run the command passed to the container
+RUN echo 'exec "$@"' >> /shell-hook.sh
+
+# bring in micromamba so that packages can be added to qsiprep's environment
 FROM mambaorg/micromamba:1.5.8 AS micromamba
 
-FROM pennbbl/qsiprep:0.21.4
+FROM pennlinc/qsiprep:26.1.0rc1
 
-USER root
+COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
+COPY --from=build /shell-hook.sh /shell-hook-main.sh
+COPY --from=micromamba /bin/micromamba /bin/micromamba
 
-ARG MAMBA_USER=mambauser
-ARG MAMBA_USER_ID=57439
-ARG MAMBA_USER_GID=57439
-ENV MAMBA_USER=$MAMBA_USER
-ENV MAMBA_ROOT_PREFIX="/opt/conda"
-ENV MAMBA_EXE="/bin/micromamba"
+# pixi writes the PATH of the build stage into the shell-hook, which would hide the
+# tools that qsiprep finds on this image's PATH (eddy, ANTs, MRtrix3, niimath, ...).
+# keep this image's PATH first (e.g., MRtrix3's python scripts need qsiprep's python)
+# and call the python of our environment by its full path (see ENTRYPOINT)
+RUN sed -i "s|^export PATH=.*|export PATH=\"${PATH}:/app/.pixi/envs/default/bin\"|" /shell-hook-main.sh \
+    && test "$(grep -c '^export PATH=' /shell-hook-main.sh)" = 1
 
-COPY --link=true --from=micromamba "$MAMBA_EXE" "$MAMBA_EXE"
-COPY --link=true --from=micromamba /usr/local/bin/_activate_current_env.sh /usr/local/bin/_activate_current_env.sh
-COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_shell.sh /usr/local/bin/_dockerfile_shell.sh
-COPY --link=true --from=micromamba /usr/local/bin/_entrypoint.sh /usr/local/bin/_entrypoint.sh
-COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_initialize_user_accounts.sh /usr/local/bin/_dockerfile_initialize_user_accounts.sh
-COPY --link=true --from=micromamba /usr/local/bin/_dockerfile_setup_root_prefix.sh /usr/local/bin/_dockerfile_setup_root_prefix.sh
-
-RUN /usr/local/bin/_dockerfile_initialize_user_accounts.sh && \
-    /usr/local/bin/_dockerfile_setup_root_prefix.sh
-
-USER $MAMBA_USER
-
-SHELL ["/usr/local/bin/_dockerfile_shell.sh"]
-
-RUN micromamba install -q --name qsiprep --yes -c conda-forge --freeze-installed \
-    impi_rt=2021.12 \
-    ucx=1.17.0 \
-    rdma-core=52.0 \
-    mpi4py=3.1.6 \
-    polars \
-    pydantic=2.8.0 \
-    && micromamba install --name qsiprep -c conda-forge --no-deps --yes openssl=3.0.7 \
-    && micromamba install -n fslqsiprep \
+# eddy_quad calls $FSLDIR/bin/slicer, which is not part of qsiprep's environment
+RUN MAMBA_ROOT_PREFIX=/tmp/micromamba micromamba install -y -p /app/.pixi/envs/qsiprep \
     -c https://fsl.fmrib.ox.ac.uk/fsldownloads/fslconda/public/ \
     -c conda-forge \
+    --freeze-installed \
     fsl-miscvis \
-    && micromamba run -n qsiprep pip install \
-    --no-deps \
-    mriqc==24.0.0 \
-    git+https://github.com/a2cps/biomarker-extractor.git@42d6eb0b6d48778e382690d4de4bffcd7c14d5a0 \
-    && micromamba clean --all --yes
+    && rm -rf /tmp/micromamba
 
-# files searched for in entrypoint.py
-COPY --link=true assets/entrypoint.py assets/license.txt assets/eddy_params.json /opt/qsiprep_app/
+ENV TEMPLATEFLOW_HOME=/opt/templateflow
+RUN /app/.pixi/envs/qsiprep/bin/python -c "\
+    from templateflow import api; \
+    api.get('MNI152NLin2009cAsym', resolution=1, desc=None, suffix='T1w'); \
+    api.get('MNI152NLin2009cAsym', resolution=1, desc='brain', suffix='mask')" \
+    && chmod -R a+rX ${TEMPLATEFLOW_HOME}
+
+COPY assets/entrypoint.py assets/eddy_params.json assets/qsiprep.toml /opt/qsiprep_app/
 ENV TZ=US/Central
-ENV ENV_NAME=qsiprep
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "python", "/opt/qsiprep_app/entrypoint.py"]
+
+ENTRYPOINT ["/bin/bash", "/shell-hook-main.sh", "/app/.pixi/envs/default/bin/python", "/opt/qsiprep_app/entrypoint.py"]
 
 CMD [ "--help" ]
-
