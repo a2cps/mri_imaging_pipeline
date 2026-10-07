@@ -9,7 +9,7 @@ from mri_actor_utils import config, models
 # within docker container
 JOB = Path("/opt/job.json")
 
-N_SUBS_PER_NODE = 12
+N_SUBS_PER_NODE = 6
 
 # for ls
 MAX_NODES_PER_JOB = 16
@@ -26,8 +26,10 @@ class QSIPrepReactor(models.Reactor):
         rundef = (
             self.ilog
             # exclude rows that were already processed
-            .filter(pl.col("qsiprep_nodenoise") == 0)
+            .filter(pl.col("qsiprep_nodenoise-v4") == 0)
             .filter(pl.col("bids") == 1)
+            .filter(pl.col("T1 Received") == 1)
+            .filter(pl.col("DWI Received") == 1)
             .with_columns(
                 sublong=pl.concat_str(
                     pl.col("site"), pl.col("subject_id"), pl.col("visit")
@@ -69,7 +71,7 @@ class QSIPrepReactor(models.Reactor):
 
 def main() -> None:
     QSIPrepReactor(
-        job_name=f"qsiprep_nodenoise-{datetime.datetime.today().strftime('%Y-%m-%d')}",
+        job_name=f"qsiprep_nodenoise-v4-{datetime.datetime.today().strftime('%Y-%m-%d')}",
         N_SUBS_PER_NODE=N_SUBS_PER_NODE,
         N_SEC_TO_COPY_ONE_SUB=N_SEC_TO_COPY_ONE_SUB,
         JOB=JOB,

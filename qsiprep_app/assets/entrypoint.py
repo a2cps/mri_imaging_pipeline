@@ -11,7 +11,28 @@ tapismpi.configure_mpi_logger()
 
 # determined by Dockerfile
 EDDY_PARAMS = Path("/opt/qsiprep_app/eddy_params.json")
-FS_LICENSE = Path("/opt/qsiprep_app/license.txt")
+QSIPREP_CONFIG = Path("/opt/qsiprep_app/qsiprep.toml")
+
+PRODUCTS = Path("/corral-secure/projects/A2CPS/products/mris")
+
+
+class QSIPRepEntrypoint(qsiprep.QSIPRepEntrypoint):
+    # qsiprep >= 26.1 deletes node outputs that no downstream node consumes,
+    # including the eddy outputs that eddy_quad reads, so pass a config that
+    # keeps them
+    config_file: Path = QSIPREP_CONFIG
+
+    def get_args(self, bidsdir: Path, outdir: Path, work_dir: Path) -> list[str]:
+        args = super().get_args(bidsdir=bidsdir, outdir=outdir, work_dir=work_dir)
+        return [*args, "--config-file", str(self.config_file)]
+
+
+def get_output_dirs(input_dirs: typing.Sequence[Path], job: str) -> list[Path]:
+    # e.g., {PRODUCTS}/NS_northshore/bids/NS10001V1 -> NS_northshore/{job}/NS10001V1
+    return [
+        Path(str(Path(input_dir).relative_to(PRODUCTS)).replace("/bids/", f"/{job}/"))
+        for input_dir in input_dirs
+    ]
 
 
 async def main(
@@ -19,13 +40,12 @@ async def main(
     outdirs: typing.Sequence[Path],
     n_workers: int | None = None,
     mem_mb: int | None = None,
-    unringing_method: str = "patch2self",
-    denoise_method: str = "mrdegibbs",
+    unringing_method: str = "mrdegibbs",
+    denoise_method: str = "patch2self",
 ) -> None:
-    await qsiprep.QSIPRepEntrypoint(
+    await QSIPRepEntrypoint(
         outs=outdirs,
         ins=bids_directory,
-        fs_license_file=FS_LICENSE,
         eddy_params=EDDY_PARAMS,
         n_workers=n_workers,
         mem_mb=mem_mb,
@@ -45,35 +65,25 @@ if __name__ == "__main__":
     parser.add_argument("--mem-mb", type=int, default=None)
     parser.add_argument("--unringing-method", type=str, default="mrdegibbs")
     parser.add_argument("--denoise-method", type=str, default="patch2self")
-    parser.add_argument("--job", type=str, default="qsiprep")
+    parser.add_argument("--job", type=str, default="qsiprep-v4")
 
     args = parser.parse_args()
     usize = MPI.COMM_WORLD.Get_size()
 
     if args.output_dirs is None:
-        output_dirs = []
-        for input_dir in args.input_dirs:
-            output_dirs.append(
-                Path(
-                    str(
-                        Path(input_dir).relative_to(
-                            "/corral-secure/projects/A2CPS/products/mris"
-                        )
-                    ).replace("/bids/", f"/{args.job}/")
-                )
-            )
+        output_dirs = get_output_dirs(args.input_dirs, args.job)
     else:
         output_dirs = args.output_dirs
 
-    if not (n_input := len(args.input_dirs)) == usize:
+    if (n_input := len(args.input_dirs)) != usize:
         msg = f"Length of input_dirs must equal usize but found {n_input=}, {usize=}"
         raise AssertionError(msg)
 
-    if not (n_output := len(output_dirs)) == usize:
+    if (n_output := len(output_dirs)) != usize:
         msg = f"Length of output_dirs must equal usize but found {n_output=}, {usize=}"
         raise AssertionError(msg)
 
-    if not len(output_dirs) == len(set(output_dirs)):
+    if len(output_dirs) != len(set(output_dirs)):
         msg = "Output directories must be unique"
         raise AssertionError(msg)
 

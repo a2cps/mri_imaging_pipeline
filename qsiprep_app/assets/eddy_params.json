@@ -4,7 +4,7 @@
   "dont_peas": false,
   "dont_sep_offs_move": false,
   "fep": false,
-  "flm": "linear",
+  "flm": "quadratic",
   "fudge_factor": 10,
   "interp": "spline",
   "is_shelled": true,

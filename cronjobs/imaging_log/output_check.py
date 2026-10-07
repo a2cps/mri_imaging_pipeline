@@ -26,6 +26,8 @@ APP_STEPS = [
     "mriqc",
     "qsiprep",
     "qsiprep_nodenoise",
+    "qsiprep-v4",
+    "qsiprep_nodenoise-v4",
     "cat12",
     "cat12-v4",
     "brainager",
@@ -648,6 +650,8 @@ def main():
                 scan_report["gift"] = "na"
                 scan_report["qsiprep"] = "na"
                 scan_report["qsiprep_nodenoise"] = "na"
+                scan_report["qsiprep-v4"] = "na"
+                scan_report["qsiprep_nodenoise-v4"] = "na"
                 scan_report["fcn"] = "na"
                 scan_report["signatures"] = "na"
                 scan_report["synthstrip-v4"] = "na"
@@ -658,6 +662,8 @@ def main():
             if scan_report["DWI Indicated"] == "0":
                 scan_report["qsiprep"] = "na"
                 scan_report["qsiprep_nodenoise"] = "na"
+                scan_report["qsiprep-v4"] = "na"
+                scan_report["qsiprep_nodenoise-v4"] = "na"
             if scan_report["qsiprep"] == "na":
                 scan_report["qsirecon_fsl_dtifit"] = "na"
                 scan_report["bedpostx"] = "na"

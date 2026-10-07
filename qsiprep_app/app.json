@@ -1,9 +1,9 @@
 {
-	"containerImage": "docker://a2cps/qsiprep_nodenoise_app:1.0",
-	"version": "1.0",
+	"containerImage": "docker://psadil/qsiprep_app",
+	"version": "4.0",
 	"description": "Run qsiprep",
 	"enabled": true,
-	"id": "qsiprep_nodenoise",
+	"id": "psadil-qsiprep",
 	"jobAttributes": {
 		"archiveOnAppError": false,
 		"cmdPrefix": "ibrun -n 1",
@@ -11,7 +11,7 @@
 		"dynamicExecSystem": false,
 		"execSystemConstraints": null,
 		"execSystemExecDir": "${JobWorkingDir}",
-		"execSystemId": "secure.ls6",
+		"execSystemId": "secure.frontera",
 		"execSystemInputDir": "${JobWorkingDir}",
 		"execSystemLogicalQueue": "corralextra",
 		"execSystemOutputDir": "${JobWorkingDir}",
@@ -82,7 +82,7 @@
 			},
 			"schedulerOptions": [
 				{
-					"arg": "--tapis-profile ls6-mpi",
+					"arg": "--tapis-profile frontera-mpi",
 					"description": "Scheduler profile for HPC clusters at TACC",
 					"inputMode": "FIXED",
 					"name": "TACC Scheduler Profile"

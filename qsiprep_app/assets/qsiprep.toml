@@ -1,0 +1,6 @@
+# passed to qsiprep with --config-file (see entrypoint.py)
+
+# qsiprep >= 26.1 removes node outputs that no downstream node consumes, which
+# deletes the eddy outputs that eddy_quad reads (e.g., .eddy_movement_rms)
+[nipype]
+remove_unnecessary_outputs = false

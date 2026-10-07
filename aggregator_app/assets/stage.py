@@ -88,11 +88,12 @@ def is_qsiprep_aggregated(path: Path, row) -> bool:
     sub = row["subject_id"]
     ses = row["visit"]
     # path names a job (e.g. outroot/qsiprep) rather than a directory that
-    # exists: qsiprep_wf.copy writes sessions to outroot/{job}-{ses} and eddyqc
-    # to outroot/eddyqc[_nodenoise], both siblings of path
-    qsiprep_dir = path.with_name(f"{path.name}-{ses}")
+    # exists: qsiprep_wf.copy writes each session to its own directory (e.g.,
+    # outroot/qsiprep-V1, outroot/qsiprep-V1-v4) and eddyqc to
+    # outroot/eddyqc[_nodenoise][-v4], all siblings of path
+    qsiprep_dir = path.with_name(qsiprep_wf.session_dirname(path.name, ses))
     qsiprep_target = qsiprep_dir / f"sub-{sub}" / f"ses-{ses}"
-    eqc = "eddyqc_nodenoise" if "denoise" in path.name else "eddyqc"
+    eqc = qsiprep_wf.eddyqc_dirname(path.name)
     eddy_target = path.parent / eqc / f"sub-{sub}" / f"ses-{ses}"
     all_ready = (
         qsiprep_target.exists()
@@ -370,6 +371,8 @@ def get_deriv_tocopy(outroot: Path, site_code: str) -> dict[str, list[str]]:
         "synthstrip-v4": is_synthstripv4_aggregated,
         "qsiprep": is_qsiprep_aggregated,
         "qsiprep_nodenoise": is_qsiprep_aggregated,
+        "qsiprep-v4": is_qsiprep_aggregated,
+        "qsiprep_nodenoise-v4": is_qsiprep_aggregated,
         "brainager": is_brainager_aggregated,
         "cat12-v4": is_cat12_aggregated,
         "mriqc": is_mriqc_aggregated,
@@ -499,6 +502,10 @@ def main(
                 qsiprep_wf.copy(inroot=tmp_site, outdir=outroot)
                 qsiprep_wf.copy(
                     inroot=tmp_site, outdir=outroot, job="qsiprep_nodenoise"
+                )
+                qsiprep_wf.copy(inroot=tmp_site, outdir=outroot, job="qsiprep-v4")
+                qsiprep_wf.copy(
+                    inroot=tmp_site, outdir=outroot, job="qsiprep_nodenoise-v4"
                 )
                 qsirecon_fsl_dtifit_wf.copy(
                     inroot=tmp_site, outdir=outroot / "qsirecon_fsl_dtifit"
