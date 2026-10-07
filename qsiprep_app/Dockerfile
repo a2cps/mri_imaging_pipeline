@@ -38,7 +38,7 @@ RUN MAMBA_ROOT_PREFIX=/tmp/micromamba micromamba install -y -p /app/.pixi/envs/q
     && rm -rf /tmp/micromamba
 
 ENV TEMPLATEFLOW_HOME=/opt/templateflow
-RUN /app/.pixi/envs/qsiprep/bin/python -c "\
+RUN /app/.pixi/envs/qsiprep/bin/python -c " \
     from templateflow import api; \
     api.get('MNI152NLin2009cAsym', resolution=1, desc=None, suffix='T1w'); \
     api.get('MNI152NLin2009cAsym', resolution=1, desc='brain', suffix='mask')" \
