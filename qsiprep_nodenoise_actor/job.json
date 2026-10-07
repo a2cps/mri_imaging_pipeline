@@ -23,7 +23,7 @@
                 "name": "MEM_MB"
             },
             {
-                "arg": "--job qsiprep_nodenoise",
+                "arg": "--job qsiprep_nodenoise-v4",
                 "name": "JOB"
             },
             {
@@ -38,7 +38,7 @@
         "envVariables": [
             {
                 "key": "FAILURE_LOG_DST",
-                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep_nodenoise-v4/"
             }
         ]
     },

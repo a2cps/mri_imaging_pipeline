@@ -11,22 +11,26 @@
     "parameterSet": {
         "appArgs": [
             {
-                "arg": "--input-dirs /corral-secure/projects/A2CPS/shared/psadil/jobs/travel-bids/NS_northshore/bids/NStravel1 ",
+                "arg": "--input-dirs /corral-secure/projects/A2CPS/products/mris/NS_northshore/bids/NS11397V1 ",
                 "name": "INPUT_DIRS"
             },
             {
-                "arg": "--n-workers 10",
+                "arg": "--n-workers 9",
                 "name": "N_WORKERS"
             },
             {
-                "arg": "--mem-mb 21333",
+                "arg": "--mem-mb 32000",
                 "name": "MEM_MB"
+            },
+            {
+                "arg": "--job qsiprep-v4",
+                "name": "JOB"
             }
         ],
         "envVariables": [
             {
                 "key": "FAILURE_LOG_DST",
-                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep/"
+                "value": "/corral-secure/projects/A2CPS/products/development/mris/logs/qsiprep-v4/"
             }
         ]
     },
