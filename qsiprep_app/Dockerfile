@@ -38,11 +38,13 @@ RUN MAMBA_ROOT_PREFIX=/tmp/micromamba micromamba install -y -p /app/.pixi/envs/q
     && rm -rf /tmp/micromamba
 
 ENV TEMPLATEFLOW_HOME=/opt/templateflow
-RUN /app/.pixi/envs/qsiprep/bin/python -c "\
-    from templateflow import api; \
-    api.get('MNI152NLin2009cAsym', resolution=1, desc=None, suffix='T1w'); \
-    api.get('MNI152NLin2009cAsym', resolution=1, desc='brain', suffix='mask')" \
-    && chmod -R a+rX ${TEMPLATEFLOW_HOME}
+# heredoc rather than `python -c "\ ..."`: docker keeps the indentation of continued
+# lines, which python rejects (IndentationError: unexpected indent)
+RUN /app/.pixi/envs/qsiprep/bin/python - <<'EOF' && chmod -R a+rX ${TEMPLATEFLOW_HOME}
+from templateflow import api
+api.get('MNI152NLin2009cAsym', resolution=1, desc=None, suffix='T1w')
+api.get('MNI152NLin2009cAsym', resolution=1, desc='brain', suffix='mask')
+EOF
 
 COPY assets/entrypoint.py assets/eddy_params.json assets/qsiprep.toml /opt/qsiprep_app/
 ENV TZ=US/Central
